@@ -1,18 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { TargetKind } from '../src/shared/types';
+import { ItemBuffKind, TargetKind } from '../src/shared/types';
 import { buildBreweryStage3D } from '../src/pc/three/BreweryStage3D';
 import {
   createTargetMesh3D,
+  createItemMesh3D,
   updateTargetAnimation3D,
+  updateItemAnimation3D,
   applyTargetHitFlash3D,
+  getTargetBaseY,
 } from '../src/pc/three/TargetModels3D';
 import { DraftTapGun3D } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
 
-describe('3D Brewery Stage & 6 Target Models', () => {
-  it('should create all 6 procedural 3D target models with correct geometries and userData', () => {
+describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
+  it('should create all 6 procedural 3D target models with correct geometries, drop shadows, and scale', () => {
     const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'mug', 'boss'];
 
     kinds.forEach((kind) => {
@@ -20,6 +23,8 @@ describe('3D Brewery Stage & 6 Target Models', () => {
       expect(mesh).toBeInstanceOf(THREE.Group);
       expect(mesh.userData.kind).toBe(kind);
       expect(mesh.userData.hitRadiusM).toBeGreaterThan(0);
+      expect(mesh.userData.baseScale).toBeGreaterThanOrEqual(1.6);
+      expect(mesh.userData.shadowMesh).toBeInstanceOf(THREE.Mesh);
 
       const inner = mesh.userData.inner as THREE.Group;
       expect(inner).toBeDefined();
@@ -42,6 +47,38 @@ describe('3D Brewery Stage & 6 Target Models', () => {
       updateTargetAnimation3D(mesh, kind, 1.0, 1.0);
       applyTargetHitFlash3D(mesh, 1.0);
       expect(mesh.userData.hitFlashUntilSec).toBeGreaterThan(1.0);
+    });
+  });
+
+  it('should calculate ground vs airborne altitudes with getTargetBaseY', () => {
+    expect(getTargetBaseY('pilgood')).toBe(1.45);
+    expect(getTargetBaseY('caslight')).toBe(1.45);
+    expect(getTargetBaseY('boss')).toBe(1.15);
+    expect(getTargetBaseY('mug')).toBe(0.55);
+    expect(getTargetBaseY('obi')).toBe(0.55);
+    expect(getTargetBaseY('hanmac')).toBe(0.55);
+    expect(getTargetBaseY('pilgood', true)).toBe(1.15); // Items float at 1.15m
+  });
+
+  it('should create 4 pub-themed item 3D models with rotating aura rings and shadows', () => {
+    const itemKinds: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
+
+    itemKinds.forEach((itemKind) => {
+      const itemMesh = createItemMesh3D(itemKind);
+      expect(itemMesh).toBeInstanceOf(THREE.Group);
+      expect(itemMesh.userData.isItem).toBe(true);
+      expect(itemMesh.userData.itemKind).toBe(itemKind);
+      expect(itemMesh.userData.auraRing).toBeInstanceOf(THREE.Mesh);
+      expect(itemMesh.userData.shadowMesh).toBeInstanceOf(THREE.Mesh);
+
+      const inner = itemMesh.userData.inner as THREE.Group;
+      expect(inner.children.length).toBeGreaterThanOrEqual(1);
+
+      // Animation loop should not throw
+      expect(() => {
+        updateItemAnimation3D(itemMesh, itemKind, 1.0);
+        updateItemAnimation3D(itemMesh, itemKind, 2.5);
+      }).not.toThrow();
     });
   });
 
