@@ -1,0 +1,62 @@
+import { describe, it, expect } from 'vitest';
+import {
+  TARGET_SPECS,
+  JUDGMENT_SPECS,
+  FEVER_CONSTANTS,
+  WEAPON_CONSTANTS,
+  STAGE_CONSTANTS,
+} from '../src/shared/constants';
+import { TargetKind } from '../src/shared/types';
+
+describe('Shared Protocol & Constants', () => {
+  it('should define all 6 target specs with correct attributes', () => {
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'mug', 'boss'];
+    kinds.forEach((k) => {
+      expect(TARGET_SPECS[k]).toBeDefined();
+      expect(TARGET_SPECS[k].kind).toBe(k);
+      expect(TARGET_SPECS[k].maxHp).toBeGreaterThan(0);
+      expect(TARGET_SPECS[k].speedMps).toBeGreaterThan(0);
+      expect(TARGET_SPECS[k].hitRadiusM).toBeGreaterThan(0);
+      expect(TARGET_SPECS[k].killBonusScore).toBeGreaterThan(0);
+    });
+
+    // Check specific target specs
+    expect(TARGET_SPECS.pilgood.maxHp).toBe(1);
+    expect(TARGET_SPECS.caslight.maxHp).toBe(1);
+    expect(TARGET_SPECS.obi.maxHp).toBe(2);
+    expect(TARGET_SPECS.hanmac.maxHp).toBe(2);
+    expect(TARGET_SPECS.mug.maxHp).toBe(3);
+    expect(TARGET_SPECS.boss.maxHp).toBe(30);
+    expect(TARGET_SPECS.boss.killBonusScore).toBe(1500);
+  });
+
+  it('should define 3-tier judgment thresholds and scores', () => {
+    expect(JUDGMENT_SPECS.PERFECT.maxErrorRatio).toBe(0.15);
+    expect(JUDGMENT_SPECS.PERFECT.baseScore).toBe(150);
+    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(30);
+
+    expect(JUDGMENT_SPECS.GREAT.maxErrorRatio).toBe(0.45);
+    expect(JUDGMENT_SPECS.GREAT.baseScore).toBe(100);
+    expect(JUDGMENT_SPECS.GREAT.feverDelta).toBe(20);
+
+    expect(JUDGMENT_SPECS.GOOD.maxErrorRatio).toBe(1.00);
+    expect(JUDGMENT_SPECS.GOOD.baseScore).toBe(50);
+    expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(10);
+  });
+
+  it('should enforce fever rules and weapon specs', () => {
+    expect(FEVER_CONSTANTS.MAX_GAUGE).toBe(100);
+    expect(FEVER_CONSTANTS.MISS_PENALTY).toBe(5);
+    expect(FEVER_CONSTANTS.DURATION_MS).toBe(6000);
+    expect(FEVER_CONSTANTS.LOCK_WHEN_FULL).toBe(true);
+
+    expect(WEAPON_CONSTANTS.MAX_AMMO).toBe(10);
+    expect(WEAPON_CONSTANTS.AUTO_RELOAD_MS).toBe(1200);
+    expect(WEAPON_CONSTANTS.RAPID_FIRE_HOLD_MS).toBe(250);
+    expect(WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS).toBe(300);
+    expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(12.0);
+
+    expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(28.0);
+    expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);
+  });
+});

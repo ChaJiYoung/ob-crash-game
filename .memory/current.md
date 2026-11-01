@@ -1,20 +1,16 @@
 # Current Context
 
 ## Active Plan
-<!-- 아래에 현재 진행 중인 Plan 파일 링크 -->
-[기능명](./plans/기능명.md)
+[비어 크러셔 (Beer Crusher) 3D 모션 슈팅 게임 구현](./plans/2026-11-01-beer-crusher.md)
 
 ## Active Phase
-<!-- 아래에 현재 진행 중인 Phase 파일 링크 -->
-[P01 마일스톤명](./phases/기능명/P01-마일스톤명/phase.md)
+[P01 공유 프로토콜 및 WebSocket 세션·랭킹 서버 레이어](./phases/2026-11-01-beer-crusher/P01-backend-and-protocol/phase.md)
 
 ## Active Task
-<!-- 아래에 현재 진행 중인 Task 파일 링크 -->
-[T01 작업명](./phases/기능명/P01-마일스톤명/T01-작업명.md)
+[T02 휴대폰 고유번호(deviceId) 로그인·닉네임·TOP 5 랭킹 저장소 및 WebSocket 세션 서버 구현](./phases/2026-11-01-beer-crusher/P01-backend-and-protocol/T02-player-store-and-ws-server.md)
 
 ## Status
-- 작업 시작 전
+- T01 구현 및 검증 완료, T02 구현 준비
 
 ## Next Step (IMPORTANT)
-<!-- AI가 즉시 착수할 다음 행동 1줄 -->
-Task 청사진을 읽고 구현을 시작하세요.
+T02 청사진을 읽고 `server/PlayerStore.ts`, `server/RoomManager.ts`, `server/wsServer.ts`, `server/index.ts`, `tests/server-session.test.ts` 구현 시작
