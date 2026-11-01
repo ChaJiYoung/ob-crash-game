@@ -1,6 +1,6 @@
 # Task: T01 오비맥주 브루어리 & 네온 펍 3D 스테이지, 6종 타겟 PBR 메쉬, 1인칭 탭건 및 파티클·사운드 구현
 
-## Status: pending
+## Status: done
 
 ## Goal
 외부 무거운 `.glb` 에셋 없이 Three.js 절차적(Procedural) PBR 지오메트리와 동적 캔버스 텍스처로 **오비맥주 브루어리 & 네온 펍 3D 스테이지(`D04`)**, **6종 타겟 3D 메쉬(`D02`, `D03`)**, **1인칭 생맥주 탭건(`DraftTapGun3D`)**, 그리고 **물줄기·거품 파티클 및 Web Audio 사운드 합성기**를 구현합니다.
@@ -82,6 +82,6 @@ Task: T01-brewery-stage-and-pbr-targets
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

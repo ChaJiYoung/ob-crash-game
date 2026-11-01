@@ -7,10 +7,10 @@
 [P02 Three.js 3D 스테이지·타겟 모델링 및 코어 슈팅 엔진 레이어](./phases/2026-11-01-beer-crusher/P02-3d-world-and-game-engine/phase.md)
 
 ## Active Task
-[T01 오비맥주 브루어리 & 네온 펍 3D 스테이지, 6종 타겟 PBR 메쉬, 1인칭 탭건 및 파티클·사운드 구현](./phases/2026-11-01-beer-crusher/P02-3d-world-and-game-engine/T01-brewery-stage-and-pbr-targets.md)
+[T02 부채꼴 시야각 방사형 스폰, 3단계 판정(PERFECT/GREAT/GOOD), 피버 100% 잠금 및 웨이브 엔진 구현](./phases/2026-11-01-beer-crusher/P02-3d-world-and-game-engine/T02-fan-spawner-and-combat-engine.md)
 
 ## Status
-- P01 완료, P02-T01 구현 시작 준비 완료
+- P02-T01 완료, P02-T02 구현 시작 준비
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/pc/three/BreweryStage3D.ts`, `src/pc/three/TargetModels3D.ts`, `src/pc/three/DraftTapGun3D.ts`, `src/pc/three/ParticleEffects3D.ts`, `src/pc/audio/SoundSynthesizer.ts`, `tests/three-stage-and-models.test.ts` 구현 시작
+T02 청사진을 읽고 `src/pc/engine/FanSpawner.ts`, `src/pc/engine/HitJudgment.ts`, `src/pc/engine/ScoreAndFeverManager.ts`, `src/pc/engine/WeaponSystem.ts`, `src/pc/engine/BeerCrusherEngine.ts`, `tests/engine-judgment-and-spawn.test.ts` 구현 시작
