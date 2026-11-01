@@ -9,4 +9,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `planned` | 공식 PNG 기반 실사 3D 빌보드 타겟 구현, 전투 VFX 연동, 스튜디오 동기화 및 스크린샷 갱신 | [P01](../phases/2026-11-02-cass-official-png-billboard/P01-cass-official-png-billboard/phase.md) |
+| P01 | `completed` | 공식 PNG 기반 실사 3D 빌보드 타겟 구현, 전투 VFX 연동, 스튜디오 동기화 및 스크린샷 갱신 | [P01](../phases/2026-11-02-cass-official-png-billboard/P01-cass-official-png-billboard/phase.md) |

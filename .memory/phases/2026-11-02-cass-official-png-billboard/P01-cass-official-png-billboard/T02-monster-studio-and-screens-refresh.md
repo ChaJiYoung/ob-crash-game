@@ -1,7 +1,7 @@
 # Blueprint: T02 - 몬스터 스튜디오 실사 빌보드 동기화 및 도감/인게임 스크린샷 전면 재캡처
 
 ## Status
-`planned`
+`done ✅`
 
 ## Description
 `docs/monster-studio.html`에 새로 구현된 `cass_official_veluga.png` 기반 실사 3D 빌보드 병맥주 모델을 동기화하고,
