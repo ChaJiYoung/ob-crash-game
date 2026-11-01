@@ -12,7 +12,7 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 공유 프로토콜 및 WebSocket 세션·랭킹 서버 레이어 (`D01`, `D08`) | [P01](../phases/2026-11-01-beer-crusher/P01-backend-and-protocol/phase.md) |
-| P02 | `pending` | Three.js 3D 스테이지·타겟 모델링 및 코어 슈팅 엔진 레이어 (`D02`, `D03`, `D04`, `D06`, `D07`, `D09`) | [P02](../phases/2026-11-01-beer-crusher/P02-3d-world-and-game-engine/phase.md) |
+| P01 | `done` | 공유 프로토콜 및 WebSocket 세션·랭킹 서버 레이어 (`D01`, `D08`) | [P01](../phases/2026-11-01-beer-crusher/P01-backend-and-protocol/phase.md) |
+| P02 | `in_progress` | Three.js 3D 스테이지·타겟 모델링 및 코어 슈팅 엔진 레이어 (`D02`, `D03`, `D04`, `D06`, `D07`, `D09`) | [P02](../phases/2026-11-01-beer-crusher/P02-3d-world-and-game-engine/phase.md) |
 | P03 | `pending` | PC 16:9 풀스크린 아케이드 화면 및 모달 UI 레이어 (`D05`, `D08`) | [P03](../phases/2026-11-01-beer-crusher/P03-pc-arcade-display/phase.md) |
 | P04 | `pending` | 스마트폰 권총 그립(`+Y` 총구·화면 좌측) 센서 및 85:15 통합 터치 컨트롤러 레이어 (`D08`, `D09`) | [P04](../phases/2026-11-01-beer-crusher/P04-mobile-gun-grip-controller/phase.md) |
