@@ -256,12 +256,10 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
     const cassTexture = getOrCreateOfficialCassTexture();
     const billboardGeo = new THREE.PlaneGeometry(0.277, 1.02);
-    const billboardMat = new THREE.MeshStandardMaterial({
+    const billboardMat = new THREE.MeshBasicMaterial({
       map: cassTexture,
       transparent: true,
       alphaTest: 0.05,
-      roughness: 0.22,
-      metalness: 0.08,
       side: THREE.DoubleSide,
     });
     const billboardMesh = new THREE.Mesh(billboardGeo, billboardMat);
