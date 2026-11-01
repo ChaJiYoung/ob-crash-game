@@ -1,6 +1,6 @@
 # Task: T01 휴대폰 deviceId 발급, 권총 그립(+Y 총구·+X 상단 스냅) 3D 쿼터니언 센서 및 85% 통합 터치패드 제스처 머신 구현
 
-## Status: pending
+## Status: done
 
 ## Goal
 스마트폰을 실제 권총처럼 쥐었을 때(**휴대폰 윗부분 `+Y`축 = 모니터 총구 방향, 화면 `+Z`축 = 좌측 방향, 우측 긴 모서리 `+X`축 = 천장 방향**) 짐벌락 없이 조준 좌표를 산출하는 3D 쿼터니언 추적기(`GunGripTracker`), `+X`축 상단 스냅 단발 사격 감지기, 그리고 화면 하단 85% 단일 패드에서 **꾹 누르기(`0.25s↑`) = 연사 / 더블탭(`0.3s↓`) = 피버**를 판별하는 제스처 컨트롤러(`UnifiedTouchPadController`)를 구현합니다.
@@ -98,6 +98,6 @@ Task: T01-gun-grip-quaternion-and-touch-sensors
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
