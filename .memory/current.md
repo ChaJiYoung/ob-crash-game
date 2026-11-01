@@ -7,10 +7,10 @@
 [P04 스마트폰 권총 그립(+Y 총구·화면 좌측) 센서 및 85:15 통합 터치 컨트롤러 레이어](./phases/2026-11-01-beer-crusher/P04-mobile-gun-grip-controller/phase.md)
 
 ## Active Task
-[T01 휴대폰 deviceId 발급, 권총 그립(+Y 총구·+X 상단 스냅) 3D 쿼터니언 센서 및 85% 통합 터치패드 제스처 머신 구현](./phases/2026-11-01-beer-crusher/P04-mobile-gun-grip-controller/T01-gun-grip-quaternion-and-touch-sensors.md)
+[T02 모바일 권총 그립 UI(로그인·영점·85:15 패드) 및 App.tsx 전체 라우팅 연결](./phases/2026-11-01-beer-crusher/P04-mobile-gun-grip-controller/T02-mobile-controller-ui-and-app-routing.md)
 
 ## Status
-- P03 완료, P04-T01 구현 시작 준비 완료
+- 전체 4개 Phase 및 8개 Task 구현·검증 완료 (All Plans & Tasks Done)
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/controller/sensors/DeviceIdentity.ts`, `src/controller/sensors/GunGripTracker.ts`, `src/controller/sensors/UnifiedTouchPad.ts`, `src/controller/sensors/HapticFeedback.ts`, `tests/controller-sensors.test.ts` 구현 시작
+전체 프로젝트 빌드 및 최종 Phase P04 리뷰 완료 확인 후 플레이 안내
