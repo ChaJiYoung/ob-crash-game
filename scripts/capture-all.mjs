@@ -68,19 +68,23 @@ async function captureAllStudioAndGame() {
   await page.waitForTimeout(1200);
 
   // Click start as PC to enter game
-  const pcStartBtn = await page.$('button:has-text("혼자 테스트 플레이")');
+  const pcStartBtn = await page.$('button:has-text("스마트폰 없이 PC")');
   if (pcStartBtn) {
     await pcStartBtn.click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
 
-    // Let an item and some targets spawn
+    // Let items and status effects activate so the screenshot showcases the golden gun, frost monsters & lock-on markers
     await page.evaluate(() => {
       if (window.__engine) {
-        window.__engine.spawnItemTarget('wide_scope', performance.now());
-        window.__engine.activateItemBuff('power_shot', performance.now());
+        const now = performance.now();
+        window.__engine.spawnItemTarget('power_shot', now);
+        window.__engine.spawnItemTarget('wide_scope', now);
+        window.__engine.activateItemBuff('power_shot', now);
+        window.__engine.activateItemBuff('wide_scope', now);
+        window.__engine.activateItemBuff('ice_freeze', now);
       }
     });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(screensDir, 'screen-04-pc-gameplay.png') });
     console.log('Captured screen-04-pc-gameplay.png!');
   }

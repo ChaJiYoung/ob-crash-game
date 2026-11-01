@@ -6,6 +6,8 @@ export interface BreweryStageRig {
   root: THREE.Group;
   neonLights: THREE.PointLight[];
   defenseArcMesh: THREE.Mesh;
+  healPulseMesh: THREE.Mesh;
+  triggerHealPulse: () => void;
   updateStageAnimation: (elapsedSec: number, isFeverActive: boolean, dangerAlert: boolean) => void;
 }
 
@@ -79,6 +81,28 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   defenseArcMesh.rotation.z = Math.PI; // Face forward (-Z)
   defenseArcMesh.position.set(0, 0.01, 0);
   root.add(defenseArcMesh);
+
+  // Emerald heal pulse shockwave ring on bar defense line
+  const healPulseGeo = new THREE.RingGeometry(1.72, 1.88, 48, 1, 0, Math.PI);
+  const healPulseMat = new THREE.MeshBasicMaterial({
+    color: 0x10b981,
+    transparent: true,
+    opacity: 0.95,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const healPulseMesh = new THREE.Mesh(healPulseGeo, healPulseMat);
+  healPulseMesh.rotation.x = -Math.PI / 2;
+  healPulseMesh.rotation.z = Math.PI;
+  healPulseMesh.position.set(0, 0.02, 0);
+  healPulseMesh.visible = false;
+  root.add(healPulseMesh);
+
+  let healPulseUntilSec = 0;
+  const triggerHealPulse = () => {
+    healPulseUntilSec = performance.now() / 1000 + 0.5;
+    healPulseMesh.visible = true;
+  };
 
   // Bar Counter curved wall
   const barCounterGeo = new THREE.CylinderGeometry(1.85, 1.85, 1.05, 48, 1, true, 0, Math.PI);
@@ -234,12 +258,27 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
       alertLight.intensity = 0.6;
       (defArcMat as THREE.MeshStandardMaterial).color.setHex(isFeverActive ? 0xffd700 : 0xf59e0b);
     }
+
+    // Emerald heal pulse expansion & fadeout over 0.5s
+    const nowSec = performance.now() / 1000;
+    if (nowSec < healPulseUntilSec) {
+      const progress = 1.0 - (healPulseUntilSec - nowSec) / 0.5; // 0.0 -> 1.0
+      const scale = 1.0 + progress * 0.22; // 1.0 -> 1.22
+      healPulseMesh.scale.set(scale, scale, 1);
+      healPulseMat.opacity = Math.max(0, 0.95 * (1.0 - progress));
+      healPulseMesh.visible = true;
+    } else {
+      healPulseMesh.visible = false;
+      healPulseMesh.scale.set(1, 1, 1);
+    }
   };
 
   return {
     root,
     neonLights,
     defenseArcMesh,
+    healPulseMesh,
+    triggerHealPulse,
     updateStageAnimation,
   };
 }

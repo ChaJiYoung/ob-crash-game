@@ -1,6 +1,6 @@
 # Task: T02 아이스프리즈 몬스터 서리 결빙 쉐이더·빅스코프 록온 마커·바수리 에메랄드 방어선 치유 펄스 구현 및 검증
 
-## Status: pending
+## Status: done
 
 ## Goal
 아이스 프리즈 활성 시 전장의 모든 몬스터에게 푸른 서리 결빙 틴트와 냉기 이펙트를 씌우고, 빅 스코프 활성 시 몬스터 상단에 록온 마커를 표시하며, 바 수리 획득 시 1.8m 바 카운터 방어선에 에메랄드빛 치유 펄스 파동이 확산되도록 구현하고, 전체 테스트 및 빌드를 검증한다.
@@ -86,10 +86,10 @@
     `engine.activeTargets.forEach((t) => updateTargetAnimation3D(mesh, t.kind, time / 1000, t.hp / t.maxHp, { isIceFreeze, isWideScope }))`
 
 ## Acceptance Criteria
-- [ ] 아이스 프리즈 활성 시 몬스터 몸체에 서리 틴트 및 발밑 얼음 링이 표시되고, 비활성 시 정상 복구된다.
-- [ ] 빅 스코프 활성 시 몬스터 머리 위에 회전하는 록온 마커가 표시된다.
-- [ ] 바 수리 아이템 획득 시 1.8m 바 카운터 방어선에 에메랄드빛 치유 펄스가 팽창하며 번쩍인다.
-- [ ] 전체 테스트(`npm test`) 및 번들 빌드(`npm run build`)가 성공한다.
+- [x] 아이스 프리즈 활성 시 몬스터 몸체에 서리 틴트 및 발밑 얼음 링이 표시되고, 비활성 시 정상 복구된다.
+- [x] 빅 스코프 활성 시 몬스터 머리 위에 회전하는 록온 마커가 표시된다.
+- [x] 바 수리 아이템 획득 시 1.8m 바 카운터 방어선에 에메랄드빛 치유 펄스가 팽창하며 번쩍인다.
+- [x] 전체 테스트(`npm test`) 및 번들 빌드(`npm run build`)가 성공한다.
 
 ## Validation
 - `npm test && npm run build` — 32개 이상 모든 테스트 통과 및 프로덕션 빌드 성공.
@@ -109,6 +109,6 @@ Task: T02-monster-frost-and-bar-heal-pulse
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

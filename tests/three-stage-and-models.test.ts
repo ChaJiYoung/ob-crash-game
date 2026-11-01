@@ -47,6 +47,24 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       updateTargetAnimation3D(mesh, kind, 1.0, 1.0);
       applyTargetHitFlash3D(mesh, 1.0);
       expect(mesh.userData.hitFlashUntilSec).toBeGreaterThan(1.0);
+
+      // Verify frost overlay and lock-on marker status effects
+      expect(mesh.userData.frostRing).toBeInstanceOf(THREE.Mesh);
+      expect(mesh.userData.lockOnMarker).toBeInstanceOf(THREE.Mesh);
+
+      // Inactive by default
+      expect((mesh.userData.frostRing as THREE.Mesh).visible).toBe(false);
+      expect((mesh.userData.lockOnMarker as THREE.Mesh).visible).toBe(false);
+
+      // Activate ice_freeze & wide_scope
+      updateTargetAnimation3D(mesh, kind, 1.5, 1.0, { isIceFreeze: true, isWideScope: true });
+      expect((mesh.userData.frostRing as THREE.Mesh).visible).toBe(true);
+      expect((mesh.userData.lockOnMarker as THREE.Mesh).visible).toBe(true);
+
+      // Deactivate
+      updateTargetAnimation3D(mesh, kind, 2.0, 1.0, { isIceFreeze: false, isWideScope: false });
+      expect((mesh.userData.frostRing as THREE.Mesh).visible).toBe(false);
+      expect((mesh.userData.lockOnMarker as THREE.Mesh).visible).toBe(false);
     });
   });
 
@@ -82,19 +100,27 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     });
   });
 
-  it('should build BreweryStage3D rig with 1.8m defense arc and neon pub lights', () => {
+  it('should build BreweryStage3D rig with 1.8m defense arc, heal pulse mesh, and neon pub lights', () => {
     const scene = new THREE.Scene();
     const rig = buildBreweryStage3D(scene);
 
     expect(rig.root).toBeInstanceOf(THREE.Group);
     expect(rig.defenseArcMesh).toBeInstanceOf(THREE.Mesh);
+    expect(rig.healPulseMesh).toBeInstanceOf(THREE.Mesh);
     expect(rig.neonLights.length).toBeGreaterThanOrEqual(3);
 
-    // Test stage animation update
-    expect(() => {
-      rig.updateStageAnimation(1.0, false, false);
-      rig.updateStageAnimation(2.0, true, true);
-    }).not.toThrow();
+    // Initial state: heal pulse invisible
+    expect(rig.healPulseMesh.visible).toBe(false);
+
+    // Trigger heal pulse
+    rig.triggerHealPulse();
+    expect(rig.healPulseMesh.visible).toBe(true);
+
+    // Test stage animation update with heal pulse active
+    rig.updateStageAnimation(1.0, false, false);
+    expect(rig.healPulseMesh.scale.x).toBeGreaterThanOrEqual(1.0);
+
+    rig.updateStageAnimation(2.0, true, true);
   });
 
   it('should handle DraftTapGun3D recoil and aim updates', () => {

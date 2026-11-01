@@ -58,6 +58,7 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const tapGunRef = useRef<DraftTapGun3D | null>(null);
   const particlesRef = useRef<ParticleEffects3D | null>(null);
+  const stageRigRef = useRef<BreweryStageRig | null>(null);
   const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
 
   // Trigger 3D visual FX (tracer beam, recoil, hit flash, particles) for ANY shot
@@ -65,6 +66,11 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
     if (!lastShootResult || lastShootResult.key === 0) return;
     const { result } = lastShootResult;
     if (!result.fired) return;
+
+    // Trigger defense line heal shockwave pulse if bar repair item was activated
+    if (result.activatedItem === 'bar_repair' && stageRigRef.current) {
+      stageRigRef.current.triggerHealPulse();
+    }
 
     const isFever = engine.scoreManager.getState().isFeverActive;
     const isPower = engine.isBuffActive('power_shot');
@@ -165,6 +171,7 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
 
     // 2. Add Brewery Stage, Gun, and Particle pool
     const stageRig: BreweryStageRig = buildBreweryStage3D(scene);
+    stageRigRef.current = stageRig;
     const tapGun = new DraftTapGun3D();
     tapGunRef.current = tapGun;
     camera.add(tapGun.group);
@@ -282,7 +289,12 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
         } else {
           // Face player yaw
           mesh.rotation.y = Math.atan2(-target.x, -target.z);
-          updateTargetAnimation3D(mesh, target.kind, time / 1000, target.hp / target.maxHp);
+          const isIceFreeze = engine.isBuffActive('ice_freeze', time);
+          const isWideScope = engine.isBuffActive('wide_scope', time);
+          updateTargetAnimation3D(mesh, target.kind, time / 1000, target.hp / target.maxHp, {
+            isIceFreeze,
+            isWideScope,
+          });
         }
       });
 

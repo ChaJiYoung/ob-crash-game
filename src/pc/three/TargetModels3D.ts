@@ -390,12 +390,61 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     }
   }
 
+  // Holographic Lock-on Targeting Marker on top (+0.9m)
+  const lockOnGeo = new THREE.TorusGeometry(0.35, 0.02, 8, 24);
+  lockOnGeo.rotateX(Math.PI / 2);
+  const lockOnMat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+  });
+  const lockOnMarker = new THREE.Mesh(lockOnGeo, lockOnMat);
+  lockOnMarker.position.set(0, 0.9, 0);
+  lockOnMarker.visible = false;
+  root.add(lockOnMarker);
+
+  // Frost freeze ice ring at monster ground level
+  const frostRingGeo = new THREE.RingGeometry(spec.hitRadiusM * 0.75, spec.hitRadiusM * 1.15, 24);
+  frostRingGeo.rotateX(-Math.PI / 2);
+  const frostRingMat = new THREE.MeshBasicMaterial({
+    color: 0x60a5fa,
+    transparent: true,
+    opacity: 0.65,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const frostRing = new THREE.Mesh(frostRingGeo, frostRingMat);
+  frostRing.position.set(0, 0.025, 0);
+  frostRing.visible = false;
+  root.add(frostRing);
+
+  // Collect monster body materials for frost tinting
+  const bodyMaterials: { mat: THREE.MeshStandardMaterial; origColor: THREE.Color }[] = [];
+  inner.traverse((obj) => {
+    const m = obj as THREE.Mesh;
+    if (m.isMesh && m.material) {
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      mats.forEach((mat) => {
+        if ('color' in mat && (mat as THREE.MeshStandardMaterial).color instanceof THREE.Color) {
+          bodyMaterials.push({
+            mat: mat as THREE.MeshStandardMaterial,
+            origColor: (mat as THREE.MeshStandardMaterial).color.clone(),
+          });
+        }
+      });
+    }
+  });
+
   root.userData = {
     kind,
     hitRadiusM: spec.hitRadiusM,
     inner,
     wings,
     shadowMesh,
+    lockOnMarker,
+    frostRing,
+    bodyMaterials,
     baseScale,
     hitFlashUntilSec: 0,
   };
@@ -531,11 +580,17 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
   return root;
 }
 
+export interface TargetAnimationOptions {
+  isIceFreeze?: boolean;
+  isWideScope?: boolean;
+}
+
 export function updateTargetAnimation3D(
   root: THREE.Group,
   kind: TargetKind,
   elapsedSec: number,
-  hpRatio: number
+  hpRatio: number,
+  options?: TargetAnimationOptions
 ): void {
   const inner = root.userData.inner as THREE.Group | undefined;
   if (!inner) return;
@@ -543,6 +598,47 @@ export function updateTargetAnimation3D(
   const shadowMesh = root.userData.shadowMesh as THREE.Mesh | undefined;
   if (shadowMesh) {
     shadowMesh.position.y = -root.position.y + 0.02;
+  }
+
+  const isIceFreeze = Boolean(options?.isIceFreeze);
+  const isWideScope = Boolean(options?.isWideScope);
+
+  // 1. Ice freeze ground ring
+  const frostRing = root.userData.frostRing as THREE.Mesh | undefined;
+  if (frostRing) {
+    frostRing.visible = isIceFreeze;
+    if (shadowMesh) {
+      frostRing.position.y = shadowMesh.position.y + 0.005;
+    }
+    if (isIceFreeze) {
+      frostRing.rotation.z = elapsedSec * 2.0;
+    }
+  }
+
+  // 2. Wide scope lock-on holographic marker (exclude boss if desired or show above all)
+  const lockOnMarker = root.userData.lockOnMarker as THREE.Mesh | undefined;
+  if (lockOnMarker) {
+    lockOnMarker.visible = isWideScope;
+    if (isWideScope) {
+      lockOnMarker.rotation.z = elapsedSec * 3.0;
+      const pulse = 1.0 + Math.sin(elapsedSec * 6.0) * 0.08;
+      lockOnMarker.scale.set(pulse, pulse, pulse);
+    }
+  }
+
+  // 3. Body frost tint (lerp smoothly to ice blue and restore cleanly)
+  const bodyMaterials = root.userData.bodyMaterials as
+    | { mat: THREE.MeshStandardMaterial; origColor: THREE.Color }[]
+    | undefined;
+  if (bodyMaterials) {
+    const frostColor = new THREE.Color(0x93c5fd);
+    bodyMaterials.forEach(({ mat, origColor }) => {
+      if (isIceFreeze) {
+        mat.color.copy(origColor).lerp(frostColor, 0.65);
+      } else {
+        mat.color.copy(origColor);
+      }
+    });
   }
 
   const isGround = kind === 'mug' || kind === 'obi' || kind === 'hanmac' || kind === 'boss';
