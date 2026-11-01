@@ -42,7 +42,7 @@ export type ClientToServerMessage =
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number };
 
 export type ServerToClientMessage =
-  | { type: 'ROOM_CREATED'; roomId: string; rankings: PlayerProfile[] }
+  | { type: 'ROOM_CREATED'; roomId: string; rankings: PlayerProfile[]; lanIp?: string }
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: PlayerProfile[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string }

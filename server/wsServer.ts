@@ -1,4 +1,5 @@
 import http from 'node:http';
+import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
 import { RoomManager } from './RoomManager';
@@ -11,6 +12,22 @@ export interface BeerCrusherServerInstance {
   playerStore: PlayerStore;
   roomManager: RoomManager;
   close: () => Promise<void>;
+}
+
+export function getLanIpAddress(): string | undefined {
+  const ifaces = os.networkInterfaces();
+  for (const name of Object.keys(ifaces)) {
+    const list = ifaces[name];
+    if (!list) continue;
+    for (const net of list) {
+      if (net.family === 'IPv4' && !net.internal) {
+        if (net.address.startsWith('192.168.') || net.address.startsWith('172.') || net.address.startsWith('10.')) {
+          return net.address;
+        }
+      }
+    }
+  }
+  return undefined;
 }
 
 export function sendJson(ws: WebSocket | undefined, message: ServerToClientMessage): void {
@@ -63,6 +80,7 @@ export async function createBeerCrusherServer(options?: {
               type: 'ROOM_CREATED',
               roomId: session.roomId,
               rankings: playerStore.getTopRankings(5),
+              lanIp: getLanIpAddress(),
             });
             break;
           }

@@ -16,6 +16,7 @@ export const PCGamePage: React.FC = () => {
 
   const [gamePhase, setGamePhase] = useState<GamePhase>('PAIRING');
   const [roomId, setRoomId] = useState<string>('');
+  const [lanIp, setLanIp] = useState<string>('');
   const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
   const [topRankings, setTopRankings] = useState<PlayerProfile[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
@@ -91,6 +92,7 @@ export const PCGamePage: React.FC = () => {
           case 'ROOM_CREATED':
             setRoomId(msg.roomId);
             if (msg.rankings) setTopRankings(msg.rankings);
+            if (msg.lanIp) setLanIp(msg.lanIp);
             break;
 
           case 'CONTROLLER_PAIRED':
@@ -262,6 +264,7 @@ export const PCGamePage: React.FC = () => {
       {(gamePhase === 'PAIRING' || gamePhase === 'ZEROING') && (
         <QRPairingModal
           roomId={roomId}
+          lanIp={lanIp}
           pairedPlayer={pairedPlayer}
           topRankings={topRankings}
           onStartAsPc={handleStartGame}

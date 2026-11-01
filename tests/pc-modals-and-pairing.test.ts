@@ -13,6 +13,13 @@ describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
     expect(buildControllerPairingUrl('https://beer.example.com///', 'Z999')).toBe(
       'https://beer.example.com/controller?room=Z999'
     );
+    // LAN IP substitution for mobile QR scanning
+    expect(buildControllerPairingUrl('https://localhost:5173', 'ROOM1', '172.30.1.31')).toBe(
+      'https://172.30.1.31:5173/controller?room=ROOM1'
+    );
+    expect(buildControllerPairingUrl('https://127.0.0.1:5173/', 'ROOM2', '192.168.1.10')).toBe(
+      'https://192.168.1.10:5173/controller?room=ROOM2'
+    );
   });
 
   it('should identify player record status in rankings', () => {

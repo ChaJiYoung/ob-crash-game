@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { PlayerProfile } from '../../shared/types';
 
-export function buildControllerPairingUrl(origin: string, roomId: string): string {
-  const cleanOrigin = origin.replace(/\/+$/, '');
+export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string): string {
+  let cleanOrigin = origin.replace(/\/+$/, '');
+  if (lanIp) {
+    cleanOrigin = cleanOrigin.replace(/localhost|127\.0\.0\.1/, lanIp);
+  }
   return `${cleanOrigin}/controller?room=${encodeURIComponent(roomId)}`;
 }
 
 export interface QRPairingModalProps {
   roomId: string;
+  lanIp?: string;
   pairedPlayer?: PlayerProfile;
   topRankings: PlayerProfile[];
   onStartAsPc: () => void;
@@ -17,22 +21,25 @@ export interface QRPairingModalProps {
 
 export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   roomId,
+  lanIp,
   pairedPlayer,
   topRankings,
   onStartAsPc,
   onStartWithController,
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [pairingUrl, setPairingUrl] = useState<string>('');
 
   useEffect(() => {
     if (!roomId) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-    const pairingUrl = buildControllerPairingUrl(origin, roomId);
+    const url = buildControllerPairingUrl(origin, roomId, lanIp);
+    setPairingUrl(url);
 
-    QRCode.toDataURL(pairingUrl, { width: 220, margin: 1 })
-      .then((url) => setQrDataUrl(url))
+    QRCode.toDataURL(url, { width: 220, margin: 1 })
+      .then((dataUrl) => setQrDataUrl(dataUrl))
       .catch((err) => console.error('Failed to generate QR code', err));
-  }, [roomId]);
+  }, [roomId, lanIp]);
 
   return (
     <div
@@ -132,6 +139,22 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                 }}
               >
                 QR 생성 중...
+              </div>
+            )}
+
+            {pairingUrl && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  fontSize: '11px',
+                  color: '#94a3b8',
+                  textAlign: 'center',
+                  wordBreak: 'break-all',
+                  maxWidth: '240px',
+                  lineHeight: 1.4,
+                }}
+              >
+                직접 접속: <span style={{ color: '#38bdf8', fontWeight: 600 }}>{pairingUrl}</span>
               </div>
             )}
 
