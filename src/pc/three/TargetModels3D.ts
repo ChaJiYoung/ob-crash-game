@@ -161,10 +161,10 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     const glassMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.55,
-      transmission: 0.88,
+      opacity: 0.50,
+      transmission: 0.90,
       ior: 1.52,
-      roughness: 0.05,
+      roughness: 0.04,
       metalness: 0.05,
       clearcoat: 1.0,
       clearcoatRoughness: 0.04,
@@ -181,15 +181,15 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     glassBody.position.y = 0.26;
     inner.add(glassBody);
 
-    // Dynamic Cass Fresh Label mapped cylinder
+    // Dynamic Cass Fresh Photorealistic Label mapped cylinder
     const labelTexture = getOrCreateTargetLabelTexture('bottle');
     const labelMat = new THREE.MeshStandardMaterial({
       map: labelTexture,
-      roughness: 0.35,
+      roughness: 0.32,
       metalness: 0.1,
     });
-    const labelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.282, 0.282, 0.30, 24), labelMat);
-    labelMesh.position.y = 0.24;
+    const labelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.283, 0.283, 0.32, 24), labelMat);
+    labelMesh.position.y = 0.25;
     inner.add(labelMesh);
 
     // Tapered glass shoulder
@@ -202,11 +202,34 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     neck.position.y = 0.83;
     inner.add(neck);
 
+    // Realistic neck collar label
+    const neckLabelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.113, 0.113, 0.11, 24), labelMat);
+    neckLabelMesh.position.y = 0.81;
+    neckLabelMesh.name = 'neckLabel';
+    inner.add(neckLabelMesh);
+
     // Bottle mouth lip rim
     const lip = new THREE.Mesh(new THREE.TorusGeometry(0.108, 0.016, 8, 24), glassMat);
     lip.rotation.x = Math.PI / 2;
     lip.position.y = 0.96;
     inner.add(lip);
+
+    // Surface condensation water droplets (10 beads)
+    const dropMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.82,
+      roughness: 0.04,
+      ior: 1.33,
+    });
+    for (let i = 0; i < 10; i++) {
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), dropMat);
+      const angle = (i * Math.PI) / 5;
+      const rDrop = i > 6 ? 0.114 : 0.284;
+      const yDrop = i > 6 ? 0.76 + (i - 7) * 0.07 : 0.14 + i * 0.05;
+      drop.position.set(Math.cos(angle) * rDrop, yDrop, Math.sin(angle) * rDrop);
+      inner.add(drop);
+    }
 
     // Inner golden beer liquid (body & neck levels)
     const bodyLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.48, 24), liquidMat);

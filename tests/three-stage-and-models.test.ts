@@ -31,11 +31,15 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       expect(inner.children.length).toBeGreaterThanOrEqual(3);
 
       if (kind === 'bottle') {
-        // Must contain silver crownCap
+        // Must contain silver crownCap and neckLabel
         const hasCrownCap = inner.children.some(
           (c) => (c as THREE.Mesh).name === 'crownCap'
         );
         expect(hasCrownCap).toBe(true);
+        const hasNeckLabel = inner.children.some(
+          (c) => (c as THREE.Mesh).name === 'neckLabel'
+        );
+        expect(hasNeckLabel).toBe(true);
       }
 
       if (kind === 'boss') {

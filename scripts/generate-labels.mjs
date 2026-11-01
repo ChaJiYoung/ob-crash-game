@@ -483,104 +483,159 @@ async function generateLabels() {
     },
     {
       name: 'bottle',
-      renderFn: () => {
+      renderFn: async ({ cassLogoBase64 }) => {
         const cv = document.getElementById('cv');
         const ctx = cv.getContext('2d');
 
-        // Deep blue rich metallic gradient
+        // Deep blue rich metallic gradient (All New Cass Signature Deep Blue)
         const grad = ctx.createLinearGradient(0, 0, 1024, 0);
-        grad.addColorStop(0, '#001e42');
-        grad.addColorStop(0.2, '#003366');
-        grad.addColorStop(0.5, '#005a9c');
-        grad.addColorStop(0.8, '#003366');
-        grad.addColorStop(1, '#001e42');
+        grad.addColorStop(0, '#00142e');
+        grad.addColorStop(0.18, '#002855');
+        grad.addColorStop(0.5, '#00529b');
+        grad.addColorStop(0.82, '#002855');
+        grad.addColorStop(1, '#00142e');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 1024, 512);
 
-        // Silver / chrome top and bottom borders
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(0, 0, 1024, 32);
-        ctx.fillRect(0, 480, 1024, 32);
+        // Radiant cold brew waterfall stream lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 48; i++) {
+          const x = i * 22;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x + 10, 512);
+          ctx.stroke();
+        }
 
+        // Realistic condensation droplets on clear glass surface
+        for (let i = 0; i < 110; i++) {
+          const dx = (i * 37 + 19) % 1024;
+          const dy = (i * 71 + 31) % 512;
+          const dr = 2 + (i % 5);
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.beginPath();
+          ctx.arc(dx, dy, dr, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+          ctx.beginPath();
+          ctx.arc(dx + 1, dy + 1, dr * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(dx - dr * 0.3, dy - dr * 0.3, dr * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Top mini neck label strip (for neck wrapping)
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(0, 12, 1024, 38);
         ctx.fillStyle = '#002855';
-        ctx.font = 'bold 16px sans-serif';
+        ctx.font = '900 18px "Arial Black", Impact, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('COLD BREWED FRESH BEER · ALL NEW CASS · MASTER BREWED IN KOREA', 512, 22);
-        ctx.fillText('500ml · ALC 4.5% · SERVE EXTRA COLD AT 0°C ~ 4°C', 512, 502);
+        ctx.fillText('★ COLD BREWED · ALL NEW CASS FRESH · KOREA NO.1 ★', 512, 36);
+
+        // Silver chrome bottom border
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(0, 474, 1024, 38);
+        ctx.fillStyle = '#002855';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText('500ml · ALC 4.5% · SERVE EXTRA COLD AT 0°C ~ 4°C · 100% NON-PASTEURIZED LAGER', 512, 498);
 
         // Dynamic ice angular chevron wings
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
         ctx.beginPath();
-        ctx.moveTo(180, 256);
-        ctx.lineTo(280, 120);
-        ctx.lineTo(340, 120);
-        ctx.lineTo(240, 256);
-        ctx.lineTo(340, 392);
-        ctx.lineTo(280, 392);
+        ctx.moveTo(140, 260);
+        ctx.lineTo(260, 100);
+        ctx.lineTo(340, 100);
+        ctx.lineTo(220, 260);
+        ctx.lineTo(340, 420);
+        ctx.lineTo(260, 420);
         ctx.closePath();
         ctx.fill();
 
         ctx.beginPath();
-        ctx.moveTo(844, 256);
-        ctx.lineTo(744, 120);
-        ctx.lineTo(684, 120);
-        ctx.lineTo(784, 256);
-        ctx.lineTo(684, 392);
-        ctx.lineTo(744, 392);
+        ctx.moveTo(884, 260);
+        ctx.lineTo(764, 100);
+        ctx.lineTo(684, 100);
+        ctx.lineTo(804, 260);
+        ctx.lineTo(684, 420);
+        ctx.lineTo(764, 420);
         ctx.closePath();
         ctx.fill();
 
         // Central diamond crest shield
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.moveTo(512, 70);
-        ctx.lineTo(680, 230);
-        ctx.lineTo(512, 430);
-        ctx.lineTo(344, 230);
+        ctx.moveTo(512, 60);
+        ctx.lineTo(720, 240);
+        ctx.lineTo(512, 450);
+        ctx.lineTo(304, 240);
         ctx.closePath();
         ctx.fill();
 
-        ctx.fillStyle = '#003366';
+        ctx.fillStyle = '#002855';
         ctx.beginPath();
-        ctx.moveTo(512, 85);
-        ctx.lineTo(665, 230);
-        ctx.lineTo(512, 415);
-        ctx.lineTo(359, 230);
+        ctx.moveTo(512, 75);
+        ctx.lineTo(705, 240);
+        ctx.lineTo(512, 435);
+        ctx.lineTo(319, 240);
         ctx.closePath();
         ctx.fill();
 
-        // CASS Bold typography
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 110px "Arial Black", Impact, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.shadowColor = '#001830';
-        ctx.shadowBlur = 12;
-        ctx.shadowOffsetX = 3;
-        ctx.shadowOffsetY = 5;
-        ctx.fillText('Cass', 512, 240);
-        ctx.shadowColor = 'transparent';
+        // Render official real Cass logo if available
+        if (cassLogoBase64) {
+          await new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 342, 110, 340, 170);
+              resolve();
+            };
+            img.onerror = resolve;
+            img.src = cassLogoBase64;
+          });
+        } else {
+          // Fallback high-contrast typography
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '900 120px "Arial Black", Impact, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.shadowColor = '#001830';
+          ctx.shadowBlur = 14;
+          ctx.shadowOffsetX = 3;
+          ctx.shadowOffsetY = 5;
+          ctx.fillText('Cass', 512, 235);
+          ctx.shadowColor = 'transparent';
+        }
 
-        // FRESH sub banner
+        // FRESH dynamic ice banner
         ctx.fillStyle = '#38bdf8';
-        ctx.font = '900 42px "Arial Black", Impact, sans-serif';
-        ctx.fillText('FRESH', 512, 305);
+        ctx.font = '900 48px "Arial Black", Impact, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('FRESH', 512, 310);
 
-        // Subtext and silver stars
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = 'bold 20px sans-serif';
-        ctx.fillText('★ 100% NON-PASTEURIZED LAGER ★', 512, 350);
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillText('★ COLD BREWED LAGER ★', 512, 355);
 
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#cbd5e1';
         ctx.font = 'bold 16px sans-serif';
-        ctx.fillText('NATURAL CARBONATION · EXTRA COLD FILTERED', 512, 385);
+        ctx.fillText('EXTRA COLD FILTERED · MASTER BREWED IN SEOUL', 512, 395);
       }
     }
   ];
 
   await page.setContent(`<!DOCTYPE html><html><body style="margin:0; overflow:hidden;"><canvas id="cv" width="1024" height="512"></canvas></body></html>`);
 
+  const cassLogoPath = path.join(process.cwd(), 'scripts/assets/cass_logo.png');
+  const cassLogoBase64 = fs.existsSync(cassLogoPath)
+    ? `data:image/png;base64,${fs.readFileSync(cassLogoPath).toString('base64')}`
+    : null;
+
   for (const cfg of labelConfigs) {
-    await page.evaluate(cfg.renderFn);
+    await page.evaluate(cfg.renderFn, { cassLogoBase64 });
     const canvasHandle = await page.$('#cv');
     const outPath = path.join(process.cwd(), 'public/textures/labels', `${cfg.name}.jpg`);
     await canvasHandle.screenshot({ path: outPath, type: 'jpeg', quality: 95 });
