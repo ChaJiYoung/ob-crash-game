@@ -1,6 +1,6 @@
 # Task: T02 QR 페어링·실시간 닉네임 환영·PC 단독 시작 모달, TOP 5 결과 모달 및 PCGamePage 통합
 
-## Status: pending
+## Status: done
 
 ## Goal
 대기 중인 3D 브루어리 배경 위에 블러 오버레이로 뜨는 **QR 페어링 & 로그인 대기 모달(`QRPairingModal`)**과 게임 종료 시 최고 점수 갱신 여부 및 **TOP 5 명예의 전당을 보여주는 결과 모달(`ResultRankingModal`)**을 구현하고, WebSocket 세션 및 PC 마우스/키보드 즉시 시작 모드를 `PCGamePage.tsx`에 통합합니다.
@@ -62,6 +62,6 @@ Task: T02-qr-pairing-and-result-modals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
