@@ -87,8 +87,11 @@ describe('PlayerStore & WebSocket Server', () => {
     serverInstance = await createBeerCrusherServer({ port: 0, storePath: testStorePath });
     const wsUrl = `ws://localhost:${serverInstance.port}`;
 
-    // Helper to wait for specific message type
-    function waitForMessage<T extends ServerToClientMessage>(ws: WebSocket, type: T['type']): Promise<T> {
+    // Helper to wait for specific message type using exact union extraction
+    function waitForMessage<K extends ServerToClientMessage['type']>(
+      ws: WebSocket,
+      type: K
+    ): Promise<Extract<ServerToClientMessage, { type: K }>> {
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error(`Timeout waiting for message type: ${type}`));
@@ -100,7 +103,7 @@ describe('PlayerStore & WebSocket Server', () => {
             if (parsed.type === type) {
               clearTimeout(timeout);
               ws.off('message', listener);
-              resolve(parsed as T);
+              resolve(parsed as Extract<ServerToClientMessage, { type: K }>);
             }
           } catch {
             // ignore non-json
@@ -115,7 +118,7 @@ describe('PlayerStore & WebSocket Server', () => {
     await new Promise((res) => pcWs.on('open', res));
 
     pcWs.send(JSON.stringify({ type: 'CREATE_ROOM' }));
-    const roomCreated = await waitForMessage<{ type: 'ROOM_CREATED'; roomId: string }>(pcWs, 'ROOM_CREATED');
+    const roomCreated = await waitForMessage(pcWs, 'ROOM_CREATED');
     expect(roomCreated.roomId).toHaveLength(4);
     const roomId = roomCreated.roomId;
 
@@ -124,14 +127,11 @@ describe('PlayerStore & WebSocket Server', () => {
     await new Promise((res) => mobileWs.on('open', res));
 
     mobileWs.send(JSON.stringify({ type: 'DEVICE_CHECK', roomId, deviceId: 'phone-xyz-123' }));
-    const auth1 = await waitForMessage<{ type: 'AUTH_RESULT'; isNewUser: boolean }>(mobileWs, 'AUTH_RESULT');
+    const auth1 = await waitForMessage(mobileWs, 'AUTH_RESULT');
     expect(auth1.isNewUser).toBe(true);
 
     // 3. Mobile registers nickname
-    const pairedPromise = waitForMessage<{ type: 'CONTROLLER_PAIRED'; player: { nickname: string } }>(
-      pcWs,
-      'CONTROLLER_PAIRED'
-    );
+    const pairedPromise = waitForMessage(pcWs, 'CONTROLLER_PAIRED');
     mobileWs.send(
       JSON.stringify({
         type: 'REGISTER_NICKNAME',
@@ -140,10 +140,7 @@ describe('PlayerStore & WebSocket Server', () => {
         nickname: '치맥러버',
       })
     );
-    const auth2 = await waitForMessage<{ type: 'AUTH_RESULT'; isNewUser: boolean; player: { nickname: string } }>(
-      mobileWs,
-      'AUTH_RESULT'
-    );
+    const auth2 = await waitForMessage(mobileWs, 'AUTH_RESULT');
     expect(auth2.isNewUser).toBe(false);
     expect(auth2.player?.nickname).toBe('치맥러버');
 
@@ -151,16 +148,13 @@ describe('PlayerStore & WebSocket Server', () => {
     expect(pairedMsg.player.nickname).toBe('치맥러버');
 
     // 4. Zero calibration relay
-    const zeroPromise = waitForMessage<{ type: 'ZERO_CALIBRATED'; deviceId: string }>(pcWs, 'ZERO_CALIBRATED');
+    const zeroPromise = waitForMessage(pcWs, 'ZERO_CALIBRATED');
     mobileWs.send(JSON.stringify({ type: 'CALIBRATE_ZERO', roomId, deviceId: 'phone-xyz-123' }));
     const zeroMsg = await zeroPromise;
     expect(zeroMsg.deviceId).toBe('phone-xyz-123');
 
     // 5. Sensor frame relay
-    const sensorPromise = waitForMessage<{
-      type: 'SENSOR_RELAY';
-      payload: { aimX: number; aimY: number; snapFire: boolean };
-    }>(pcWs, 'SENSOR_RELAY');
+    const sensorPromise = waitForMessage(pcWs, 'SENSOR_RELAY');
 
     mobileWs.send(
       JSON.stringify({
@@ -186,10 +180,7 @@ describe('PlayerStore & WebSocket Server', () => {
     expect(relayMsg.payload.snapFire).toBe(true);
 
     // 6. Submit score and receive updated rankings
-    const rankingPromise = waitForMessage<{ type: 'RANKING_UPDATED'; updatedPlayer: { bestScore: number } }>(
-      pcWs,
-      'RANKING_UPDATED'
-    );
+    const rankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
     mobileWs.send(
       JSON.stringify({
         type: 'GAME_SCORE_SUBMIT',
@@ -201,9 +192,14 @@ describe('PlayerStore & WebSocket Server', () => {
       })
     );
     const rankingMsg = await rankingPromise;
-    expect(rankingMsg.updatedPlayer.bestScore).toBe(6400);
+    expect(rankingMsg.updatedPlayer?.bestScore).toBe(6400);
+
+    // 7. Verify disconnect notification when controller closes
+    const disconnectPromise = waitForMessage(pcWs, 'ERROR');
+    mobileWs.close();
+    const disconnectMsg = await disconnectPromise;
+    expect(disconnectMsg.code).toBe('CONTROLLER_DISCONNECTED');
 
     pcWs.close();
-    mobileWs.close();
   });
 });

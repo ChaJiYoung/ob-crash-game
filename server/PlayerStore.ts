@@ -20,7 +20,12 @@ export class PlayerStore {
       if (fs.existsSync(this.filePath)) {
         const raw = fs.readFileSync(this.filePath, 'utf-8');
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed.players === 'object') {
+        if (
+          parsed &&
+          typeof parsed.players === 'object' &&
+          parsed.players !== null &&
+          !Array.isArray(parsed.players)
+        ) {
           this.data = parsed;
           return;
         }
@@ -44,7 +49,10 @@ export class PlayerStore {
   }
 
   public findByDeviceId(deviceId: string): PlayerProfile | undefined {
-    return this.data.players[deviceId];
+    if (Object.prototype.hasOwnProperty.call(this.data.players, deviceId)) {
+      return this.data.players[deviceId];
+    }
+    return undefined;
   }
 
   public registerOrUpdateNickname(deviceId: string, nickname: string): PlayerProfile {

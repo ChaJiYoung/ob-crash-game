@@ -41,10 +41,20 @@ export async function createBeerCrusherServer(options?: {
 
   wss.on('connection', (ws: WebSocket) => {
     ws.on('message', (raw: string | Buffer) => {
+      let msg: ClientToServerMessage;
       try {
         const text = raw.toString();
-        const msg = JSON.parse(text) as ClientToServerMessage;
+        msg = JSON.parse(text) as ClientToServerMessage;
+      } catch {
+        sendJson(ws, {
+          type: 'ERROR',
+          code: 'MALFORMED_JSON',
+          message: 'Failed to parse JSON message',
+        });
+        return;
+      }
 
+      try {
         switch (msg.type) {
           case 'CREATE_ROOM': {
             const session = roomManager.createRoom(msg.roomId);
@@ -108,10 +118,30 @@ export async function createBeerCrusherServer(options?: {
 
           case 'REGISTER_NICKNAME': {
             const { roomId, deviceId, nickname } = msg;
+            if (!roomId || !deviceId || typeof nickname !== 'string') {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'roomId, deviceId, and nickname are required for REGISTER_NICKNAME',
+              });
+              return;
+            }
+
+            const session = roomManager.getRoom(roomId);
+            if (!session) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'ROOM_NOT_FOUND',
+                message: `Room ${roomId} not found`,
+              });
+              return;
+            }
+
+            roomManager.attachControllerSocket(roomId, ws, deviceId);
+
             try {
               const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
               const rankings = playerStore.getTopRankings(5);
-              const session = roomManager.getRoom(roomId);
 
               sendJson(ws, {
                 type: 'AUTH_RESULT',
@@ -121,13 +151,11 @@ export async function createBeerCrusherServer(options?: {
                 rankings,
               });
 
-              if (session) {
-                sendJson(session.pcSocket, {
-                  type: 'CONTROLLER_PAIRED',
-                  roomId,
-                  player,
-                });
-              }
+              sendJson(session.pcSocket, {
+                type: 'CONTROLLER_PAIRED',
+                roomId,
+                player,
+              });
             } catch (err: unknown) {
               const errMsg = err instanceof Error ? err.message : 'Failed to register nickname';
               sendJson(ws, {
@@ -140,12 +168,21 @@ export async function createBeerCrusherServer(options?: {
           }
 
           case 'CALIBRATE_ZERO': {
-            const session = roomManager.getRoom(msg.roomId);
-            if (session) {
+            const { roomId, deviceId } = msg;
+            if (!roomId || !deviceId) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'roomId and deviceId are required for CALIBRATE_ZERO',
+              });
+              return;
+            }
+            const session = roomManager.getRoom(roomId);
+            if (session && session.pcSocket) {
               sendJson(session.pcSocket, {
                 type: 'ZERO_CALIBRATED',
-                roomId: msg.roomId,
-                deviceId: msg.deviceId,
+                roomId,
+                deviceId,
               });
             }
             break;
@@ -166,6 +203,15 @@ export async function createBeerCrusherServer(options?: {
 
           case 'GAME_SCORE_SUBMIT': {
             const { deviceId, score, roomId } = msg;
+            if (!deviceId || typeof score !== 'number' || isNaN(score) || !roomId) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'roomId, valid deviceId, and numeric score are required for GAME_SCORE_SUBMIT',
+              });
+              return;
+            }
+
             const { rankings, profile } = playerStore.recordGameScore(deviceId, score);
             const session = roomManager.getRoom(roomId);
 
@@ -192,17 +238,36 @@ export async function createBeerCrusherServer(options?: {
               message: 'Unrecognized message type',
             });
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : 'Internal server error';
         sendJson(ws, {
           type: 'ERROR',
-          code: 'MALFORMED_JSON',
-          message: 'Failed to parse JSON message',
+          code: 'INTERNAL_ERROR',
+          message: errMsg,
         });
       }
     });
 
     ws.on('close', () => {
-      roomManager.removeSocket(ws);
+      const { roomId, role } = roomManager.removeSocket(ws);
+      if (roomId && role) {
+        const session = roomManager.getRoom(roomId);
+        if (session) {
+          if (role === 'CONTROLLER' && session.pcSocket) {
+            sendJson(session.pcSocket, {
+              type: 'ERROR',
+              code: 'CONTROLLER_DISCONNECTED',
+              message: 'Controller disconnected',
+            });
+          } else if (role === 'PC' && session.controllerSocket) {
+            sendJson(session.controllerSocket, {
+              type: 'ERROR',
+              code: 'PC_DISCONNECTED',
+              message: 'PC host disconnected',
+            });
+          }
+        }
+      }
     });
   });
 
