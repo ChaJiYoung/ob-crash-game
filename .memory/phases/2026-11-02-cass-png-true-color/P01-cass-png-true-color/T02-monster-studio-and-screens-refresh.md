@@ -1,6 +1,6 @@
 # Task: T02 몬스터 스튜디오 MeshBasicMaterial 동기화 및 도감 스크린샷 갱신
 
-## Status: pending
+## Status: done ✅
 
 ## Goal
 `docs/monster-studio.html`에 `MeshBasicMaterial`을 동기화하여 스튜디오 뷰에서도 과도한 조명(KeyLight 1.8, PointLight 2.0)으로 인한 쨍함을 완전히 제거하고, Playwright 자동 캡처로 도감 단독 컷(`monster-05-cass-bottle.png`), 6종 라인업(`monster-lineup-all.png`), 인게임 화면(`screen-04-pc-gameplay.png`)을 재캡처하여 시각적으로 검수한다.
@@ -59,6 +59,6 @@ Task: T02-monster-studio-and-screens-refresh
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

@@ -7,4 +7,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | TargetModels3D 및 몬스터 스튜디오 MeshBasicMaterial 전환, 도감 스크린샷 갱신 및 검증 | [P01](../phases/2026-11-02-cass-png-true-color/P01-cass-png-true-color/phase.md) |
+| P01 | `completed` | TargetModels3D 및 몬스터 스튜디오 MeshBasicMaterial 전환, 도감 스크린샷 갱신 및 검증 | [P01](../phases/2026-11-02-cass-png-true-color/P01-cass-png-true-color/phase.md) |

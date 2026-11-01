@@ -193,12 +193,10 @@
         cassTex.magFilter = THREE.LinearFilter;
 
         const billboardGeo = new THREE.PlaneGeometry(0.456, 1.68);
-        const billboardMat = new THREE.MeshStandardMaterial({
+        const billboardMat = new THREE.MeshBasicMaterial({
           map: cassTex,
           transparent: true,
           alphaTest: 0.05,
-          roughness: 0.22,
-          metalness: 0.08,
           side: THREE.DoubleSide,
         });
         const billboard = new THREE.Mesh(billboardGeo, billboardMat);
