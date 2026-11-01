@@ -1,6 +1,6 @@
 # Task: T02 모바일 권총 그립 UI(로그인·영점·85:15 패드) 및 App.tsx 전체 라우팅 연결
 
-## Status: pending
+## Status: done
 
 ## Goal
 스마트폰 화면을 권총처럼 쥐었을 때(화면이 좌측을 향함) 엄지나 반대손 시선에 똑바로 읽히도록 배치된 **로그인/센서 권한 게이트(`LoginAndPermissionGate`)**, **정면 영점 가이드(`ZeroingGuide`)**, **85:15 분할 통합 터치패드(`GunGripPad`)**, **`MobileControllerPage`**를 구현하고, `App.tsx`, `main.tsx`, `index.html`에서 PC 화면(`/`)과 모바일 컨트롤러(`/controller`) 라우팅을 완성합니다.
@@ -69,6 +69,6 @@ Task: T02-mobile-controller-ui-and-app-routing
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
