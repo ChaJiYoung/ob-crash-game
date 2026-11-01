@@ -183,52 +183,58 @@
           g.add(wl);
           g.add(wr);
         }
-      } else if (kind === 'mug') {
-        const r = 0.48;
-        const h = 1.25;
+      } else if (kind === 'bottle') {
+        // All New Cass 500ml Transparent Glass Bottle
         const glassMat = new THREE.MeshPhysicalMaterial({
           color: 0xffffff,
           transparent: true,
-          opacity: 0.6,
-          transmission: 0.78,
-          ior: 1.5,
-          roughness: 0.08,
-          metalness: 0.04,
+          opacity: 0.55,
+          transmission: 0.88,
+          ior: 1.52,
+          roughness: 0.05,
+          metalness: 0.05,
           clearcoat: 1.0,
         });
-        const liquidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.18, metalness: 0.12 });
-        const foamMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
+        const liquidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.08 });
 
-        const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.92, h, 14), glassMat);
+        // Outer glass body
+        const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.8, 24), glassMat);
+        glassBody.position.y = 0.4;
         g.add(glassBody);
 
-        const liquid = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.88, r * 0.8, h * 0.82, 14), liquidMat);
-        liquid.position.y = -h * 0.04;
-        g.add(liquid);
+        // Shoulder
+        const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.28, 24), glassMat);
+        shoulder.position.y = 0.94;
+        g.add(shoulder);
 
-        // Rising bubbles
-        const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
-        for (let i = 0; i < 6; i++) {
-          const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.024, 6, 6), bubbleMat);
-          const angle = (i * Math.PI) / 3;
-          bubble.position.set(Math.cos(angle) * r * 0.45, -h * 0.3 + i * 0.12, Math.sin(angle) * r * 0.45);
-          g.add(bubble);
-        }
+        // Neck
+        const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.4, 24), glassMat);
+        neck.position.y = 1.28;
+        g.add(neck);
 
-        const handle = new THREE.Mesh(new THREE.TorusGeometry(h * 0.28, 0.07, 10, 20, Math.PI), glassMat);
-        handle.rotation.z = -Math.PI / 2;
-        handle.position.set(r * 0.96, 0, 0);
-        g.add(handle);
+        // Lip rim
+        const lip = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.024, 8, 24), glassMat);
+        lip.rotation.x = Math.PI / 2;
+        lip.position.y = 1.48;
+        g.add(lip);
 
-        const foamBase = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.06, r * 0.94, 0.24, 16), foamMat);
-        foamBase.position.y = h / 2 + 0.06;
-        g.add(foamBase);
+        // Inner beer liquid
+        const liquidBody = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.75, 24), liquidMat);
+        liquidBody.position.y = 0.38;
+        g.add(liquidBody);
 
-        [[-0.14, 0.14], [0.14, 0.1], [0, -0.15], [-0.12, -0.12], [0.12, -0.12], [0, 0]].forEach(([px, pz]) => {
-          const puff = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), foamMat);
-          puff.position.set(px, h / 2 + 0.2, pz);
-          g.add(puff);
-        });
+        const liquidNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.38, 0.45, 24), liquidMat);
+        liquidNeck.position.y = 0.98;
+        g.add(liquidNeck);
+
+        // Silver crown cap
+        const capMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.18 });
+        const crownCap = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.06, 20), capMat);
+        crownCap.position.y = 1.51;
+        const crimpRim = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.015, 8, 20), capMat);
+        crimpRim.rotation.x = Math.PI / 2;
+        crownCap.add(crimpRim);
+        g.add(crownCap);
       } else if (kind === 'boss') {
         const r = 0.88;
         const h = 1.8;
@@ -357,7 +363,7 @@
       caslight: { badge: 'FLYING · 공중 비행', name: '카스 라이트 (Cass Light)', hp: '1', speed: '3.6 m/s', score: '+40점', color: '#38bdf8' },
       obi: { badge: 'TANK · 지상 바운스', name: '오비 라거 (OB Lager)', hp: '2', speed: '3.0 m/s', score: '+70점', color: '#f59e0b' },
       hanmac: { badge: 'ELITE · 지상 바운스', name: '한맥 (HANMAC)', hp: '2', speed: '3.2 m/s', score: '+90점', color: '#047857' },
-      mug: { badge: 'HEAVY · 물리 유리잔', name: '500ml 생맥주잔 (Draft Mug)', hp: '3', speed: '2.3 m/s', score: '+160점', color: '#fbbf24' },
+      bottle: { badge: 'HEAVY · 투명 유리병', name: '카스 프레시 병맥주 (Cass Fresh Bottle)', hp: '3', speed: '2.3 m/s', score: '+160점', color: '#004b91' },
       boss: { badge: 'BOSS · 보스 레이드', name: '업소용 생맥주 냉각기 (Boss)', hp: '40', speed: '1.10 m/s', score: '+1,500점', color: '#ef4444' }
     };
 
@@ -403,7 +409,7 @@
         { kind: 'caslight', x: -1.9, z: 0.1, scale: 0.95 },
         { kind: 'obi', x: -0.6, z: 0.3, scale: 1.0 },
         { kind: 'hanmac', x: 0.6, z: 0.3, scale: 1.0 },
-        { kind: 'mug', x: 1.9, z: 0.1, scale: 1.0 },
+        { kind: 'bottle', x: 1.9, z: 0.1, scale: 1.0 },
         { kind: 'boss', x: 3.6, z: -0.4, scale: 0.95 }
       ];
 

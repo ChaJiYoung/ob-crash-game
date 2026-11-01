@@ -227,6 +227,79 @@ export class ParticleEffects3D {
     }
   }
 
+  public triggerBottleCrash(origin: THREE.Vector3, count = 16): void {
+    // 1. Silver Crown Cap popping up into the air and spinning
+    const capGeo = new THREE.CylinderGeometry(0.125, 0.125, 0.04, 16);
+    const capMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
+    const capMesh = new THREE.Mesh(capGeo, capMat);
+    capMesh.position.copy(origin).add(new THREE.Vector3(0, 0.8, 0));
+    this.group.add(capMesh);
+
+    const capVx = (Math.random() - 0.5) * 2.5;
+    const capVy = 6.0 + Math.random() * 2.0;
+    const capVz = (Math.random() - 0.5) * 2.5;
+
+    this.particles.push({
+      mesh: capMesh,
+      velocity: new THREE.Vector3(capVx, capVy, capVz),
+      lifeSec: 0,
+      maxLifeSec: 1.2,
+      rotSpeed: new THREE.Vector3(15.0, 8.0, 20.0),
+    });
+
+    // 2. Transparent / light cyan glass shards (16 shards)
+    const glassShardMat = this.getMaterial('#bae6fd');
+    for (let i = 0; i < count; i++) {
+      const shardMesh = new THREE.Mesh(this.shardGeo, glassShardMat);
+      shardMesh.position.copy(origin).add(new THREE.Vector3(0, 0.4, 0));
+
+      const speed = 4.0 + Math.random() * 4.5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = (Math.random() - 0.5) * Math.PI;
+
+      const vx = Math.cos(phi) * Math.sin(theta) * speed;
+      const vy = (Math.sin(phi) + 0.4) * speed;
+      const vz = Math.cos(phi) * Math.cos(theta) * speed;
+
+      this.group.add(shardMesh);
+      this.particles.push({
+        mesh: shardMesh,
+        velocity: new THREE.Vector3(vx, vy, vz),
+        lifeSec: 0,
+        maxLifeSec: 0.6 + Math.random() * 0.4,
+        rotSpeed: new THREE.Vector3(
+          (Math.random() - 0.5) * 16,
+          (Math.random() - 0.5) * 16,
+          (Math.random() - 0.5) * 16
+        ),
+      });
+    }
+
+    // 3. Golden beer splash droplets (14 droplets)
+    const beerMat = this.getMaterial('#f59e0b');
+    for (let i = 0; i < 14; i++) {
+      const beerDrop = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), beerMat);
+      beerDrop.position.copy(origin).add(new THREE.Vector3(0, 0.35, 0));
+
+      const speed = 3.0 + Math.random() * 3.5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * 0.5 * Math.PI; // Upward spray
+
+      const vx = Math.cos(phi) * Math.sin(theta) * speed;
+      const vy = Math.sin(phi) * speed + 1.5;
+      const vz = Math.cos(phi) * Math.cos(theta) * speed;
+
+      this.group.add(beerDrop);
+      this.particles.push({
+        mesh: beerDrop,
+        velocity: new THREE.Vector3(vx, vy, vz),
+        lifeSec: 0,
+        maxLifeSec: 0.5 + Math.random() * 0.3,
+        rotSpeed: new THREE.Vector3(0, 0, 0),
+      });
+    }
+  }
+
   public update(dtSec: number): void {
     // 1. Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {

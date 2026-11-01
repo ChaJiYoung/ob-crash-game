@@ -97,11 +97,16 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
             ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
             : TARGET_SPECS[result.target.kind].brandColorHex;
 
-          particlesRef.current.spawnHitEffect(
-            targetPos,
-            hitColor,
-            result.killed ? 32 : 18
-          );
+          if (result.killed && result.target.kind === 'bottle') {
+            soundSynth.playBottlePopSound();
+            particlesRef.current.triggerBottleCrash(targetPos);
+          } else {
+            particlesRef.current.spawnHitEffect(
+              targetPos,
+              hitColor,
+              result.killed ? 32 : 18
+            );
+          }
 
           if (result.target.isItem && result.target.itemKind) {
             particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);

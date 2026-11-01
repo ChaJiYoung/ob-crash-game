@@ -24,7 +24,7 @@ async function captureAllStudioAndGame() {
     { kind: 'caslight', filename: 'monster-02-caslight.png' },
     { kind: 'obi', filename: 'monster-03-obi.png' },
     { kind: 'hanmac', filename: 'monster-04-hanmac.png' },
-    { kind: 'mug', filename: 'monster-05-draft-mug.png' },
+    { kind: 'bottle', filename: 'monster-05-draft-mug.png' },
     { kind: 'boss', filename: 'monster-06-boss-dispenser.png' },
   ];
 

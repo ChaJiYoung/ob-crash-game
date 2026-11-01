@@ -17,7 +17,7 @@ function createDataTextureFallback(colorHex: string): THREE.DataTexture {
   return texture;
 }
 
-export function getOrCreateTargetLabelTexture(kind: TargetKind | 'mug' | 'boss' | 'bottle'): THREE.Texture {
+export function getOrCreateTargetLabelTexture(kind: TargetKind): THREE.Texture {
   if (labelTextureCache.has(kind)) {
     return labelTextureCache.get(kind)!;
   }
@@ -109,7 +109,7 @@ export function getTargetBaseY(kind: TargetKind, isItem?: boolean): number {
   if (kind === 'boss') {
     return 1.15; // Ground-standing heavy commercial cabinet center
   }
-  return 0.55; // Ground contact rolling altitude (bottle, mug, obi, hanmac)
+  return 0.55; // Ground contact rolling altitude (bottle, obi, hanmac)
 }
 
 function createFloorShadowMesh(radius: number): THREE.Mesh {
@@ -156,81 +156,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
 
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
 
-  if (kind === 'mug') {
-    // 🍺 500ml Physical Glass Draft Mug
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.6,
-      transmission: 0.78,
-      ior: 1.5,
-      roughness: 0.08,
-      metalness: 0.04,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-    });
-    const liquidMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      roughness: 0.18,
-      metalness: 0.12,
-    });
-    const foamMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.92,
-    });
-
-    const r = 0.32;
-    const h = 0.82;
-
-    // Outer 12-sided facet glass body
-    const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.92, h, 12), glassMat);
-    inner.add(glassBody);
-
-    // Inner golden beer liquid
-    const liquid = new THREE.Mesh(
-      new THREE.CylinderGeometry(r * 0.88, r * 0.8, h * 0.82, 12),
-      liquidMat
-    );
-    liquid.position.y = -h * 0.04;
-    inner.add(liquid);
-
-    // Rising carbonation bubbles (small golden beads)
-    const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
-    for (let i = 0; i < 6; i++) {
-      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), bubbleMat);
-      const angle = (i * Math.PI) / 3;
-      bubble.position.set(Math.cos(angle) * r * 0.45, -h * 0.3 + i * 0.1, Math.sin(angle) * r * 0.45);
-      inner.add(bubble);
-    }
-
-    // Thick glass mug handle
-    const handle = new THREE.Mesh(
-      new THREE.TorusGeometry(h * 0.28, 0.052, 10, 20, Math.PI),
-      glassMat
-    );
-    handle.rotation.z = -Math.PI / 2;
-    handle.position.set(r * 0.96, 0, 0);
-    inner.add(handle);
-
-    // Overflowing foam crown & foam puffs
-    const foamBase = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.06, r * 0.94, 0.18, 16), foamMat);
-    foamBase.position.y = h / 2 + 0.05;
-    inner.add(foamBase);
-
-    const puffOffsets: [number, number][] = [
-      [-0.11, 0.11],
-      [0.11, 0.09],
-      [0, -0.11],
-      [-0.09, -0.09],
-      [0.09, -0.09],
-      [0, 0],
-    ];
-    puffOffsets.forEach(([px, pz]) => {
-      const puff = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), foamMat);
-      puff.position.set(px, h / 2 + 0.15, pz);
-      inner.add(puff);
-    });
-  } else if (kind === 'bottle') {
+  if (kind === 'bottle') {
     // 🍾 All New Cass 500ml Transparent Glass Beer Bottle
     const glassMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -726,7 +652,7 @@ export function updateTargetAnimation3D(
     });
   }
 
-  const isGround = kind === 'bottle' || kind === 'mug' || kind === 'obi' || kind === 'hanmac' || kind === 'boss';
+  const isGround = kind === 'bottle' || kind === 'obi' || kind === 'hanmac' || kind === 'boss';
 
   if (isGround) {
     // Ground monsters contact bounce & limited rotation so label stays visible

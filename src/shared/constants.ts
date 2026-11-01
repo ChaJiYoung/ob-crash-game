@@ -61,18 +61,6 @@ export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
     isAirborne: false,
     modelScale: 1.95,
   },
-  mug: {
-    kind: 'mug',
-    displayName: '500ml 생맥주잔 (Draft Mug)',
-    maxHp: 3,
-    speedMps: 2.3,
-    hitRadiusM: 1.15,
-    killBonusScore: 160,
-    brandColorHex: '#fbbf24',
-    accentColorHex: '#ffffff',
-    isAirborne: false,
-    modelScale: 1.95,
-  },
   boss: {
     kind: 'boss',
     displayName: '업소용 생맥주 냉각기 보스',

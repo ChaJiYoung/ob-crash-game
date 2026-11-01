@@ -16,7 +16,7 @@ import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
 
 describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
   it('should create all 6 procedural 3D target models with correct geometries, drop shadows, and scale', () => {
-    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'mug', 'boss'];
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss'];
 
     kinds.forEach((kind) => {
       const mesh = createTargetMesh3D(kind);
@@ -36,14 +36,6 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
           (c) => (c as THREE.Mesh).name === 'crownCap'
         );
         expect(hasCrownCap).toBe(true);
-      }
-
-      if (kind === 'mug') {
-        // Must contain torus handle and foam elements
-        const hasTorusHandle = inner.children.some(
-          (c) => (c as THREE.Mesh).geometry instanceof THREE.TorusGeometry
-        );
-        expect(hasTorusHandle).toBe(true);
       }
 
       if (kind === 'boss') {
@@ -81,7 +73,6 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(getTargetBaseY('caslight')).toBe(1.45);
     expect(getTargetBaseY('boss')).toBe(1.15);
     expect(getTargetBaseY('bottle')).toBe(0.55);
-    expect(getTargetBaseY('mug')).toBe(0.55);
     expect(getTargetBaseY('obi')).toBe(0.55);
     expect(getTargetBaseY('hanmac')).toBe(0.55);
     expect(getTargetBaseY('pilgood', true)).toBe(1.15); // Items float at 1.15m
