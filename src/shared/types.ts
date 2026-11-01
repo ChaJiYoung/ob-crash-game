@@ -1,4 +1,5 @@
 export type TargetKind = 'pilgood' | 'caslight' | 'obi' | 'hanmac' | 'mug' | 'boss';
+export type ItemBuffKind = 'power_shot' | 'wide_scope' | 'ice_freeze' | 'bar_repair';
 export type JudgmentGrade = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
 export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'GAMEOVER' | 'VICTORY';
 
@@ -11,6 +12,24 @@ export interface TargetSpec {
   killBonusScore: number;
   brandColorHex: string;
   accentColorHex: string;
+  isAirborne?: boolean;
+  modelScale?: number;
+}
+
+export interface ItemBuffSpec {
+  kind: ItemBuffKind;
+  displayName: string;
+  shortLabel: string;
+  icon: string;
+  durationMs: number;
+  auraColorHex: string;
+  description: string;
+}
+
+export interface ActiveBuffState {
+  kind: ItemBuffKind;
+  remainingMs: number;
+  totalDurationMs: number;
 }
 
 export interface PlayerProfile {

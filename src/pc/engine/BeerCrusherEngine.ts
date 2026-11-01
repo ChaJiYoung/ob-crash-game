@@ -1,5 +1,5 @@
-import { GamePhase, JudgmentGrade, TargetKind } from '../../shared/types';
-import { STAGE_CONSTANTS, TARGET_SPECS } from '../../shared/constants';
+import { ActiveBuffState, GamePhase, ItemBuffKind, JudgmentGrade, TargetKind } from '../../shared/types';
+import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, TARGET_SPECS } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
@@ -18,6 +18,8 @@ export interface ActiveTargetEntity {
   hitRadiusM: number;
   killBonusScore: number;
   breached: boolean;
+  isItem?: boolean;
+  itemKind?: ItemBuffKind;
 }
 
 export interface EngineShootResult {
@@ -27,13 +29,16 @@ export interface EngineShootResult {
   killed?: boolean;
   earnedScore?: number;
   errorRatio?: number;
+  activatedItem?: ItemBuffKind;
 }
 
 export interface WaveDefinition {
   waveIndex: number;
   totalSpawns: number;
   maxSimultaneous: number;
+  spawnIntervalMs: number;
   kinds: TargetKind[];
+  allowedItems: ItemBuffKind[];
   includesBoss: boolean;
 }
 
@@ -46,26 +51,52 @@ export class BeerCrusherEngine {
   public readonly scoreManager = new ScoreAndFeverManager();
   public readonly weaponSystem = new WeaponSystem();
 
+  private activeBuffUntilMs: Map<ItemBuffKind, number> = new Map();
+
   private waveDefinitions: Record<number, WaveDefinition> = {
     1: {
       waveIndex: 1,
-      totalSpawns: 10,
+      totalSpawns: 16,
       maxSimultaneous: 4,
-      kinds: ['pilgood', 'caslight', 'obi', 'mug'],
+      spawnIntervalMs: 950,
+      kinds: ['pilgood', 'caslight'],
+      allowedItems: ['wide_scope'],
       includesBoss: false,
     },
     2: {
       waveIndex: 2,
-      totalSpawns: 15,
+      totalSpawns: 22,
       maxSimultaneous: 5,
-      kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'mug'],
+      spawnIntervalMs: 850,
+      kinds: ['obi', 'hanmac', 'pilgood'],
+      allowedItems: ['power_shot', 'bar_repair'],
       includesBoss: false,
     },
     3: {
       waveIndex: 3,
-      totalSpawns: 12,
-      maxSimultaneous: 4,
+      totalSpawns: 26,
+      maxSimultaneous: 6,
+      spawnIntervalMs: 800,
+      kinds: ['mug', 'caslight', 'obi', 'hanmac'],
+      allowedItems: ['wide_scope', 'ice_freeze', 'bar_repair'],
+      includesBoss: false,
+    },
+    4: {
+      waveIndex: 4,
+      totalSpawns: 32,
+      maxSimultaneous: 7,
+      spawnIntervalMs: 700,
+      kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'mug'],
+      allowedItems: ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'],
+      includesBoss: false,
+    },
+    5: {
+      waveIndex: 5,
+      totalSpawns: 18,
+      maxSimultaneous: 5,
+      spawnIntervalMs: 850,
       kinds: ['hanmac', 'mug', 'pilgood', 'caslight'],
+      allowedItems: ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'],
       includesBoss: true,
     },
   };
@@ -84,6 +115,7 @@ export class BeerCrusherEngine {
     this.currentWave = 1;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
+    this.activeBuffUntilMs.clear();
     this.spawnedInWave = 0;
     this.killedInWave = 0;
     this.bossSpawned = false;
@@ -95,6 +127,64 @@ export class BeerCrusherEngine {
     return this.activeTargets.find((t) => t.kind === 'boss');
   }
 
+  public activateItemBuff(kind: ItemBuffKind, nowMs: number): void {
+    if (kind === 'bar_repair') {
+      this.lives = Math.min(STAGE_CONSTANTS.PLAYER_MAX_LIVES, this.lives + 1);
+      return;
+    }
+    const spec = ITEM_BUFF_SPECS[kind];
+    this.activeBuffUntilMs.set(kind, nowMs + spec.durationMs);
+  }
+
+  public isBuffActive(kind: ItemBuffKind, nowMs: number = Date.now()): boolean {
+    const untilMs = this.activeBuffUntilMs.get(kind);
+    return untilMs !== undefined && untilMs > nowMs;
+  }
+
+  public getActiveBuffs(nowMs: number = Date.now()): ActiveBuffState[] {
+    const list: ActiveBuffState[] = [];
+    for (const [kind, untilMs] of this.activeBuffUntilMs.entries()) {
+      if (untilMs > nowMs) {
+        list.push({
+          kind,
+          remainingMs: Math.max(0, untilMs - nowMs),
+          totalDurationMs: ITEM_BUFF_SPECS[kind].durationMs,
+        });
+      }
+    }
+    return list;
+  }
+
+  public spawnItemTarget(itemKind: ItemBuffKind, nowMs: number): ActiveTargetEntity {
+    const existingAngles = this.activeTargets.map((t) => t.thetaRad);
+    const pt = sampleFanSpawnPoint({
+      vFovDeg: this.vFovDeg,
+      aspect: this.aspect,
+      existingAnglesRad: existingAngles,
+    });
+
+    this.targetCounter += 1;
+    const itemEntity: ActiveTargetEntity = {
+      id: `item_${this.targetCounter}_${itemKind}`,
+      kind: 'pilgood', // default fallback kind for schema
+      hp: 1,
+      maxHp: 1,
+      radiusM: pt.radiusM,
+      thetaRad: pt.thetaRad,
+      x: pt.x,
+      z: pt.z,
+      speedMps: 2.6,
+      hitRadiusM: 1.05,
+      killBonusScore: 100,
+      breached: false,
+      isItem: true,
+      itemKind,
+    };
+
+    this.activeTargets.push(itemEntity);
+    return itemEntity;
+  }
+
   public update(nowMs: number, dtSec: number): {
     breaches: ActiveTargetEntity[];
     phaseChanged: boolean;
@@ -104,18 +194,28 @@ export class BeerCrusherEngine {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
+    // Clean expired buffs
+    for (const [kind, untilMs] of this.activeBuffUntilMs.entries()) {
+      if (nowMs >= untilMs) {
+        this.activeBuffUntilMs.delete(kind);
+      }
+    }
+
     const feverState = this.scoreManager.getState();
     const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive);
     this.scoreManager.updateFeverTimer(nowMs);
 
     const breaches: ActiveTargetEntity[] = [];
+    const isIceFreeze = this.isBuffActive('ice_freeze', nowMs);
 
     // 1. Advance active targets radially
     for (let i = this.activeTargets.length - 1; i >= 0; i--) {
       const target = this.activeTargets[i];
+      const effectiveSpeed = isIceFreeze && !target.isItem ? target.speedMps * 0.5 : target.speedMps;
+
       const next = advanceRadialTarget(
         { radiusM: target.radiusM, thetaRad: target.thetaRad },
-        target.speedMps,
+        effectiveSpeed,
         dtSec
       );
 
@@ -125,9 +225,16 @@ export class BeerCrusherEngine {
       target.breached = next.breached;
 
       if (target.breached) {
-        breaches.push(target);
         this.activeTargets.splice(i, 1);
-        this.lives = Math.max(0, this.lives - (target.kind === 'boss' ? 3 : 1));
+
+        // Item targets advancing past defense line are simply removed without penalty
+        if (target.isItem) {
+          continue;
+        }
+
+        breaches.push(target);
+        const damage = target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
+        this.lives = Math.max(0, this.lives - damage);
 
         if (this.lives <= 0) {
           this.gamePhase = 'GAMEOVER';
@@ -137,35 +244,52 @@ export class BeerCrusherEngine {
     }
 
     // 2. Spawn targets if wave has remaining
-    const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[3];
+    const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
     const canSpawn =
       this.activeTargets.length < waveDef.maxSimultaneous &&
       this.spawnedInWave < waveDef.totalSpawns &&
-      (this.spawnedInWave === 0 || nowMs - this.lastSpawnTimeMs >= 1100);
+      (this.spawnedInWave === 0 || nowMs - this.lastSpawnTimeMs >= waveDef.spawnIntervalMs);
 
     if (canSpawn) {
       this.spawnNextTarget(waveDef, nowMs);
+
+      // Periodically spawn an item target if none currently active on screen
+      const hasItemOnScreen = this.activeTargets.some((t) => t.isItem);
+      if (
+        !hasItemOnScreen &&
+        this.spawnedInWave % 5 === 0 &&
+        waveDef.allowedItems.length > 0 &&
+        this.activeTargets.length < waveDef.maxSimultaneous
+      ) {
+        const itemKind =
+          waveDef.allowedItems[Math.floor(Math.random() * waveDef.allowedItems.length)];
+        this.spawnItemTarget(itemKind, nowMs);
+      }
     }
 
-    // 3. Spawn Boss in Wave 3 once normal wave spawns are done or halfway
+    // 3. Spawn Boss in Wave 5 once normal wave spawns are done or halfway
     if (
-      this.currentWave === 3 &&
+      this.currentWave === 5 &&
       waveDef.includesBoss &&
       !this.bossSpawned &&
-      (this.spawnedInWave >= 6 || this.activeTargets.length <= 1)
+      (this.spawnedInWave >= 6 || this.activeTargets.filter((t) => !t.isItem).length <= 1)
     ) {
       this.spawnBoss(nowMs);
     }
 
     // 4. Check wave completion
-    const bossIsAlive = this.activeTargets.some((t) => t.kind === 'boss');
+    const monsterTargets = this.activeTargets.filter((t) => !t.isItem);
+    const bossIsAlive = monsterTargets.some((t) => t.kind === 'boss');
     const waveComplete =
       this.spawnedInWave >= waveDef.totalSpawns &&
-      this.activeTargets.length === 0 &&
+      monsterTargets.length === 0 &&
       (!waveDef.includesBoss || !bossIsAlive);
 
     if (waveComplete) {
-      if (this.currentWave >= 3) {
+      // Clear any leftover item targets between waves
+      this.activeTargets = [];
+
+      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
         this.gamePhase = 'VICTORY';
         return { breaches, phaseChanged: true, reloadedJustNow };
       }
@@ -254,6 +378,10 @@ export class BeerCrusherEngine {
       return { fired: false, grade: 'MISS' };
     }
 
+    const isPowerShot = this.isBuffActive('power_shot', nowMs);
+    const isWideScope = this.isBuffActive('wide_scope', nowMs);
+    const wideScopeMult = isWideScope ? 1.6 : 1.0;
+
     // Find best target intersecting aim point
     // Convert target radial pos (x, z) to approximate normalized aim coords [-1, 1]
     let bestHit:
@@ -271,11 +399,15 @@ export class BeerCrusherEngine {
       const targetNormY = 0; // Targets hover around eye level
 
       // Apparent radius in normalized aim space shrinks as distance increases
-      const apparentHitRadius = Math.max(0.08, (target.hitRadiusM * 2.8) / target.radiusM);
+      const apparentHitRadius = Math.max(0.09, (target.hitRadiusM * 2.8 * wideScopeMult) / target.radiusM);
       const dist = Math.hypot(aimX - targetNormX, aimY - targetNormY);
 
       if (dist <= apparentHitRadius) {
-        const judgment = evaluateHitJudgment(dist, apparentHitRadius, isFever);
+        const judgment = evaluateHitJudgment(dist, apparentHitRadius, {
+          isFeverActive: isFever,
+          isPowerShotActive: isPowerShot,
+          isWideScopeActive: isWideScope,
+        });
         if (judgment.grade !== 'MISS' && judgment.errorRatio < minError) {
           minError = judgment.errorRatio;
           bestHit = { target, result: judgment, index: i };
@@ -287,6 +419,12 @@ export class BeerCrusherEngine {
       const { target, result, index } = bestHit;
       target.hp = Math.max(0, target.hp - result.damage);
       const killed = target.hp <= 0;
+      let activatedItem: ItemBuffKind | undefined;
+
+      if (killed && target.isItem && target.itemKind) {
+        this.activateItemBuff(target.itemKind, nowMs);
+        activatedItem = target.itemKind;
+      }
 
       const hitInfo = this.scoreManager.registerHit(
         result.grade as Exclude<JudgmentGrade, 'MISS'>,
@@ -295,7 +433,9 @@ export class BeerCrusherEngine {
 
       if (killed) {
         this.activeTargets.splice(index, 1);
-        this.killedInWave += 1;
+        if (!target.isItem) {
+          this.killedInWave += 1;
+        }
       }
 
       return {
@@ -305,6 +445,7 @@ export class BeerCrusherEngine {
         killed,
         earnedScore: hitInfo.earnedScore,
         errorRatio: result.errorRatio,
+        activatedItem,
       };
     }
 

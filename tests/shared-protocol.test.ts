@@ -5,8 +5,9 @@ import {
   FEVER_CONSTANTS,
   WEAPON_CONSTANTS,
   STAGE_CONSTANTS,
+  ITEM_BUFF_SPECS,
 } from '../src/shared/constants';
-import { TargetKind } from '../src/shared/types';
+import { ItemBuffKind, TargetKind } from '../src/shared/types';
 
 describe('Shared Protocol & Constants', () => {
   it('should define all 6 target specs with correct attributes', () => {
@@ -26,7 +27,7 @@ describe('Shared Protocol & Constants', () => {
     expect(TARGET_SPECS.obi.maxHp).toBe(2);
     expect(TARGET_SPECS.hanmac.maxHp).toBe(2);
     expect(TARGET_SPECS.mug.maxHp).toBe(3);
-    expect(TARGET_SPECS.boss.maxHp).toBe(30);
+    expect(TARGET_SPECS.boss.maxHp).toBe(40);
     expect(TARGET_SPECS.boss.killBonusScore).toBe(1500);
   });
 
@@ -56,7 +57,24 @@ describe('Shared Protocol & Constants', () => {
     expect(WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS).toBe(300);
     expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(12.0);
 
-    expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(28.0);
+    expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(18.0);
     expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);
+    expect(STAGE_CONSTANTS.PLAYER_MAX_LIVES).toBe(5);
+    expect(STAGE_CONSTANTS.TOTAL_WAVES).toBe(5);
+  });
+
+  it('should define 4 item buff specs with 8s durations or instant life heal', () => {
+    const itemKinds: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
+    itemKinds.forEach((k) => {
+      expect(ITEM_BUFF_SPECS[k]).toBeDefined();
+      expect(ITEM_BUFF_SPECS[k].kind).toBe(k);
+      expect(ITEM_BUFF_SPECS[k].displayName.length).toBeGreaterThan(0);
+      expect(ITEM_BUFF_SPECS[k].auraColorHex).toMatch(/^#[0-9a-fA-F]{6}$/);
+    });
+
+    expect(ITEM_BUFF_SPECS.power_shot.durationMs).toBe(8000);
+    expect(ITEM_BUFF_SPECS.wide_scope.durationMs).toBe(8000);
+    expect(ITEM_BUFF_SPECS.ice_freeze.durationMs).toBe(8000);
+    expect(ITEM_BUFF_SPECS.bar_repair.durationMs).toBe(0);
   });
 });

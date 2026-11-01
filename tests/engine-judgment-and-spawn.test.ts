@@ -22,7 +22,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     });
     expect(ptLeft.thetaRad).toBeLessThan(0);
     expect(ptLeft.x).toBeLessThan(0);
-    expect(ptLeft.radiusM).toBe(28.0);
+    expect(ptLeft.radiusM).toBe(18.0);
 
     const ptRight = sampleFanSpawnPoint({
       vFovDeg: 52,
@@ -38,7 +38,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(state.breached).toBe(true);
   });
 
-  it('should evaluate 3-tier hit judgment thresholds', () => {
+  it('should evaluate 3-tier hit judgment thresholds and buff options', () => {
     // hitRadiusM = 1.0
     const perfect = evaluateHitJudgment(0.12, 1.0);
     expect(perfect.grade).toBe('PERFECT');
@@ -63,6 +63,15 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const feverHit = evaluateHitJudgment(0.75, 1.0, true);
     expect(feverHit.grade).toBe('PERFECT');
     expect(feverHit.damage).toBe(2);
+
+    // Power shot buff grants damage 2 even outside fever
+    const powerHit = evaluateHitJudgment(0.12, 1.0, { isPowerShotActive: true });
+    expect(powerHit.grade).toBe('PERFECT');
+    expect(powerHit.damage).toBe(2);
+
+    // Wide scope buff expands effective radius by 1.6x (dist 1.2 normally MISS, now in GREAT or GOOD range)
+    const wideHit = evaluateHitJudgment(1.2, 1.0, { isWideScopeActive: true });
+    expect(wideHit.grade).not.toBe('MISS');
   });
 
   it('should enforce Fever 100% Lock on missed shots (D06 Anti-Regression)', () => {
@@ -139,7 +148,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const engine = new BeerCrusherEngine();
     engine.startGame();
     expect(engine.gamePhase).toBe('PLAYING');
-    expect(engine.lives).toBe(3);
+    expect(engine.lives).toBe(5);
 
     let now = 1000;
     // Update to trigger initial spawn
@@ -155,7 +164,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(hitResult.fired).toBe(true);
     expect(hitResult.grade).not.toBe('MISS');
 
-    // Test breach logic by manually placing a target at 1.7m
+    // Test breach logic by manually placing a target at 1.81m
     engine.activeTargets.push({
       id: 'breaching_target',
       kind: 'pilgood',
@@ -173,6 +182,70 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     const breachUpdate = engine.update(now + 200, 0.1);
     expect(breachUpdate.breaches.length).toBeGreaterThan(0);
-    expect(engine.lives).toBe(2);
+    expect(engine.lives).toBe(4);
+  });
+
+  it('should manage 4 item buffs, decay timers, and immunity on breach', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+    expect(engine.lives).toBe(5);
+
+    // Damage player by 2
+    engine.lives = 3;
+
+    let now = 1000;
+    // 1. Bar repair heals +1 immediately
+    engine.activateItemBuff('bar_repair', now);
+    expect(engine.lives).toBe(4);
+    engine.activateItemBuff('bar_repair', now);
+    expect(engine.lives).toBe(5);
+    engine.activateItemBuff('bar_repair', now);
+    expect(engine.lives).toBe(5); // Clamped at 5
+
+    // 2. Timed buffs (8000ms)
+    engine.activateItemBuff('power_shot', now);
+    engine.activateItemBuff('wide_scope', now);
+    expect(engine.isBuffActive('power_shot', now)).toBe(true);
+    expect(engine.isBuffActive('wide_scope', now)).toBe(true);
+
+    const buffs = engine.getActiveBuffs(now);
+    expect(buffs.length).toBe(2);
+
+    // Check expiry after 8500ms
+    expect(engine.isBuffActive('power_shot', now + 8500)).toBe(false);
+
+    // 3. Item breach does NOT reduce lives
+    engine.activeTargets.push({
+      id: 'test_item_target',
+      kind: 'pilgood',
+      hp: 1,
+      maxHp: 1,
+      radiusM: 1.81,
+      thetaRad: 0,
+      x: 0,
+      z: -1.81,
+      speedMps: 5.0,
+      hitRadiusM: 1.0,
+      killBonusScore: 100,
+      breached: false,
+      isItem: true,
+      itemKind: 'power_shot',
+    });
+
+    const breachRes = engine.update(now + 500, 0.1);
+    expect(breachRes.breaches.length).toBe(0); // Not counted in breaches
+    expect(engine.lives).toBe(5); // Lives intact!
+    expect(engine.activeTargets.some((t) => t.id === 'test_item_target')).toBe(false);
+
+    // 4. Shooting item target activates its buff
+    const spawnedItem = engine.spawnItemTarget('ice_freeze', now + 1000);
+    const hHalfFov = computeHorizontalHalfFovRad(52, 16 / 9);
+    const itemNormX = spawnedItem.thetaRad / (hHalfFov * 0.92);
+
+    const shootRes = engine.shootAt(itemNormX, 0, now + 1050);
+    expect(shootRes.fired).toBe(true);
+    expect(shootRes.killed).toBe(true);
+    expect(shootRes.activatedItem).toBe('ice_freeze');
+    expect(engine.isBuffActive('ice_freeze', now + 1050)).toBe(true);
   });
 });

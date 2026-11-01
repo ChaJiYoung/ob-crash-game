@@ -9,11 +9,23 @@ export interface HitJudgmentResult {
   damage: number;
 }
 
+export interface HitJudgmentOptions {
+  isFeverActive?: boolean;
+  isPowerShotActive?: boolean;
+  isWideScopeActive?: boolean;
+}
+
 export function evaluateHitJudgment(
   distanceToCenterM: number,
   hitRadiusM: number,
-  isFeverActive = false
+  optionsOrFever: boolean | HitJudgmentOptions = false
 ): HitJudgmentResult {
+  const options: HitJudgmentOptions =
+    typeof optionsOrFever === 'boolean' ? { isFeverActive: optionsOrFever } : optionsOrFever;
+  const isFeverActive = Boolean(options.isFeverActive);
+  const isPowerShotActive = Boolean(options.isPowerShotActive);
+  const isWideScopeActive = Boolean(options.isWideScopeActive);
+
   if (hitRadiusM <= 0) {
     return {
       grade: 'MISS',
@@ -24,7 +36,9 @@ export function evaluateHitJudgment(
     };
   }
 
-  const errorRatio = distanceToCenterM / hitRadiusM;
+  const effectiveHitRadius = isWideScopeActive ? hitRadiusM * 1.6 : hitRadiusM;
+  const errorRatio = distanceToCenterM / effectiveHitRadius;
+  const baseDamage = isFeverActive || isPowerShotActive ? 2 : 1;
 
   if (isFeverActive) {
     if (errorRatio <= 1.0) {
@@ -51,7 +65,7 @@ export function evaluateHitJudgment(
       errorRatio,
       baseScore: JUDGMENT_SPECS.PERFECT.baseScore,
       feverDelta: JUDGMENT_SPECS.PERFECT.feverDelta,
-      damage: 1,
+      damage: baseDamage,
     };
   }
 
@@ -61,7 +75,7 @@ export function evaluateHitJudgment(
       errorRatio,
       baseScore: JUDGMENT_SPECS.GREAT.baseScore,
       feverDelta: JUDGMENT_SPECS.GREAT.feverDelta,
-      damage: 1,
+      damage: baseDamage,
     };
   }
 
@@ -71,7 +85,7 @@ export function evaluateHitJudgment(
       errorRatio,
       baseScore: JUDGMENT_SPECS.GOOD.baseScore,
       feverDelta: JUDGMENT_SPECS.GOOD.feverDelta,
-      damage: 1,
+      damage: baseDamage,
     };
   }
 
