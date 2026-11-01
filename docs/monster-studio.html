@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Beer Crusher 3D - Monster Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: radial-gradient(circle at 50% 40%, #172033 0%, #0a0d14 75%, #05070a 100%);
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    #info-card {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 24px rgba(245, 158, 11, 0.2);
+      z-index: 10;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 800;
+      background: #f59e0b;
+      color: #111;
+    }
+    .name { font-size: 22px; font-weight: 900; color: #fff; }
+    .stat { font-size: 14px; color: #94a3b8; display: flex; gap: 6px; }
+    .stat b { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="info-card">
+    <span class="badge" id="m-badge">MONSTER</span>
+    <span class="name" id="m-name">Monster Name</span>
+    <span class="stat">HP: <b id="m-hp">1</b></span>
+    <span class="stat">속도: <b id="m-speed">4.5 m/s</b></span>
+    <span class="stat">처치 보너스: <b id="m-score">+30점</b></span>
+  </div>
+
+  <script>
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0a0d14, 10, 25);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0.5, 4.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio || 2);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    container.appendChild(renderer.domElement);
+
+    // Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.4);
+    keyLight.position.set(3, 5, 4);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    rimLight.position.set(-4, 3, -3);
+    scene.add(rimLight);
+
+    const topGoldLight = new THREE.PointLight(0xf59e0b, 1.5, 12);
+    topGoldLight.position.set(0, 3, 1);
+    scene.add(topGoldLight);
+
+    // Pedestal
+    const pedestalGroup = new THREE.Group();
+    const pedestalMat = new THREE.MeshStandardMaterial({
+      color: 0x111827,
+      metalness: 0.8,
+      roughness: 0.25,
+    });
+    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.25, 48), pedestalMat);
+    pedestal.position.y = -1.0;
+    pedestalGroup.add(pedestal);
+
+    // Neon Rim Ring
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.62, 0.02, 16, 64), ringMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = -0.87;
+    pedestalGroup.add(ring);
+
+    scene.add(pedestalGroup);
+
+    // Texture Generator
+    function makeCanTexture(brand, bg, fg, accent) {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+
+      const grad = ctx.createLinearGradient(0, 0, 512, 0);
+      grad.addColorStop(0, bg);
+      grad.addColorStop(0.5, '#ffffff');
+      grad.addColorStop(1, bg);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 256);
+
+      ctx.fillStyle = accent;
+      ctx.fillRect(0, 0, 512, 36);
+      ctx.fillRect(0, 220, 512, 36);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.beginPath();
+      ctx.arc(256, 128, 76, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = fg;
+      ctx.font = 'bold 46px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(brand, 256, 120);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.offset.x = 0.5;
+      return tex;
+    }
+
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.15 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.18 });
+
+    function buildModel(kind) {
+      const g = new THREE.Group();
+
+      if (kind === 'pilgood') {
+        const tex = makeCanTexture('FiLGOOD', '#00a8e8', '#ffd100', '#ffd100');
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.38, 0.38, 1.05, 32),
+          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.8, roughness: 0.2 }), capMat, capMat]
+        );
+        g.add(body);
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.08, 32), capMat);
+        lid.position.y = 0.56;
+        g.add(lid);
+        const foam = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
+        foam.scale.set(1, 0.45, 1);
+        foam.position.y = 0.65;
+        g.add(foam);
+      } else if (kind === 'caslight') {
+        const tex = makeCanTexture('Cass Light', '#38bdf8', '#0369a1', '#e2e8f0');
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.35, 0.35, 1.1, 32),
+          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.85, roughness: 0.18 }), capMat, capMat]
+        );
+        g.add(body);
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 0.08, 32), capMat);
+        lid.position.y = 0.58;
+        g.add(lid);
+
+        // Wings
+        const wingMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+        const gl = new THREE.PlaneGeometry(0.65, 0.38);
+        gl.translate(-0.32, 0, 0);
+        const gr = new THREE.PlaneGeometry(0.65, 0.38);
+        gr.translate(0.32, 0, 0);
+        const wl = new THREE.Mesh(gl, wingMat);
+        const wr = new THREE.Mesh(gr, wingMat);
+        wl.position.set(-0.35, 0.18, 0);
+        wr.position.set(0.35, 0.18, 0);
+        wl.rotation.y = 0.2;
+        wr.rotation.y = -0.2;
+        g.add(wl);
+        g.add(wr);
+      } else if (kind === 'obi') {
+        const tex = makeCanTexture('OB Lager', '#f59e0b', '#78350f', '#b91c1c');
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.38, 0.38, 1.05, 32),
+          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.75, roughness: 0.25 }), capMat, capMat]
+        );
+        g.add(body);
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.08, 32), capMat);
+        lid.position.y = 0.56;
+        g.add(lid);
+        const tab = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.12), capMat);
+        tab.position.y = 0.61;
+        g.add(tab);
+      } else if (kind === 'hanmac') {
+        const tex = makeCanTexture('HANMAC', '#047857', '#d4af37', '#d4af37');
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.38, 0.38, 1.05, 32),
+          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.75, roughness: 0.25 }), capMat, capMat]
+        );
+        g.add(body);
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.08, 32), capMat);
+        lid.position.y = 0.56;
+        g.add(lid);
+        const foam = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
+        foam.scale.set(1, 0.5, 1);
+        foam.position.y = 0.66;
+        g.add(foam);
+      } else if (kind === 'mug') {
+        const r = 0.44;
+        const h = 1.15;
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, roughness: 0.08, metalness: 0.1 });
+        const liquidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.15, metalness: 0.15 });
+        const foamMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.88 });
+
+        const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.9, h, 10), glassMat);
+        g.add(glassBody);
+
+        const liquid = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.86, r * 0.78, h * 0.84, 10), liquidMat);
+        liquid.position.y = -h * 0.03;
+        g.add(liquid);
+
+        const handle = new THREE.Mesh(new THREE.TorusGeometry(h * 0.28, 0.065, 10, 20, Math.PI), glassMat);
+        handle.rotation.z = -Math.PI / 2;
+        handle.position.set(r * 0.95, 0, 0);
+        g.add(handle);
+
+        const foamBase = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.05, r * 0.94, 0.22, 12), foamMat);
+        foamBase.position.y = h / 2 + 0.05;
+        g.add(foamBase);
+
+        [[-0.14, 0.14], [0.14, 0.1], [0, -0.15], [-0.12, -0.12], [0.12, -0.12]].forEach(([px, pz]) => {
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), foamMat);
+          puff.position.set(px, h / 2 + 0.18, pz);
+          g.add(puff);
+        });
+      } else if (kind === 'boss') {
+        const r = 0.75;
+        const h = 1.5;
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.75, roughness: 0.3 });
+        const panelTex = makeCanTexture('OB DRAFT COOLER', '#111827', '#f59e0b', '#d97706');
+        const panelMat = new THREE.MeshStandardMaterial({ map: panelTex, metalness: 0.4, roughness: 0.4 });
+
+        const cabinet = new THREE.Mesh(
+          new THREE.BoxGeometry(r * 1.8, h * 0.8, r * 1.4),
+          [bodyMat, bodyMat, capMat, bodyMat, panelMat, bodyMat]
+        );
+        g.add(cabinet);
+
+        const grille = new THREE.Mesh(new THREE.BoxGeometry(r * 1.5, h * 0.2, 0.06), new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.9 }));
+        grille.position.set(0, -h * 0.22, r * 0.71);
+        g.add(grille);
+
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.5, 20), capMat);
+        tower.position.set(0, h * 0.4 + 0.24, 0);
+        g.add(tower);
+
+        [-0.11, 0.11].forEach((tapX) => {
+          const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.2, 12), goldMat);
+          tapSpout.rotation.x = Math.PI / 2;
+          tapSpout.position.set(tapX, h * 0.4 + 0.34, 0.15);
+          g.add(tapSpout);
+
+          const tapHandle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.022, 0.015, 0.25, 12),
+            new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.2 })
+          );
+          tapHandle.position.set(tapX, h * 0.4 + 0.48, 0.2);
+          tapHandle.rotation.x = -0.2;
+          g.add(tapHandle);
+        });
+
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 });
+        [[-r * 0.75, -r * 0.55], [r * 0.75, -r * 0.55], [-r * 0.75, r * 0.55], [r * 0.75, r * 0.55]].forEach(([wx, wz]) => {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.08, 12), wheelMat);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(wx, -h * 0.4 - 0.05, wz);
+          g.add(wheel);
+        });
+      }
+
+      return g;
+    }
+
+    const SPECS = {
+      pilgood: { badge: 'SPEED · 일반', name: '필굿 (FiLGOOD)', hp: '1', speed: '4.5 m/s', score: '+30점', color: '#00a8e8' },
+      caslight: { badge: 'FLYING · 일반', name: '카스 라이트 (Cass Light)', hp: '1', speed: '3.8 m/s', score: '+40점', color: '#38bdf8' },
+      obi: { badge: 'TANK · 중형', name: '오비 라거 (OB Lager)', hp: '2', speed: '3.1 m/s', score: '+70점', color: '#f59e0b' },
+      hanmac: { badge: 'ELITE · 고급', name: '한맥 (HANMAC)', hp: '2', speed: '3.3 m/s', score: '+90점', color: '#10b981' },
+      mug: { badge: 'HEAVY · 생맥주', name: '500ml 생맥주잔 (Draft Mug)', hp: '3', speed: '2.4 m/s', score: '+160점', color: '#fbbf24' },
+      boss: { badge: 'BOSS · 보스', name: '업소용 생맥주 냉각기 (Boss)', hp: '30', speed: '1.15 m/s', score: '+1,500점', color: '#ef4444' }
+    };
+
+    let activeModel = null;
+    let currentKind = 'pilgood';
+
+    window.showMonster = function(kind) {
+      if (activeModel) {
+        scene.remove(activeModel);
+      }
+      currentKind = kind;
+      activeModel = buildModel(kind);
+      activeModel.rotation.y = 0.35;
+      scene.add(activeModel);
+
+      // Adjust camera distance for boss
+      if (kind === 'boss') {
+        camera.position.set(0, 0.6, 5.0);
+      } else {
+        camera.position.set(0, 0.4, 3.4);
+      }
+
+      // Update info
+      const s = SPECS[kind];
+      document.getElementById('m-badge').textContent = s.badge;
+      document.getElementById('m-badge').style.background = s.color;
+      document.getElementById('m-name').textContent = s.name;
+      document.getElementById('m-hp').textContent = s.hp;
+      document.getElementById('m-speed').textContent = s.speed;
+      document.getElementById('m-score').textContent = s.score;
+    };
+
+    window.showAllLineup = function() {
+      if (activeModel) scene.remove(activeModel);
+      const group = new THREE.Group();
+
+      const lineup = [
+        { kind: 'pilgood', x: -3.0, z: -0.2, scale: 0.9 },
+        { kind: 'caslight', x: -1.8, z: 0.1, scale: 0.9 },
+        { kind: 'obi', x: -0.6, z: 0.3, scale: 0.95 },
+        { kind: 'hanmac', x: 0.6, z: 0.3, scale: 0.95 },
+        { kind: 'mug', x: 1.8, z: 0.1, scale: 0.95 },
+        { kind: 'boss', x: 3.4, z: -0.4, scale: 0.9 }
+      ];
+
+      lineup.forEach(item => {
+        const m = buildModel(item.kind);
+        m.position.set(item.x, 0, item.z);
+        m.scale.setScalar(item.scale);
+        m.rotation.y = 0.3;
+        group.add(m);
+      });
+
+      activeModel = group;
+      scene.add(group);
+      camera.position.set(0.2, 0.7, 7.2);
+
+      document.getElementById('m-badge').textContent = 'ALL MONSTERS';
+      document.getElementById('m-badge').style.background = '#f59e0b';
+      document.getElementById('m-name').textContent = '비어 크러셔 3D 몬스터 6종 풀 라인업';
+      document.getElementById('m-hp').textContent = '1 ~ 30';
+      document.getElementById('m-speed').textContent = '1.15 ~ 4.5 m/s';
+      document.getElementById('m-score').textContent = '+30 ~ +1,500점';
+    };
+
+    // Default
+    window.showMonster('pilgood');
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (activeModel) {
+        // subtle idle rotation
+        activeModel.rotation.y += 0.006;
+      }
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
