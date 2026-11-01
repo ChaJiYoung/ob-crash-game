@@ -1,0 +1,135 @@
+import { JudgmentGrade } from '../../shared/types';
+import { FEVER_CONSTANTS, JUDGMENT_SPECS } from '../../shared/constants';
+
+export class ScoreAndFeverManager {
+  private totalScore = 0;
+  private combo = 0;
+  private maxCombo = 0;
+  private feverGauge = 0;
+  private isFeverReady = false;
+  private isFeverActive = false;
+  private feverEndTimeMs = 0;
+
+  public getComboMultiplier(): number {
+    if (this.combo >= 30) return 2.5;
+    if (this.combo >= 20) return 2.0;
+    if (this.combo >= 10) return 1.5;
+    if (this.combo >= 5) return 1.2;
+    return 1.0;
+  }
+
+  public registerHit(
+    grade: Exclude<JudgmentGrade, 'MISS'>,
+    killBonusScore = 0
+  ): {
+    earnedScore: number;
+    totalScore: number;
+    combo: number;
+    maxCombo: number;
+    feverGauge: number;
+    isFeverReady: boolean;
+  } {
+    this.combo += 1;
+    if (this.combo > this.maxCombo) {
+      this.maxCombo = this.combo;
+    }
+
+    const spec = JUDGMENT_SPECS[grade];
+    const mult = this.getComboMultiplier();
+    const feverBonusMult = this.isFeverActive ? 1.5 : 1.0;
+    const earnedScore = Math.round(spec.baseScore * mult * feverBonusMult) + killBonusScore;
+    this.totalScore += earnedScore;
+
+    if (!this.isFeverActive) {
+      this.feverGauge = Math.min(FEVER_CONSTANTS.MAX_GAUGE, this.feverGauge + spec.feverDelta);
+      if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE) {
+        this.feverGauge = FEVER_CONSTANTS.MAX_GAUGE;
+        this.isFeverReady = true;
+      }
+    }
+
+    return {
+      earnedScore,
+      totalScore: this.totalScore,
+      combo: this.combo,
+      maxCombo: this.maxCombo,
+      feverGauge: this.feverGauge,
+      isFeverReady: this.isFeverReady,
+    };
+  }
+
+  public applyMissPenalty(): {
+    combo: number;
+    maxCombo: number;
+    feverGauge: number;
+    isFeverReady: boolean;
+  } {
+    this.combo = 0;
+
+    // D06 Anti-Regression Guard:
+    // When fever gauge is 100% full (or fever active), missed shots NEVER decrease the gauge!
+    if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE || this.isFeverReady || this.isFeverActive) {
+      return {
+        combo: this.combo,
+        maxCombo: this.maxCombo,
+        feverGauge: this.feverGauge,
+        isFeverReady: this.isFeverReady,
+      };
+    }
+
+    this.feverGauge = Math.max(0, this.feverGauge - FEVER_CONSTANTS.MISS_PENALTY);
+    return {
+      combo: this.combo,
+      maxCombo: this.maxCombo,
+      feverGauge: this.feverGauge,
+      isFeverReady: this.isFeverReady,
+    };
+  }
+
+  public activateFever(nowMs: number): boolean {
+    if (!this.isFeverReady || this.isFeverActive) {
+      return false;
+    }
+
+    this.isFeverActive = true;
+    this.isFeverReady = false;
+    this.feverEndTimeMs = nowMs + FEVER_CONSTANTS.DURATION_MS;
+    return true;
+  }
+
+  public updateFeverTimer(nowMs: number): void {
+    if (this.isFeverActive) {
+      if (nowMs >= this.feverEndTimeMs) {
+        this.isFeverActive = false;
+        this.feverGauge = 0;
+        this.isFeverReady = false;
+      } else {
+        // Decrease gauge smoothly for UI
+        const remainMs = Math.max(0, this.feverEndTimeMs - nowMs);
+        this.feverGauge = Math.round((remainMs / FEVER_CONSTANTS.DURATION_MS) * 100);
+      }
+    }
+  }
+
+  public getState() {
+    return {
+      totalScore: this.totalScore,
+      combo: this.combo,
+      maxCombo: this.maxCombo,
+      feverGauge: this.feverGauge,
+      isFeverReady: this.isFeverReady,
+      isFeverActive: this.isFeverActive,
+      comboMultiplier: this.getComboMultiplier(),
+    };
+  }
+
+  public reset(): void {
+    this.totalScore = 0;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.feverGauge = 0;
+    this.isFeverReady = false;
+    this.isFeverActive = false;
+    this.feverEndTimeMs = 0;
+  }
+}
