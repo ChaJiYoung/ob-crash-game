@@ -1,12 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
-import { createTargetMesh3D, updateTargetAnimation3D, applyTargetHitFlash3D } from '../three/TargetModels3D';
+import {
+  createTargetMesh3D,
+  createItemMesh3D,
+  updateTargetAnimation3D,
+  updateItemAnimation3D,
+  applyTargetHitFlash3D,
+  getTargetBaseY,
+} from '../three/TargetModels3D';
 import { DraftTapGun3D } from '../three/DraftTapGun3D';
 import { ParticleEffects3D } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
-import { TARGET_SPECS } from '../../shared/constants';
+import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
 
 function disposeGroup(group: THREE.Group): void {
   group.traverse((obj) => {
@@ -45,30 +55,56 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
   const aimRef = useRef({ aimX, aimY });
   aimRef.current = { aimX, aimY };
 
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const tapGunRef = useRef<DraftTapGun3D | null>(null);
   const particlesRef = useRef<ParticleEffects3D | null>(null);
   const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
 
-  // Trigger 3D visual FX (recoil, hit flash, particles) for ANY shot (PC mouse or Mobile sensor)
+  // Trigger 3D visual FX (tracer beam, recoil, hit flash, particles) for ANY shot
   useEffect(() => {
     if (!lastShootResult || lastShootResult.key === 0) return;
     const { result } = lastShootResult;
     if (!result.fired) return;
 
     const isFever = engine.scoreManager.getState().isFeverActive;
+    const isPower = engine.isBuffActive('power_shot');
+    const isFeverOrPower = isFever || isPower;
+
     if (tapGunRef.current) {
-      tapGunRef.current.triggerRecoil(isFever);
+      tapGunRef.current.triggerRecoil(isFeverOrPower);
     }
 
-    if (result.grade !== 'MISS' && result.target) {
-      const mesh = targetMeshMapRef.current.get(result.target.id);
-      if (mesh) {
-        applyTargetHitFlash3D(mesh, performance.now() / 1000);
-        if (particlesRef.current) {
-          const spec = TARGET_SPECS[result.target.kind];
-          particlesRef.current.spawnHitEffect(mesh.position, spec.brandColorHex, result.killed ? 20 : 10);
+    if (particlesRef.current && tapGunRef.current && cameraRef.current) {
+      const muzzlePos = tapGunRef.current.getMuzzleWorldPosition(cameraRef.current);
+      const curAim = aimRef.current;
+
+      let targetPos: THREE.Vector3;
+      let beamColor = isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8';
+
+      if (result.grade !== 'MISS' && result.target) {
+        const mesh = targetMeshMapRef.current.get(result.target.id);
+        if (mesh) {
+          targetPos = mesh.position.clone();
+          applyTargetHitFlash3D(mesh, performance.now() / 1000);
+
+          const hitColor = result.target.isItem && result.target.itemKind
+            ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
+            : TARGET_SPECS[result.target.kind].brandColorHex;
+
+          particlesRef.current.spawnHitEffect(
+            targetPos,
+            hitColor,
+            result.killed ? 32 : 18
+          );
+        } else {
+          targetPos = new THREE.Vector3(curAim.aimX * 7.5, 1.2 + curAim.aimY * 4.2, -14);
         }
+      } else {
+        // Miss shot: tracer shoots into distance
+        targetPos = new THREE.Vector3(curAim.aimX * 8.5, 1.2 + curAim.aimY * 4.5, -16);
       }
+
+      particlesRef.current.spawnTracerBeam(muzzlePos, targetPos, beamColor, isFeverOrPower);
     }
   }, [lastShootResult, engine]);
 
@@ -78,8 +114,8 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
 
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0c);
-    scene.fog = new THREE.FogExp2(0x0a0a0c, 0.022);
+    scene.background = new THREE.Color(0x0e0906);
+    scene.fog = new THREE.FogExp2(0x0e0906, 0.02);
 
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
@@ -87,18 +123,40 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
     const camera = new THREE.PerspectiveCamera(engine.vFovDeg, width / height, 0.1, 100);
     camera.position.set(0, 1.65, 2.2);
     camera.lookAt(0, 1.35, -12);
+    cameraRef.current = camera;
     engine.aspect = width / height;
 
     let renderer: THREE.WebGLRenderer | null = null;
+    let composer: EffectComposer | null = null;
+
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: false,
+        powerPreference: 'high-performance',
+      });
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.1;
+      renderer.toneMappingExposure = 1.32;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
+
+      // UnrealBloomPass Post-Processing
+      composer = new EffectComposer(renderer);
+      const renderPass = new RenderPass(scene, camera);
+      composer.addPass(renderPass);
+
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(width, height),
+        0.48, // strength
+        0.32, // radius
+        0.82  // threshold
+      );
+      composer.addPass(bloomPass);
     } catch (e) {
-      console.warn('WebGL initialization failed:', e);
+      console.warn('WebGL or EffectComposer initialization failed:', e);
     }
 
     // 2. Add Brewery Stage, Gun, and Particle pool
@@ -124,6 +182,9 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
       camera.updateProjectionMatrix();
       engine.aspect = w / h;
       renderer.setSize(w, h);
+      if (composer) {
+        composer.setSize(w, h);
+      }
     };
     window.addEventListener('resize', handleResize);
 
@@ -196,32 +257,44 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
         }
       });
 
-      // Add & update active target meshes
+      // Add & update active target meshes (supports both monsters and items)
       engine.activeTargets.forEach((target) => {
         let mesh = targetMeshMap.get(target.id);
         if (!mesh) {
-          mesh = createTargetMesh3D(target.kind);
+          if (target.isItem && target.itemKind) {
+            mesh = createItemMesh3D(target.itemKind);
+          } else {
+            mesh = createTargetMesh3D(target.kind);
+          }
           scene.add(mesh);
           targetMeshMap.set(target.id, mesh);
         }
 
-        mesh.position.set(target.x, target.kind === 'boss' ? 1.7 : 1.35, target.z);
-        // Face player
-        mesh.rotation.y = Math.atan2(-target.x, -target.z);
-        updateTargetAnimation3D(mesh, target.kind, time / 1000, target.hp / target.maxHp);
+        const baseY = getTargetBaseY(target.kind, target.isItem);
+        mesh.position.set(target.x, baseY, target.z);
+
+        if (target.isItem && target.itemKind) {
+          updateItemAnimation3D(mesh, target.itemKind, time / 1000);
+        } else {
+          // Face player yaw
+          mesh.rotation.y = Math.atan2(-target.x, -target.z);
+          updateTargetAnimation3D(mesh, target.kind, time / 1000, target.hp / target.maxHp);
+        }
       });
 
       // Update gun recoil and aim
       tapGun.updateAimAndRecoil(curAim.aimX, curAim.aimY, dtSec, feverState.isFeverActive);
 
       // Update stage lighting & alert
-      const hasDanger = engine.activeTargets.some((t) => t.radiusM < 5.0);
+      const hasDanger = engine.activeTargets.some((t) => !t.isItem && t.radiusM < 5.0);
       stageRig.updateStageAnimation(time / 1000, feverState.isFeverActive, hasDanger);
 
-      // Update particles
+      // Update particles and tracer beams
       particles.update(dtSec);
 
-      if (renderer) {
+      if (composer) {
+        composer.render();
+      } else if (renderer) {
         renderer.render(scene, camera);
       }
     };

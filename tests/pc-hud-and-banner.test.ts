@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   formatAmmoStatusText,
   formatFeverStatusBadge,
+  formatActiveBuffBadge,
 } from '../src/pc/components/ArcadeOverlayHUD';
 import { getJudgmentBannerSpec } from '../src/pc/components/JudgmentBanner';
-import { aimToViewportPercent } from '../src/pc/components/CrosshairOverlay';
+import { aimToViewportPercent, getCrosshairVisualSpec } from '../src/pc/components/CrosshairOverlay';
 
 describe('PC Fullscreen HUD & Judgment Banner', () => {
   it('should format ammo status text correctly', () => {
@@ -29,6 +30,38 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     const active = formatFeverStatusBadge(80, false, true);
     expect(active.isLocked).toBe(false);
     expect(active.label).toContain('ACTIVE');
+  });
+
+  it('should compute crosshair 88px base size and 140px wide-scope expansion', () => {
+    const normal = getCrosshairVisualSpec({});
+    expect(normal.sizePx).toBe(88);
+    expect(normal.ringSizePx).toBe(68);
+    expect(normal.primaryColor).toBe('#38bdf8');
+
+    const wide = getCrosshairVisualSpec({ isWideScopeActive: true });
+    expect(wide.sizePx).toBe(140);
+    expect(wide.ringSizePx).toBe(112);
+    expect(wide.badgeText).toBe('WIDE 1.6X');
+
+    const power = getCrosshairVisualSpec({ isPowerShotActive: true });
+    expect(power.primaryColor).toBe('#ef4444');
+    expect(power.badgeText).toBe('POWER 2X');
+
+    const fever = getCrosshairVisualSpec({ isFeverActive: true });
+    expect(fever.primaryColor).toBe('#fbbf24');
+  });
+
+  it('should format active buff badge with remaining seconds and progress percent', () => {
+    const buff = {
+      kind: 'power_shot' as const,
+      remainingMs: 4000,
+      totalDurationMs: 8000,
+    };
+    const badge = formatActiveBuffBadge(buff);
+    expect(badge.label).toBe('POWER 2X');
+    expect(badge.timeSecText).toBe('4.0s');
+    expect(badge.percent).toBe(50);
+    expect(badge.colorHex).toBe('#ef4444');
   });
 
   it('should return correct specs for all judgment grades', () => {

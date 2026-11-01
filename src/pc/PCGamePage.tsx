@@ -7,8 +7,8 @@ import { JudgmentBanner } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
-import { GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
-import { WEAPON_CONSTANTS } from '../shared/constants';
+import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
+import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 
 export const PCGamePage: React.FC = () => {
   const engine = useMemo(() => new BeerCrusherEngine(), []);
@@ -39,7 +39,7 @@ export const PCGamePage: React.FC = () => {
     score: 0,
     combo: 0,
     comboMultiplier: 1.0,
-    lives: 3,
+    lives: STAGE_CONSTANTS.PLAYER_MAX_LIVES as number,
     wave: 1,
     ammo: 10,
     maxAmmo: 10,
@@ -47,6 +47,9 @@ export const PCGamePage: React.FC = () => {
     feverGauge: 0,
     isFeverReady: false,
     isFeverActive: false,
+    activeBuffs: [] as ActiveBuffState[],
+    isWideScopeActive: false,
+    isPowerShotActive: false,
   });
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -165,6 +168,10 @@ export const PCGamePage: React.FC = () => {
     const interval = setInterval(() => {
       const feverState = engine.scoreManager.getState();
       const weaponState = engine.weaponSystem.getState();
+      const now = performance.now();
+      const activeBuffs = engine.getActiveBuffs(now);
+      const isWideScopeActive = engine.isBuffActive('wide_scope', now);
+      const isPowerShotActive = engine.isBuffActive('power_shot', now);
 
       setHudState({
         score: feverState.totalScore,
@@ -178,6 +185,9 @@ export const PCGamePage: React.FC = () => {
         feverGauge: feverState.feverGauge,
         isFeverReady: feverState.isFeverReady,
         isFeverActive: feverState.isFeverActive,
+        activeBuffs,
+        isWideScopeActive,
+        isPowerShotActive,
       });
 
       // Synchronize game over / victory
@@ -188,7 +198,7 @@ export const PCGamePage: React.FC = () => {
       } else if (engine.gamePhase === 'VICTORY' && gamePhase === 'PLAYING') {
         setGamePhase('VICTORY');
         soundSynth.playFeverStart();
-        submitScore(feverState.totalScore, 3, feverState.maxCombo);
+        submitScore(feverState.totalScore, STAGE_CONSTANTS.TOTAL_WAVES, feverState.maxCombo);
       }
     }, 50);
 
@@ -249,7 +259,9 @@ export const PCGamePage: React.FC = () => {
             combo={hudState.combo}
             comboMultiplier={hudState.comboMultiplier}
             lives={hudState.lives}
+            maxLives={STAGE_CONSTANTS.PLAYER_MAX_LIVES}
             wave={hudState.wave}
+            totalWaves={STAGE_CONSTANTS.TOTAL_WAVES}
             ammo={hudState.ammo}
             maxAmmo={hudState.maxAmmo}
             isReloading={hudState.isReloading}
@@ -257,8 +269,16 @@ export const PCGamePage: React.FC = () => {
             isFeverReady={hudState.isFeverReady}
             isFeverActive={hudState.isFeverActive}
             bossEntity={bossEntity}
+            activeBuffs={hudState.activeBuffs}
           />
-          <CrosshairOverlay aimX={aimX} aimY={aimY} isFeverActive={hudState.isFeverActive} />
+          <CrosshairOverlay
+            aimX={aimX}
+            aimY={aimY}
+            isFeverActive={hudState.isFeverActive}
+            isWideScopeActive={hudState.isWideScopeActive}
+            isPowerShotActive={hudState.isPowerShotActive}
+            shotTriggerKey={lastShootResult?.key || 0}
+          />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
         </>
       )}

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { STAGE_CONSTANTS } from '../../shared/constants';
 
 export interface BreweryStageRig {
@@ -12,12 +13,52 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   const root = new THREE.Group();
   root.name = 'BreweryStage3D';
 
-  // 1. Warm Brewery Wooden Floor (100m x 100m)
+  // 1. Initial Warm Pub PMREM Environment Fallback
+  if (typeof document !== 'undefined') {
+    try {
+      const envCanvas = document.createElement('canvas');
+      envCanvas.width = 128;
+      envCanvas.height = 64;
+      const envCtx = envCanvas.getContext('2d');
+      if (envCtx) {
+        const envGrad = envCtx.createLinearGradient(0, 0, 0, 64);
+        envGrad.addColorStop(0, '#78350f');
+        envGrad.addColorStop(0.5, '#f59e0b');
+        envGrad.addColorStop(1, '#1e1b4b');
+        envCtx.fillStyle = envGrad;
+        envCtx.fillRect(0, 0, 128, 64);
+
+        const envTex = new THREE.CanvasTexture(envCanvas);
+        envTex.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = envTex;
+      }
+    } catch {
+      // Ignore in headless
+    }
+  }
+
+  // Load Real CC0 2K Pub HDRI Environment in Browser
+  if (typeof window !== 'undefined') {
+    try {
+      const rgbeLoader = new RGBELoader();
+      rgbeLoader.load('/hdri/pub_interior_2k.hdr', (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = texture;
+        scene.background = texture;
+        scene.backgroundBlurriness = 0.08;
+        scene.backgroundIntensity = 0.72;
+      });
+    } catch {
+      // Keep canvas fallback
+    }
+  }
+
+  // 2. Warm Brewery Wooden Floor (100m x 100m)
   const floorGeo = new THREE.PlaneGeometry(100, 100, 32, 32);
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x1f1610,
-    roughness: 0.82,
-    metalness: 0.12,
+    color: 0x221812,
+    roughness: 0.75,
+    metalness: 0.15,
   });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI / 2;
@@ -25,13 +66,12 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   floor.receiveShadow = true;
   root.add(floor);
 
-  // 2. Defense Line Bar Counter at R = 1.8m (Wooden & Brass Counter)
-  // An arc positioned at R = 1.8m in front of player
-  const defArcGeo = new THREE.RingGeometry(1.76, 1.84, 48, 1, 0, Math.PI);
+  // 3. Defense Line Bar Counter at R = 1.8m (Wooden & Brass Counter)
+  const defArcGeo = new THREE.RingGeometry(1.75, 1.85, 48, 1, 0, Math.PI);
   const defArcMat = new THREE.MeshStandardMaterial({
     color: 0xf59e0b,
-    roughness: 0.35,
-    metalness: 0.75,
+    roughness: 0.32,
+    metalness: 0.8,
     side: THREE.DoubleSide,
   });
   const defenseArcMesh = new THREE.Mesh(defArcGeo, defArcMat);
@@ -43,22 +83,23 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   // Bar Counter curved wall
   const barCounterGeo = new THREE.CylinderGeometry(1.85, 1.85, 1.05, 48, 1, true, 0, Math.PI);
   const barCounterMat = new THREE.MeshStandardMaterial({
-    color: 0x2e1a0f,
-    roughness: 0.7,
-    metalness: 0.2,
+    color: 0x3b2111,
+    roughness: 0.65,
+    metalness: 0.22,
     side: THREE.DoubleSide,
   });
   const barCounter = new THREE.Mesh(barCounterGeo, barCounterMat);
   barCounter.position.set(0, 0.52, 0);
   barCounter.rotation.y = Math.PI;
+  barCounter.receiveShadow = true;
   root.add(barCounter);
 
   // Brass Bar Rail Trim on top
-  const brassRailGeo = new THREE.TorusGeometry(1.86, 0.04, 8, 48, Math.PI);
+  const brassRailGeo = new THREE.TorusGeometry(1.86, 0.045, 10, 48, Math.PI);
   const brassRailMat = new THREE.MeshStandardMaterial({
     color: 0xd4af37,
-    metalness: 0.88,
-    roughness: 0.22,
+    metalness: 0.92,
+    roughness: 0.18,
   });
   const brassRail = new THREE.Mesh(brassRailGeo, brassRailMat);
   brassRail.rotation.x = Math.PI / 2;
@@ -66,14 +107,26 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   brassRail.position.set(0, 1.06, 0);
   root.add(brassRail);
 
-  // 3. Fan Distance Arcs (10m, 20m, 28m)
-  const distanceArcRadii = [10.0, 20.0, STAGE_CONSTANTS.SPAWN_RADIUS_M];
+  // Brass Tap Tower on Bar Counter
+  const towerMat = new THREE.MeshStandardMaterial({
+    color: 0xd4af37,
+    metalness: 0.94,
+    roughness: 0.14,
+  });
+  [-0.6, 0.6].forEach((tx) => {
+    const tapTower = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.42, 16), towerMat);
+    tapTower.position.set(tx, 1.25, -1.72);
+    root.add(tapTower);
+  });
+
+  // 4. Distance Arcs (6m, 12m, 18m Spawn Radius)
+  const distanceArcRadii = [6.0, 12.0, STAGE_CONSTANTS.SPAWN_RADIUS_M];
   distanceArcRadii.forEach((radius, idx) => {
     const arcGeo = new THREE.RingGeometry(radius - 0.06, radius + 0.06, 64, 1, 0, Math.PI);
     const arcMat = new THREE.MeshBasicMaterial({
       color: idx === 2 ? 0xef4444 : 0x38bdf8,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.4,
       side: THREE.DoubleSide,
     });
     const arcMesh = new THREE.Mesh(arcGeo, arcMat);
@@ -83,37 +136,37 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
     root.add(arcMesh);
   });
 
-  // 4. Copper Fermentation Tanks (6 Large Brewery Tanks on Left and Right)
+  // 5. Copper Fermentation Tanks (6 Large Brewery Tanks on Left and Right)
   const tankMat = new THREE.MeshStandardMaterial({
-    color: 0xb87333, // Copper
-    metalness: 0.85,
-    roughness: 0.28,
+    color: 0xb87333,
+    metalness: 0.88,
+    roughness: 0.24,
   });
   const tankCapMat = new THREE.MeshStandardMaterial({
     color: 0xd4af37,
-    metalness: 0.9,
-    roughness: 0.2,
+    metalness: 0.92,
+    roughness: 0.18,
   });
 
   const tankPositions = [
-    [-14, -10],
-    [-17, -20],
-    [-20, -30],
-    [14, -10],
-    [17, -20],
-    [20, -30],
+    [-14, -8],
+    [-17, -18],
+    [-20, -28],
+    [14, -8],
+    [17, -18],
+    [20, -28],
   ];
 
   tankPositions.forEach(([tx, tz]) => {
     const tankGroup = new THREE.Group();
     tankGroup.position.set(tx, 0, tz);
 
-    // Tank main cylinder
     const body = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 10, 24), tankMat);
     body.position.y = 5;
+    body.castShadow = true;
+    body.receiveShadow = true;
     tankGroup.add(body);
 
-    // Conical bottom/top cap
     const topCap = new THREE.Mesh(new THREE.ConeGeometry(3.2, 2.5, 24), tankCapMat);
     topCap.position.y = 11.25;
     tankGroup.add(topCap);
@@ -121,30 +174,39 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
     root.add(tankGroup);
   });
 
-  // 5. Neon Pub Lighting
+  // 6. Upgraded Stage Lights & Directional Shadows
   const neonLights: THREE.PointLight[] = [];
 
-  const ambientLight = new THREE.AmbientLight(0xffecd2, 0.45);
+  const ambientLight = new THREE.AmbientLight(0xfff0d8, 1.15);
   root.add(ambientLight);
 
-  const mainDirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-  mainDirLight.position.set(5, 18, 8);
+  const mainDirLight = new THREE.DirectionalLight(0xfff5e4, 1.75);
+  mainDirLight.position.set(6, 22, 10);
+  mainDirLight.castShadow = true;
+  mainDirLight.shadow.mapSize.width = 1024;
+  mainDirLight.shadow.mapSize.height = 1024;
+  mainDirLight.shadow.camera.near = 0.5;
+  mainDirLight.shadow.camera.far = 45;
+  mainDirLight.shadow.camera.left = -20;
+  mainDirLight.shadow.camera.right = 20;
+  mainDirLight.shadow.camera.top = 20;
+  mainDirLight.shadow.camera.bottom = -20;
   root.add(mainDirLight);
 
   // Amber Neon Sign Light
-  const amberNeon = new THREE.PointLight(0xf59e0b, 2.2, 35);
+  const amberNeon = new THREE.PointLight(0xf59e0b, 2.6, 35);
   amberNeon.position.set(0, 6, -14);
   root.add(amberNeon);
   neonLights.push(amberNeon);
 
   // Cyan Neon Side Light
-  const cyanNeon = new THREE.PointLight(0x06b6d4, 1.8, 30);
+  const cyanNeon = new THREE.PointLight(0x06b6d4, 2.2, 30);
   cyanNeon.position.set(-10, 5, -8);
   root.add(cyanNeon);
   neonLights.push(cyanNeon);
 
   // Red/Gold Defense Alert Light
-  const alertLight = new THREE.PointLight(0xef4444, 1.2, 20);
+  const alertLight = new THREE.PointLight(0xef4444, 1.4, 20);
   alertLight.position.set(0, 3, -2);
   root.add(alertLight);
   neonLights.push(alertLight);
@@ -155,21 +217,21 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
     // Pulse neon lights
     if (isFeverActive) {
       amberNeon.color.setHex(0xffd700);
-      amberNeon.intensity = 3.5 + Math.sin(elapsedSec * 12) * 1.5;
+      amberNeon.intensity = 4.2 + Math.sin(elapsedSec * 12) * 1.8;
       cyanNeon.color.setHex(0xf59e0b);
-      cyanNeon.intensity = 3.0;
+      cyanNeon.intensity = 3.6;
     } else {
       amberNeon.color.setHex(0xf59e0b);
-      amberNeon.intensity = 2.0 + Math.sin(elapsedSec * 2) * 0.4;
+      amberNeon.intensity = 2.4 + Math.sin(elapsedSec * 2) * 0.5;
       cyanNeon.color.setHex(0x06b6d4);
-      cyanNeon.intensity = 1.6 + Math.cos(elapsedSec * 2.5) * 0.3;
+      cyanNeon.intensity = 2.0 + Math.cos(elapsedSec * 2.5) * 0.4;
     }
 
     if (dangerAlert) {
-      alertLight.intensity = 3.0 + Math.sin(elapsedSec * 16) * 2.0;
+      alertLight.intensity = 3.6 + Math.sin(elapsedSec * 16) * 2.4;
       (defArcMat as THREE.MeshStandardMaterial).color.setHex(0xef4444);
     } else {
-      alertLight.intensity = 0.5;
+      alertLight.intensity = 0.6;
       (defArcMat as THREE.MeshStandardMaterial).color.setHex(isFeverActive ? 0xffd700 : 0xf59e0b);
     }
   };

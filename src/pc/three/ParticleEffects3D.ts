@@ -8,9 +8,17 @@ interface ParticleItem {
   rotSpeed: THREE.Vector3;
 }
 
+interface TracerBeamItem {
+  beamMesh: THREE.Mesh;
+  flashMesh: THREE.Mesh;
+  lifeSec: number;
+  maxLifeSec: number;
+}
+
 export class ParticleEffects3D {
   public readonly group: THREE.Group;
   private particles: ParticleItem[] = [];
+  private tracerBeams: TracerBeamItem[] = [];
   private foamGeo = new THREE.SphereGeometry(0.08, 6, 6);
   private shardGeo = new THREE.BufferGeometry();
   private foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
@@ -42,6 +50,52 @@ export class ParticleEffects3D {
       );
     }
     return this.matCache.get(colorHex)!;
+  }
+
+  public spawnTracerBeam(
+    fromPos: THREE.Vector3,
+    toPos: THREE.Vector3,
+    colorHex: string,
+    isFeverOrPower = false
+  ): void {
+    const direction = new THREE.Vector3().subVectors(toPos, fromPos);
+    const distance = Math.max(0.5, direction.length());
+    const midPoint = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
+
+    const radius = isFeverOrPower ? 0.045 : 0.024;
+    const beamGeo = new THREE.CylinderGeometry(radius, radius, distance, 8);
+    beamGeo.rotateX(Math.PI / 2); // Align with Z forward
+
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(colorHex),
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+    });
+    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+    beamMesh.position.copy(midPoint);
+    beamMesh.lookAt(toPos);
+    this.group.add(beamMesh);
+
+    // Muzzle flash sphere
+    const flashRadius = isFeverOrPower ? 0.16 : 0.11;
+    const flashGeo = new THREE.SphereGeometry(flashRadius, 8, 8);
+    const flashMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(colorHex),
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+    });
+    const flashMesh = new THREE.Mesh(flashGeo, flashMat);
+    flashMesh.position.copy(fromPos);
+    this.group.add(flashMesh);
+
+    this.tracerBeams.push({
+      beamMesh,
+      flashMesh,
+      lifeSec: 0,
+      maxLifeSec: 0.14,
+    });
   }
 
   public spawnHitEffect(origin: THREE.Vector3, colorHex: string, count = 12): void {
@@ -76,6 +130,7 @@ export class ParticleEffects3D {
   }
 
   public update(dtSec: number): void {
+    // 1. Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.lifeSec += dtSec;
@@ -86,22 +141,43 @@ export class ParticleEffects3D {
         continue;
       }
 
-      // Physics update: gravity
       p.velocity.y -= 9.8 * dtSec;
       p.mesh.position.addScaledVector(p.velocity, dtSec);
       p.mesh.rotation.x += p.rotSpeed.x * dtSec;
       p.mesh.rotation.y += p.rotSpeed.y * dtSec;
       p.mesh.rotation.z += p.rotSpeed.z * dtSec;
 
-      // Scale fade
       const progress = p.lifeSec / p.maxLifeSec;
       const scale = 1.0 - progress * 0.8;
       p.mesh.scale.set(scale, scale, scale);
+    }
+
+    // 2. Update tracer beams
+    for (let i = this.tracerBeams.length - 1; i >= 0; i--) {
+      const tb = this.tracerBeams[i];
+      tb.lifeSec += dtSec;
+
+      if (tb.lifeSec >= tb.maxLifeSec) {
+        this.group.remove(tb.beamMesh);
+        this.group.remove(tb.flashMesh);
+        this.tracerBeams.splice(i, 1);
+        continue;
+      }
+
+      const fade = 1.0 - tb.lifeSec / tb.maxLifeSec;
+      (tb.beamMesh.material as THREE.MeshBasicMaterial).opacity = fade * 0.95;
+      (tb.flashMesh.material as THREE.MeshBasicMaterial).opacity = fade * 0.95;
+      tb.flashMesh.scale.set(1.0 + (1.0 - fade) * 0.5, 1.0 + (1.0 - fade) * 0.5, 1.0 + (1.0 - fade) * 0.5);
     }
   }
 
   public clear(): void {
     this.particles.forEach((p) => this.group.remove(p.mesh));
     this.particles = [];
+    this.tracerBeams.forEach((tb) => {
+      this.group.remove(tb.beamMesh);
+      this.group.remove(tb.flashMesh);
+    });
+    this.tracerBeams = [];
   }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { PlayerProfile } from '../../shared/types';
+import { ActiveBuffState, PlayerProfile } from '../../shared/types';
+import { ITEM_BUFF_SPECS, STAGE_CONSTANTS } from '../../shared/constants';
 import { ActiveTargetEntity } from '../engine/BeerCrusherEngine';
 
 export function formatAmmoStatusText(
@@ -49,13 +50,35 @@ export function formatFeverStatusBadge(
   };
 }
 
+export function formatActiveBuffBadge(buff: ActiveBuffState): {
+  label: string;
+  icon: string;
+  percent: number;
+  colorHex: string;
+  timeSecText: string;
+} {
+  const spec = ITEM_BUFF_SPECS[buff.kind];
+  const percent = Math.max(0, Math.min(100, (buff.remainingMs / (buff.totalDurationMs || 8000)) * 100));
+  const timeSecText = `${(buff.remainingMs / 1000).toFixed(1)}s`;
+
+  return {
+    label: spec.shortLabel,
+    icon: spec.icon,
+    percent,
+    colorHex: spec.auraColorHex,
+    timeSecText,
+  };
+}
+
 export interface ArcadeOverlayHUDProps {
   player?: PlayerProfile;
   score: number;
   combo: number;
   comboMultiplier: number;
   lives: number;
+  maxLives?: number;
   wave: number;
+  totalWaves?: number;
   ammo: number;
   maxAmmo: number;
   isReloading: boolean;
@@ -63,6 +86,7 @@ export interface ArcadeOverlayHUDProps {
   isFeverReady: boolean;
   isFeverActive: boolean;
   bossEntity?: ActiveTargetEntity;
+  activeBuffs?: ActiveBuffState[];
 }
 
 export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
@@ -71,7 +95,9 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   combo,
   comboMultiplier,
   lives,
+  maxLives = STAGE_CONSTANTS.PLAYER_MAX_LIVES,
   wave,
+  totalWaves = STAGE_CONSTANTS.TOTAL_WAVES,
   ammo,
   maxAmmo,
   isReloading,
@@ -79,6 +105,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   isFeverReady,
   isFeverActive,
   bossEntity,
+  activeBuffs = [],
 }) => {
   const ammoText = formatAmmoStatusText(ammo, maxAmmo, isReloading, isFeverActive);
   const feverBadge = formatFeverStatusBadge(feverGauge, isFeverReady, isFeverActive);
@@ -103,7 +130,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         {/* TOP-LEFT: Player Badge, Score, Combo, Lives */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.75)',
+            background: 'rgba(17, 24, 39, 0.8)',
             backdropFilter: 'blur(8px)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '16px',
@@ -111,7 +138,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -153,16 +180,17 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             )}
           </div>
 
-          {/* Defense Line Lives */}
+          {/* Defense Line Lives (5 Beer Mugs) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-            <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>BAR DEFENSE:</span>
-            {Array.from({ length: 3 }).map((_, i) => (
+            <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>BAR DEFENSE:</span>
+            {Array.from({ length: maxLives }).map((_, i) => (
               <span
                 key={i}
                 style={{
-                  fontSize: '18px',
-                  opacity: i < lives ? 1 : 0.2,
+                  fontSize: '20px',
+                  opacity: i < lives ? 1 : 0.22,
                   filter: i < lives ? 'none' : 'grayscale(1)',
+                  transition: 'opacity 0.2s',
                 }}
               >
                 🍺
@@ -182,36 +210,37 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         >
           <div
             style={{
-              background: 'rgba(17, 24, 39, 0.85)',
+              background: 'rgba(17, 24, 39, 0.88)',
               border: '2px solid #f59e0b',
               borderRadius: '20px',
-              padding: '6px 20px',
+              padding: '6px 24px',
               fontWeight: 900,
-              fontSize: '16px',
+              fontSize: '17px',
               color: '#f59e0b',
-              boxShadow: '0 0 16px rgba(245, 158, 11, 0.4)',
+              boxShadow: '0 0 18px rgba(245, 158, 11, 0.45)',
+              letterSpacing: '1px',
             }}
           >
-            WAVE {wave} / 3
+            WAVE {wave} / {totalWaves}
           </div>
 
           {bossEntity && (
             <div
               style={{
-                width: '380px',
-                background: 'rgba(17, 24, 39, 0.85)',
+                width: '420px',
+                background: 'rgba(17, 24, 39, 0.88)',
                 backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(239, 68, 68, 0.6)',
+                border: '1px solid rgba(239, 68, 68, 0.7)',
                 borderRadius: '12px',
                 padding: '10px 14px',
-                boxShadow: '0 0 20px rgba(239, 68, 68, 0.3)',
+                boxShadow: '0 0 24px rgba(239, 68, 68, 0.35)',
               }}
             >
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  fontSize: '12px',
+                  fontSize: '13px',
                   fontWeight: 800,
                   color: '#ef4444',
                   marginBottom: '6px',
@@ -224,9 +253,9 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               </div>
               <div
                 style={{
-                  height: '10px',
+                  height: '12px',
                   background: 'rgba(255, 255, 255, 0.1)',
-                  borderRadius: '5px',
+                  borderRadius: '6px',
                   overflow: 'hidden',
                 }}
               >
@@ -243,8 +272,63 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
           )}
         </div>
 
-        {/* TOP-RIGHT: Empty spacer or placeholder */}
-        <div style={{ width: '180px' }} />
+        {/* TOP-RIGHT: Active Item Buffs Countdown Stack */}
+        <div
+          style={{
+            minWidth: '220px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            alignItems: 'flex-end',
+          }}
+        >
+          {activeBuffs.map((buff) => {
+            const badge = formatActiveBuffBadge(buff);
+            return (
+              <div
+                key={buff.kind}
+                style={{
+                  background: 'rgba(17, 24, 39, 0.85)',
+                  backdropFilter: 'blur(8px)',
+                  border: `1.5px solid ${badge.colorHex}`,
+                  borderRadius: '12px',
+                  padding: '8px 14px',
+                  width: '210px',
+                  boxShadow: `0 0 14px ${badge.colorHex}55`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: badge.colorHex }}>
+                    {badge.icon} {badge.label}
+                  </span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc' }}>
+                    {badge.timeSecText}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: '6px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '3px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${badge.percent}%`,
+                      background: badge.colorHex,
+                      transition: 'width 0.1s linear',
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* BOTTOM BAR */}
@@ -252,13 +336,13 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         {/* BOTTOM-LEFT: Magazine / Ammo Status */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.75)',
+            background: 'rgba(17, 24, 39, 0.8)',
             backdropFilter: 'blur(8px)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '16px',
             padding: '16px 20px',
             minWidth: '240px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
           }}
         >
           <div
@@ -304,7 +388,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         {/* BOTTOM-RIGHT: Fever Gauge & Lock Badge */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.75)',
+            background: 'rgba(17, 24, 39, 0.8)',
             backdropFilter: 'blur(8px)',
             border: feverBadge.isLocked ? '2px solid #fbbf24' : '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '16px',
@@ -312,7 +396,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             width: '320px',
             boxShadow: feverBadge.isLocked
               ? '0 0 24px rgba(251, 191, 36, 0.45)'
-              : '0 8px 24px rgba(0, 0, 0, 0.4)',
+              : '0 8px 24px rgba(0, 0, 0, 0.45)',
           }}
         >
           <div

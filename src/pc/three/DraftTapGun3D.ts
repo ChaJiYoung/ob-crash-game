@@ -110,4 +110,11 @@ export class DraftTapGun3D {
     this.currentRecoilZ = kick;
     this.currentRecoilPitch = kick * 0.7;
   }
+
+  public getMuzzleWorldPosition(camera?: THREE.Camera): THREE.Vector3 {
+    const worldPos = new THREE.Vector3();
+    this.nozzleMesh.getWorldPosition(worldPos);
+    // If attached to camera or detached, worldPos reflects accurate nozzle tip
+    return worldPos;
+  }
 }
