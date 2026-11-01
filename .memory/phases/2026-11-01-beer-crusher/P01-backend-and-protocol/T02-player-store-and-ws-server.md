@@ -1,6 +1,6 @@
 # Task: T02 휴대폰 고유번호(deviceId) 로그인·닉네임·TOP 5 랭킹 저장소 및 WebSocket 세션 서버 구현
 
-## Status: pending
+## Status: done
 
 ## Goal
 QR 스캔으로 접속한 스마트폰의 고유번호(`deviceId`)를 조회하여 기존 회원은 즉시 자동 로그인하고 신규 회원은 닉네임(`2~10자`)을 등록하는 영속 저장소(`PlayerStore`)와, PC 디스플레이와 스마트폰 컨트롤러 간 60Hz 센서 프레임 및 인증/점수 이벤트를 중계하는 WebSocket 서버(`RoomManager`, `wsServer`)를 구현합니다.
@@ -93,6 +93,6 @@ Task: T02-player-store-and-ws-server
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
