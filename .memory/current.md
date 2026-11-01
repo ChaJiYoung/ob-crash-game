@@ -1,17 +1,17 @@
 # Current Context
 
 ## Active Plan
-[카스 병맥주 공식 PNG 트루 컬러 1:1 복원](./plans/2026-11-02-cass-png-true-color.md) (All Phases Completed 🎉)
+[튜토리얼 화면 및 3단계 실습 사격 훈련장 모드 구현](./plans/2026-11-02-tutorial-and-shooting-range.md)
 
 ## Active Phase
-[P01 카스 병맥주 트루 컬러 복원 및 스튜디오 동기화](./phases/2026-11-02-cass-png-true-color/P01-cass-png-true-color/phase.md) (Completed)
+[P01 튜토리얼 통합 가이드 모달 및 실습 사격 훈련장](./phases/2026-11-02-tutorial-and-shooting-range/P01-tutorial-and-shooting-range/phase.md) (1/2 완료)
 
 ## Active Task
-None (모든 Task 완료)
+[T02: 3단계 미션 클리어형 실습 사격 훈련장 엔진/UI(TUTORIAL GamePhase) 구현 및 단위 테스트 검증](./phases/2026-11-02-tutorial-and-shooting-range/P01-tutorial-and-shooting-range/T02-interactive-shooting-range-engine-and-flow.md)
 
 ## Status
-- T01 완료 (커밋: `ea82d3f`) — `TargetModels3D.ts`의 bottle 빌보드를 `MeshBasicMaterial`로 전환하여 3D 조명 과포화 제거 및 트루 컬러 복원 완료
-- T02 완료 — `docs/monster-studio.html` 동기화 및 도감/인게임 스크린샷 전면 재캡처(`monster-05-cass-bottle.png`, `monster-lineup-all.png`, `screen-04-pc-gameplay.png`) 완료
+- T01 완료 (`done ✅`) — `GuideModal.tsx` 3개 탭 모달 제작 및 `QRPairingModal.tsx`, `ArcadeOverlayHUD.tsx` 트리거 연결 완료
+- T02 준비 완료 (`in_progress 🔵`) — `TUTORIAL` GamePhase 엔진 상태 머신, 무적 처리, `TutorialGuideOverlay.tsx` 및 유닛 테스트 구현
 
-## Next Step
-사용자 피드백 확인 및 완료 보고
+## Next Step (IMPORTANT)
+T02 청사진에 따라 `src/shared/types.ts`, `BeerCrusherEngine.ts`, `ScoreAndFeverManager.ts`, `TutorialGuideOverlay.tsx`, `tests/tutorial-and-guide.test.ts` 구현

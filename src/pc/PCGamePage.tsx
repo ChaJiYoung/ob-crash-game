@@ -6,6 +6,7 @@ import { CrosshairOverlay } from './components/CrosshairOverlay';
 import { JudgmentBanner } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
 import { ResultRankingModal } from './components/ResultRankingModal';
+import { GuideModal } from './components/GuideModal';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
@@ -23,6 +24,7 @@ export const PCGamePage: React.FC = () => {
   const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
   const [topRankings, setTopRankings] = useState<PlayerProfile[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
+  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
 
   const [aimX, setAimX] = useState<number>(0);
   const [aimY, setAimY] = useState<number>(0);
@@ -270,6 +272,7 @@ export const PCGamePage: React.FC = () => {
             isFeverActive={hudState.isFeverActive}
             bossEntity={bossEntity}
             activeBuffs={hudState.activeBuffs}
+            onOpenGuide={() => setIsGuideOpen(true)}
           />
           <CrosshairOverlay
             aimX={aimX}
@@ -292,6 +295,7 @@ export const PCGamePage: React.FC = () => {
           topRankings={topRankings}
           onStartAsPc={handleStartGame}
           onStartWithController={handleStartGame}
+          onOpenGuide={() => setIsGuideOpen(true)}
         />
       )}
 
@@ -309,6 +313,20 @@ export const PCGamePage: React.FC = () => {
           onReturnToLobby={handleReturnToLobby}
         />
       )}
+
+      {/* 5. Guide & Codex Modal */}
+      <GuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        showTutorialButton={gamePhase === 'PAIRING' || gamePhase === 'ZEROING'}
+        onStartTutorial={() => {
+          setIsGuideOpen(false);
+          if ((engine as any).startTutorialMode) {
+            (engine as any).startTutorialMode();
+            setGamePhase('TUTORIAL' as any);
+          }
+        }}
+      />
     </div>
   );
 };

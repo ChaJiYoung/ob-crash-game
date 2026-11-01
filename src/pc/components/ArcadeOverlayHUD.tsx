@@ -87,6 +87,7 @@ export interface ArcadeOverlayHUDProps {
   isFeverActive: boolean;
   bossEntity?: ActiveTargetEntity;
   activeBuffs?: ActiveBuffState[];
+  onOpenGuide?: () => void;
 }
 
 export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
@@ -106,6 +107,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   isFeverActive,
   bossEntity,
   activeBuffs = [],
+  onOpenGuide,
 }) => {
   const ammoText = formatAmmoStatusText(ammo, maxAmmo, isReloading, isFeverActive);
   const feverBadge = formatFeverStatusBadge(feverGauge, isFeverReady, isFeverActive);
@@ -272,7 +274,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
           )}
         </div>
 
-        {/* TOP-RIGHT: Active Item Buffs Countdown Stack */}
+        {/* TOP-RIGHT: Active Item Buffs Countdown Stack & Guide Button */}
         <div
           style={{
             minWidth: '220px',
@@ -282,6 +284,31 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             alignItems: 'flex-end',
           }}
         >
+          {onOpenGuide && (
+            <button
+              onClick={onOpenGuide}
+              style={{
+                pointerEvents: 'auto',
+                background: 'rgba(17, 24, 39, 0.88)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(245, 158, 11, 0.6)',
+                borderRadius: '10px',
+                padding: '6px 14px',
+                color: '#fbbf24',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+                marginBottom: '4px',
+              }}
+            >
+              📖 가이드 & 도감
+            </button>
+          )}
+
           {activeBuffs.map((buff) => {
             const badge = formatActiveBuffBadge(buff);
             return (

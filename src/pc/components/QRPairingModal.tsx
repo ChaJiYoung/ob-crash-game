@@ -17,6 +17,7 @@ export interface QRPairingModalProps {
   topRankings: PlayerProfile[];
   onStartAsPc: () => void;
   onStartWithController: () => void;
+  onOpenGuide?: () => void;
 }
 
 export const QRPairingModal: React.FC<QRPairingModalProps> = ({
@@ -26,6 +27,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   topRankings,
   onStartAsPc,
   onStartWithController,
+  onOpenGuide,
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [pairingUrl, setPairingUrl] = useState<string>('');
@@ -264,43 +266,69 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '16px', marginTop: '28px', width: '100%' }}>
-          {pairedPlayer ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px', width: '100%' }}>
+          <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+            {pairedPlayer ? (
+              <button
+                onClick={onStartWithController}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(90deg, #10b981, #059669)',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                  transition: 'transform 0.1s',
+                }}
+              >
+                🔫 스마트폰 컨트롤러로 게임 시작!
+              </button>
+            ) : (
+              <button
+                onClick={onStartAsPc}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(245, 158, 11, 0.5)',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  color: '#fbbf24',
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                🖱️ 스마트폰 없이 PC 마우스/키보드로 바로 시작
+              </button>
+            )}
+          </div>
+
+          {onOpenGuide && (
             <button
-              onClick={onStartWithController}
+              onClick={onOpenGuide}
               style={{
-                flex: 1,
-                padding: '16px',
+                width: '100%',
+                padding: '13px',
                 borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(90deg, #10b981, #059669)',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-                transition: 'transform 0.1s',
-              }}
-            >
-              🔫 스마트폰 컨트롤러로 게임 시작!
-            </button>
-          ) : (
-            <button
-              onClick={onStartAsPc}
-              style={{
-                flex: 1,
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1px solid rgba(245, 158, 11, 0.5)',
-                background: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                background: 'rgba(245, 158, 11, 0.08)',
                 color: '#fbbf24',
-                fontSize: '15px',
+                fontSize: '14px',
                 fontWeight: 800,
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
                 transition: 'all 0.15s',
               }}
             >
-              🖱️ 스마트폰 없이 PC 마우스/키보드로 바로 시작
+              📖 게임 가이드 & 튜토리얼 (조작법 · 몬스터 도감 · 아이템)
             </button>
           )}
         </div>
