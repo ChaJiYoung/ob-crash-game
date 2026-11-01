@@ -11,7 +11,7 @@ import { ItemBuffKind, TargetKind } from '../src/shared/types';
 
 describe('Shared Protocol & Constants', () => {
   it('should define all 6 target specs with correct attributes', () => {
-    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'mug', 'boss'];
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'mug', 'boss'];
     kinds.forEach((k) => {
       expect(TARGET_SPECS[k]).toBeDefined();
       expect(TARGET_SPECS[k].kind).toBe(k);
@@ -26,6 +26,10 @@ describe('Shared Protocol & Constants', () => {
     expect(TARGET_SPECS.caslight.maxHp).toBe(1);
     expect(TARGET_SPECS.obi.maxHp).toBe(2);
     expect(TARGET_SPECS.hanmac.maxHp).toBe(2);
+    expect(TARGET_SPECS.bottle.maxHp).toBe(3);
+    expect(TARGET_SPECS.bottle.speedMps).toBe(2.3);
+    expect(TARGET_SPECS.bottle.killBonusScore).toBe(160);
+    expect(TARGET_SPECS.bottle.isAirborne).toBe(false);
     expect(TARGET_SPECS.mug.maxHp).toBe(3);
     expect(TARGET_SPECS.boss.maxHp).toBe(40);
     expect(TARGET_SPECS.boss.killBonusScore).toBe(1500);

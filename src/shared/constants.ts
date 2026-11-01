@@ -49,6 +49,18 @@ export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
     isAirborne: false,
     modelScale: 1.9,
   },
+  bottle: {
+    kind: 'bottle',
+    displayName: '카스 프레시 병맥주 (Cass Fresh Bottle)',
+    maxHp: 3,
+    speedMps: 2.3,
+    hitRadiusM: 1.15,
+    killBonusScore: 160,
+    brandColorHex: '#004b91',
+    accentColorHex: '#e2e8f0',
+    isAirborne: false,
+    modelScale: 1.95,
+  },
   mug: {
     kind: 'mug',
     displayName: '500ml 생맥주잔 (Draft Mug)',

@@ -480,6 +480,100 @@ async function generateLabels() {
           ctx.fillRect(120 + i * 44, 420, 22, 60);
         }
       }
+    },
+    {
+      name: 'bottle',
+      renderFn: () => {
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+
+        // Deep blue rich metallic gradient
+        const grad = ctx.createLinearGradient(0, 0, 1024, 0);
+        grad.addColorStop(0, '#001e42');
+        grad.addColorStop(0.2, '#003366');
+        grad.addColorStop(0.5, '#005a9c');
+        grad.addColorStop(0.8, '#003366');
+        grad.addColorStop(1, '#001e42');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1024, 512);
+
+        // Silver / chrome top and bottom borders
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(0, 0, 1024, 32);
+        ctx.fillRect(0, 480, 1024, 32);
+
+        ctx.fillStyle = '#002855';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('COLD BREWED FRESH BEER · ALL NEW CASS · MASTER BREWED IN KOREA', 512, 22);
+        ctx.fillText('500ml · ALC 4.5% · SERVE EXTRA COLD AT 0°C ~ 4°C', 512, 502);
+
+        // Dynamic ice angular chevron wings
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.beginPath();
+        ctx.moveTo(180, 256);
+        ctx.lineTo(280, 120);
+        ctx.lineTo(340, 120);
+        ctx.lineTo(240, 256);
+        ctx.lineTo(340, 392);
+        ctx.lineTo(280, 392);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(844, 256);
+        ctx.lineTo(744, 120);
+        ctx.lineTo(684, 120);
+        ctx.lineTo(784, 256);
+        ctx.lineTo(684, 392);
+        ctx.lineTo(744, 392);
+        ctx.closePath();
+        ctx.fill();
+
+        // Central diamond crest shield
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(512, 70);
+        ctx.lineTo(680, 230);
+        ctx.lineTo(512, 430);
+        ctx.lineTo(344, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#003366';
+        ctx.beginPath();
+        ctx.moveTo(512, 85);
+        ctx.lineTo(665, 230);
+        ctx.lineTo(512, 415);
+        ctx.lineTo(359, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        // CASS Bold typography
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 110px "Arial Black", Impact, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#001830';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 5;
+        ctx.fillText('Cass', 512, 240);
+        ctx.shadowColor = 'transparent';
+
+        // FRESH sub banner
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '900 42px "Arial Black", Impact, sans-serif';
+        ctx.fillText('FRESH', 512, 305);
+
+        // Subtext and silver stars
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText('★ 100% NON-PASTEURIZED LAGER ★', 512, 350);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('NATURAL CARBONATION · EXTRA COLD FILTERED', 512, 385);
+      }
     }
   ];
 
