@@ -483,43 +483,233 @@ async function generateLabels() {
     },
     {
       name: 'bottle',
-      renderFn: async ({ cassLogoBase64 }) => {
+      renderFn: async () => {
         const cv = document.getElementById('cv');
         const ctx = cv.getContext('2d');
 
-        // Deep blue rich metallic gradient (All New Cass Signature Deep Blue)
-        const grad = ctx.createLinearGradient(0, 0, 1024, 0);
-        grad.addColorStop(0, '#00142e');
-        grad.addColorStop(0.18, '#002855');
-        grad.addColorStop(0.5, '#00529b');
-        grad.addColorStop(0.82, '#002855');
-        grad.addColorStop(1, '#00142e');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 1024, 512);
-
-        // Radiant cold brew waterfall stream lines
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < 48; i++) {
-          const x = i * 22;
+        function drawHexagon(cx, cy, radius, fillStyle, strokeStyle, lineWidth) {
+          ctx.save();
           ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x + 10, 512);
+          for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3 - Math.PI / 6;
+            const hx = cx + radius * Math.cos(angle);
+            const hy = cy + radius * Math.sin(angle);
+            if (i === 0) ctx.moveTo(hx, hy);
+            else ctx.lineTo(hx, hy);
+          }
+          ctx.closePath();
+          if (fillStyle) {
+            ctx.fillStyle = fillStyle;
+            ctx.fill();
+          }
+          if (strokeStyle && lineWidth) {
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function drawSnowflake(cx, cy, radius, color = '#ffffff') {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = Math.max(1.5, radius * 0.18);
+          ctx.lineCap = 'round';
+          for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + cos * radius, cy + sin * radius);
+            ctx.stroke();
+
+            const mx = cx + cos * (radius * 0.55);
+            const my = cy + sin * (radius * 0.55);
+            const p1 = angle + Math.PI / 4;
+            const p2 = angle - Math.PI / 4;
+            const subR = radius * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(mx + Math.cos(p1) * subR, my + Math.sin(p1) * subR);
+            ctx.moveTo(mx, my);
+            ctx.lineTo(mx + Math.cos(p2) * subR, my + Math.sin(p2) * subR);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // 1. Upper V-Cut Zone (Transparent Golden Beer Liquid through glass)
+        const beerGrad = ctx.createLinearGradient(0, 0, 0, 140);
+        beerGrad.addColorStop(0, '#b45309');
+        beerGrad.addColorStop(0.5, '#d97706');
+        beerGrad.addColorStop(1, '#f59e0b');
+        ctx.fillStyle = beerGrad;
+        ctx.fillRect(0, 0, 1024, 140);
+
+        // 2. Main Metallic Deep Blue Label with V-Cut Profile
+        const labelGrad = ctx.createLinearGradient(0, 50, 1024, 512);
+        labelGrad.addColorStop(0, '#00142e');
+        labelGrad.addColorStop(0.2, '#002855');
+        labelGrad.addColorStop(0.48, '#00529b');
+        labelGrad.addColorStop(0.55, '#0284c7');
+        labelGrad.addColorStop(0.8, '#002855');
+        labelGrad.addColorStop(1, '#00142e');
+
+        ctx.beginPath();
+        ctx.moveTo(0, 512);
+        ctx.lineTo(0, 18);
+        ctx.lineTo(240, 18);
+        ctx.lineTo(512, 105); // V-Cut apex
+        ctx.lineTo(784, 18);
+        ctx.lineTo(1024, 18);
+        ctx.lineTo(1024, 512);
+        ctx.closePath();
+        ctx.fillStyle = labelGrad;
+        ctx.fill();
+
+        // V-Cut Metallic Ice-Blue Edge Trim
+        ctx.beginPath();
+        ctx.moveTo(0, 18);
+        ctx.lineTo(240, 18);
+        ctx.lineTo(512, 105);
+        ctx.lineTo(784, 18);
+        ctx.lineTo(1024, 18);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        ctx.shadowColor = '#00529b';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowColor = 'transparent';
+
+        // Secondary inner silver pinstripe on V-cut
+        ctx.beginPath();
+        ctx.moveTo(10, 26);
+        ctx.lineTo(240, 26);
+        ctx.lineTo(512, 113);
+        ctx.lineTo(784, 26);
+        ctx.lineTo(1014, 26);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Diagonal dynamic speed light rays
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+        ctx.lineWidth = 2.0;
+        for (let i = 0; i < 40; i++) {
+          const x = i * 28;
+          ctx.beginPath();
+          ctx.moveTo(x - 50, 0);
+          ctx.lineTo(x + 160, 512);
           ctx.stroke();
         }
 
-        // Realistic condensation droplets on clear glass surface
-        for (let i = 0; i < 110; i++) {
-          const dx = (i * 37 + 19) % 1024;
-          const dy = (i * 71 + 31) % 512;
-          const dr = 2 + (i % 5);
+        // 3. Official Diagonal "Cass" Typography (-18 deg ascending)
+        ctx.save();
+        ctx.translate(512, 235);
+        ctx.rotate((-18 * Math.PI) / 180);
 
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        // Deep 3D drop shadow
+        ctx.fillStyle = '#000d1f';
+        ctx.font = '900 148px "Arial Black", Impact, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Cass', 8, 12);
+        ctx.fillStyle = '#001e4d';
+        ctx.fillText('Cass', 4, 6);
+
+        // Gradient white/ice-silver chrome face
+        const textGrad = ctx.createLinearGradient(0, -70, 0, 50);
+        textGrad.addColorStop(0, '#ffffff');
+        textGrad.addColorStop(0.3, '#f0f9ff');
+        textGrad.addColorStop(0.65, '#bae6fd');
+        textGrad.addColorStop(1, '#7dd3fc');
+        ctx.fillStyle = textGrad;
+        ctx.fillText('Cass', 0, 0);
+
+        // Outline pinstripe
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 3.5;
+        ctx.strokeText('Cass', 0, 0);
+
+        // Stylized "Fresh" cursive script below Cass
+        ctx.fillStyle = '#e0f2fe';
+        ctx.font = 'italic bold 52px "Trebuchet MS", "Pretendard", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.shadowColor = '#00142e';
+        ctx.shadowBlur = 8;
+        ctx.fillText('Fresh', 135, 52);
+        ctx.shadowColor = 'transparent';
+
+        ctx.restore();
+
+        // 4. Central Cool-Timer Hexagon Sensor Badge
+        // Vertical stem line
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(512, 275);
+        ctx.lineTo(512, 335);
+        ctx.stroke();
+
+        // Outer Hexagon
+        drawHexagon(512, 360, 36, '#002855', '#38bdf8', 3);
+        // Inner Hexagon
+        drawHexagon(512, 360, 26, '#0284c7', '#bae6fd', 1.5);
+        // Snowflake Icon
+        drawSnowflake(512, 360, 16, '#ffffff');
+
+        // Text beside Cool-Timer
+        ctx.fillStyle = '#e0f2fe';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('카스프레시', 466, 365);
+
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'left';
+        ctx.fillText('4.5% ALC', 558, 365);
+
+        // 5. Bold Gold "COLD BREWED" & Korean taglines
+        const goldTextGrad = ctx.createLinearGradient(0, 400, 0, 435);
+        goldTextGrad.addColorStop(0, '#fef08a');
+        goldTextGrad.addColorStop(0.5, '#f59e0b');
+        goldTextGrad.addColorStop(1, '#b45309');
+        ctx.fillStyle = goldTextGrad;
+        ctx.font = '900 36px "Arial Black", Impact, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('COLD BREWED', 512, 420);
+
+        ctx.fillStyle = '#7dd3fc';
+        ctx.font = 'bold 17px sans-serif';
+        ctx.fillText('저온숙성으로 프레시하게', 512, 448);
+
+        // 6. Bottom Metallic Gold Foil Band
+        const goldBandGrad = ctx.createLinearGradient(0, 468, 0, 512);
+        goldBandGrad.addColorStop(0, '#92400e');
+        goldBandGrad.addColorStop(0.25, '#fbbf24');
+        goldBandGrad.addColorStop(0.65, '#f59e0b');
+        goldBandGrad.addColorStop(1, '#78350f');
+        ctx.fillStyle = goldBandGrad;
+        ctx.fillRect(0, 468, 1024, 44);
+
+        ctx.fillStyle = '#00142e';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('500ml · ALC 4.5% · SERVE EXTRA COLD AT 0°C ~ 4°C · 100% NON-PASTEURIZED LAGER', 512, 496);
+
+        // 7. Surface Condensation Water Droplets
+        for (let i = 0; i < 90; i++) {
+          const dx = (i * 41 + 17) % 1024;
+          const dy = 80 + ((i * 67 + 23) % 400);
+          const dr = 2 + (i % 4);
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.42)';
           ctx.beginPath();
           ctx.arc(dx, dy, dr, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
           ctx.beginPath();
           ctx.arc(dx + 1, dy + 1, dr * 0.7, 0, Math.PI * 2);
           ctx.fill();
@@ -529,100 +719,131 @@ async function generateLabels() {
           ctx.arc(dx - dr * 0.3, dy - dr * 0.3, dr * 0.35, 0, Math.PI * 2);
           ctx.fill();
         }
+      }
+    },
+    {
+      name: 'bottle-neck',
+      renderFn: async () => {
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
 
-        // Top mini neck label strip (for neck wrapping)
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(0, 12, 1024, 38);
-        ctx.fillStyle = '#002855';
-        ctx.font = '900 18px "Arial Black", Impact, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('★ COLD BREWED · ALL NEW CASS FRESH · KOREA NO.1 ★', 512, 36);
-
-        // Silver chrome bottom border
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(0, 474, 1024, 38);
-        ctx.fillStyle = '#002855';
-        ctx.font = 'bold 15px sans-serif';
-        ctx.fillText('500ml · ALC 4.5% · SERVE EXTRA COLD AT 0°C ~ 4°C · 100% NON-PASTEURIZED LAGER', 512, 498);
-
-        // Dynamic ice angular chevron wings
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-        ctx.beginPath();
-        ctx.moveTo(140, 260);
-        ctx.lineTo(260, 100);
-        ctx.lineTo(340, 100);
-        ctx.lineTo(220, 260);
-        ctx.lineTo(340, 420);
-        ctx.lineTo(260, 420);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.moveTo(884, 260);
-        ctx.lineTo(764, 100);
-        ctx.lineTo(684, 100);
-        ctx.lineTo(804, 260);
-        ctx.lineTo(684, 420);
-        ctx.lineTo(764, 420);
-        ctx.closePath();
-        ctx.fill();
-
-        // Central diamond crest shield
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(512, 60);
-        ctx.lineTo(720, 240);
-        ctx.lineTo(512, 450);
-        ctx.lineTo(304, 240);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = '#002855';
-        ctx.beginPath();
-        ctx.moveTo(512, 75);
-        ctx.lineTo(705, 240);
-        ctx.lineTo(512, 435);
-        ctx.lineTo(319, 240);
-        ctx.closePath();
-        ctx.fill();
-
-        // Render official real Cass logo if available
-        if (cassLogoBase64) {
-          await new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-              ctx.drawImage(img, 342, 110, 340, 170);
-              resolve();
-            };
-            img.onerror = resolve;
-            img.src = cassLogoBase64;
-          });
-        } else {
-          // Fallback high-contrast typography
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '900 120px "Arial Black", Impact, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.shadowColor = '#001830';
-          ctx.shadowBlur = 14;
-          ctx.shadowOffsetX = 3;
-          ctx.shadowOffsetY = 5;
-          ctx.fillText('Cass', 512, 235);
-          ctx.shadowColor = 'transparent';
+        function drawHexagon(cx, cy, radius, fillStyle, strokeStyle, lineWidth) {
+          ctx.save();
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3 - Math.PI / 6;
+            const hx = cx + radius * Math.cos(angle);
+            const hy = cy + radius * Math.sin(angle);
+            if (i === 0) ctx.moveTo(hx, hy);
+            else ctx.lineTo(hx, hy);
+          }
+          ctx.closePath();
+          if (fillStyle) {
+            ctx.fillStyle = fillStyle;
+            ctx.fill();
+          }
+          if (strokeStyle && lineWidth) {
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+          }
+          ctx.restore();
         }
 
-        // FRESH dynamic ice banner
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '900 48px "Arial Black", Impact, sans-serif';
+        function drawSnowflake(cx, cy, radius, color = '#ffffff') {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = Math.max(1.5, radius * 0.18);
+          ctx.lineCap = 'round';
+          for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + cos * radius, cy + sin * radius);
+            ctx.stroke();
+
+            const mx = cx + cos * (radius * 0.55);
+            const my = cy + sin * (radius * 0.55);
+            const p1 = angle + Math.PI / 4;
+            const p2 = angle - Math.PI / 4;
+            const subR = radius * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+            ctx.lineTo(mx + Math.cos(p1) * subR, my + Math.sin(p1) * subR);
+            ctx.moveTo(mx, my);
+            ctx.lineTo(mx + Math.cos(p2) * subR, my + Math.sin(p2) * subR);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // 1. Upper Metallic Deep Blue Field (y = 0 ~ 330)
+        const neckBlueGrad = ctx.createLinearGradient(0, 0, 1024, 0);
+        neckBlueGrad.addColorStop(0, '#00142e');
+        neckBlueGrad.addColorStop(0.2, '#002855');
+        neckBlueGrad.addColorStop(0.5, '#00529b');
+        neckBlueGrad.addColorStop(0.8, '#002855');
+        neckBlueGrad.addColorStop(1, '#00142e');
+        ctx.fillStyle = neckBlueGrad;
+        ctx.fillRect(0, 0, 1024, 330);
+
+        // Dynamic chevron lines on neck
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 32; i++) {
+          const x = i * 36;
+          ctx.beginPath();
+          ctx.moveTo(x - 30, 0);
+          ctx.lineTo(x + 50, 330);
+          ctx.stroke();
+        }
+
+        // Center and Opposite Hexagon Snowflake Emblem (x = 512, and sides 0 / 1024)
+        [0, 512, 1024].forEach((cx) => {
+          drawHexagon(cx, 165, 78, '#002855', '#38bdf8', 5);
+          drawHexagon(cx, 165, 58, '#0284c7', '#bae6fd', 3);
+          drawSnowflake(cx, 165, 38, '#ffffff');
+        });
+
+        // 2. Lower Gold Foil Band (y = 330 ~ 512)
+        const goldBand = ctx.createLinearGradient(0, 330, 0, 512);
+        goldBand.addColorStop(0, '#b45309');
+        goldBand.addColorStop(0.3, '#fde047');
+        goldBand.addColorStop(0.7, '#f59e0b');
+        goldBand.addColorStop(1, '#78350f');
+        ctx.fillStyle = goldBand;
+        ctx.fillRect(0, 330, 1024, 182);
+
+        // Thin separator lines
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, 330);
+        ctx.lineTo(1024, 330);
+        ctx.stroke();
+
+        // Bold Navy "COLD BREWED" on Gold band (front center 512 and back 0/1024)
+        ctx.fillStyle = '#00142e';
+        ctx.font = '900 44px "Arial Black", Impact, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('FRESH', 512, 310);
+        ctx.textBaseline = 'middle';
+        [0, 512, 1024].forEach((cx) => {
+          ctx.fillText('★ COLD BREWED ★', cx, 420);
+        });
 
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 22px sans-serif';
-        ctx.fillText('★ COLD BREWED LAGER ★', 512, 355);
+        // Condensation beads
+        for (let i = 0; i < 40; i++) {
+          const dx = (i * 53 + 29) % 1024;
+          const dy = (i * 31 + 17) % 512;
+          const dr = 2 + (i % 3);
 
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.fillText('EXTRA COLD FILTERED · MASTER BREWED IN SEOUL', 512, 395);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.beginPath();
+          ctx.arc(dx, dy, dr, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
   ];
@@ -643,7 +864,7 @@ async function generateLabels() {
   }
 
   await browser.close();
-  console.log('All 6 product label textures generated successfully!');
+  console.log('All 7 product label textures generated successfully!');
 }
 
 generateLabels().catch((err) => {
