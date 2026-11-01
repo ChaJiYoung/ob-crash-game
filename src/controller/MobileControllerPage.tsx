@@ -11,6 +11,7 @@ export const MobileControllerPage: React.FC = () => {
   const tracker = useMemo(() => new GunGripTracker(), []);
 
   const [step, setStep] = useState<'LOGIN_GATE' | 'ZEROING' | 'PAD'>('LOGIN_GATE');
+  const [sensorsActive, setSensorsActive] = useState<boolean>(false);
   const [roomId, setRoomId] = useState<string>('');
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
   const [player, setPlayer] = useState<PlayerProfile | undefined>();
@@ -98,8 +99,10 @@ export const MobileControllerPage: React.FC = () => {
     }
   };
 
-  // 4. Start Sensors after permission granted
-  const handlePermissionGranted = () => {
+  // 4. Start Sensors after permission granted with lifecycle cleanup
+  useEffect(() => {
+    if (!sensorsActive) return;
+
     const onOrientation = (e: DeviceOrientationEvent) => {
       latestOrientationRef.current = {
         alpha: e.alpha || 0,
@@ -125,6 +128,14 @@ export const MobileControllerPage: React.FC = () => {
     window.addEventListener('deviceorientation', onOrientation);
     window.addEventListener('devicemotion', onMotion);
 
+    return () => {
+      window.removeEventListener('deviceorientation', onOrientation);
+      window.removeEventListener('devicemotion', onMotion);
+    };
+  }, [sensorsActive, tracker]);
+
+  const handlePermissionGranted = () => {
+    setSensorsActive(true);
     setStep('ZEROING');
   };
 
