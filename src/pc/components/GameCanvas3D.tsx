@@ -8,6 +8,20 @@ import { ParticleEffects3D } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { TARGET_SPECS } from '../../shared/constants';
 
+function disposeGroup(group: THREE.Group): void {
+  group.traverse((obj) => {
+    if ((obj as THREE.Mesh).isMesh) {
+      const mesh = obj as THREE.Mesh;
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (Array.isArray(mesh.material)) {
+        mesh.material.forEach((m) => m.dispose());
+      } else if (mesh.material) {
+        mesh.material.dispose();
+      }
+    }
+  });
+}
+
 export interface GameCanvas3DProps {
   engine: BeerCrusherEngine;
   aimX: number;
@@ -15,6 +29,7 @@ export interface GameCanvas3DProps {
   onAimChange?: (aimX: number, aimY: number) => void;
   onShoot?: (result: EngineShootResult) => void;
   soundSynth: SoundSynthesizer;
+  lastShootResult?: { result: EngineShootResult; key: number };
 }
 
 export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
@@ -24,10 +39,38 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
   onAimChange,
   onShoot,
   soundSynth,
+  lastShootResult,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const aimRef = useRef({ aimX, aimY });
   aimRef.current = { aimX, aimY };
+
+  const tapGunRef = useRef<DraftTapGun3D | null>(null);
+  const particlesRef = useRef<ParticleEffects3D | null>(null);
+  const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
+
+  // Trigger 3D visual FX (recoil, hit flash, particles) for ANY shot (PC mouse or Mobile sensor)
+  useEffect(() => {
+    if (!lastShootResult || lastShootResult.key === 0) return;
+    const { result } = lastShootResult;
+    if (!result.fired) return;
+
+    const isFever = engine.scoreManager.getState().isFeverActive;
+    if (tapGunRef.current) {
+      tapGunRef.current.triggerRecoil(isFever);
+    }
+
+    if (result.grade !== 'MISS' && result.target) {
+      const mesh = targetMeshMapRef.current.get(result.target.id);
+      if (mesh) {
+        applyTargetHitFlash3D(mesh, performance.now() / 1000);
+        if (particlesRef.current) {
+          const spec = TARGET_SPECS[result.target.kind];
+          particlesRef.current.spawnHitEffect(mesh.position, spec.brandColorHex, result.killed ? 20 : 10);
+        }
+      }
+    }
+  }, [lastShootResult, engine]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -61,14 +104,16 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
     // 2. Add Brewery Stage, Gun, and Particle pool
     const stageRig: BreweryStageRig = buildBreweryStage3D(scene);
     const tapGun = new DraftTapGun3D();
+    tapGunRef.current = tapGun;
     camera.add(tapGun.group);
     scene.add(camera);
 
     const particles = new ParticleEffects3D();
+    particlesRef.current = particles;
     scene.add(particles.group);
 
     // 3. Target meshes map
-    const targetMeshMap = new Map<string, THREE.Group>();
+    const targetMeshMap = targetMeshMapRef.current;
 
     // 4. Resize handler
     const handleResize = () => {
@@ -96,24 +141,6 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
       const now = performance.now();
       const curAim = aimRef.current;
       const result = engine.shootAt(curAim.aimX, curAim.aimY, now);
-
-      if (result.fired) {
-        const isFever = engine.scoreManager.getState().isFeverActive;
-        soundSynth.playShoot(isFever);
-        tapGun.triggerRecoil(isFever);
-
-        if (result.grade !== 'MISS') {
-          soundSynth.playHit(result.grade);
-          if (result.target) {
-            const mesh = targetMeshMap.get(result.target.id);
-            if (mesh) {
-              applyTargetHitFlash3D(mesh, now / 1000);
-              const spec = TARGET_SPECS[result.target.kind];
-              particles.spawnHitEffect(mesh.position, spec.brandColorHex, result.killed ? 20 : 10);
-            }
-          }
-        }
-      }
 
       if (onShoot) {
         onShoot(result);
@@ -160,10 +187,11 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
       // Sync 3D Target Meshes
       const activeIds = new Set(engine.activeTargets.map((t) => t.id));
 
-      // Remove dead target meshes
+      // Remove dead target meshes with memory disposal
       targetMeshMap.forEach((mesh, id) => {
         if (!activeIds.has(id)) {
           scene.remove(mesh);
+          disposeGroup(mesh);
           targetMeshMap.delete(id);
         }
       });
@@ -206,6 +234,13 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('keydown', handleKeyDown);
+
+      // Clean up target meshes
+      targetMeshMap.forEach((mesh) => {
+        scene.remove(mesh);
+        disposeGroup(mesh);
+      });
+      targetMeshMap.clear();
 
       // Resource cleanup
       if (renderer && renderer.domElement && container.contains(renderer.domElement)) {

@@ -26,6 +26,9 @@ export const PCGamePage: React.FC = () => {
     grade: 'GOOD',
     key: 0,
   });
+  const [lastShootResult, setLastShootResult] = useState<
+    { result: EngineShootResult; key: number } | undefined
+  >();
 
   // Snapshot for HUD
   const [hudState, setHudState] = useState({
@@ -44,11 +47,28 @@ export const PCGamePage: React.FC = () => {
 
   const wsRef = useRef<WebSocket | null>(null);
   const rapidFireTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pairedPlayerRef = useRef<PlayerProfile | undefined>(undefined);
+  pairedPlayerRef.current = pairedPlayer;
 
-  // 1. WebSocket Setup
+  const latestAimRef = useRef({ aimX: 0, aimY: 0 });
+  latestAimRef.current = { aimX, aimY };
+
+  const handleShootEvent = (result: EngineShootResult) => {
+    if (result.fired) {
+      const isFever = engine.scoreManager.getState().isFeverActive;
+      soundSynth.playShoot(isFever);
+
+      if (result.grade !== 'MISS') {
+        soundSynth.playHit(result.grade);
+      }
+      setLastJudgment({ grade: result.grade, key: Date.now() });
+      setLastShootResult({ result, key: Date.now() });
+    }
+  };
+
+  // 1. WebSocket Setup (Isolated from pairedPlayer re-renders to prevent socket close loop)
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Use proxy path /ws or fallback to port 8787
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
     let socket: WebSocket;
@@ -83,6 +103,7 @@ export const PCGamePage: React.FC = () => {
 
           case 'SENSOR_RELAY': {
             const p = msg.payload;
+            latestAimRef.current = { aimX: p.aimX, aimY: p.aimY };
             setAimX(p.aimX);
             setAimY(p.aimY);
 
@@ -91,11 +112,12 @@ export const PCGamePage: React.FC = () => {
               handleShootEvent(res);
             }
 
-            // Rapid fire hold
+            // Rapid fire hold using live aim coordinates
             if (p.rapidFireHold) {
               if (!rapidFireTimerRef.current) {
                 rapidFireTimerRef.current = setInterval(() => {
-                  const res = engine.shootAt(p.aimX, p.aimY, performance.now());
+                  const curAim = latestAimRef.current;
+                  const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now());
                   handleShootEvent(res);
                 }, WEAPON_CONSTANTS.RAPID_FIRE_INTERVAL_MS);
               }
@@ -115,8 +137,9 @@ export const PCGamePage: React.FC = () => {
 
           case 'RANKING_UPDATED':
             setTopRankings(msg.rankings);
-            if (msg.updatedPlayer && pairedPlayer && msg.updatedPlayer.deviceId === pairedPlayer.deviceId) {
-              setIsNewRecord(msg.updatedPlayer.bestScore > (pairedPlayer.bestScore || 0));
+            const curP = pairedPlayerRef.current;
+            if (msg.updatedPlayer && curP && msg.updatedPlayer.deviceId === curP.deviceId) {
+              setIsNewRecord(msg.updatedPlayer.bestScore > (curP.bestScore || 0));
               setPairedPlayer(msg.updatedPlayer);
             }
             break;
@@ -130,7 +153,7 @@ export const PCGamePage: React.FC = () => {
       if (rapidFireTimerRef.current) clearInterval(rapidFireTimerRef.current);
       socket.close();
     };
-  }, [engine, soundSynth, pairedPlayer]);
+  }, [engine, soundSynth]);
 
   // 2. Engine HUD Tick
   useEffect(() => {
@@ -169,7 +192,7 @@ export const PCGamePage: React.FC = () => {
 
   const submitScore = (score: number, waveReached: number, maxCombo: number) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
-      const deviceId = pairedPlayer ? pairedPlayer.deviceId : 'pc-device-host';
+      const deviceId = pairedPlayerRef.current ? pairedPlayerRef.current.deviceId : 'pc-device-host';
       wsRef.current.send(
         JSON.stringify({
           type: 'GAME_SCORE_SUBMIT',
@@ -180,18 +203,6 @@ export const PCGamePage: React.FC = () => {
           maxCombo,
         })
       );
-    }
-  };
-
-  const handleShootEvent = (result: EngineShootResult) => {
-    if (result.fired) {
-      const isFever = engine.scoreManager.getState().isFeverActive;
-      soundSynth.playShoot(isFever);
-
-      if (result.grade !== 'MISS') {
-        soundSynth.playHit(result.grade);
-        setLastJudgment({ grade: result.grade, key: Date.now() });
-      }
     }
   };
 
@@ -221,6 +232,7 @@ export const PCGamePage: React.FC = () => {
         }}
         onShoot={handleShootEvent}
         soundSynth={soundSynth}
+        lastShootResult={lastShootResult}
       />
 
       {/* 2. 4-Corner Arcade Overlay HUD */}
