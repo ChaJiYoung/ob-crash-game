@@ -1,6 +1,6 @@
 # Task: T02 3단계 미션 클리어형 실습 사격 훈련장 엔진/UI(TUTORIAL GamePhase) 구현 및 단위 테스트 검증
 
-## Status: pending
+## Status: done ✅
 
 ## Goal
 플레이어가 실전에 들어가기 전 3D 월드에서 직접 **1단계 조준 단발 사격 ➔ 2단계 3HP 연타/재장전 ➔ 3단계 피버 100% 무한 난사**를 차례대로 체험하며 조작 손맛을 익히는 실습 사격 훈련장 모드를 구축하고, 단위 테스트를 통해 스텝 전진 및 상태 격리(무적/점수 비기록)를 검증한다.
@@ -70,18 +70,18 @@
 - `forceSetFeverGauge(100)` 시 피버 발동 가능 상태 검증.
 
 ## Acceptance Criteria
-- [ ] `startTutorialMode()` 진입 시 3단계 미션이 순차적으로 진행됨.
-- [ ] Step 1에서 3개 타겟 파괴 시 Step 2로 전진하고, Step 2에서 3HP 타겟 파괴 시 Step 3으로 전진함.
-- [ ] Step 3에서 피버 100%가 충전되고 피버 발동 후 무한 탄창으로 타겟 무리를 난사할 수 있음.
-- [ ] 튜토리얼 완료 시 `실전 시작`을 누르면 Wave 1로 정상 시작되고, `로비 복귀`를 누르면 대기실로 정상 복귀함.
-- [ ] 신규 유닛 테스트(`tests/tutorial-and-guide.test.ts`) 및 기존 32개 테스트 모두 통과.
+- [x] `startTutorialMode()` 진입 시 3단계 미션이 순차적으로 진행됨.
+- [x] Step 1에서 3개 타겟 파괴 시 Step 2로 전진하고, Step 2에서 3HP 타겟 파괴 시 Step 3으로 전진함.
+- [x] Step 3에서 피버 100%가 충전되고 피버 발동 후 무한 탄창으로 타겟 무리를 난사할 수 있음.
+- [x] 튜토리얼 완료 시 `실전 시작`을 누르면 Wave 1로 정상 시작되고, `로비 복귀`를 누르면 대기실로 정상 복귀함.
+- [x] 신규 유닛 테스트(`tests/tutorial-and-guide.test.ts`) 및 기존 32개 테스트 모두 통과.
 
 ## Validation
 - `npm test tests/tutorial-and-guide.test.ts && npm test && npx tsc --noEmit`
 
 ## Commit Message
 ```text
-feat(engine): implement 3-step interactive shooting range tutorial mode
+feat(engine): implement 3-step interactive shooting range tutorial mode and guide modal
 
 Plan: 2026-11-02-tutorial-and-shooting-range
 Phase: P01-tutorial-and-shooting-range
@@ -90,10 +90,11 @@ Task: T02-interactive-shooting-range-engine-and-flow
 - Add TUTORIAL GamePhase and step-machine (Step 1 single-shot -> Step 2 rapid -> Step 3 fever)
 - Implement invulnerable barrier and ranking isolation in BeerCrusherEngine
 - Create TutorialGuideOverlay component with step banners and graduation modal
-- Add comprehensive unit tests in tests/tutorial-and-guide.test.ts
+- Add comprehensive unit tests in tests/tutorial-and-guide.test.ts (6/6 passed, total 38/38)
+- Capture full tutorial progression screenshots (screen-07 through screen-13)
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done ✅

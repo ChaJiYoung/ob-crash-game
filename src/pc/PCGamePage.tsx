@@ -7,6 +7,7 @@ import { JudgmentBanner } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
+import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
@@ -140,7 +141,12 @@ export const PCGamePage: React.FC = () => {
 
             if (p.feverTriggered) {
               const activated = engine.scoreManager.activateFever(performance.now());
-              if (activated) soundSynth.playFeverStart();
+              if (activated) {
+                soundSynth.playFeverStart();
+                if (engine.isTutorialMode && engine.tutorialStep === 3) {
+                  engine.spawnTutorialStep3Enemies();
+                }
+              }
             }
             break;
           }
@@ -229,6 +235,17 @@ export const PCGamePage: React.FC = () => {
     setIsNewRecord(false);
   };
 
+  const handleStartTutorial = () => {
+    setIsGuideOpen(false);
+    engine.startTutorialMode();
+    setGamePhase('TUTORIAL');
+  };
+
+  const handleExitTutorial = () => {
+    engine.exitTutorialMode();
+    setGamePhase('PAIRING');
+  };
+
   const handleReturnToLobby = () => {
     engine.gamePhase = 'PAIRING';
     setGamePhase('PAIRING');
@@ -286,6 +303,32 @@ export const PCGamePage: React.FC = () => {
         </>
       )}
 
+      {/* 2-B. Tutorial Mode Interactive HUD */}
+      {gamePhase === 'TUTORIAL' && (
+        <>
+          <TutorialGuideOverlay
+            step={engine.tutorialStep}
+            targetsRemaining={engine.activeTargets.length}
+            isFeverReady={hudState.isFeverReady}
+            isFeverActive={hudState.isFeverActive}
+            ammo={hudState.ammo}
+            maxAmmo={hudState.maxAmmo}
+            isReloading={hudState.isReloading}
+            onStartRealGame={handleStartGame}
+            onExitToLobby={handleExitTutorial}
+          />
+          <CrosshairOverlay
+            aimX={aimX}
+            aimY={aimY}
+            isFeverActive={hudState.isFeverActive}
+            isWideScopeActive={false}
+            isPowerShotActive={false}
+            shotTriggerKey={lastShootResult?.key || 0}
+          />
+          <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
+        </>
+      )}
+
       {/* 3. QR Pairing Modal */}
       {(gamePhase === 'PAIRING' || gamePhase === 'ZEROING') && (
         <QRPairingModal
@@ -319,13 +362,7 @@ export const PCGamePage: React.FC = () => {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
         showTutorialButton={gamePhase === 'PAIRING' || gamePhase === 'ZEROING'}
-        onStartTutorial={() => {
-          setIsGuideOpen(false);
-          if ((engine as any).startTutorialMode) {
-            (engine as any).startTutorialMode();
-            setGamePhase('TUTORIAL' as any);
-          }
-        }}
+        onStartTutorial={handleStartTutorial}
       />
     </div>
   );

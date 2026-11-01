@@ -111,6 +111,15 @@ export class ScoreAndFeverManager {
     }
   }
 
+  public forceSetFeverGauge(gauge: number): void {
+    this.feverGauge = Math.max(0, Math.min(FEVER_CONSTANTS.MAX_GAUGE, gauge));
+    if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE) {
+      this.isFeverReady = true;
+    } else {
+      this.isFeverReady = false;
+    }
+  }
+
   public getState() {
     return {
       totalScore: this.totalScore,

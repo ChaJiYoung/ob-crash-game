@@ -1,7 +1,16 @@
 export type TargetKind = 'pilgood' | 'caslight' | 'obi' | 'hanmac' | 'bottle' | 'boss';
 export type ItemBuffKind = 'power_shot' | 'wide_scope' | 'ice_freeze' | 'bar_repair';
 export type JudgmentGrade = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
-export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'GAMEOVER' | 'VICTORY';
+export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'GAMEOVER' | 'VICTORY';
+
+export type TutorialStep = 1 | 2 | 3 | 'COMPLETED';
+
+export interface TutorialState {
+  step: TutorialStep;
+  targetsRemaining: number;
+  guideMessage: string;
+  isFeverTriggered: boolean;
+}
 
 export interface TargetSpec {
   kind: TargetKind;

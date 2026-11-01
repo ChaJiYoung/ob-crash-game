@@ -1,4 +1,4 @@
-import { ActiveBuffState, GamePhase, ItemBuffKind, JudgmentGrade, TargetKind } from '../../shared/types';
+import { ActiveBuffState, GamePhase, ItemBuffKind, JudgmentGrade, TargetKind, TutorialStep } from '../../shared/types';
 import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, TARGET_SPECS } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
@@ -47,6 +47,10 @@ export class BeerCrusherEngine {
   public currentWave = 1;
   public lives: number = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
   public activeTargets: ActiveTargetEntity[] = [];
+
+  public isTutorialMode = false;
+  public tutorialStep: TutorialStep = 1;
+  public tutorialCompleted = false;
 
   public readonly scoreManager = new ScoreAndFeverManager();
   public readonly weaponSystem = new WeaponSystem();
@@ -112,6 +116,7 @@ export class BeerCrusherEngine {
 
   public startGame(): void {
     this.gamePhase = 'PLAYING';
+    this.isTutorialMode = false;
     this.currentWave = 1;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
@@ -119,6 +124,113 @@ export class BeerCrusherEngine {
     this.spawnedInWave = 0;
     this.killedInWave = 0;
     this.bossSpawned = false;
+    this.scoreManager.reset();
+    this.weaponSystem.reset();
+  }
+
+  public startTutorialMode(): void {
+    this.gamePhase = 'TUTORIAL';
+    this.isTutorialMode = true;
+    this.tutorialStep = 1;
+    this.tutorialCompleted = false;
+    this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
+    this.activeTargets = [];
+    this.activeBuffUntilMs.clear();
+    this.scoreManager.reset();
+    this.weaponSystem.reset();
+
+    // Step 1: 3 static 1HP can targets
+    this.spawnTutorialStep1Targets();
+  }
+
+  public spawnTutorialStep1Targets(): void {
+    this.activeTargets = [];
+    const positions = [
+      { x: -2.8, z: -8.0, thetaRad: -0.35, kind: 'pilgood' as TargetKind },
+      { x: 0.0, z: -8.0, thetaRad: 0.0, kind: 'caslight' as TargetKind },
+      { x: 2.8, z: -8.0, thetaRad: 0.35, kind: 'obi' as TargetKind },
+    ];
+    positions.forEach((pos, idx) => {
+      this.targetCounter += 1;
+      const spec = TARGET_SPECS[pos.kind];
+      this.activeTargets.push({
+        id: `tutorial_step1_${idx + 1}`,
+        kind: pos.kind,
+        hp: 1,
+        maxHp: 1,
+        radiusM: 8.0,
+        thetaRad: pos.thetaRad,
+        x: pos.x,
+        z: pos.z,
+        speedMps: 0,
+        hitRadiusM: spec.hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+      });
+    });
+  }
+
+  public advanceTutorialStep(nextStep: TutorialStep): void {
+    this.tutorialStep = nextStep;
+    this.activeTargets = [];
+
+    if (nextStep === 2) {
+      // Step 2: 1 approaching Cass bottle (3HP, speed = 1.6m/s)
+      this.targetCounter += 1;
+      const spec = TARGET_SPECS.bottle;
+      this.activeTargets.push({
+        id: `tutorial_step2_bottle`,
+        kind: 'bottle',
+        hp: 3,
+        maxHp: 3,
+        radiusM: 14.0,
+        thetaRad: 0.0,
+        x: 0,
+        z: -14.0,
+        speedMps: 1.6,
+        hitRadiusM: spec.hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+      });
+    } else if (nextStep === 3) {
+      // Step 3: Fill fever gauge to 100%
+      this.scoreManager.forceSetFeverGauge(100);
+    } else if (nextStep === 'COMPLETED') {
+      this.tutorialCompleted = true;
+    }
+  }
+
+  public spawnTutorialStep3Enemies(): void {
+    this.activeTargets = [];
+    const angles = [-0.45, -0.25, -0.08, 0.08, 0.25, 0.45];
+    angles.forEach((angle, idx) => {
+      this.targetCounter += 1;
+      const kind: TargetKind = idx % 2 === 0 ? 'pilgood' : 'caslight';
+      const spec = TARGET_SPECS[kind];
+      const dist = 10.0 + (idx % 3) * 1.5;
+      this.activeTargets.push({
+        id: `tutorial_step3_${idx + 1}`,
+        kind,
+        hp: 1,
+        maxHp: 1,
+        radiusM: dist,
+        thetaRad: angle,
+        x: Math.sin(angle) * dist,
+        z: -Math.cos(angle) * dist,
+        speedMps: 1.8,
+        hitRadiusM: spec.hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+      });
+    });
+  }
+
+  public exitTutorialMode(): void {
+    this.isTutorialMode = false;
+    this.tutorialStep = 1;
+    this.tutorialCompleted = false;
+    this.activeTargets = [];
+    this.gamePhase = 'PAIRING';
     this.scoreManager.reset();
     this.weaponSystem.reset();
   }
@@ -190,7 +302,7 @@ export class BeerCrusherEngine {
     phaseChanged: boolean;
     reloadedJustNow: boolean;
   } {
-    if (this.gamePhase !== 'PLAYING') {
+    if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL') {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
@@ -204,6 +316,13 @@ export class BeerCrusherEngine {
     const feverState = this.scoreManager.getState();
     const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive);
     this.scoreManager.updateFeverTimer(nowMs);
+
+    // If tutorial Step 3 fever finished and was active, complete tutorial
+    if (this.isTutorialMode && this.tutorialStep === 3) {
+      if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
+        this.advanceTutorialStep('COMPLETED');
+      }
+    }
 
     const breaches: ActiveTargetEntity[] = [];
     const isIceFreeze = this.isBuffActive('ice_freeze', nowMs);
@@ -225,6 +344,26 @@ export class BeerCrusherEngine {
       target.breached = next.breached;
 
       if (target.breached) {
+        if (this.isTutorialMode) {
+          // Tutorial invulnerability: No life loss
+          if (this.tutorialStep === 2) {
+            // Respawn Cass bottle for continued rapid fire practice
+            target.radiusM = 14.0;
+            target.x = 0;
+            target.z = -14.0;
+            target.breached = false;
+            continue;
+          } else if (this.tutorialStep === 3) {
+            this.activeTargets.splice(i, 1);
+            if (this.activeTargets.length === 0) {
+              this.advanceTutorialStep('COMPLETED');
+            }
+            continue;
+          }
+          this.activeTargets.splice(i, 1);
+          continue;
+        }
+
         this.activeTargets.splice(i, 1);
 
         // Item targets advancing past defense line are simply removed without penalty
@@ -241,6 +380,11 @@ export class BeerCrusherEngine {
           return { breaches, phaseChanged: true, reloadedJustNow };
         }
       }
+    }
+
+    // Skip normal wave spawning in tutorial mode
+    if (this.isTutorialMode) {
+      return { breaches, phaseChanged: false, reloadedJustNow };
     }
 
     // 2. Spawn targets if wave has remaining
@@ -368,7 +512,7 @@ export class BeerCrusherEngine {
   }
 
   public shootAt(aimX: number, aimY: number, nowMs: number): EngineShootResult {
-    if (this.gamePhase !== 'PLAYING') {
+    if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL') {
       return { fired: false, grade: 'MISS' };
     }
 
@@ -435,6 +579,23 @@ export class BeerCrusherEngine {
         this.activeTargets.splice(index, 1);
         if (!target.isItem) {
           this.killedInWave += 1;
+        }
+
+        // Tutorial progress triggers
+        if (this.isTutorialMode) {
+          if (this.tutorialStep === 1) {
+            if (this.activeTargets.length === 0) {
+              this.advanceTutorialStep(2);
+            }
+          } else if (this.tutorialStep === 2) {
+            if (this.activeTargets.length === 0) {
+              this.advanceTutorialStep(3);
+            }
+          } else if (this.tutorialStep === 3) {
+            if (this.activeTargets.length === 0) {
+              this.advanceTutorialStep('COMPLETED');
+            }
+          }
         }
       }
 

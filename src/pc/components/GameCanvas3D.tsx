@@ -235,6 +235,9 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
         const activated = engine.scoreManager.activateFever(performance.now());
         if (activated) {
           soundSynth.playFeverStart();
+          if (engine.isTutorialMode && engine.tutorialStep === 3) {
+            engine.spawnTutorialStep3Enemies();
+          }
         }
       }
     };

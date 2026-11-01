@@ -7,4 +7,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 통합 가이드 모달(조작법·몬스터·아이템) 구현 및 3단계 실습 사격 훈련장 엔진/UI 연동 | [P01](../phases/2026-11-02-tutorial-and-shooting-range/P01-tutorial-and-shooting-range/phase.md) |
+| P01 | `completed` | 통합 가이드 모달(조작법·몬스터·아이템) 구현 및 3단계 실습 사격 훈련장 엔진/UI 연동 | [P01](../phases/2026-11-02-tutorial-and-shooting-range/P01-tutorial-and-shooting-range/phase.md) |
