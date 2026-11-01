@@ -1,6 +1,6 @@
 import { GamePhase, JudgmentGrade, TargetKind } from '../../shared/types';
 import { STAGE_CONSTANTS, TARGET_SPECS } from '../../shared/constants';
-import { advanceRadialTarget, sampleFanSpawnPoint } from './FanSpawner';
+import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
@@ -266,7 +266,7 @@ export class BeerCrusherEngine {
       // Target yaw relative to player
       const targetAngle = target.thetaRad;
       // Normalized X from horizontal FOV
-      const hHalfFov = Math.atan(Math.tan((this.vFovDeg * Math.PI) / 360) * this.aspect);
+      const hHalfFov = computeHorizontalHalfFovRad(this.vFovDeg, this.aspect);
       const targetNormX = targetAngle / (hHalfFov * STAGE_CONSTANTS.FAN_MARGIN_RATIO);
       const targetNormY = 0; // Targets hover around eye level
 

@@ -30,7 +30,7 @@ export class WeaponSystem {
       return { fired: false, ammo: this.ammo, isReloading: this.isReloading };
     }
 
-    this.lastFireTimeTime(nowMs);
+    this.lastFireTimeMs = nowMs;
 
     if (isFeverActive) {
       return { fired: true, ammo: WEAPON_CONSTANTS.MAX_AMMO, isReloading: false };
@@ -46,9 +46,6 @@ export class WeaponSystem {
     return { fired: true, ammo: this.ammo, isReloading: this.isReloading };
   }
 
-  private lastFireTimeTime(nowMs: number) {
-    this.lastFireTimeMs = nowMs;
-  }
 
   public update(nowMs: number, isFeverActive: boolean): { reloadedJustNow: boolean } {
     if (isFeverActive) {
