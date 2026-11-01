@@ -209,6 +209,20 @@
         labelMesh.position.y = 0.38;
         g.add(labelMesh);
 
+        // Neck Label mapped cylinder (All New Cass blue ribbon)
+        const neckLabelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.183, 0.183, 0.22, 24), labelMat);
+        neckLabelMesh.position.y = 1.25;
+        g.add(neckLabelMesh);
+
+        // Condensation water droplets
+        const dropMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, roughness: 0.05, ior: 1.33 });
+        for (let i = 0; i < 8; i++) {
+          const drop = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), dropMat);
+          const angle = (i * Math.PI) / 4 + 0.3;
+          drop.position.set(Math.cos(angle) * 0.43, 0.15 + (i % 4) * 0.18, Math.sin(angle) * 0.43);
+          g.add(drop);
+        }
+
         // Shoulder
         const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.28, 24), glassMat);
         shoulder.position.y = 0.94;
@@ -362,7 +376,59 @@
         g.add(ribbon);
       }
 
+      // Persistent 3D Neon Billboard Label Card (Plan 1 Mockup)
+      g.add(createBillboardSprite(itemKind));
+
       return g;
+    }
+
+    function createBillboardSprite(itemKind) {
+      const billboardCanvas = document.createElement('canvas');
+      billboardCanvas.width = 512;
+      billboardCanvas.height = 128;
+      const bctx = billboardCanvas.getContext('2d');
+      const meta = {
+        power_shot: { border: '#ef4444', text: '💥 DAMAGE 2X' },
+        wide_scope: { border: '#38bdf8', text: '🎯 WIDE 1.6X' },
+        ice_freeze: { border: '#60a5fa', text: '🧊 SLOW 50%' },
+        bar_repair: { border: '#10b981', text: '🍺 LIFE +1' },
+      }[itemKind] || { border: '#f59e0b', text: itemKind };
+
+      // Dark rounded card background
+      bctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+      bctx.beginPath();
+      if (bctx.roundRect) {
+        bctx.roundRect(8, 8, 496, 112, 24);
+      } else {
+        bctx.rect(8, 8, 496, 112);
+      }
+      bctx.fill();
+
+      // Glowing neon border
+      bctx.strokeStyle = meta.border;
+      bctx.lineWidth = 8;
+      bctx.shadowColor = meta.border;
+      bctx.shadowBlur = 18;
+      bctx.stroke();
+
+      // Bold white typography
+      bctx.font = '900 48px "Pretendard", "Arial Black", Impact, sans-serif';
+      bctx.textAlign = 'center';
+      bctx.textBaseline = 'middle';
+      bctx.fillStyle = '#ffffff';
+      bctx.fillText(meta.text, 256, 64);
+
+      const tex = new THREE.CanvasTexture(billboardCanvas);
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 0.98,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(1.6, 0.40, 1.0);
+      sprite.position.set(0, 0.85, 0);
+      return sprite;
     }
 
     const MONSTER_SPECS = {
