@@ -17,7 +17,7 @@ function createDataTextureFallback(colorHex: string): THREE.DataTexture {
   return texture;
 }
 
-export function getOrCreateTargetLabelTexture(kind: TargetKind | 'mug' | 'boss'): THREE.Texture {
+export function getOrCreateTargetLabelTexture(kind: TargetKind | 'mug' | 'boss' | 'bottle'): THREE.Texture {
   if (labelTextureCache.has(kind)) {
     return labelTextureCache.get(kind)!;
   }
@@ -109,7 +109,7 @@ export function getTargetBaseY(kind: TargetKind, isItem?: boolean): number {
   if (kind === 'boss') {
     return 1.15; // Ground-standing heavy commercial cabinet center
   }
-  return 0.55; // Ground contact rolling altitude (mug, obi, hanmac)
+  return 0.55; // Ground contact rolling altitude (bottle, mug, obi, hanmac)
 }
 
 function createFloorShadowMesh(radius: number): THREE.Mesh {
@@ -230,6 +230,91 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
       puff.position.set(px, h / 2 + 0.15, pz);
       inner.add(puff);
     });
+  } else if (kind === 'bottle') {
+    // 🍾 All New Cass 500ml Transparent Glass Beer Bottle
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.55,
+      transmission: 0.88,
+      ior: 1.52,
+      roughness: 0.05,
+      metalness: 0.05,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.04,
+    });
+
+    const liquidMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      roughness: 0.2,
+      metalness: 0.08,
+    });
+
+    // Outer glass body (lower cylinder)
+    const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.52, 24), glassMat);
+    glassBody.position.y = 0.26;
+    inner.add(glassBody);
+
+    // Dynamic Cass Fresh Label mapped cylinder
+    const labelTexture = getOrCreateTargetLabelTexture('bottle');
+    const labelMat = new THREE.MeshStandardMaterial({
+      map: labelTexture,
+      roughness: 0.35,
+      metalness: 0.1,
+    });
+    const labelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.282, 0.282, 0.30, 24), labelMat);
+    labelMesh.position.y = 0.24;
+    inner.add(labelMesh);
+
+    // Tapered glass shoulder
+    const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.28, 0.18, 24), glassMat);
+    shoulder.position.y = 0.61;
+    inner.add(shoulder);
+
+    // Elongated bottle neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.26, 24), glassMat);
+    neck.position.y = 0.83;
+    inner.add(neck);
+
+    // Bottle mouth lip rim
+    const lip = new THREE.Mesh(new THREE.TorusGeometry(0.108, 0.016, 8, 24), glassMat);
+    lip.rotation.x = Math.PI / 2;
+    lip.position.y = 0.96;
+    inner.add(lip);
+
+    // Inner golden beer liquid (body & neck levels)
+    const bodyLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.48, 24), liquidMat);
+    bodyLiquid.position.y = 0.25;
+    inner.add(bodyLiquid);
+
+    const neckLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.24, 0.30, 24), liquidMat);
+    neckLiquid.position.y = 0.65;
+    inner.add(neckLiquid);
+
+    // Rising carbonation bubbles (small golden-white beads)
+    const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
+    for (let i = 0; i < 8; i++) {
+      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), bubbleMat);
+      const angle = (i * Math.PI) / 4;
+      const br = 0.08 + (i % 3) * 0.04;
+      bubble.position.set(Math.cos(angle) * br, 0.12 + i * 0.09, Math.sin(angle) * br);
+      inner.add(bubble);
+    }
+
+    // Silver metallic crown cap (toothed bottle top)
+    const capMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0,
+      metalness: 0.95,
+      roughness: 0.18,
+    });
+    const crownCap = new THREE.Mesh(new THREE.CylinderGeometry(0.125, 0.125, 0.038, 20), capMat);
+    crownCap.name = 'crownCap';
+    crownCap.position.y = 0.98;
+
+    const crimpRim = new THREE.Mesh(new THREE.TorusGeometry(0.124, 0.01, 8, 20), capMat);
+    crimpRim.rotation.x = Math.PI / 2;
+    crownCap.add(crimpRim);
+    inner.add(crownCap);
   } else if (kind === 'boss') {
     // 🧊 Boss: Commercial Stainless Beer Dispenser Cooler
     const r = 0.85;
@@ -641,7 +726,7 @@ export function updateTargetAnimation3D(
     });
   }
 
-  const isGround = kind === 'mug' || kind === 'obi' || kind === 'hanmac' || kind === 'boss';
+  const isGround = kind === 'bottle' || kind === 'mug' || kind === 'obi' || kind === 'hanmac' || kind === 'boss';
 
   if (isGround) {
     // Ground monsters contact bounce & limited rotation so label stays visible
