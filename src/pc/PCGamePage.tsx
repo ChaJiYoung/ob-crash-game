@@ -12,6 +12,9 @@ import { WEAPON_CONSTANTS } from '../shared/constants';
 
 export const PCGamePage: React.FC = () => {
   const engine = useMemo(() => new BeerCrusherEngine(), []);
+  if (typeof window !== 'undefined') {
+    (window as any).__engine = engine;
+  }
   const soundSynth = useMemo(() => new SoundSynthesizer(), []);
 
   const [gamePhase, setGamePhase] = useState<GamePhase>('PAIRING');

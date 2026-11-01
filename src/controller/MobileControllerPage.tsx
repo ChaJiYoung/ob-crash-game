@@ -11,6 +11,9 @@ export const MobileControllerPage: React.FC = () => {
   const tracker = useMemo(() => new GunGripTracker(), []);
 
   const [step, setStep] = useState<'LOGIN_GATE' | 'ZEROING' | 'PAD'>('LOGIN_GATE');
+  if (typeof window !== 'undefined') {
+    (window as any).__setStep = setStep;
+  }
   const [sensorsActive, setSensorsActive] = useState<boolean>(false);
   const [roomId, setRoomId] = useState<string>('');
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
