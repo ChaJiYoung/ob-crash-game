@@ -1,6 +1,6 @@
 # Task: T01 16:9 풀스크린 Three.js 캔버스, 4코너 아케이드 오버레이 HUD 및 판정 배너 구현
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC 화면 전체(`100vw × 100vh`)에 Three.js WebGL 캔버스를 채우고(`D05`), 그 위에 반투명 글래스모피즘으로 떠 있는 4코너 아케이드 오버레이 HUD(플레이어 닉네임·점수·콤보·라이프·보스 HP·탄창·자동장전·피버 게이지 LOCK 배지), 3단계 판정 배너(`PERFECT! +150` / `GREAT! +100` / `GOOD! +50`), 그리고 1인칭 조준 크로스헤어를 구현합니다.
@@ -76,6 +76,6 @@ Task: T01-fullscreen-3d-canvas-and-hud
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
