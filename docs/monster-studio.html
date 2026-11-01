@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>Beer Crusher 3D - Monster Studio</title>
+  <title>Beer Crusher 3D - Monster & Item Studio</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,27 +25,28 @@
     }
     #info-card {
       position: absolute;
-      bottom: 40px;
+      bottom: 35px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.88);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      backdrop-filter: blur(14px);
       border-radius: 18px;
       padding: 16px 32px;
       display: flex;
       align-items: center;
-      gap: 28px;
-      box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 24px rgba(245, 158, 11, 0.2);
+      gap: 26px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.65), 0 0 24px rgba(245, 158, 11, 0.25);
       z-index: 10;
     }
     .badge {
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 99px;
       font-size: 13px;
       font-weight: 800;
       background: #f59e0b;
       color: #111;
+      letter-spacing: 0.5px;
     }
     .name { font-size: 22px; font-weight: 900; color: #fff; }
     .stat { font-size: 14px; color: #94a3b8; display: flex; gap: 6px; }
@@ -57,238 +58,218 @@
   <div id="info-card">
     <span class="badge" id="m-badge">MONSTER</span>
     <span class="name" id="m-name">Monster Name</span>
-    <span class="stat">HP: <b id="m-hp">1</b></span>
-    <span class="stat">속도: <b id="m-speed">4.5 m/s</b></span>
-    <span class="stat">처치 보너스: <b id="m-score">+30점</b></span>
+    <span class="stat"><span id="lbl-hp">HP</span>: <b id="m-hp">1</b></span>
+    <span class="stat"><span id="lbl-speed">속도</span>: <b id="m-speed">4.5 m/s</b></span>
+    <span class="stat"><span id="lbl-score">보너스</span>: <b id="m-score">+30점</b></span>
   </div>
 
   <script>
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0a0d14, 10, 25);
+    scene.fog = new THREE.Fog(0x0a0d14, 10, 30);
 
-    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0.5, 4.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio || 2);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.35;
     container.appendChild(renderer.domElement);
 
     // Studio Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+    const ambientLight = new THREE.AmbientLight(0xfff0d8, 0.9);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.4);
-    keyLight.position.set(3, 5, 4);
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.8);
+    keyLight.position.set(3.5, 6, 4.5);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
-    rimLight.position.set(-4, 3, -3);
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
+    rimLight.position.set(-4.5, 3.5, -3.5);
     scene.add(rimLight);
 
-    const topGoldLight = new THREE.PointLight(0xf59e0b, 1.5, 12);
-    topGoldLight.position.set(0, 3, 1);
+    const topGoldLight = new THREE.PointLight(0xf59e0b, 2.0, 14);
+    topGoldLight.position.set(0, 3.5, 1.2);
     scene.add(topGoldLight);
 
-    // Pedestal
+    // Studio Pedestal
     const pedestalGroup = new THREE.Group();
     const pedestalMat = new THREE.MeshStandardMaterial({
       color: 0x111827,
-      metalness: 0.8,
-      roughness: 0.25,
+      metalness: 0.85,
+      roughness: 0.22,
     });
-    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.25, 48), pedestalMat);
+    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.0, 0.25, 48), pedestalMat);
     pedestal.position.y = -1.0;
     pedestalGroup.add(pedestal);
 
-    // Neon Rim Ring
     const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.62, 0.02, 16, 64), ringMat);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.82, 0.024, 16, 64), ringMat);
     ring.rotation.x = Math.PI / 2;
     ring.position.y = -0.87;
     pedestalGroup.add(ring);
-
     scene.add(pedestalGroup);
 
-    // Texture Generator
-    function makeCanTexture(brand, bg, fg, accent) {
-      const c = document.createElement('canvas');
-      c.width = 512;
-      c.height = 256;
-      const ctx = c.getContext('2d');
+    const texLoader = new THREE.TextureLoader();
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.88, roughness: 0.18 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.92, roughness: 0.15 });
 
-      const grad = ctx.createLinearGradient(0, 0, 512, 0);
-      grad.addColorStop(0, bg);
-      grad.addColorStop(0.5, '#ffffff');
-      grad.addColorStop(1, bg);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 512, 256);
-
-      ctx.fillStyle = accent;
-      ctx.fillRect(0, 0, 512, 36);
-      ctx.fillRect(0, 220, 512, 36);
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.beginPath();
-      ctx.arc(256, 128, 76, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = fg;
-      ctx.font = 'bold 46px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(brand, 256, 120);
-
-      const tex = new THREE.CanvasTexture(c);
+    function loadLabelTex(kind) {
+      const tex = texLoader.load('/textures/labels/' + kind + '.jpg');
       tex.wrapS = THREE.RepeatWrapping;
       tex.offset.x = 0.5;
       return tex;
     }
 
-    const capMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.15 });
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.18 });
-
     function buildModel(kind) {
       const g = new THREE.Group();
 
-      if (kind === 'pilgood') {
-        const tex = makeCanTexture('FiLGOOD', '#00a8e8', '#ffd100', '#ffd100');
-        const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.38, 0.38, 1.05, 32),
-          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.8, roughness: 0.2 }), capMat, capMat]
-        );
+      if (kind === 'pilgood' || kind === 'caslight' || kind === 'obi' || kind === 'hanmac') {
+        const r = 0.42;
+        const h = 1.18;
+        const labelTex = loadLabelTex(kind);
+        const sideMat = new THREE.MeshPhysicalMaterial({
+          map: labelTex,
+          metalness: 0.74,
+          roughness: 0.2,
+          clearcoat: 0.7,
+          clearcoatRoughness: 0.12,
+        });
+
+        // Realistic Can Body
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.96, r, h, 36), [sideMat, capMat, capMat]);
         g.add(body);
-        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.08, 32), capMat);
-        lid.position.y = 0.56;
-        g.add(lid);
-        const foam = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
-        foam.scale.set(1, 0.45, 1);
-        foam.position.y = 0.65;
-        g.add(foam);
-      } else if (kind === 'caslight') {
-        const tex = makeCanTexture('Cass Light', '#38bdf8', '#0369a1', '#e2e8f0');
-        const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.35, 0.35, 1.1, 32),
-          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.85, roughness: 0.18 }), capMat, capMat]
-        );
-        g.add(body);
-        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 0.08, 32), capMat);
-        lid.position.y = 0.58;
+
+        // Tapered Neck Lid
+        const lid = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.82, r * 0.96, h * 0.07, 36), capMat);
+        lid.position.y = h / 2 + h * 0.035;
         g.add(lid);
 
-        // Wings
-        const wingMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        const gl = new THREE.PlaneGeometry(0.65, 0.38);
-        gl.translate(-0.32, 0, 0);
-        const gr = new THREE.PlaneGeometry(0.65, 0.38);
-        gr.translate(0.32, 0, 0);
-        const wl = new THREE.Mesh(gl, wingMat);
-        const wr = new THREE.Mesh(gr, wingMat);
-        wl.position.set(-0.35, 0.18, 0);
-        wr.position.set(0.35, 0.18, 0);
-        wl.rotation.y = 0.2;
-        wr.rotation.y = -0.2;
-        g.add(wl);
-        g.add(wr);
-      } else if (kind === 'obi') {
-        const tex = makeCanTexture('OB Lager', '#f59e0b', '#78350f', '#b91c1c');
-        const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.38, 0.38, 1.05, 32),
-          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.75, roughness: 0.25 }), capMat, capMat]
-        );
-        g.add(body);
-        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.08, 32), capMat);
-        lid.position.y = 0.56;
-        g.add(lid);
-        const tab = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.12), capMat);
-        tab.position.y = 0.61;
+        // Pull Tab
+        const tab = new THREE.Mesh(new THREE.BoxGeometry(r * 0.45, h * 0.025, r * 0.3), capMat);
+        tab.position.y = h / 2 + h * 0.075;
         g.add(tab);
-      } else if (kind === 'hanmac') {
-        const tex = makeCanTexture('HANMAC', '#047857', '#d4af37', '#d4af37');
-        const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.38, 0.38, 1.05, 32),
-          [new THREE.MeshStandardMaterial({ map: tex, metalness: 0.75, roughness: 0.25 }), capMat, capMat]
-        );
-        g.add(body);
-        const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.38, 0.08, 32), capMat);
-        lid.position.y = 0.56;
-        g.add(lid);
-        const foam = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
-        foam.scale.set(1, 0.5, 1);
-        foam.position.y = 0.66;
-        g.add(foam);
-      } else if (kind === 'mug') {
-        const r = 0.44;
-        const h = 1.15;
-        const glassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, roughness: 0.08, metalness: 0.1 });
-        const liquidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.15, metalness: 0.15 });
-        const foamMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.88 });
 
-        const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.9, h, 10), glassMat);
+        // Condensation beads
+        const dropMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, roughness: 0.05, ior: 1.33 });
+        for (let i = 0; i < 8; i++) {
+          const drop = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 6), dropMat);
+          const angle = (i * Math.PI) / 4 + 0.2;
+          drop.position.set(Math.cos(angle) * (r + 0.008), -h * 0.3 + (i % 4) * 0.22, Math.sin(angle) * (r + 0.008));
+          g.add(drop);
+        }
+
+        if (kind === 'pilgood' || kind === 'hanmac') {
+          const foam = new THREE.Mesh(new THREE.SphereGeometry(r * 0.65, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
+          foam.scale.set(1, 0.45, 1);
+          foam.position.y = h / 2 + 0.12;
+          g.add(foam);
+        }
+
+        if (kind === 'caslight') {
+          const wingMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+          const gl = new THREE.PlaneGeometry(0.72, 0.42);
+          gl.translate(-0.36, 0, 0);
+          const gr = new THREE.PlaneGeometry(0.72, 0.42);
+          gr.translate(0.36, 0, 0);
+          const wl = new THREE.Mesh(gl, wingMat);
+          const wr = new THREE.Mesh(gr, wingMat);
+          wl.position.set(-r, h * 0.12, 0);
+          wr.position.set(r, h * 0.12, 0);
+          wl.rotation.y = 0.25;
+          wr.rotation.y = -0.25;
+          g.add(wl);
+          g.add(wr);
+        }
+      } else if (kind === 'mug') {
+        const r = 0.48;
+        const h = 1.25;
+        const glassMat = new THREE.MeshPhysicalMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.6,
+          transmission: 0.78,
+          ior: 1.5,
+          roughness: 0.08,
+          metalness: 0.04,
+          clearcoat: 1.0,
+        });
+        const liquidMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.18, metalness: 0.12 });
+        const foamMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
+
+        const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.92, h, 14), glassMat);
         g.add(glassBody);
 
-        const liquid = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.86, r * 0.78, h * 0.84, 10), liquidMat);
-        liquid.position.y = -h * 0.03;
+        const liquid = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.88, r * 0.8, h * 0.82, 14), liquidMat);
+        liquid.position.y = -h * 0.04;
         g.add(liquid);
 
-        const handle = new THREE.Mesh(new THREE.TorusGeometry(h * 0.28, 0.065, 10, 20, Math.PI), glassMat);
+        // Rising bubbles
+        const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
+        for (let i = 0; i < 6; i++) {
+          const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.024, 6, 6), bubbleMat);
+          const angle = (i * Math.PI) / 3;
+          bubble.position.set(Math.cos(angle) * r * 0.45, -h * 0.3 + i * 0.12, Math.sin(angle) * r * 0.45);
+          g.add(bubble);
+        }
+
+        const handle = new THREE.Mesh(new THREE.TorusGeometry(h * 0.28, 0.07, 10, 20, Math.PI), glassMat);
         handle.rotation.z = -Math.PI / 2;
-        handle.position.set(r * 0.95, 0, 0);
+        handle.position.set(r * 0.96, 0, 0);
         g.add(handle);
 
-        const foamBase = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.05, r * 0.94, 0.22, 12), foamMat);
-        foamBase.position.y = h / 2 + 0.05;
+        const foamBase = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.06, r * 0.94, 0.24, 16), foamMat);
+        foamBase.position.y = h / 2 + 0.06;
         g.add(foamBase);
 
-        [[-0.14, 0.14], [0.14, 0.1], [0, -0.15], [-0.12, -0.12], [0.12, -0.12]].forEach(([px, pz]) => {
-          const puff = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), foamMat);
-          puff.position.set(px, h / 2 + 0.18, pz);
+        [[-0.14, 0.14], [0.14, 0.1], [0, -0.15], [-0.12, -0.12], [0.12, -0.12], [0, 0]].forEach(([px, pz]) => {
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), foamMat);
+          puff.position.set(px, h / 2 + 0.2, pz);
           g.add(puff);
         });
       } else if (kind === 'boss') {
-        const r = 0.75;
-        const h = 1.5;
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.75, roughness: 0.3 });
-        const panelTex = makeCanTexture('OB DRAFT COOLER', '#111827', '#f59e0b', '#d97706');
-        const panelMat = new THREE.MeshStandardMaterial({ map: panelTex, metalness: 0.4, roughness: 0.4 });
+        const r = 0.88;
+        const h = 1.8;
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.82, roughness: 0.28 });
+        const panelTex = loadLabelTex('boss');
+        const panelMat = new THREE.MeshStandardMaterial({ map: panelTex, metalness: 0.45, roughness: 0.3 });
 
         const cabinet = new THREE.Mesh(
-          new THREE.BoxGeometry(r * 1.8, h * 0.8, r * 1.4),
+          new THREE.BoxGeometry(r * 1.8, h * 0.82, r * 1.4),
           [bodyMat, bodyMat, capMat, bodyMat, panelMat, bodyMat]
         );
         g.add(cabinet);
 
-        const grille = new THREE.Mesh(new THREE.BoxGeometry(r * 1.5, h * 0.2, 0.06), new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.9 }));
-        grille.position.set(0, -h * 0.22, r * 0.71);
+        const grille = new THREE.Mesh(new THREE.BoxGeometry(r * 1.5, h * 0.22, 0.06), new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.95 }));
+        grille.position.set(0, -h * 0.24, r * 0.71);
         g.add(grille);
 
-        const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.5, 20), capMat);
-        tower.position.set(0, h * 0.4 + 0.24, 0);
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.58, 20), capMat);
+        tower.position.set(0, h * 0.41 + 0.28, 0);
         g.add(tower);
 
-        [-0.11, 0.11].forEach((tapX) => {
-          const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.2, 12), goldMat);
+        [-0.15, 0.15].forEach((tapX) => {
+          const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.26, 12), goldMat);
           tapSpout.rotation.x = Math.PI / 2;
-          tapSpout.position.set(tapX, h * 0.4 + 0.34, 0.15);
+          tapSpout.position.set(tapX, h * 0.41 + 0.4, 0.18);
           g.add(tapSpout);
 
           const tapHandle = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.022, 0.015, 0.25, 12),
+            new THREE.CylinderGeometry(0.028, 0.02, 0.3, 12),
             new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.2 })
           );
-          tapHandle.position.set(tapX, h * 0.4 + 0.48, 0.2);
-          tapHandle.rotation.x = -0.2;
+          tapHandle.position.set(tapX, h * 0.41 + 0.56, 0.24);
+          tapHandle.rotation.x = -0.22;
           g.add(tapHandle);
         });
 
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 });
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 });
         [[-r * 0.75, -r * 0.55], [r * 0.75, -r * 0.55], [-r * 0.75, r * 0.55], [r * 0.75, r * 0.55]].forEach(([wx, wz]) => {
-          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.08, 12), wheelMat);
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.09, 14), wheelMat);
           wheel.rotation.z = Math.PI / 2;
-          wheel.position.set(wx, -h * 0.4 - 0.05, wz);
+          wheel.position.set(wx, -h * 0.41 - 0.05, wz);
           g.add(wheel);
         });
       }
@@ -296,36 +277,115 @@
       return g;
     }
 
-    const SPECS = {
-      pilgood: { badge: 'SPEED · 일반', name: '필굿 (FiLGOOD)', hp: '1', speed: '4.5 m/s', score: '+30점', color: '#00a8e8' },
-      caslight: { badge: 'FLYING · 일반', name: '카스 라이트 (Cass Light)', hp: '1', speed: '3.8 m/s', score: '+40점', color: '#38bdf8' },
-      obi: { badge: 'TANK · 중형', name: '오비 라거 (OB Lager)', hp: '2', speed: '3.1 m/s', score: '+70점', color: '#f59e0b' },
-      hanmac: { badge: 'ELITE · 고급', name: '한맥 (HANMAC)', hp: '2', speed: '3.3 m/s', score: '+90점', color: '#10b981' },
-      mug: { badge: 'HEAVY · 생맥주', name: '500ml 생맥주잔 (Draft Mug)', hp: '3', speed: '2.4 m/s', score: '+160점', color: '#fbbf24' },
-      boss: { badge: 'BOSS · 보스', name: '업소용 생맥주 냉각기 (Boss)', hp: '30', speed: '1.15 m/s', score: '+1,500점', color: '#ef4444' }
+    function buildItemModel(itemKind) {
+      const g = new THREE.Group();
+
+      // Glowing aura torus ring
+      const colors = {
+        power_shot: 0xef4444,
+        wide_scope: 0x38bdf8,
+        ice_freeze: 0x60a5fa,
+        bar_repair: 0x10b981,
+      };
+      const auraColor = colors[itemKind] || 0xf59e0b;
+      const auraRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.95, 0.045, 12, 40),
+        new THREE.MeshBasicMaterial({ color: auraColor, transparent: true, opacity: 0.88 })
+      );
+      auraRing.rotation.x = Math.PI / 3;
+      g.add(auraRing);
+
+      if (itemKind === 'power_shot') {
+        // 💥 Golden Bottle Opener
+        const handle = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 0.07), goldMat);
+        handle.position.y = -0.2;
+        g.add(handle);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.065, 12, 24), goldMat);
+        ring.position.y = 0.36;
+        g.add(ring);
+      } else if (itemKind === 'wide_scope') {
+        // 🎯 Beer Coaster Target Disc
+        const coaster = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.65, 0.65, 0.06, 36),
+          new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.3, roughness: 0.4 })
+        );
+        coaster.rotation.x = Math.PI / 4;
+        g.add(coaster);
+        const innerRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.42, 0.03, 8, 32),
+          new THREE.MeshBasicMaterial({ color: 0xfde047 })
+        );
+        innerRing.rotation.x = Math.PI / 4;
+        g.add(innerRing);
+        const bullseye = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 14), new THREE.MeshBasicMaterial({ color: 0xfde047 }));
+        bullseye.position.set(0, 0, 0.04);
+        g.add(bullseye);
+      } else if (itemKind === 'ice_freeze') {
+        // 🧊 Silver Ice Bucket with Ice Cubes
+        const bucket = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.44, 0.34, 0.58, 24),
+          new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.88, roughness: 0.18 })
+        );
+        g.add(bucket);
+        const iceMat = new THREE.MeshPhysicalMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.75, roughness: 0.05, ior: 1.31 });
+        [[-0.14, 0.24, -0.1], [0.14, 0.26, 0.08], [0, 0.32, 0]].forEach(([ix, iy, iz]) => {
+          const cube = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), iceMat);
+          cube.position.set(ix, iy, iz);
+          cube.rotation.set(0.3, 0.4, 0.2);
+          g.add(cube);
+        });
+      } else if (itemKind === 'bar_repair') {
+        // 🍺 Green Hop Cones Cluster + Golden Ribbon
+        const hopMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.65 });
+        [[-0.18, 0, -0.08], [0.18, 0, -0.08], [0, 0.22, 0.08]].forEach(([hx, hy, hz]) => {
+          const cone = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.44, 10), hopMat);
+          cone.position.set(hx, hy, hz);
+          cone.rotation.x = Math.PI;
+          g.add(cone);
+        });
+        const ribbon = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.035, 8, 24), goldMat);
+        ribbon.position.y = -0.14;
+        ribbon.rotation.x = Math.PI / 2;
+        g.add(ribbon);
+      }
+
+      return g;
+    }
+
+    const MONSTER_SPECS = {
+      pilgood: { badge: 'SPEED · 공중 활공', name: '필굿 (FiLGOOD)', hp: '1', speed: '4.2 m/s', score: '+30점', color: '#00a8e8' },
+      caslight: { badge: 'FLYING · 공중 비행', name: '카스 라이트 (Cass Light)', hp: '1', speed: '3.6 m/s', score: '+40점', color: '#38bdf8' },
+      obi: { badge: 'TANK · 지상 바운스', name: '오비 라거 (OB Lager)', hp: '2', speed: '3.0 m/s', score: '+70점', color: '#f59e0b' },
+      hanmac: { badge: 'ELITE · 지상 바운스', name: '한맥 (HANMAC)', hp: '2', speed: '3.2 m/s', score: '+90점', color: '#047857' },
+      mug: { badge: 'HEAVY · 물리 유리잔', name: '500ml 생맥주잔 (Draft Mug)', hp: '3', speed: '2.3 m/s', score: '+160점', color: '#fbbf24' },
+      boss: { badge: 'BOSS · 보스 레이드', name: '업소용 생맥주 냉각기 (Boss)', hp: '40', speed: '1.10 m/s', score: '+1,500점', color: '#ef4444' }
+    };
+
+    const ITEM_SPECS = {
+      power_shot: { badge: 'BUFF ITEM · 소품', name: '파워 샷 (황금 병따개)', dur: '8초 지속', effect: '사격 데미지 2배 증폭 (라거 원샷 원킬)', wave: 'Wave 2, 4, 5 출현', color: '#ef4444' },
+      wide_scope: { badge: 'BUFF ITEM · 소품', name: '빅 스코프 (맥주 코스터)', dur: '8초 지속', effect: '조준경 140px & 판정 반경 1.6배 확대', wave: 'Wave 1, 3, 4, 5 출현', color: '#38bdf8' },
+      ice_freeze: { badge: 'BUFF ITEM · 소품', name: '아이스 프리즈 (얼음 버킷)', dur: '8초 지속', effect: '모든 몬스터 이동속도 50% 감속', wave: 'Wave 3, 4, 5 출현', color: '#60a5fa' },
+      bar_repair: { badge: 'INSTANT · 소품', name: '바 수리 (홉 열매 다발)', dur: '즉시 발동', effect: '바 방어선 체력 +1 즉시 회복 (최대 5)', wave: 'Wave 2, 3, 4, 5 출현', color: '#10b981' },
     };
 
     let activeModel = null;
-    let currentKind = 'pilgood';
 
     window.showMonster = function(kind) {
-      if (activeModel) {
-        scene.remove(activeModel);
-      }
-      currentKind = kind;
+      if (activeModel) scene.remove(activeModel);
       activeModel = buildModel(kind);
       activeModel.rotation.y = 0.35;
       scene.add(activeModel);
 
-      // Adjust camera distance for boss
       if (kind === 'boss') {
-        camera.position.set(0, 0.6, 5.0);
+        camera.position.set(0, 0.6, 5.2);
       } else {
-        camera.position.set(0, 0.4, 3.4);
+        camera.position.set(0, 0.4, 3.6);
       }
 
-      // Update info
-      const s = SPECS[kind];
+      const s = MONSTER_SPECS[kind];
+      document.getElementById('lbl-hp').textContent = 'HP';
+      document.getElementById('lbl-speed').textContent = '속도';
+      document.getElementById('lbl-score').textContent = '처치 보너스';
       document.getElementById('m-badge').textContent = s.badge;
       document.getElementById('m-badge').style.background = s.color;
       document.getElementById('m-name').textContent = s.name;
@@ -339,32 +399,87 @@
       const group = new THREE.Group();
 
       const lineup = [
-        { kind: 'pilgood', x: -3.0, z: -0.2, scale: 0.9 },
-        { kind: 'caslight', x: -1.8, z: 0.1, scale: 0.9 },
-        { kind: 'obi', x: -0.6, z: 0.3, scale: 0.95 },
-        { kind: 'hanmac', x: 0.6, z: 0.3, scale: 0.95 },
-        { kind: 'mug', x: 1.8, z: 0.1, scale: 0.95 },
-        { kind: 'boss', x: 3.4, z: -0.4, scale: 0.9 }
+        { kind: 'pilgood', x: -3.2, z: -0.2, scale: 0.95 },
+        { kind: 'caslight', x: -1.9, z: 0.1, scale: 0.95 },
+        { kind: 'obi', x: -0.6, z: 0.3, scale: 1.0 },
+        { kind: 'hanmac', x: 0.6, z: 0.3, scale: 1.0 },
+        { kind: 'mug', x: 1.9, z: 0.1, scale: 1.0 },
+        { kind: 'boss', x: 3.6, z: -0.4, scale: 0.95 }
       ];
 
       lineup.forEach(item => {
         const m = buildModel(item.kind);
         m.position.set(item.x, 0, item.z);
         m.scale.setScalar(item.scale);
-        m.rotation.y = 0.3;
+        m.rotation.y = 0.28;
         group.add(m);
       });
 
       activeModel = group;
       scene.add(group);
-      camera.position.set(0.2, 0.7, 7.2);
+      camera.position.set(0.2, 0.7, 7.6);
 
-      document.getElementById('m-badge').textContent = 'ALL MONSTERS';
+      document.getElementById('lbl-hp').textContent = 'HP 범위';
+      document.getElementById('lbl-speed').textContent = '속도 범위';
+      document.getElementById('lbl-score').textContent = '보너스 범위';
+      document.getElementById('m-badge').textContent = 'MONSTER LINEUP';
       document.getElementById('m-badge').style.background = '#f59e0b';
-      document.getElementById('m-name').textContent = '비어 크러셔 3D 몬스터 6종 풀 라인업';
-      document.getElementById('m-hp').textContent = '1 ~ 30';
-      document.getElementById('m-speed').textContent = '1.15 ~ 4.5 m/s';
+      document.getElementById('m-name').textContent = '비어 크러셔 3D 실물 PBR 몬스터 6종 풀 라인업';
+      document.getElementById('m-hp').textContent = '1 ~ 40';
+      document.getElementById('m-speed').textContent = '1.10 ~ 4.2 m/s';
       document.getElementById('m-score').textContent = '+30 ~ +1,500점';
+    };
+
+    window.showItem = function(itemKind) {
+      if (activeModel) scene.remove(activeModel);
+      activeModel = buildItemModel(itemKind);
+      activeModel.rotation.y = 0.3;
+      scene.add(activeModel);
+      camera.position.set(0, 0.4, 3.2);
+
+      const s = ITEM_SPECS[itemKind];
+      document.getElementById('lbl-hp').textContent = '지속 시간';
+      document.getElementById('lbl-speed').textContent = '특수 효과';
+      document.getElementById('lbl-score').textContent = '등장 위치';
+      document.getElementById('m-badge').textContent = s.badge;
+      document.getElementById('m-badge').style.background = s.color;
+      document.getElementById('m-name').textContent = s.name;
+      document.getElementById('m-hp').textContent = s.dur;
+      document.getElementById('m-speed').textContent = s.effect;
+      document.getElementById('m-score').textContent = s.wave;
+    };
+
+    window.showAllItemsLineup = function() {
+      if (activeModel) scene.remove(activeModel);
+      const group = new THREE.Group();
+
+      const lineup = [
+        { itemKind: 'power_shot', x: -2.4, z: 0 },
+        { itemKind: 'wide_scope', x: -0.8, z: 0.2 },
+        { itemKind: 'ice_freeze', x: 0.8, z: 0.2 },
+        { itemKind: 'bar_repair', x: 2.4, z: 0 },
+      ];
+
+      lineup.forEach(item => {
+        const m = buildItemModel(item.itemKind);
+        m.position.set(item.x, 0, item.z);
+        m.rotation.y = 0.25;
+        group.add(m);
+      });
+
+      activeModel = group;
+      scene.add(group);
+      camera.position.set(0, 0.5, 5.8);
+
+      document.getElementById('lbl-hp').textContent = '버프 지속';
+      document.getElementById('lbl-speed').textContent = '아이템 구성';
+      document.getElementById('lbl-score').textContent = '획득 방식';
+      document.getElementById('m-badge').textContent = 'ITEM LINEUP';
+      document.getElementById('m-badge').style.background = '#38bdf8';
+      document.getElementById('m-name').textContent = '오비 펍 소품형 아이템 4종 풀 라인업';
+      document.getElementById('m-hp').textContent = '8초 / 즉시 회복';
+      document.getElementById('m-speed').textContent = '파워샷 · 빅스코프 · 프리즈 · 바수리';
+      document.getElementById('m-score').textContent = '원거리 사격 명중 즉시 발동';
     };
 
     // Default
@@ -373,8 +488,7 @@
     function animate() {
       requestAnimationFrame(animate);
       if (activeModel) {
-        // subtle idle rotation
-        activeModel.rotation.y += 0.006;
+        activeModel.rotation.y += 0.005;
       }
       renderer.render(scene, camera);
     }
