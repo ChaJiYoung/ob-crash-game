@@ -202,6 +202,13 @@
         glassBody.position.y = 0.4;
         g.add(glassBody);
 
+        // Cass Fresh Label mapped cylinder
+        const labelTex = loadLabelTex('bottle');
+        const labelMat = new THREE.MeshStandardMaterial({ map: labelTex, roughness: 0.35, metalness: 0.1 });
+        const labelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.423, 0.423, 0.46, 24), labelMat);
+        labelMesh.position.y = 0.38;
+        g.add(labelMesh);
+
         // Shoulder
         const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.28, 24), glassMat);
         shoulder.position.y = 0.94;

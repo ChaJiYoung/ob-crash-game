@@ -24,7 +24,7 @@ async function captureAllStudioAndGame() {
     { kind: 'caslight', filename: 'monster-02-caslight.png' },
     { kind: 'obi', filename: 'monster-03-obi.png' },
     { kind: 'hanmac', filename: 'monster-04-hanmac.png' },
-    { kind: 'bottle', filename: 'monster-05-draft-mug.png' },
+    { kind: 'bottle', filename: 'monster-05-cass-bottle.png' },
     { kind: 'boss', filename: 'monster-06-boss-dispenser.png' },
   ];
 
@@ -33,6 +33,10 @@ async function captureAllStudioAndGame() {
     await page.evaluate((kind) => window.showMonster(kind), m.kind);
     await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(screensDir, m.filename) });
+    if (m.filename === 'monster-05-cass-bottle.png') {
+      // Also write legacy filename for backwards compatibility
+      await page.screenshot({ path: path.join(screensDir, 'monster-05-draft-mug.png') });
+    }
   }
 
   // Monster Lineup
