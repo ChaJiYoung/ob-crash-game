@@ -96,6 +96,10 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
             hitColor,
             result.killed ? 32 : 18
           );
+
+          if (result.target.isItem && result.target.itemKind) {
+            particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
+          }
         } else {
           targetPos = new THREE.Vector3(curAim.aimX * 7.5, 1.2 + curAim.aimY * 4.2, -14);
         }
@@ -282,7 +286,9 @@ export const GameCanvas3D: React.FC<GameCanvas3DProps> = ({
         }
       });
 
-      // Update gun recoil and aim
+      // Update gun recoil, aim, and buff modes
+      tapGun.setPowerMode(engine.isBuffActive('power_shot', time));
+      tapGun.setScopeMode(engine.isBuffActive('wide_scope', time));
       tapGun.updateAimAndRecoil(curAim.aimX, curAim.aimY, dtSec, feverState.isFeverActive);
 
       // Update stage lighting & alert

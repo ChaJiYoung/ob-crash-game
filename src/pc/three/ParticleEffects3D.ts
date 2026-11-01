@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { ItemBuffKind } from '../../shared/types';
+import { ITEM_BUFF_SPECS } from '../../shared/constants';
 
 interface ParticleItem {
   mesh: THREE.Mesh;
@@ -15,10 +17,19 @@ interface TracerBeamItem {
   maxLifeSec: number;
 }
 
+export interface FloatingLabelItem {
+  sprite: THREE.Sprite;
+  initialPos: THREE.Vector3;
+  lifeSec: number;
+  maxLifeSec: number;
+}
+
 export class ParticleEffects3D {
   public readonly group: THREE.Group;
   private particles: ParticleItem[] = [];
   private tracerBeams: TracerBeamItem[] = [];
+  private floatingLabels: FloatingLabelItem[] = [];
+  private labelTextureCache = new Map<ItemBuffKind, THREE.Texture>();
   private foamGeo = new THREE.SphereGeometry(0.08, 6, 6);
   private shardGeo = new THREE.BufferGeometry();
   private foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
@@ -50,6 +61,93 @@ export class ParticleEffects3D {
       );
     }
     return this.matCache.get(colorHex)!;
+  }
+
+  private getOrCreateFloatingLabelTexture(itemKind: ItemBuffKind): THREE.Texture {
+    if (this.labelTextureCache.has(itemKind)) {
+      return this.labelTextureCache.get(itemKind)!;
+    }
+
+    if (typeof document === 'undefined') {
+      const fallbackTex = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+      fallbackTex.needsUpdate = true;
+      this.labelTextureCache.set(itemKind, fallbackTex);
+      return fallbackTex;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      const fallback = new THREE.Texture();
+      this.labelTextureCache.set(itemKind, fallback);
+      return fallback;
+    }
+
+    const textMap: Record<ItemBuffKind, string> = {
+      power_shot: '💥 DAMAGE 2X',
+      wide_scope: '🎯 WIDE 1.6X',
+      ice_freeze: '🧊 SLOW 50%',
+      bar_repair: '🍺 LIFE +1',
+    };
+
+    const spec = ITEM_BUFF_SPECS[itemKind];
+    const labelText = textMap[itemKind] || (spec ? `${spec.icon} ${spec.shortLabel}` : itemKind);
+    const borderColor = spec ? spec.auraColorHex : '#fbbf24';
+
+    // Rounded rectangle card background
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(4, 4, 248, 56, 12);
+    } else {
+      ctx.rect(4, 4, 248, 56);
+    }
+    ctx.fill();
+
+    // Glowing border
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Bold text
+    ctx.font = '900 24px "Pretendard", "Apple SD Gothic Neo", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = borderColor;
+    ctx.shadowBlur = 10;
+    ctx.fillText(labelText, 128, 32);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    this.labelTextureCache.set(itemKind, tex);
+    return tex;
+  }
+
+  public spawnFloatingLabel(worldPos: THREE.Vector3, itemKind: ItemBuffKind): void {
+    const tex = this.getOrCreateFloatingLabelTexture(itemKind);
+    const mat = new THREE.SpriteMaterial({
+      map: tex,
+      transparent: true,
+      opacity: 1.0,
+      depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.4, 0.35, 1.0);
+    sprite.position.copy(worldPos).add(new THREE.Vector3(0, 0.4, 0));
+    this.group.add(sprite);
+
+    this.floatingLabels.push({
+      sprite,
+      initialPos: sprite.position.clone(),
+      lifeSec: 0,
+      maxLifeSec: 0.8,
+    });
+  }
+
+  public get activeFloatingLabels(): readonly FloatingLabelItem[] {
+    return this.floatingLabels;
   }
 
   public spawnTracerBeam(
@@ -169,6 +267,25 @@ export class ParticleEffects3D {
       (tb.flashMesh.material as THREE.MeshBasicMaterial).opacity = fade * 0.95;
       tb.flashMesh.scale.set(1.0 + (1.0 - fade) * 0.5, 1.0 + (1.0 - fade) * 0.5, 1.0 + (1.0 - fade) * 0.5);
     }
+
+    // 3. Update floating combat labels
+    for (let i = this.floatingLabels.length - 1; i >= 0; i--) {
+      const fl = this.floatingLabels[i];
+      fl.lifeSec += dtSec;
+
+      if (fl.lifeSec >= fl.maxLifeSec) {
+        this.group.remove(fl.sprite);
+        fl.sprite.material.dispose();
+        this.floatingLabels.splice(i, 1);
+        continue;
+      }
+
+      const progress = fl.lifeSec / fl.maxLifeSec;
+      // Float upwards with smooth easing
+      fl.sprite.position.y = fl.initialPos.y + Math.sin(progress * Math.PI * 0.5) * 0.65;
+      // Fade out towards the end
+      (fl.sprite.material as THREE.SpriteMaterial).opacity = Math.max(0, 1.0 - Math.pow(progress, 1.5));
+    }
   }
 
   public clear(): void {
@@ -179,5 +296,10 @@ export class ParticleEffects3D {
       this.group.remove(tb.flashMesh);
     });
     this.tracerBeams = [];
+    this.floatingLabels.forEach((fl) => {
+      this.group.remove(fl.sprite);
+      fl.sprite.material.dispose();
+    });
+    this.floatingLabels = [];
   }
 }

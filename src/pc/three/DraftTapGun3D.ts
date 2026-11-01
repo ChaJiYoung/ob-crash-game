@@ -7,22 +7,39 @@ export class DraftTapGun3D {
   private currentRecoilPitch = 0;
   private nozzleMesh: THREE.Mesh;
   private nozzleMat: THREE.MeshStandardMaterial;
+  private barrelMesh: THREE.Mesh;
+  private receiverMesh: THREE.Mesh;
+  private chromeMat: THREE.MeshStandardMaterial;
+  private brassMat: THREE.MeshStandardMaterial;
+  private goldMat: THREE.MeshStandardMaterial;
+  private flameAuraMesh: THREE.Mesh;
+  private scopeLaserBeam: THREE.Mesh;
+  private isPowerMode = false;
+  private isScopeMode = false;
 
   constructor() {
     this.group = new THREE.Group();
     this.group.name = 'DraftTapGun3D';
     this.group.position.copy(this.basePosition);
 
-    const chromeMat = new THREE.MeshStandardMaterial({
+    this.chromeMat = new THREE.MeshStandardMaterial({
       color: 0xe2e8f0,
       metalness: 0.9,
       roughness: 0.15,
     });
 
-    const brassMat = new THREE.MeshStandardMaterial({
+    this.brassMat = new THREE.MeshStandardMaterial({
       color: 0xd4af37,
       metalness: 0.85,
       roughness: 0.22,
+    });
+
+    this.goldMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0xb45309,
+      emissiveIntensity: 0.85,
+      metalness: 0.95,
+      roughness: 0.18,
     });
 
     const darkGripMat = new THREE.MeshStandardMaterial({
@@ -38,10 +55,10 @@ export class DraftTapGun3D {
     });
 
     // 1. Main Chrome Barrel
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.52, 16), chromeMat);
-    barrel.rotation.x = Math.PI / 2;
-    barrel.position.set(0, 0, -0.22);
-    this.group.add(barrel);
+    this.barrelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.52, 16), this.chromeMat);
+    this.barrelMesh.rotation.x = Math.PI / 2;
+    this.barrelMesh.position.set(0, 0, -0.22);
+    this.group.add(this.barrelMesh);
 
     // 2. Brass Nozzle Tip
     this.nozzleMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.046, 0.12, 16), this.nozzleMat);
@@ -49,13 +66,42 @@ export class DraftTapGun3D {
     this.nozzleMesh.position.set(0, 0, -0.52);
     this.group.add(this.nozzleMesh);
 
+    // Flame aura sphere at nozzle tip (lit during Power Shot)
+    this.flameAuraMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 12, 12),
+      new THREE.MeshBasicMaterial({
+        color: 0xef4444,
+        transparent: true,
+        opacity: 0.85,
+      })
+    );
+    this.flameAuraMesh.position.set(0, 0, -0.58);
+    this.flameAuraMesh.visible = false;
+    this.group.add(this.flameAuraMesh);
+
     // 3. Draft Tap Tower / Receiver Block
-    const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.13, 0.2), brassMat);
-    receiver.position.set(0, 0.02, 0);
-    this.group.add(receiver);
+    this.receiverMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.13, 0.2), this.brassMat);
+    this.receiverMesh.position.set(0, 0.02, 0);
+    this.group.add(this.receiverMesh);
+
+    // Hologram laser guide beam forward (lit during Wide Scope)
+    const scopeBeamGeo = new THREE.CylinderGeometry(0.008, 0.008, 15, 8);
+    scopeBeamGeo.rotateX(Math.PI / 2);
+    this.scopeLaserBeam = new THREE.Mesh(
+      scopeBeamGeo,
+      new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.45,
+        depthWrite: false,
+      })
+    );
+    this.scopeLaserBeam.position.set(0, 0.12, -7.5);
+    this.scopeLaserBeam.visible = false;
+    this.group.add(this.scopeLaserBeam);
 
     // 4. Tap Handle / Lever (Top)
-    const lever = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.24, 12), brassMat);
+    const lever = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.24, 12), this.brassMat);
     lever.position.set(0, 0.16, 0.02);
     lever.rotation.x = -0.25;
     this.group.add(lever);
@@ -103,6 +149,48 @@ export class DraftTapGun3D {
       this.nozzleMat.emissive.setHex(0x000000);
       this.nozzleMat.emissiveIntensity = 0;
     }
+
+    // Flame aura breathing animation when Power Mode is active
+    if (this.isPowerMode) {
+      const pulse = 1.0 + Math.sin(Date.now() * 0.012) * 0.18;
+      this.flameAuraMesh.scale.set(pulse, pulse, pulse);
+    }
+  }
+
+  public setPowerMode(isPower: boolean): void {
+    if (this.isPowerMode === isPower) return;
+    this.isPowerMode = isPower;
+    if (isPower) {
+      this.barrelMesh.material = this.goldMat;
+      this.receiverMesh.material = this.goldMat;
+      this.flameAuraMesh.visible = true;
+    } else {
+      this.barrelMesh.material = this.chromeMat;
+      this.receiverMesh.material = this.brassMat;
+      this.flameAuraMesh.visible = false;
+      this.flameAuraMesh.scale.set(1, 1, 1);
+    }
+  }
+
+  public setScopeMode(isScope: boolean): void {
+    this.isScopeMode = isScope;
+    this.scopeLaserBeam.visible = isScope;
+  }
+
+  public get isPower(): boolean {
+    return this.isPowerMode;
+  }
+
+  public get isScope(): boolean {
+    return this.isScopeMode;
+  }
+
+  public get flameVisible(): boolean {
+    return this.flameAuraMesh.visible;
+  }
+
+  public get scopeBeamVisible(): boolean {
+    return this.scopeLaserBeam.visible;
   }
 
   public triggerRecoil(isFeverShot = false): void {

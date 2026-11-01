@@ -113,9 +113,29 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       gun.updateAimAndRecoil(0, 0, 0.05, false);
     }
     expect(Math.abs(gun.group.position.z - initialZ)).toBeLessThan(0.05);
+
+    // Test Power Mode (Golden cannon evolution & flame aura)
+    expect(gun.isPower).toBe(false);
+    expect(gun.flameVisible).toBe(false);
+    gun.setPowerMode(true);
+    expect(gun.isPower).toBe(true);
+    expect(gun.flameVisible).toBe(true);
+    gun.setPowerMode(false);
+    expect(gun.isPower).toBe(false);
+    expect(gun.flameVisible).toBe(false);
+
+    // Test Scope Mode (Holographic guide beam)
+    expect(gun.isScope).toBe(false);
+    expect(gun.scopeBeamVisible).toBe(false);
+    gun.setScopeMode(true);
+    expect(gun.isScope).toBe(true);
+    expect(gun.scopeBeamVisible).toBe(true);
+    gun.setScopeMode(false);
+    expect(gun.isScope).toBe(false);
+    expect(gun.scopeBeamVisible).toBe(false);
   });
 
-  it('should manage 3D particle effects pool', () => {
+  it('should manage 3D particle effects pool and floating combat labels', () => {
     const fx = new ParticleEffects3D();
     expect(fx.group).toBeInstanceOf(THREE.Group);
 
@@ -125,7 +145,30 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     fx.update(0.1);
     expect(fx.group.children.length).toBe(10);
 
+    // Test 3D floating labels
+    const originPos = new THREE.Vector3(0, 1.2, -5);
+    fx.spawnFloatingLabel(originPos, 'power_shot');
+    expect(fx.activeFloatingLabels.length).toBe(1);
+
+    const label = fx.activeFloatingLabels[0];
+    const initialY = label.sprite.position.y;
+    expect(label.sprite.material.opacity).toBeCloseTo(1.0);
+
+    // After 0.4s (half life), should rise and slightly fade
+    fx.update(0.4);
+    expect(label.sprite.position.y).toBeGreaterThan(initialY);
+    expect(label.sprite.material.opacity).toBeLessThan(1.0);
+
+    // After another 0.45s (total 0.85s > maxLifeSec 0.8s), should expire and be removed
+    fx.update(0.45);
+    expect(fx.activeFloatingLabels.length).toBe(0);
+
+    // Spawning and clear
+    fx.spawnFloatingLabel(originPos, 'ice_freeze');
+    fx.spawnFloatingLabel(originPos, 'bar_repair');
+    expect(fx.activeFloatingLabels.length).toBe(2);
     fx.clear();
+    expect(fx.activeFloatingLabels.length).toBe(0);
     expect(fx.group.children.length).toBe(0);
   });
 
