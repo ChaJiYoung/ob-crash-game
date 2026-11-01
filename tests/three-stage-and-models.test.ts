@@ -36,10 +36,11 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
           (c) => (c as THREE.Mesh).name === 'crownCap'
         );
         expect(hasCrownCap).toBe(true);
-        const hasNeckLabel = inner.children.some(
+        const neckLabelMesh = inner.children.find(
           (c) => (c as THREE.Mesh).name === 'neckLabel'
-        );
-        expect(hasNeckLabel).toBe(true);
+        ) as THREE.Mesh;
+        expect(neckLabelMesh).toBeDefined();
+        expect(neckLabelMesh.material).toBeDefined();
       }
 
       if (kind === 'boss') {

@@ -17,16 +17,18 @@ function createDataTextureFallback(colorHex: string): THREE.DataTexture {
   return texture;
 }
 
-export function getOrCreateTargetLabelTexture(kind: TargetKind): THREE.Texture {
+export function getOrCreateTargetLabelTexture(kind: TargetKind | 'bottle-neck'): THREE.Texture {
   if (labelTextureCache.has(kind)) {
     return labelTextureCache.get(kind)!;
   }
 
-  const spec = TARGET_SPECS[kind as TargetKind] || {
-    brandColorHex: '#f59e0b',
-    accentColorHex: '#ffffff',
-    displayName: kind,
-  };
+  const spec = kind === 'bottle-neck'
+    ? { brandColorHex: '#002855', accentColorHex: '#f59e0b', displayName: 'COLD BREWED' }
+    : (TARGET_SPECS[kind as TargetKind] || {
+        brandColorHex: '#f59e0b',
+        accentColorHex: '#ffffff',
+        displayName: kind,
+      });
 
   if (typeof document === 'undefined') {
     const fallback = createDataTextureFallback(spec.brandColorHex);
@@ -219,12 +221,12 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
 
   if (kind === 'bottle') {
-    // 🍾 All New Cass 500ml Transparent Glass Beer Bottle
+    // 🍾 All New Cass 500ml Transparent Glass Beer Bottle (Slim Long-neck Lathe Profile)
     const glassMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.50,
-      transmission: 0.90,
+      opacity: 0.38,
+      transmission: 0.92,
       ior: 1.52,
       roughness: 0.04,
       metalness: 0.05,
@@ -232,97 +234,134 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
       clearcoatRoughness: 0.04,
     });
 
-    const liquidMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      roughness: 0.2,
-      metalness: 0.08,
-    });
-
-    // Outer glass body (lower cylinder)
-    const glassBody = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.52, 24), glassMat);
-    glassBody.position.y = 0.26;
+    // 1. Outer Glass Body via LatheGeometry (Slim 1:3 ratio, seamless curved long-neck)
+    const glassPoints = [
+      new THREE.Vector2(0.0, -0.46),
+      new THREE.Vector2(0.155, -0.46),
+      new THREE.Vector2(0.172, -0.43),
+      new THREE.Vector2(0.166, -0.35), // Lower crystal curve
+      new THREE.Vector2(0.175, -0.26),
+      new THREE.Vector2(0.175, 0.08),  // Main slim cylinder
+      new THREE.Vector2(0.165, 0.14),
+      new THREE.Vector2(0.135, 0.21),
+      new THREE.Vector2(0.095, 0.28),
+      new THREE.Vector2(0.072, 0.35),  // Curved shoulder
+      new THREE.Vector2(0.066, 0.45),
+      new THREE.Vector2(0.063, 0.54),  // Elongated long-neck
+      new THREE.Vector2(0.070, 0.555),
+      new THREE.Vector2(0.062, 0.565), // Lip rim
+    ];
+    const glassBody = new THREE.Mesh(new THREE.LatheGeometry(glassPoints, 32), glassMat);
     inner.add(glassBody);
 
-    // Dynamic Cass Fresh Photorealistic Label mapped cylinder
+    // 2. Inner Golden Amber Beer Liquid (Filled up to shoulder y = 0.31, clear glass headspace in neck)
+    const liquidPoints = [
+      new THREE.Vector2(0.0, -0.44),
+      new THREE.Vector2(0.145, -0.44),
+      new THREE.Vector2(0.160, -0.41),
+      new THREE.Vector2(0.155, -0.35),
+      new THREE.Vector2(0.162, -0.26),
+      new THREE.Vector2(0.162, 0.08),
+      new THREE.Vector2(0.152, 0.14),
+      new THREE.Vector2(0.124, 0.21),
+      new THREE.Vector2(0.086, 0.28),
+      new THREE.Vector2(0.060, 0.31), // Liquid meniscus surface
+      new THREE.Vector2(0.0, 0.31),
+    ];
+    const liquidMat = new THREE.MeshStandardMaterial({
+      color: 0xd97706,
+      emissive: 0x451a03,
+      emissiveIntensity: 0.22,
+      roughness: 0.16,
+      metalness: 0.08,
+    });
+    const liquidMesh = new THREE.Mesh(new THREE.LatheGeometry(liquidPoints, 24), liquidMat);
+    inner.add(liquidMesh);
+
+    // White foam meniscus ring at top of liquid
+    const meniscus = new THREE.Mesh(
+      new THREE.TorusGeometry(0.058, 0.005, 6, 24),
+      new THREE.MeshBasicMaterial({ color: 0xfffbeb })
+    );
+    meniscus.rotation.x = Math.PI / 2;
+    meniscus.position.y = 0.31;
+    inner.add(meniscus);
+
+    // 3. Lower Crystal Facet Ring (waist embossing)
+    const facetGeo = new THREE.CylinderGeometry(0.174, 0.168, 0.11, 12, 1, true);
+    const facetMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.28,
+      roughness: 0.1,
+    });
+    const facetMesh = new THREE.Mesh(facetGeo, facetMat);
+    facetMesh.position.y = -0.35;
+    inner.add(facetMesh);
+
+    // 4. Authentic V-Cut Body Label (Cylinder shell, openEnded)
     const labelTexture = getOrCreateTargetLabelTexture('bottle');
     const labelMat = new THREE.MeshStandardMaterial({
       map: labelTexture,
-      roughness: 0.32,
-      metalness: 0.1,
+      roughness: 0.30,
+      metalness: 0.15,
     });
-    const labelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.283, 0.283, 0.32, 24), labelMat);
-    labelMesh.position.y = 0.25;
+    const labelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.177, 0.177, 0.34, 32, 1, true), labelMat);
+    labelMesh.position.y = -0.09;
     inner.add(labelMesh);
 
-    // Tapered glass shoulder
-    const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.28, 0.18, 24), glassMat);
-    shoulder.position.y = 0.61;
-    inner.add(shoulder);
-
-    // Elongated bottle neck
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.26, 24), glassMat);
-    neck.position.y = 0.83;
-    inner.add(neck);
-
-    // Realistic neck collar label
-    const neckLabelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.113, 0.113, 0.11, 24), labelMat);
-    neckLabelMesh.position.y = 0.81;
+    // 5. Dedicated COLD BREWED Collar Neck Label (Tapered cylinder shell, openEnded)
+    const neckTexture = getOrCreateTargetLabelTexture('bottle-neck');
+    const neckLabelMat = new THREE.MeshStandardMaterial({
+      map: neckTexture,
+      roughness: 0.30,
+      metalness: 0.15,
+    });
+    const neckLabelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.072, 0.11, 28, 1, true), neckLabelMat);
+    neckLabelMesh.position.y = 0.38;
     neckLabelMesh.name = 'neckLabel';
     inner.add(neckLabelMesh);
 
-    // Bottle mouth lip rim
-    const lip = new THREE.Mesh(new THREE.TorusGeometry(0.108, 0.016, 8, 24), glassMat);
-    lip.rotation.x = Math.PI / 2;
-    lip.position.y = 0.96;
-    inner.add(lip);
-
-    // Surface condensation water droplets (10 beads)
+    // 6. Surface Condensation Water Droplets
     const dropMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.82,
+      opacity: 0.85,
       roughness: 0.04,
       ior: 1.33,
     });
     for (let i = 0; i < 10; i++) {
-      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 6), dropMat);
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), dropMat);
       const angle = (i * Math.PI) / 5;
-      const rDrop = i > 6 ? 0.114 : 0.284;
-      const yDrop = i > 6 ? 0.76 + (i - 7) * 0.07 : 0.14 + i * 0.05;
+      const isNeck = i > 6;
+      const rDrop = isNeck ? 0.068 : 0.178;
+      const yDrop = isNeck ? 0.35 + (i - 7) * 0.07 : -0.38 + i * 0.06;
       drop.position.set(Math.cos(angle) * rDrop, yDrop, Math.sin(angle) * rDrop);
       inner.add(drop);
     }
 
-    // Inner golden beer liquid (body & neck levels)
-    const bodyLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.48, 24), liquidMat);
-    bodyLiquid.position.y = 0.25;
-    inner.add(bodyLiquid);
-
-    const neckLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.24, 0.30, 24), liquidMat);
-    neckLiquid.position.y = 0.65;
-    inner.add(neckLiquid);
-
-    // Rising carbonation bubbles (small golden-white beads)
+    // 7. Rising Carbonation Bubbles inside beer liquid
     const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
     for (let i = 0; i < 8; i++) {
-      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), bubbleMat);
+      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.011, 6, 6), bubbleMat);
       const angle = (i * Math.PI) / 4;
-      const br = 0.08 + (i % 3) * 0.04;
-      bubble.position.set(Math.cos(angle) * br, 0.12 + i * 0.09, Math.sin(angle) * br);
+      const br = 0.04 + (i % 3) * 0.035;
+      bubble.position.set(Math.cos(angle) * br, -0.35 + i * 0.08, Math.sin(angle) * br);
       inner.add(bubble);
     }
 
-    // Silver metallic crown cap (toothed bottle top)
+    // 8. Silver Metallic Crown Cap
     const capMat = new THREE.MeshStandardMaterial({
       color: 0xe2e8f0,
       metalness: 0.95,
       roughness: 0.18,
     });
-    const crownCap = new THREE.Mesh(new THREE.CylinderGeometry(0.125, 0.125, 0.038, 20), capMat);
+    const crownCap = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.072, 0.030, 20), capMat);
     crownCap.name = 'crownCap';
-    crownCap.position.y = 0.98;
+    crownCap.position.y = 0.575;
 
-    const crimpRim = new THREE.Mesh(new THREE.TorusGeometry(0.124, 0.01, 8, 20), capMat);
+    const crimpRim = new THREE.Mesh(new THREE.TorusGeometry(0.071, 0.007, 8, 20), capMat);
     crimpRim.rotation.x = Math.PI / 2;
     crownCap.add(crimpRim);
     inner.add(crownCap);
