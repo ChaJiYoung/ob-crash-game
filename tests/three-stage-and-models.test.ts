@@ -96,6 +96,12 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       const inner = itemMesh.userData.inner as THREE.Group;
       expect(inner.children.length).toBeGreaterThanOrEqual(1);
 
+      // Verify persistent 3D neon billboard label card (Mockup Plan 1)
+      const billboard = itemMesh.children.find((c) => c.name === 'itemBillboard') as THREE.Sprite;
+      expect(billboard).toBeDefined();
+      expect(billboard).toBeInstanceOf(THREE.Sprite);
+      expect(billboard.position.y).toBeGreaterThanOrEqual(0.4);
+
       // Animation loop should not throw
       expect(() => {
         updateItemAnimation3D(itemMesh, itemKind, 1.0);

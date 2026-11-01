@@ -99,6 +99,68 @@ export function getOrCreateTargetLabelTexture(kind: TargetKind): THREE.Texture {
   }
 }
 
+const itemBillboardCache = new Map<ItemBuffKind, THREE.Texture>();
+
+export function getOrCreateItemBillboardTexture(itemKind: ItemBuffKind): THREE.Texture {
+  if (itemBillboardCache.has(itemKind)) {
+    return itemBillboardCache.get(itemKind)!;
+  }
+
+  const spec = ITEM_BUFF_SPECS[itemKind];
+  const colorHex = spec ? spec.auraColorHex : '#f59e0b';
+  const labelText = spec ? `${spec.icon} ${spec.shortLabel}` : itemKind;
+
+  if (typeof document === 'undefined') {
+    const fallback = createDataTextureFallback(colorHex);
+    itemBillboardCache.set(itemKind, fallback);
+    return fallback;
+  }
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      const fallback = createDataTextureFallback(colorHex);
+      itemBillboardCache.set(itemKind, fallback);
+      return fallback;
+    }
+
+    // Dark rounded card background
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(8, 8, 496, 112, 24);
+    } else {
+      ctx.rect(8, 8, 496, 112);
+    }
+    ctx.fill();
+
+    // Glowing neon border
+    ctx.strokeStyle = colorHex;
+    ctx.lineWidth = 8;
+    ctx.shadowColor = colorHex;
+    ctx.shadowBlur = 18;
+    ctx.stroke();
+
+    // High contrast bold typography
+    ctx.font = '900 48px "Pretendard", "Arial Black", Impact, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(labelText, 256, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    itemBillboardCache.set(itemKind, texture);
+    return texture;
+  } catch {
+    const fallback = createDataTextureFallback(colorHex);
+    itemBillboardCache.set(itemKind, fallback);
+    return fallback;
+  }
+}
+
 export function getTargetBaseY(kind: TargetKind, isItem?: boolean): number {
   if (isItem) {
     return 1.15; // Mid-air floating altitude for shootable item drops
@@ -602,12 +664,27 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
     inner.add(ribbon);
   }
 
+  // Persistent 3D Neon Billboard Label Card
+  const billboardTex = getOrCreateItemBillboardTexture(itemKind);
+  const billboardMat = new THREE.SpriteMaterial({
+    map: billboardTex,
+    transparent: true,
+    opacity: 0.98,
+    depthWrite: false,
+  });
+  const billboard = new THREE.Sprite(billboardMat);
+  billboard.name = 'itemBillboard';
+  billboard.scale.set(1.5, 0.38, 1.0);
+  billboard.position.set(0, 0.60, 0);
+  root.add(billboard);
+
   root.userData = {
     isItem: true,
     itemKind,
     inner,
     shadowMesh,
     auraRing,
+    billboard,
     baseScale,
   };
 
