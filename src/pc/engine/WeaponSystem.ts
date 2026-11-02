@@ -68,6 +68,12 @@ export class WeaponSystem {
     return { reloadedJustNow: false };
   }
 
+  public shiftReloadTimer(deltaMs: number): void {
+    if (this.isReloading && deltaMs > 0) {
+      this.reloadEndTimeMs += deltaMs;
+    }
+  }
+
   public getState() {
     return {
       ammo: this.ammo,

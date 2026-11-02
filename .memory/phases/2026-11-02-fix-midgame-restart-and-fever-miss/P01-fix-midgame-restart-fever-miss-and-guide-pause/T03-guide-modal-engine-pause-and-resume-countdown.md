@@ -1,6 +1,6 @@
 # Task: T03 인게임 가이드 모달 열람 시 엔진 완벽 일시정지(Time Shift) 및 닫을 때 3-2-1 재개 카운트다운/영점 재보정
 
-## Status: pending
+## Status: done
 
 ## Goal
 인게임(`PLAYING`, `TUTORIAL`) 도중 가이드 모달을 열었을 때 3D 게임 엔진(몬스터 이동, 스폰, 피버 자동 연사, 피버/아이템 버프/자동 재장전 남은 시간)이 완벽히 일시정지되도록 `engine.setPaused()` 및 타이머 시프트(Time Shift)를 구현하고, 가이드를 닫았을 때 즉시 재개되지 않고 3, 2, 1 재개 카운트다운을 거친 뒤 0초에 정면 영점을 자동 재보정하며 게임이 재개되도록 완성한다.
@@ -105,6 +105,6 @@ Task: T03-guide-modal-engine-pause-and-resume-countdown
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

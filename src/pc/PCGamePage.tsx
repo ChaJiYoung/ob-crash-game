@@ -311,7 +311,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       });
 
       // 100% Auto-Rapid-Fire loop during active Fever mode
-      if (feverState.isFeverActive && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
+      if (feverState.isFeverActive && !engine.isPaused && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
         if (!feverAutoFireTimerRef.current) {
           feverAutoFireTimerRef.current = setInterval(() => {
             const curAim = latestAimRef.current;
@@ -418,6 +418,57 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const startCountdownAndGameRef = useRef(startCountdownAndGame);
   startCountdownAndGameRef.current = startCountdownAndGame;
 
+  const startResumeCountdown = useCallback(() => {
+    soundSynth.unlockAudio();
+    if (countdownTimerRef.current) return;
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'START_GAME_REQUEST',
+          roomId,
+          deviceId: pairedPlayerRef.current?.deviceId || 'pc-host',
+        })
+      );
+    }
+
+    setCountdownSec(3);
+
+    let sec = 3;
+    countdownTimerRef.current = setInterval(() => {
+      sec -= 1;
+      if (sec > 0) {
+        setCountdownSec(sec);
+      } else {
+        if (countdownTimerRef.current) {
+          clearInterval(countdownTimerRef.current);
+          countdownTimerRef.current = null;
+        }
+        setCountdownSec(null);
+        // Automatically calibrate zero to current aim angle when countdown reaches 0
+        zeroOffsetRef.current = {
+          offsetX: latestAimRef.current.aimX,
+          offsetY: latestAimRef.current.aimY,
+        };
+        engine.setPaused(false, performance.now());
+      }
+    }, 1000);
+  }, [engine, roomId, soundSynth]);
+
+  const handleOpenGuide = useCallback(() => {
+    setIsGuideOpen(true);
+    if (gamePhaseRef.current === 'PLAYING' || gamePhaseRef.current === 'TUTORIAL') {
+      engine.setPaused(true, performance.now());
+    }
+  }, [engine]);
+
+  const handleCloseGuide = useCallback(() => {
+    setIsGuideOpen(false);
+    if (gamePhaseRef.current === 'PLAYING' || gamePhaseRef.current === 'TUTORIAL') {
+      startResumeCountdown();
+    }
+  }, [startResumeCountdown]);
+
   const handleStartSandbox = useCallback(() => {
     setIsGuideOpen(false);
     engine.startSandboxMode();
@@ -478,7 +529,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             bossEntity={bossEntity}
             activeBuffs={hudState.activeBuffs}
-            onOpenGuide={() => setIsGuideOpen(true)}
+            onOpenGuide={handleOpenGuide}
           />
           <CrosshairOverlay
             ref={crosshairRef}
@@ -605,7 +656,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isZeroCalibrated={isZeroCalibrated}
             onStartAsPc={handleStartGame}
             onStartWithController={startCountdownAndGame}
-            onOpenGuide={() => setIsGuideOpen(true)}
+            onOpenGuide={handleOpenGuide}
             onStartSandbox={handleStartSandbox}
           />
           {(isZeroCalibrated || pairedPlayer) && (
@@ -654,7 +705,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             {countdownSec}
           </div>
           <div style={{ fontSize: '22px', fontWeight: 800, color: '#f8fafc', marginTop: '16px' }}>
-            전투 준비! 조준선을 정렬하세요
+            {engine.isPaused ? '게임 재개! 조준선을 정렬하세요' : '전투 준비! 조준선을 정렬하세요'}
           </div>
         </div>
       )}
@@ -677,7 +728,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       {/* 5. Guide & Codex Modal */}
       <GuideModal
         isOpen={isGuideOpen}
-        onClose={() => setIsGuideOpen(false)}
+        onClose={handleCloseGuide}
         showTutorialButton={gamePhase === 'PAIRING' || gamePhase === 'ZEROING'}
         onStartTutorial={handleStartTutorial}
       />

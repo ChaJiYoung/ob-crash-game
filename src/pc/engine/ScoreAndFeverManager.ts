@@ -128,6 +128,12 @@ export class ScoreAndFeverManager {
     }
   }
 
+  public shiftFeverTimer(deltaMs: number): void {
+    if (this.isFeverActive && deltaMs > 0) {
+      this.feverEndTimeMs += deltaMs;
+    }
+  }
+
   public forceSetFeverGauge(gauge: number): void {
     this.feverGauge = Math.max(0, Math.min(FEVER_CONSTANTS.MAX_GAUGE, gauge));
     if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE) {

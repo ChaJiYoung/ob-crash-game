@@ -71,6 +71,9 @@ export class BeerCrusherEngine {
   public isSandboxMode = false;
   public infiniteAmmo = false;
 
+  public isPaused = false;
+  private pausedAtMs: number | null = null;
+
   public readonly scoreManager = new ScoreAndFeverManager();
   public readonly weaponSystem = new WeaponSystem();
 
@@ -133,9 +136,28 @@ export class BeerCrusherEngine {
   public aspect = 16 / 9;
   public vFovDeg = STAGE_CONSTANTS.CAMERA_FOV_DEG;
 
+  public setPaused(paused: boolean, nowMs: number = performance.now()): void {
+    if (paused && !this.isPaused) {
+      this.isPaused = true;
+      this.pausedAtMs = nowMs;
+    } else if (!paused && this.isPaused) {
+      const pauseDurationMs = this.pausedAtMs !== null ? Math.max(0, nowMs - this.pausedAtMs) : 0;
+      this.lastSpawnTimeMs += pauseDurationMs;
+      for (const [kind, until] of this.activeBuffUntilMs.entries()) {
+        this.activeBuffUntilMs.set(kind, until + pauseDurationMs);
+      }
+      this.scoreManager.shiftFeverTimer(pauseDurationMs);
+      this.weaponSystem.shiftReloadTimer(pauseDurationMs);
+      this.isPaused = false;
+      this.pausedAtMs = null;
+    }
+  }
+
   public startGame(): void {
     this.gamePhase = 'PLAYING';
     this.isTutorialMode = false;
+    this.isPaused = false;
+    this.pausedAtMs = null;
     this.currentWave = 1;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
@@ -150,6 +172,8 @@ export class BeerCrusherEngine {
   public startTutorialMode(): void {
     this.gamePhase = 'TUTORIAL';
     this.isTutorialMode = true;
+    this.isPaused = false;
+    this.pausedAtMs = null;
     this.tutorialStep = 1;
     this.tutorialCompleted = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -248,6 +272,8 @@ export class BeerCrusherEngine {
     this.isTutorialMode = false;
     this.tutorialStep = 1;
     this.tutorialCompleted = false;
+    this.isPaused = false;
+    this.pausedAtMs = null;
     this.activeTargets = [];
     this.gamePhase = 'PAIRING';
     this.scoreManager.reset();
@@ -258,6 +284,8 @@ export class BeerCrusherEngine {
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;
     this.isTutorialMode = false;
+    this.isPaused = false;
+    this.pausedAtMs = null;
     this.currentWave = 1;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
@@ -271,6 +299,8 @@ export class BeerCrusherEngine {
     this.isSandboxMode = false;
     this.infiniteAmmo = false;
     this.weaponSystem.setInfiniteAmmo(false);
+    this.isPaused = false;
+    this.pausedAtMs = null;
     this.activeTargets = [];
     this.gamePhase = 'PAIRING';
     this.scoreManager.reset();
@@ -427,6 +457,10 @@ export class BeerCrusherEngine {
     phaseChanged: boolean;
     reloadedJustNow: boolean;
   } {
+    if (this.isPaused) {
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
+    }
+
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
@@ -675,6 +709,10 @@ export class BeerCrusherEngine {
   }
 
   public shootAt(aimX: number, aimY: number, nowMs: number): EngineShootResult {
+    if (this.isPaused) {
+      return { fired: false, grade: 'MISS' };
+    }
+
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
       return { fired: false, grade: 'MISS' };
     }

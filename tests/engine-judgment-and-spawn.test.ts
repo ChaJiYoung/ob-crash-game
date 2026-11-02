@@ -357,4 +357,69 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(groundShot.fired).toBe(true);
     expect(groundShot.grade).toBe('PERFECT');
   });
+
+  it('should freeze monster movement, spawns, fever/buff timers when paused and time-shift upon unpause (D03)', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+
+    // 1. Setup target, fever, and buff
+    const now = 1000;
+    engine.scoreManager.forceSetFeverGauge(100);
+    engine.scoreManager.activateFever(now); // 5000ms duration, ends at 6000
+    engine.activateItemBuff('wide_scope', now); // 6000ms duration, ends at 7000
+
+    const target = {
+      id: 'target_pause_test',
+      kind: 'caslight' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 10.0,
+      thetaRad: 0,
+      x: 0,
+      z: -10.0,
+      speedMps: 2.0,
+      hitRadiusM: 0.9,
+      killBonusScore: 50,
+      breached: false,
+    };
+    engine.activeTargets = [target];
+
+    // 2. Pause the engine at now = 2000 (after 1000ms of game time)
+    engine.update(2000, 1.0);
+    expect(target.radiusM).toBe(8.0); // 10.0 - 2.0 * 1.0 = 8.0
+
+    engine.setPaused(true, 2000);
+    expect(engine.isPaused).toBe(true);
+
+    // 3. During pause, update does not move targets or expire fever/buffs
+    const updateResult = engine.update(10000, 8.0); // 8 seconds of wall time passes
+    expect(updateResult.breaches).toHaveLength(0);
+    expect(target.radiusM).toBe(8.0); // frozen!
+
+    // Firing during pause is blocked
+    const pausedShot = engine.shootAt(0, 0, 10000);
+    expect(pausedShot.fired).toBe(false);
+
+    // 4. Unpause after 8000ms pause (now = 10000)
+    engine.setPaused(false, 10000);
+    expect(engine.isPaused).toBe(false);
+
+    // Fever had 4000ms remaining when paused (6000 - 2000 = 4000).
+    // After unpausing at 10000, feverEndTimeMs should be 10000 + 4000 = 14000!
+    // At now = 12000 (2s after unpause), fever must STILL be active!
+    engine.update(12000, 2.0);
+    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+    expect(engine.isBuffActive('wide_scope', 12000)).toBe(true);
+    // Target moved another 2.0s * 2.0m/s = 4.0m -> radius is 4.0m
+    expect(target.radiusM).toBe(4.0);
+
+    // At now = 15000, fever is expired (ends at 14000), but wide_scope (8000ms duration, ends at 1000 + 8000 + 8000 = 17000) is still active
+    engine.update(15000, 3.0);
+    expect(engine.scoreManager.getState().isFeverActive).toBe(false);
+    expect(engine.isBuffActive('wide_scope', 15000)).toBe(true);
+
+    // At now = 18000, wide_scope is also expired
+    engine.update(18000, 3.0);
+    expect(engine.isBuffActive('wide_scope', 18000)).toBe(false);
+  });
 });
