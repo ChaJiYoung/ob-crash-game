@@ -167,14 +167,20 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
         }}
       >
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-          {isRapidFiring ? '🔫' : isFeverReady ? '🔥' : '👆'}
+          {isRapidFiring ? '🔫' : isFeverReady ? '🔥' : isCocked ? '🔒' : '👆'}
         </div>
 
         <div
           style={{
             fontSize: '22px',
             fontWeight: 900,
-            color: isRapidFiring ? '#06b6d4' : isFeverReady ? '#fbbf24' : '#f8fafc',
+            color: isRapidFiring
+              ? '#06b6d4'
+              : isFeverReady
+              ? '#fbbf24'
+              : isCocked
+              ? '#34d399'
+              : '#f8fafc',
             marginBottom: '16px',
             textAlign: 'center',
             letterSpacing: '1px',
@@ -184,6 +190,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
             ? '🔫 AUTO RAPID FIRE!'
             : isFeverReady
             ? '🔥 따닥 더블탭하여 FEVER 발동!'
+            : isCocked
+            ? '🔒 철컥! 조준 고정 중 (위로 휙 채면 발사)'
             : '통합 액션 터치패드'}
         </div>
 
@@ -203,16 +211,20 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#38bdf8', fontWeight: 800 }}>꾹 누르기 (0.25s↑):</span>
-            <span style={{ color: '#f8fafc' }}>기관총 자동 연사</span>
+            <span style={{ color: '#34d399', fontWeight: 800 }}>🔒 화면 터치:</span>
+            <span style={{ color: '#f8fafc' }}>"철컥!" 코킹 장전 & 조준 고정</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#fbbf24', fontWeight: 800 }}>빠르게 두번 탭 (0.3s↓):</span>
+            <span style={{ color: '#38bdf8', fontWeight: 800 }}>⚡ 위로 휙 채기:</span>
+            <span style={{ color: '#f8fafc' }}>"탕!" 반동 스냅 사격</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: '#fbbf24', fontWeight: 800 }}>🔥 빠르게 두번 탭:</span>
             <span style={{ color: '#f8fafc' }}>피버 모드 발동</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#34d399', fontWeight: 800 }}>위로 톡 튀기기:</span>
-            <span style={{ color: '#f8fafc' }}>권총 반동 스냅 단발 사격</span>
+            <span style={{ color: '#a78bfa', fontWeight: 800 }}>꾹 누르기 (0.25s↑):</span>
+            <span style={{ color: '#f8fafc' }}>기관총 자동 연사</span>
           </div>
         </div>
 

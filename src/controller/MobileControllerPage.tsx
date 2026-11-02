@@ -192,7 +192,7 @@ export const MobileControllerPage: React.FC = () => {
 
   const handlePermissionGranted = () => {
     setSensorsActive(true);
-    setStep('ZEROING');
+    setStep('PAD');
   };
 
   // 5. Zero Calibration
@@ -358,7 +358,7 @@ export const MobileControllerPage: React.FC = () => {
             justifyContent: 'center',
             backgroundColor: 'rgba(5, 7, 12, 0.85)',
             backdropFilter: 'blur(12px)',
-            zIndex: 200,
+            zIndex: 9999,
             userSelect: 'none',
             padding: '24px',
             textAlign: 'center',
