@@ -152,4 +152,70 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const invertedAim = tracker.computeAim({ alpha: 180, beta: 28, gamma: -80 }); // was positive pitch
     expect(invertedAim.aimY).toBeLessThan(0); // inverted to negative
   });
+
+  it('should reliably aim into 4 diagonal quadrants without gimbal lock or axis flipping', () => {
+    // 1. Gun-grip posture (screen facing left, gamma ≈ -85, beta: 20)
+    const gunTracker = new GunGripTracker();
+    gunTracker.calibrateZero({ alpha: 180, beta: 20, gamma: -85 });
+
+    // Top-Left: turn left (alpha: 195) + tilt up (beta: 30) -> aimX < 0, aimY > 0
+    const gunTopLeft = gunTracker.computeAim({ alpha: 195, beta: 30, gamma: -85 });
+    expect(gunTopLeft.yawDeg).toBeLessThan(-10);
+    expect(gunTopLeft.pitchDeg).toBeGreaterThan(8);
+    expect(gunTopLeft.aimX).toBeLessThan(-0.1);
+    expect(gunTopLeft.aimY).toBeGreaterThan(0.1);
+
+    // Top-Right: turn right (alpha: 165) + tilt up (beta: 30) -> aimX > 0, aimY > 0
+    const gunTopRight = gunTracker.computeAim({ alpha: 165, beta: 30, gamma: -85 });
+    expect(gunTopRight.yawDeg).toBeGreaterThan(10);
+    expect(gunTopRight.pitchDeg).toBeGreaterThan(8);
+    expect(gunTopRight.aimX).toBeGreaterThan(0.1);
+    expect(gunTopRight.aimY).toBeGreaterThan(0.1);
+
+    // Bottom-Left: turn left (alpha: 195) + tilt down (beta: 10) -> aimX < 0, aimY < 0
+    const gunBottomLeft = gunTracker.computeAim({ alpha: 195, beta: 10, gamma: -85 });
+    expect(gunBottomLeft.yawDeg).toBeLessThan(-10);
+    expect(gunBottomLeft.pitchDeg).toBeLessThan(-8);
+    expect(gunBottomLeft.aimX).toBeLessThan(-0.1);
+    expect(gunBottomLeft.aimY).toBeLessThan(-0.1);
+
+    // Bottom-Right: turn right (alpha: 165) + tilt down (beta: 10) -> aimX > 0, aimY < 0
+    const gunBottomRight = gunTracker.computeAim({ alpha: 165, beta: 10, gamma: -85 });
+    expect(gunBottomRight.yawDeg).toBeGreaterThan(10);
+    expect(gunBottomRight.pitchDeg).toBeLessThan(-8);
+    expect(gunBottomRight.aimX).toBeGreaterThan(0.1);
+    expect(gunBottomRight.aimY).toBeLessThan(-0.1);
+
+    // 2. Remote posture (screen facing up, gamma ≈ 0, beta: 45)
+    const remoteTracker = new GunGripTracker();
+    remoteTracker.calibrateZero({ alpha: 0, beta: 45, gamma: 0 });
+
+    // Remote Top-Left: turn left (alpha: 15) + tilt up (beta: 55)
+    const remoteTopLeft = remoteTracker.computeAim({ alpha: 15, beta: 55, gamma: 0 });
+    expect(remoteTopLeft.yawDeg).toBeLessThan(-5);
+    expect(remoteTopLeft.pitchDeg).toBeGreaterThan(5);
+    expect(remoteTopLeft.aimX).toBeLessThan(-0.1);
+    expect(remoteTopLeft.aimY).toBeGreaterThan(0.1);
+
+    // Remote Top-Right: turn right (alpha: 345) + tilt up (beta: 55)
+    const remoteTopRight = remoteTracker.computeAim({ alpha: 345, beta: 55, gamma: 0 });
+    expect(remoteTopRight.yawDeg).toBeGreaterThan(5);
+    expect(remoteTopRight.pitchDeg).toBeGreaterThan(5);
+    expect(remoteTopRight.aimX).toBeGreaterThan(0.1);
+    expect(remoteTopRight.aimY).toBeGreaterThan(0.1);
+
+    // Remote Bottom-Left: turn left (alpha: 15) + tilt down (beta: 35)
+    const remoteBottomLeft = remoteTracker.computeAim({ alpha: 15, beta: 35, gamma: 0 });
+    expect(remoteBottomLeft.yawDeg).toBeLessThan(-5);
+    expect(remoteBottomLeft.pitchDeg).toBeLessThan(-5);
+    expect(remoteBottomLeft.aimX).toBeLessThan(-0.1);
+    expect(remoteBottomLeft.aimY).toBeLessThan(-0.1);
+
+    // Remote Bottom-Right: turn right (alpha: 345) + tilt down (beta: 35)
+    const remoteBottomRight = remoteTracker.computeAim({ alpha: 345, beta: 35, gamma: 0 });
+    expect(remoteBottomRight.yawDeg).toBeGreaterThan(5);
+    expect(remoteBottomRight.pitchDeg).toBeLessThan(-5);
+    expect(remoteBottomRight.aimX).toBeGreaterThan(0.1);
+    expect(remoteBottomRight.aimY).toBeLessThan(-0.1);
+  });
 });
