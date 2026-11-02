@@ -63,6 +63,7 @@ describe('Shared Protocol & Constants', () => {
 
     expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(24.0);
     expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);
+    expect(STAGE_CONSTANTS.FAN_MARGIN_RATIO).toBe(0.80);
     expect(STAGE_CONSTANTS.PLAYER_MAX_LIVES).toBe(5);
     expect(STAGE_CONSTANTS.TOTAL_WAVES).toBe(5);
   });

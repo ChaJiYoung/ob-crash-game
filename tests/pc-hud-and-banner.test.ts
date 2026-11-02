@@ -106,17 +106,17 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     expect(center.topPercent).toBe(50);
 
     const upLeft = aimToViewportPercent(-1, 1);
-    expect(upLeft.leftPercent).toBe(8);
-    expect(upLeft.topPercent).toBe(12);
+    expect(upLeft.leftPercent).toBe(3);
+    expect(upLeft.topPercent).toBe(8);
 
     const downRight = aimToViewportPercent(1, -1);
-    expect(downRight.leftPercent).toBe(92);
-    expect(downRight.topPercent).toBe(88);
+    expect(downRight.leftPercent).toBe(97);
+    expect(downRight.topPercent).toBe(92);
 
     // Clamps beyond [-1, 1]
     const extreme = aimToViewportPercent(-5, 5);
-    expect(extreme.leftPercent).toBe(8);
-    expect(extreme.topPercent).toBe(12);
+    expect(extreme.leftPercent).toBe(3);
+    expect(extreme.topPercent).toBe(8);
   });
 
   it('should map between viewport percentages, NDC, and mouse aim consistently', () => {
@@ -130,11 +130,11 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     expect(centerAim.aimX).toBe(0);
     expect(centerAim.aimY).toBe(0);
 
-    // Full bounds: NDC within [-0.84, 0.84] and [-0.76, 0.76]
+    // Full bounds: NDC within [-0.94, 0.94] and [-0.84, 0.84]
     const rightNdc = aimToNdc(1, 0);
-    expect(rightNdc.ndcX).toBeCloseTo(0.84, 2);
+    expect(rightNdc.ndcX).toBeCloseTo(0.94, 2);
 
-    const mouseRightAim = viewportRatioToAim(0.84, 0);
+    const mouseRightAim = viewportRatioToAim(0.94, 0);
     expect(mouseRightAim.aimX).toBeCloseTo(1.0, 2);
   });
 });

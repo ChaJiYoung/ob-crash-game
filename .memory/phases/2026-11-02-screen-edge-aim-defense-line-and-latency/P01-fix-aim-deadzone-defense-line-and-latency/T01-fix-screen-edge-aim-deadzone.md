@@ -72,11 +72,11 @@
   ```
 
 ## Acceptance Criteria
-- [ ] `STAGE_CONSTANTS.FAN_MARGIN_RATIO`가 `0.80`으로 설정된다.
-- [ ] `aimX = 1.0`일 때 조준선 `leftPercent`가 `97%`에 도달하여 화면 모서리 끝까지 조준할 수 있다.
-- [ ] `aimX = -1.0`일 때 `leftPercent`가 `3%`에 도달한다.
-- [ ] 기존 및 신규 테스트 전체 통과.
-- [ ] `npm run build` 성공.
+- [x] `STAGE_CONSTANTS.FAN_MARGIN_RATIO`가 `0.80`으로 설정된다.
+- [x] `aimX = 1.0`일 때 조준선 `leftPercent`가 `97%`에 도달하여 화면 모서리 끝까지 조준할 수 있다.
+- [x] `aimX = -1.0`일 때 `leftPercent`가 `3%`에 도달한다.
+- [x] 기존 및 신규 테스트 전체 통과.
+- [x] `npm run build` 성공.
 
 ## Validation
 - `npx vitest run tests/shared-protocol.test.ts tests/pc-hud-and-banner.test.ts` — 변경된 상수 및 조준선 뷰포트 좌표 검증
@@ -96,6 +96,6 @@ Task: T01-fix-screen-edge-aim-deadzone
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
