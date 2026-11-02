@@ -1,19 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Fix Mid-Game Countdown Restart, Fever Miss Banner/Combo, and Guide Pause/Resume](./plans/2026-11-02-fix-midgame-restart-and-fever-miss.md)
+[Cocking Aim Lock, Snap Fire Stabilization, and Lock-On Visual Feedback](./plans/2026-11-02-cocking-aim-lock-and-snap-fire.md)
 
 ## Active Phase
-[P01 Fix Mid-Game Restart, Fever Miss Banner/Combo, and Guide Pause/Resume](./phases/2026-11-02-fix-midgame-restart-and-fever-miss/P01-fix-midgame-restart-fever-miss-and-guide-pause/phase.md)
+[P01 Cocking Aim Lock, Snap Fire Stabilization, and Lock-On Visual Feedback](./phases/2026-11-02-cocking-aim-lock-and-snap-fire/P01-cocking-aim-lock-and-snap-fire/phase.md)
 
 ## Active Task
-None (All tasks in P01 completed)
+[T01 모바일 컨트롤러 코킹 시 조준 좌표 동결 스냅샷 및 1발 격발 즉시 자동 해제(리볼버 사이클) 구현](./phases/2026-11-02-cocking-aim-lock-and-snap-fire/P01-cocking-aim-lock-and-snap-fire/T01-mobile-cocking-aim-snapshot-and-single-action-reset.md)
 
 ## Status
-- T01 완료 (fix(pc): prevent mid-game 3-2-1 countdown restart caused by stale gamePhase closure)
-- T02 완료 (fix(fever): suppress MISS banner during fever auto-fire and protect combo when fever ready/active)
-- T03 완료 (feat(pause): pause game engine on guide open and resume with 3-2-1 countdown and zero recalibration)
-- 모든 52개 단위/통합 테스트 통과 및 프로덕션 빌드 성공!
+- T01 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-코드베이스 무결성 검증 및 Argon 모델/서브에이전트 코드 리뷰 완료 후 사용자 보고
+T01 청사진을 읽고 `src/controller/MobileControllerPage.tsx`, `src/controller/components/GunGripPad.tsx`, `tests/controller-sensors.test.ts` 파일 구현 시작
