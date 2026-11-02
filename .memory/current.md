@@ -7,11 +7,14 @@
 [P01 Zeroing Calibration, Center Gun Alignment, and Interactive Module Test Lab](./phases/2026-11-02-zeroing-calibration-and-test-lab/P01-zeroing-and-test-lab/phase.md)
 
 ## Active Task
-[T04 올인원 센서·영점 & 게임 모듈 테스트장(Sandbox Test Lab) UI 및 `/sensor-test` 라우팅 통합](./phases/2026-11-02-zeroing-calibration-and-test-lab/P01-zeroing-and-test-lab/T04-interactive-sensor-and-module-test-lab.md)
+[P01 전 작업(T01~T04) 완료](./phases/2026-11-02-zeroing-calibration-and-test-lab/P01-zeroing-and-test-lab/phase.md)
 
 ## Status
+- T01 완료 (커밋: 314c3ec)
+- T02 완료 (커밋: 4e9f49f)
 - T03 완료 (커밋: ea32f2f)
-- T04 구현 시작 준비 완료
+- T04 완료 (커밋: e611dc4)
+- Phase P01 전체 구현 및 빌드/테스트 100% 통과 완료
 
 ## Next Step (IMPORTANT)
-T04 청사진을 읽고 `src/pc/components/SensorAndModuleTestLabOverlay.tsx` 생성, `src/pc/PCGamePage.tsx`, `src/App.tsx` 파일 라우팅 및 샌드박스 오버레이 연동 구현 시작
+모든 계획된 기능 구현 및 검증이 완료되었습니다. 브라우저에서 `/sensor-test` 또는 로비 버튼으로 접속하여 테스트장 및 본게임을 시연하세요.

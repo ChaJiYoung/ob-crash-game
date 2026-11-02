@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 자이로 상하/좌우 보정, 2단계 가동 범위 영점, 중앙 총기 및 탄도 일체화, 카운트다운 시작, 올인원 모듈 테스트장 구현 | [P01](../phases/2026-11-02-zeroing-calibration-and-test-lab/P01-zeroing-and-test-lab/phase.md) |
+| P01 | `completed ✅` | 자이로 상하/좌우 보정, 2단계 가동 범위 영점, 중앙 총기 및 탄도 일체화, 카운트다운 시작, 올인원 모듈 테스트장 구현 | [P01](../phases/2026-11-02-zeroing-calibration-and-test-lab/P01-zeroing-and-test-lab/phase.md) |
