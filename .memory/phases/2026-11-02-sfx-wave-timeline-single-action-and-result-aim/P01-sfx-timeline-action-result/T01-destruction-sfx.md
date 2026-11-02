@@ -1,6 +1,6 @@
 # Task: T01 Beer Destruction Variety SFX
 
-## Status: pending
+## Status: done
 
 ## Goal
 맥주 몬스터 피격(HP 감소) 시 금속 찌그러짐 전조음, 처치(HP 0 파괴) 시 캔 파열음, 병 유리 파쇄음, 보스 대폭발음을 Web Audio API 신디사이저로 구현하고 3D 피격 렌더러에 연동하여 청각적 타격감을 극대화한다.
@@ -83,6 +83,6 @@ Task: T01-destruction-sfx
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

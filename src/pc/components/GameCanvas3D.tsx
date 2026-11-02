@@ -134,15 +134,20 @@ export const GameCanvas3D = React.memo(
               ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
               : TARGET_SPECS[result.target.kind].brandColorHex;
 
-            if (result.killed && result.target.kind === 'bottle') {
-              soundSynth.playBottlePopSound();
-              particlesRef.current.triggerBottleCrash(targetPos);
+            if (result.killed) {
+              if (result.target.kind === 'bottle') {
+                soundSynth.playBottleShatterSound();
+                particlesRef.current.triggerBottleCrash(targetPos);
+              } else if (result.target.kind === 'boss') {
+                soundSynth.playBossExplosionSound();
+                particlesRef.current.spawnHitEffect(targetPos, hitColor, 48);
+              } else {
+                soundSynth.playCanCrushSound();
+                particlesRef.current.spawnHitEffect(targetPos, hitColor, 32);
+              }
             } else {
-              particlesRef.current.spawnHitEffect(
-                targetPos,
-                hitColor,
-                result.killed ? 32 : 18
-              );
+              soundSynth.playMetallicHitSound();
+              particlesRef.current.spawnHitEffect(targetPos, hitColor, 18);
             }
 
             if (result.target.isItem && result.target.itemKind) {
