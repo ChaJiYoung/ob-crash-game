@@ -1,6 +1,6 @@
 # Task: T02 피버 타임 콤보 하한선 보호 (Combo Floor Protection) & 피버 도중 콤보 보존
 
-## Status: pending
+## Status: done
 
 ## Goal
 피버 타임(FEVER) 동안 초당 10발씩 빗발치듯 자동 연사가 나가는 도중 총알이 허공을 갈라 MISS가 발생하더라도, 쌓아둔 콤보가 0으로 날아가지 않고 **피버 시작 직전 콤보 값(`feverBaseCombo`)을 하한선으로 든든하게 보존**하며, 몬스터를 맞출 때마다 콤보가 계속 누적되도록 `ScoreAndFeverManager.ts`의 판정 로직을 개선한다.
@@ -47,10 +47,10 @@
   4. 이후 다시 MISS 발생 시에도 10 미만으로 떨어지지 않는지 검증.
 
 ## Acceptance Criteria
-- [ ] 피버 타임 동안 허공 사격으로 MISS가 발생해도 콤보가 0으로 초기화되지 않는다.
-- [ ] 피버 시작 직전에 쌓아둔 콤보가 하한선(Floor)으로 100% 보존된다.
-- [ ] 피버 중 몬스터를 처치하면 콤보가 계속 누적 증가한다.
-- [ ] `tests/engine-judgment-and-spawn.test.ts` 통과.
+- [x] 피버 타임 동안 허공 사격으로 MISS가 발생해도 콤보가 0으로 초기화되지 않는다.
+- [x] 피버 시작 직전에 쌓아둔 콤보가 하한선(Floor)으로 100% 보존된다.
+- [x] 피버 중 몬스터를 처치하면 콤보가 계속 누적 증가한다.
+- [x] `tests/engine-judgment-and-spawn.test.ts` 통과.
 
 ## Validation
 - `npx vitest run tests/engine-judgment-and-spawn.test.ts` — 피버 콤보 보존 테스트 통과
@@ -69,6 +69,6 @@ Task: T02-fever-combo-floor-protection
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

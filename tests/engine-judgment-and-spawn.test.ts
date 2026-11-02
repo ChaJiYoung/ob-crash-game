@@ -114,6 +114,46 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(manager.getState().feverGauge).toBe(0);
   });
 
+  it('should protect fever base combo as floor during active fever on missed shots (D02)', () => {
+    const manager = new ScoreAndFeverManager();
+
+    // 1. Build up combo to 10 and fill fever gauge to 100
+    for (let i = 0; i < 10; i++) {
+      manager.registerHit('PERFECT');
+    }
+    expect(manager.getState().combo).toBe(10);
+    expect(manager.getState().isFeverReady).toBe(true);
+
+    // 2. Activate Fever -> feverBaseCombo is snapshotted to 10
+    const activated = manager.activateFever(1000);
+    expect(activated).toBe(true);
+    expect(manager.getState().isFeverActive).toBe(true);
+    expect(manager.getState().feverBaseCombo).toBe(10);
+
+    // 3. During fever, player fires into empty air (MISS)
+    // Combo must NOT drop to 0; it must stay at or above the feverBaseCombo floor (10)
+    const penalty1 = manager.applyMissPenalty();
+    expect(penalty1.combo).toBe(10);
+    expect(manager.getState().combo).toBe(10);
+
+    // 4. Hit additional targets during fever -> combo increases to 12
+    manager.registerHit('PERFECT');
+    manager.registerHit('PERFECT');
+    expect(manager.getState().combo).toBe(12);
+
+    // 5. Another MISS during fever -> drops back to current or stays at floor (here 12 >= 10)
+    const penalty2 = manager.applyMissPenalty();
+    expect(penalty2.combo).toBe(12);
+
+    // 6. Once fever expires, MISS penalty resets combo to 0
+    manager.updateFeverTimer(8000); // fever expired
+    expect(manager.getState().isFeverActive).toBe(false);
+
+    const normalPenalty = manager.applyMissPenalty();
+    expect(normalPenalty.combo).toBe(0);
+    expect(manager.getState().combo).toBe(0);
+  });
+
   it('should auto reload 10 rounds after 1.2s delay without manual action', () => {
     const weapon = new WeaponSystem();
     expect(weapon.getState().ammo).toBe(10);
