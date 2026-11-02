@@ -11,6 +11,9 @@ export interface ResultRankingModalProps {
   rankings: PlayerProfile[];
   onRestart: () => void;
   onReturnToLobby: () => void;
+  hoveredAction?: 'restart' | 'lobby' | null;
+  restartButtonRef?: React.Ref<HTMLButtonElement>;
+  lobbyButtonRef?: React.Ref<HTMLButtonElement>;
 }
 
 export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
@@ -23,6 +26,9 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   rankings,
   onRestart,
   onReturnToLobby,
+  hoveredAction = null,
+  restartButtonRef,
+  lobbyButtonRef,
 }) => {
   const isVictory = gamePhase === 'VICTORY';
 
@@ -222,36 +228,47 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
           <button
+            ref={restartButtonRef}
             onClick={onRestart}
             style={{
               flex: 1,
               padding: '16px',
               borderRadius: '12px',
-              border: 'none',
+              border: hoveredAction === 'restart' ? '2px solid #ffffff' : 'none',
               background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
               color: '#111827',
               fontSize: '16px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)',
+              transform: hoveredAction === 'restart' ? 'scale(1.05)' : 'scale(1.0)',
+              boxShadow: hoveredAction === 'restart'
+                ? '0 0 32px rgba(245, 158, 11, 0.9), 0 4px 14px rgba(245, 158, 11, 0.5)'
+                : '0 4px 14px rgba(245, 158, 11, 0.4)',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             }}
           >
-            🔄 다시 도전하기
+            {hoveredAction === 'restart' ? '🎯 🔄 다시 도전하기 (사격!)' : '🔄 다시 도전하기'}
           </button>
           <button
+            ref={lobbyButtonRef}
             onClick={onReturnToLobby}
             style={{
               padding: '16px 24px',
               borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              background: 'rgba(255, 255, 255, 0.08)',
+              border: hoveredAction === 'lobby' ? '2px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.2)',
+              background: hoveredAction === 'lobby' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(255, 255, 255, 0.08)',
               color: '#ffffff',
               fontSize: '15px',
               fontWeight: 700,
               cursor: 'pointer',
+              transform: hoveredAction === 'lobby' ? 'scale(1.05)' : 'scale(1.0)',
+              boxShadow: hoveredAction === 'lobby'
+                ? '0 0 32px rgba(56, 189, 248, 0.9)'
+                : 'none',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease',
             }}
           >
-            🏠 로비로 이동
+            {hoveredAction === 'lobby' ? '🎯 🏠 로비로 이동 (사격!)' : '🏠 로비로 이동'}
           </button>
         </div>
       </div>

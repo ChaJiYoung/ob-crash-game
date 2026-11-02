@@ -1,6 +1,6 @@
 # Task: T04 Result Screen Crosshair and Shoot-to-Select
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 종료(GAMEOVER) 및 승리(VICTORY) 결과 모달 위에서도 로비처럼 조준경을 최상위 레이어로 렌더링하고, "다시 도전하기" 및 "로비로 이동" 버튼 조준 시 네온 호버 반응과 함께 스냅 사격으로 버튼을 즉시 선택할 수 있도록 하여 마우스 없이도 컨트롤러만으로 완결되는 아케이드 UX를 완성한다.
@@ -82,6 +82,6 @@ Task: T04-result-screen-aim-and-select
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

@@ -105,11 +105,42 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const lastIsCockedRef = useRef<boolean>(false);
   const lastDiagUpdateTimeRef = useRef<number>(0);
 
+  const [hoveredResultAction, setHoveredResultAction] = useState<'restart' | 'lobby' | null>(null);
+  const restartButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lobbyButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  const checkResultButtonHover = useCallback((aimX: number, aimY: number): 'restart' | 'lobby' | null => {
+    if (typeof window === 'undefined') return null;
+    const curPhase = gamePhaseRef.current;
+    if (curPhase !== 'GAMEOVER' && curPhase !== 'VICTORY') return null;
+
+    const screenX = ((aimX + 1) / 2) * window.innerWidth;
+    const screenY = ((1 - aimY) / 2) * window.innerHeight;
+
+    if (restartButtonRef.current) {
+      const rect = restartButtonRef.current.getBoundingClientRect();
+      if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
+        return 'restart';
+      }
+    }
+
+    if (lobbyButtonRef.current) {
+      const rect = lobbyButtonRef.current.getBoundingClientRect();
+      if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
+        return 'lobby';
+      }
+    }
+
+    return null;
+  }, []);
+
   const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
     latestAimRef.current = { aimX: x, aimY: y };
     canvasRef.current?.setAim(x, y, immediate);
     crosshairRef.current?.updatePosition(x, y);
-  }, []);
+    const action = checkResultButtonHover(x, y);
+    setHoveredResultAction(action);
+  }, [checkResultButtonHover]);
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (result.fired) {
@@ -229,6 +260,18 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 if (Math.abs(effectiveAimX) < 0.65 && Math.abs(effectiveAimY) < 0.65) {
                   soundSynth.playHit('PERFECT');
                   startCountdownAndGameRef.current();
+                }
+              } else if (curPhase === 'GAMEOVER' || curPhase === 'VICTORY') {
+                soundSynth.playShoot(false);
+                const action = checkResultButtonHover(effectiveAimX, effectiveAimY);
+                if (action === 'restart') {
+                  soundSynth.playHit('PERFECT');
+                  handleStartGame();
+                } else if (action === 'lobby') {
+                  soundSynth.playHit('PERFECT');
+                  handleReturnToLobby();
+                } else {
+                  soundSynth.playHit('MISS');
                 }
               } else {
                 const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now());
@@ -730,17 +773,35 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
       {/* 4. Game Result Modal */}
       {(gamePhase === 'GAMEOVER' || gamePhase === 'VICTORY') && (
-        <ResultRankingModal
-          gamePhase={gamePhase}
-          score={hudState.score}
-          maxCombo={engine.scoreManager.getState().maxCombo}
-          waveReached={engine.currentWave}
-          currentPlayer={pairedPlayer}
-          isNewRecord={isNewRecord}
-          rankings={topRankings}
-          onRestart={handleStartGame}
-          onReturnToLobby={handleReturnToLobby}
-        />
+        <>
+          <ResultRankingModal
+            gamePhase={gamePhase}
+            score={hudState.score}
+            maxCombo={engine.scoreManager.getState().maxCombo}
+            waveReached={engine.currentWave}
+            currentPlayer={pairedPlayer}
+            isNewRecord={isNewRecord}
+            rankings={topRankings}
+            onRestart={handleStartGame}
+            onReturnToLobby={handleReturnToLobby}
+            hoveredAction={hoveredResultAction}
+            restartButtonRef={restartButtonRef}
+            lobbyButtonRef={lobbyButtonRef}
+          />
+          {/* Result Crosshair Overlay on top of result modal */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 160 }}>
+            <CrosshairOverlay
+              ref={crosshairRef}
+              aimX={latestAimRef.current.aimX}
+              aimY={latestAimRef.current.aimY}
+              isFeverActive={false}
+              isWideScopeActive={false}
+              isPowerShotActive={false}
+              isAimLocked={isAimLocked}
+              shotTriggerKey={lastShootResult?.key || 0}
+            />
+          </div>
+        </>
       )}
 
       {/* 5. Guide & Codex Modal */}
