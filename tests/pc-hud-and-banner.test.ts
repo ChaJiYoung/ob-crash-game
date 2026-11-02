@@ -54,6 +54,18 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
 
     const fever = getCrosshairVisualSpec({ isFeverActive: true });
     expect(fever.primaryColor).toBe('#fbbf24');
+
+    // Aim Locked visual spec test (D04)
+    const locked = getCrosshairVisualSpec({ isAimLocked: true });
+    expect(locked.primaryColor).toBe('#10b981');
+    expect(locked.glowColor).toContain('16, 185, 129');
+    expect(locked.badgeText).toBe('AIM LOCKED');
+    expect(locked.isLocked).toBe(true);
+
+    // Fever priority over Aim Lock
+    const feverLocked = getCrosshairVisualSpec({ isFeverActive: true, isAimLocked: true });
+    expect(feverLocked.primaryColor).toBe('#fbbf24');
+    expect(feverLocked.badgeText).toBe('FEVER UNLIMITED');
   });
 
   it('should format active buff badge with remaining seconds and progress percent', () => {

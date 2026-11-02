@@ -34,6 +34,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isZeroCalibrated, setIsZeroCalibrated] = useState<boolean>(false);
+  const [isAimLocked, setIsAimLocked] = useState<boolean>(false);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -210,7 +211,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
             lastIsCockedRef.current = !!p.isCocked;
 
+            const isFever = engine.scoreManager.getState().isFeverActive;
+            const aimLocked = Boolean(p.isCocked && !isFever);
+            setIsAimLocked(aimLocked);
+
             if (p.snapFire) {
+              setIsAimLocked(false);
               const curPhase = gamePhaseRef.current;
               if (curPhase === 'PAIRING' || curPhase === 'ZEROING') {
                 soundSynth.playShoot(false);
@@ -539,6 +545,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             isWideScopeActive={hudState.isWideScopeActive}
             isPowerShotActive={hudState.isPowerShotActive}
+            isAimLocked={isAimLocked}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
@@ -566,6 +573,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             isWideScopeActive={false}
             isPowerShotActive={false}
+            isAimLocked={isAimLocked}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
@@ -640,6 +648,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             isWideScopeActive={hudState.isWideScopeActive}
             isPowerShotActive={hudState.isPowerShotActive}
+            isAimLocked={isAimLocked}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
@@ -669,6 +678,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 isFeverActive={false}
                 isWideScopeActive={false}
                 isPowerShotActive={false}
+                isAimLocked={isAimLocked}
                 shotTriggerKey={0}
               />
             </div>

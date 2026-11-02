@@ -1,6 +1,6 @@
 # Task: T02 PC 화면 조준경(CrosshairOverlay) 에메랄드 그린 락온 시각 효과 및 로비/인게임 사격 연동
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC 화면의 조준경(`CrosshairOverlay`)에 모바일 컨트롤러의 코킹 상태(`isCocked`)를 실시간으로 반영하여, 플레이어가 화면을 터치해 조준을 고정했을 때 조준경이 선명한 에메랄드 그린 컬러(`#10b981`)로 빛나고 모서리 락온(Lock-on) 괄호 프레임이 나타나도록 시각 피드백을 강화한다. 또한 로비 대기실(`PAIRING`, `ZEROING`) 화면에서도 인게임과 완전히 동일하게 "터치 다운으로 조준 고정 ➔ 휙 채어 시작 과녁 사격"이 일관되게 작동하도록 연동한다.
@@ -91,6 +91,6 @@ Task: T02-crosshair-lock-visual-fx-and-lobby-integration
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

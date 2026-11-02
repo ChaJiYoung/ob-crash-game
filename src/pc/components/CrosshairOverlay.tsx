@@ -34,6 +34,7 @@ export interface CrosshairVisualSpecOptions {
   isFeverActive?: boolean;
   isWideScopeActive?: boolean;
   isPowerShotActive?: boolean;
+  isAimLocked?: boolean;
 }
 
 export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
@@ -42,10 +43,12 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
   primaryColor: string;
   glowColor: string;
   badgeText?: string;
+  isLocked?: boolean;
 } {
   const isWide = Boolean(options.isWideScopeActive);
   const isPower = Boolean(options.isPowerShotActive);
   const isFever = Boolean(options.isFeverActive);
+  const isLocked = Boolean(options.isAimLocked);
 
   const sizePx = isWide ? 140 : 88;
   const ringSizePx = isWide ? 112 : 68;
@@ -54,14 +57,18 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
   let glowColor = 'rgba(56, 189, 248, 0.45)';
   let badgeText: string | undefined;
 
-  if (isPower) {
-    primaryColor = '#ef4444';
-    glowColor = 'rgba(239, 68, 68, 0.55)';
-    badgeText = 'POWER 2X';
-  } else if (isFever) {
+  if (isFever) {
     primaryColor = '#fbbf24';
     glowColor = 'rgba(251, 191, 36, 0.55)';
     badgeText = 'FEVER UNLIMITED';
+  } else if (isPower) {
+    primaryColor = '#ef4444';
+    glowColor = 'rgba(239, 68, 68, 0.55)';
+    badgeText = 'POWER 2X';
+  } else if (isLocked) {
+    primaryColor = '#10b981';
+    glowColor = 'rgba(16, 185, 129, 0.65)';
+    badgeText = 'AIM LOCKED';
   } else if (isWide) {
     badgeText = 'WIDE 1.6X';
   }
@@ -72,6 +79,7 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
     primaryColor,
     glowColor,
     badgeText,
+    isLocked,
   };
 }
 
@@ -85,6 +93,7 @@ export interface CrosshairOverlayProps {
   isFeverActive?: boolean;
   isWideScopeActive?: boolean;
   isPowerShotActive?: boolean;
+  isAimLocked?: boolean;
   shotTriggerKey?: number;
 }
 
@@ -95,11 +104,17 @@ export const CrosshairOverlay = React.memo(
     isFeverActive = false,
     isWideScopeActive = false,
     isPowerShotActive = false,
+    isAimLocked = false,
     shotTriggerKey = 0,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { leftPercent, topPercent } = aimToViewportPercent(aimX, aimY);
-    const spec = getCrosshairVisualSpec({ isFeverActive, isWideScopeActive, isPowerShotActive });
+    const spec = getCrosshairVisualSpec({
+      isFeverActive,
+      isWideScopeActive,
+      isPowerShotActive,
+      isAimLocked,
+    });
 
     useImperativeHandle(
       ref,
