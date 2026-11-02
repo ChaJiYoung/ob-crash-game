@@ -121,4 +121,53 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     expect(engine.currentWave).toBe(1);
     expect(engine.lives).toBe(5);
   });
+
+  it('should support Sandbox mode with 5-point calibration targets and infinite ammo', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startSandboxMode();
+
+    expect(engine.gamePhase).toBe('SANDBOX');
+    expect(engine.isSandboxMode).toBe(true);
+    expect(engine.activeTargets.length).toBe(5);
+
+    // 1. Check calibration targets (center, left, right, top, bottom)
+    const center = engine.activeTargets.find((t) => t.id === 'calib_center')!;
+    const top = engine.activeTargets.find((t) => t.id === 'calib_top')!;
+    const bottom = engine.activeTargets.find((t) => t.id === 'calib_bottom')!;
+
+    expect(center).toBeDefined();
+    expect(top.customNormY).toBeGreaterThan(0.4);
+    expect(bottom.customNormY).toBeLessThan(-0.4);
+
+    // Shoot top target directly at aimY = 0.55
+    const topShot = engine.shootAt(0, 0.55, 1000);
+    expect(topShot.fired).toBe(true);
+    expect(topShot.grade).toBe('PERFECT');
+    expect(topShot.target?.id).toBe('calib_top');
+
+    // 2. Infinite ammo toggle
+    engine.setInfiniteAmmo(true);
+    expect(engine.infiniteAmmo).toBe(true);
+    for (let i = 0; i < 15; i++) {
+      const res = engine.shootAt(0, 0, 1500 + i * 150);
+      expect(res.fired).toBe(true);
+    }
+    expect(engine.weaponSystem.getState().isReloading).toBe(false);
+
+    // 3. Trigger sandbox fever
+    const feverOk = engine.triggerSandboxFever(5000);
+    expect(feverOk).toBe(true);
+    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+
+    // 4. Moving sandbox target should respawn at 16m without life loss
+    engine.clearSandboxTargets();
+    const movingHanmac = engine.spawnSandboxTarget('hanmac', { stationary: false });
+    expect(movingHanmac.speedMps).toBeGreaterThan(0);
+
+    // Move to breach distance
+    movingHanmac.radiusM = 1.0;
+    engine.update(6000, 0.1);
+    expect(engine.lives).toBe(5); // Lives intact
+    expect(movingHanmac.radiusM).toBeCloseTo(16.0, 1); // Respawned
+  });
 });

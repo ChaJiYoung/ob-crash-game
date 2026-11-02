@@ -1,6 +1,6 @@
 # Task: T03 영점 후 실시간 조준 프리뷰 대기, 3초 카운트다운 시작 흐름 및 엔진 샌드박스(모듈 테스트) 모드 구현
 
-## Status: pending
+## Status: done
 
 ## Goal
 영점 완료(`ZERO_CALIBRATED`) 시 즉시 본게임이 시작되어 대응하기 힘들었던 문제를 해결하기 위해, 로비/대기 화면에서 실시간 조준선(`CrosshairOverlay`) 프리뷰를 먼저 보여주고 모바일 또는 PC에서 '게임 시작' 요청 시 3초 카운트다운(`3 -> 2 -> 1 -> START!`) 후 Wave 1을 시작하며, `BeerCrusherEngine`에 몬스터 6종·아이템 4종·피버·무한탄창을 자유롭게 시험할 수 있는 샌드박스(`SANDBOX`) 모드를 추가합니다.
@@ -102,6 +102,6 @@ Task: T03-preview-countdown-and-sandbox-engine
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: completed

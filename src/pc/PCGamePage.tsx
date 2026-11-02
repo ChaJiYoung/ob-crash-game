@@ -12,20 +12,27 @@ import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 
-export const PCGamePage: React.FC = () => {
+export interface PCGamePageProps {
+  initialPhase?: GamePhase;
+}
+
+export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const engine = useMemo(() => new BeerCrusherEngine(), []);
   if (typeof window !== 'undefined') {
     (window as any).__engine = engine;
   }
   const soundSynth = useMemo(() => new SoundSynthesizer(), []);
 
-  const [gamePhase, setGamePhase] = useState<GamePhase>('PAIRING');
+  const [gamePhase, setGamePhase] = useState<GamePhase>(initialPhase ?? 'PAIRING');
   const [roomId, setRoomId] = useState<string>('');
   const [lanIp, setLanIp] = useState<string>('');
   const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
   const [topRankings, setTopRankings] = useState<PlayerProfile[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const [isZeroCalibrated, setIsZeroCalibrated] = useState<boolean>(false);
+  const [countdownSec, setCountdownSec] = useState<number | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const canvasRef = useRef<GameCanvas3DHandle>(null);
   const crosshairRef = useRef<CrosshairOverlayHandle>(null);
@@ -116,7 +123,12 @@ export const PCGamePage: React.FC = () => {
             break;
 
           case 'ZERO_CALIBRATED':
-            handleStartGame();
+            setIsZeroCalibrated(true);
+            setGamePhase('ZEROING');
+            break;
+
+          case 'GAME_START_RELAY':
+            startCountdownAndGameRef.current();
             break;
 
           case 'SENSOR_RELAY': {
@@ -181,6 +193,7 @@ export const PCGamePage: React.FC = () => {
 
     return () => {
       if (rapidFireTimerRef.current) clearInterval(rapidFireTimerRef.current);
+      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
       socket.close();
     };
   }, [engine, soundSynth, updateAimDirect, handleShootEvent]);
@@ -261,6 +274,35 @@ export const PCGamePage: React.FC = () => {
     engine.startGame();
     setGamePhase('PLAYING');
     setIsNewRecord(false);
+  }, [engine]);
+
+  const startCountdownAndGame = useCallback(() => {
+    if (countdownTimerRef.current) return;
+    setCountdownSec(3);
+
+    let sec = 3;
+    countdownTimerRef.current = setInterval(() => {
+      sec -= 1;
+      if (sec > 0) {
+        setCountdownSec(sec);
+      } else {
+        if (countdownTimerRef.current) {
+          clearInterval(countdownTimerRef.current);
+          countdownTimerRef.current = null;
+        }
+        setCountdownSec(null);
+        handleStartGame();
+      }
+    }, 1000);
+  }, [handleStartGame]);
+
+  const startCountdownAndGameRef = useRef(startCountdownAndGame);
+  startCountdownAndGameRef.current = startCountdownAndGame;
+
+  const handleStartSandbox = useCallback(() => {
+    setIsGuideOpen(false);
+    engine.startSandboxMode();
+    setGamePhase('SANDBOX');
   }, [engine]);
 
   const handleStartTutorial = useCallback(() => {
@@ -361,15 +403,67 @@ export const PCGamePage: React.FC = () => {
 
       {/* 3. QR Pairing Modal */}
       {(gamePhase === 'PAIRING' || gamePhase === 'ZEROING') && (
-        <QRPairingModal
-          roomId={roomId}
-          lanIp={lanIp}
-          pairedPlayer={pairedPlayer}
-          topRankings={topRankings}
-          onStartAsPc={handleStartGame}
-          onStartWithController={handleStartGame}
-          onOpenGuide={() => setIsGuideOpen(true)}
-        />
+        <>
+          <QRPairingModal
+            roomId={roomId}
+            lanIp={lanIp}
+            pairedPlayer={pairedPlayer}
+            topRankings={topRankings}
+            isZeroCalibrated={isZeroCalibrated}
+            onStartAsPc={handleStartGame}
+            onStartWithController={startCountdownAndGame}
+            onOpenGuide={() => setIsGuideOpen(true)}
+            onStartSandbox={handleStartSandbox}
+          />
+          {(isZeroCalibrated || pairedPlayer) && (
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 120 }}>
+              <CrosshairOverlay
+                ref={crosshairRef}
+                aimX={latestAimRef.current.aimX}
+                aimY={latestAimRef.current.aimY}
+                isFeverActive={false}
+                isWideScopeActive={false}
+                isPowerShotActive={false}
+                shotTriggerKey={0}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 3-B. 3-Second Countdown Overlay */}
+      {countdownSec !== null && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(5, 7, 12, 0.78)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 150,
+            userSelect: 'none',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '120px',
+              fontWeight: 900,
+              background: 'linear-gradient(180deg, #f59e0b, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 40px rgba(245, 158, 11, 0.6)',
+              animation: 'pulse 0.9s infinite',
+            }}
+          >
+            {countdownSec}
+          </div>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#f8fafc', marginTop: '16px' }}>
+            전투 준비! 조준선을 정렬하세요
+          </div>
+        </div>
       )}
 
       {/* 4. Game Result Modal */}

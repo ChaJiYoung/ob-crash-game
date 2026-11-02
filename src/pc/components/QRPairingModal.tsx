@@ -15,9 +15,11 @@ export interface QRPairingModalProps {
   lanIp?: string;
   pairedPlayer?: PlayerProfile;
   topRankings: PlayerProfile[];
+  isZeroCalibrated?: boolean;
   onStartAsPc: () => void;
   onStartWithController: () => void;
   onOpenGuide?: () => void;
+  onStartSandbox?: () => void;
 }
 
 export const QRPairingModal: React.FC<QRPairingModalProps> = ({
@@ -25,9 +27,11 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   lanIp,
   pairedPlayer,
   topRankings,
+  isZeroCalibrated = false,
   onStartAsPc,
   onStartWithController,
   onOpenGuide,
+  onStartSandbox,
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [pairingUrl, setPairingUrl] = useState<string>('');
@@ -166,18 +170,18 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                 style={{
                   marginTop: '16px',
                   padding: '10px 14px',
-                  background: 'rgba(16, 185, 129, 0.2)',
-                  border: '1px solid #10b981',
+                  background: isZeroCalibrated ? 'rgba(56, 189, 248, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                  border: isZeroCalibrated ? '1px solid #38bdf8' : '1px solid #10b981',
                   borderRadius: '10px',
                   textAlign: 'center',
                   width: '100%',
                 }}
               >
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399' }}>
-                  🔫 {pairedPlayer.nickname}님 접속 완료!
+                <div style={{ fontSize: '14px', fontWeight: 800, color: isZeroCalibrated ? '#38bdf8' : '#34d399' }}>
+                  {isZeroCalibrated ? '🎯 영점 조절 완료! (조준선 확인 중)' : `🔫 ${pairedPlayer.nickname}님 접속 완료!`}
                 </div>
-                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                  최고 기록: {pairedPlayer.bestScore}점
+                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '2px' }}>
+                  {isZeroCalibrated ? '화면 조준선을 확인한 뒤 시작 버튼을 누르세요' : `최고 기록: ${pairedPlayer.bestScore}점 (영점 대기 중)`}
                 </div>
               </div>
             ) : (
@@ -307,6 +311,30 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               </button>
             )}
           </div>
+
+          {onStartSandbox && (
+            <button
+              onClick={onStartSandbox}
+              style={{
+                width: '100%',
+                padding: '13px',
+                borderRadius: '12px',
+                border: '1px solid rgba(56, 189, 248, 0.4)',
+                background: 'rgba(56, 189, 248, 0.1)',
+                color: '#38bdf8',
+                fontSize: '14px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.15s',
+              }}
+            >
+              🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)
+            </button>
+          )}
 
           {onOpenGuide && (
             <button

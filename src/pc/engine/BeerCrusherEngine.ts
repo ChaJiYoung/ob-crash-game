@@ -50,6 +50,14 @@ export interface WaveDefinition {
   includesBoss: boolean;
 }
 
+export interface SandboxSpawnOptions {
+  stationary?: boolean;
+  thetaRad?: number;
+  radiusM?: number;
+  customNormY?: number;
+  customBaseY?: number;
+}
+
 export class BeerCrusherEngine {
   public gamePhase: GamePhase = 'PAIRING';
   public currentWave = 1;
@@ -59,6 +67,9 @@ export class BeerCrusherEngine {
   public isTutorialMode = false;
   public tutorialStep: TutorialStep = 1;
   public tutorialCompleted = false;
+
+  public isSandboxMode = false;
+  public infiniteAmmo = false;
 
   public readonly scoreManager = new ScoreAndFeverManager();
   public readonly weaponSystem = new WeaponSystem();
@@ -243,6 +254,112 @@ export class BeerCrusherEngine {
     this.weaponSystem.reset();
   }
 
+  public startSandboxMode(): void {
+    this.gamePhase = 'SANDBOX';
+    this.isSandboxMode = true;
+    this.isTutorialMode = false;
+    this.currentWave = 1;
+    this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
+    this.activeTargets = [];
+    this.activeBuffUntilMs.clear();
+    this.scoreManager.reset();
+    this.weaponSystem.reset();
+    this.spawnCalibrationFiveTargets();
+  }
+
+  public exitSandboxMode(): void {
+    this.isSandboxMode = false;
+    this.infiniteAmmo = false;
+    this.weaponSystem.setInfiniteAmmo(false);
+    this.activeTargets = [];
+    this.gamePhase = 'PAIRING';
+    this.scoreManager.reset();
+    this.weaponSystem.reset();
+  }
+
+  public setInfiniteAmmo(enabled: boolean): void {
+    this.infiniteAmmo = enabled;
+    this.weaponSystem.setInfiniteAmmo(enabled);
+  }
+
+  public triggerSandboxFever(nowMs: number = performance.now()): boolean {
+    this.scoreManager.forceSetFeverGauge(100);
+    return this.scoreManager.activateFever(nowMs);
+  }
+
+  public clearSandboxTargets(): void {
+    this.activeTargets = [];
+  }
+
+  public spawnCalibrationFiveTargets(): ActiveTargetEntity[] {
+    this.activeTargets = [];
+    const points: {
+      id: string;
+      kind: TargetKind;
+      thetaRad: number;
+      radiusM: number;
+      customNormY: number;
+      customBaseY: number;
+    }[] = [
+      { id: 'calib_center', kind: 'pilgood', thetaRad: 0, radiusM: 9.0, customNormY: 0, customBaseY: 1.18 },
+      { id: 'calib_left', kind: 'caslight', thetaRad: -0.42, radiusM: 9.0, customNormY: 0, customBaseY: 1.18 },
+      { id: 'calib_right', kind: 'obi', thetaRad: 0.42, radiusM: 9.0, customNormY: 0, customBaseY: 1.18 },
+      { id: 'calib_top', kind: 'hanmac', thetaRad: 0, radiusM: 9.0, customNormY: 0.55, customBaseY: 2.35 },
+      { id: 'calib_bottom', kind: 'bottle', thetaRad: 0, radiusM: 9.0, customNormY: -0.55, customBaseY: 0.35 },
+    ];
+
+    points.forEach((pt) => {
+      this.targetCounter += 1;
+      const spec = TARGET_SPECS[pt.kind];
+      this.activeTargets.push({
+        id: pt.id,
+        kind: pt.kind,
+        hp: 1,
+        maxHp: 1,
+        radiusM: pt.radiusM,
+        thetaRad: pt.thetaRad,
+        x: Math.sin(pt.thetaRad) * pt.radiusM,
+        z: -Math.cos(pt.thetaRad) * pt.radiusM,
+        speedMps: 0,
+        hitRadiusM: spec.hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+        customNormY: pt.customNormY,
+        customBaseY: pt.customBaseY,
+      });
+    });
+
+    return [...this.activeTargets];
+  }
+
+  public spawnSandboxTarget(kind: TargetKind, options?: SandboxSpawnOptions): ActiveTargetEntity {
+    this.targetCounter += 1;
+    const spec = TARGET_SPECS[kind];
+    const isStationary = options?.stationary ?? false;
+    const radiusM = options?.radiusM ?? (isStationary ? 9.5 : 16.0);
+    const thetaRad = options?.thetaRad ?? (Math.random() * 0.7 - 0.35);
+
+    const target: ActiveTargetEntity = {
+      id: `sandbox_${this.targetCounter}_${kind}`,
+      kind,
+      hp: spec.maxHp,
+      maxHp: spec.maxHp,
+      radiusM,
+      thetaRad,
+      x: Math.sin(thetaRad) * radiusM,
+      z: -Math.cos(thetaRad) * radiusM,
+      speedMps: isStationary ? 0 : spec.speedMps,
+      hitRadiusM: spec.hitRadiusM,
+      killBonusScore: spec.killBonusScore,
+      breached: false,
+      customNormY: options?.customNormY,
+      customBaseY: options?.customBaseY,
+    };
+
+    this.activeTargets.push(target);
+    return target;
+  }
+
   public getBossEntity(): ActiveTargetEntity | undefined {
     return this.activeTargets.find((t) => t.kind === 'boss');
   }
@@ -310,7 +427,7 @@ export class BeerCrusherEngine {
     phaseChanged: boolean;
     reloadedJustNow: boolean;
   } {
-    if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL') {
+    if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
@@ -352,6 +469,15 @@ export class BeerCrusherEngine {
       target.breached = next.breached;
 
       if (target.breached) {
+        if (this.isSandboxMode) {
+          // Sandbox mode: respawn target at 16.0m without life reduction
+          target.radiusM = 16.0;
+          target.x = Math.sin(target.thetaRad) * 16.0;
+          target.z = -Math.cos(target.thetaRad) * 16.0;
+          target.breached = false;
+          continue;
+        }
+
         if (this.isTutorialMode) {
           // Tutorial invulnerability: No life loss
           if (this.tutorialStep === 2) {
@@ -390,8 +516,8 @@ export class BeerCrusherEngine {
       }
     }
 
-    // Skip normal wave spawning in tutorial mode
-    if (this.isTutorialMode) {
+    // Skip normal wave spawning in tutorial or sandbox mode
+    if (this.isTutorialMode || this.isSandboxMode) {
       return { breaches, phaseChanged: false, reloadedJustNow };
     }
 

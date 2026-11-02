@@ -5,14 +5,19 @@ export class WeaponSystem {
   private isReloading = false;
   private reloadEndTimeMs = 0;
   private lastFireTimeMs = 0;
+  public infiniteAmmo = false;
+
+  public setInfiniteAmmo(enabled: boolean): void {
+    this.infiniteAmmo = enabled;
+  }
 
   public canFire(nowMs: number, isFeverActive: boolean): boolean {
     if (nowMs - this.lastFireTimeMs < WEAPON_CONSTANTS.RAPID_FIRE_INTERVAL_MS) {
       return false;
     }
 
-    if (isFeverActive) {
-      return true; // Infinite ammo during fever
+    if (this.infiniteAmmo || isFeverActive) {
+      return true; // Infinite ammo during fever or sandbox mode
     }
 
     if (this.isReloading) {
@@ -32,7 +37,7 @@ export class WeaponSystem {
 
     this.lastFireTimeMs = nowMs;
 
-    if (isFeverActive) {
+    if (this.infiniteAmmo || isFeverActive) {
       return { fired: true, ammo: WEAPON_CONSTANTS.MAX_AMMO, isReloading: false };
     }
 
@@ -77,5 +82,6 @@ export class WeaponSystem {
     this.isReloading = false;
     this.reloadEndTimeMs = 0;
     this.lastFireTimeMs = 0;
+    this.infiniteAmmo = false;
   }
 }
