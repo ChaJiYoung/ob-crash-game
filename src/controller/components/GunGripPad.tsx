@@ -4,53 +4,30 @@ import { triggerHaptic } from '../sensors/HapticFeedback';
 
 export interface GunGripPadProps {
   onRecalibrateZero: () => void;
-  onRapidFireChange: (active: boolean) => void;
   onFeverTrigger: () => void;
-  onTapFire?: () => void;
   onCockingChange?: (cocked: boolean) => void;
   isFeverReady?: boolean;
-  isGameWaiting?: boolean;
-  onRequestStartGame?: () => void;
 }
 
 export const GunGripPad: React.FC<GunGripPadProps> = ({
   onRecalibrateZero,
-  onRapidFireChange,
   onFeverTrigger,
-  onTapFire,
   onCockingChange,
   isFeverReady = false,
-  isGameWaiting = false,
-  onRequestStartGame,
 }) => {
-  const [isRapidFiring, setIsRapidFiring] = useState(false);
   const [isCocked, setIsCocked] = useState(false);
   const touchPadRef = useRef<UnifiedTouchPadController | null>(null);
 
-  const onRapidFireChangeRef = useRef(onRapidFireChange);
-  onRapidFireChangeRef.current = onRapidFireChange;
   const onFeverTriggerRef = useRef(onFeverTrigger);
   onFeverTriggerRef.current = onFeverTrigger;
-  const onTapFireRef = useRef(onTapFire);
-  onTapFireRef.current = onTapFire;
   const onCockingChangeRef = useRef(onCockingChange);
   onCockingChangeRef.current = onCockingChange;
 
   useEffect(() => {
     const pad = new UnifiedTouchPadController({
-      onRapidFireChange: (active) => {
-        setIsRapidFiring(active);
-        onRapidFireChangeRef.current(active);
-        if (active) triggerHaptic([30, 40, 30]);
-      },
       onFeverTrigger: () => {
         triggerHaptic([50, 50, 100]);
         onFeverTriggerRef.current();
-      },
-      onTapFire: () => {
-        // 단발 탭 사격
-        triggerHaptic(20);
-        onTapFireRef.current?.();
       },
     });
 
@@ -148,116 +125,77 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           padding: '24px',
           boxSizing: 'border-box',
           cursor: 'pointer',
-          background: isRapidFiring
-            ? 'radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, #05070a 70%)'
-            : isFeverReady
+          background: isFeverReady
             ? 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, #05070a 70%)'
+            : isCocked
+            ? 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, #05070a 75%)'
             : 'radial-gradient(circle, rgba(30, 41, 59, 0.5) 0%, #05070a 80%)',
-          border: isRapidFiring
-            ? '4px solid #06b6d4'
-            : isFeverReady
+          border: isFeverReady
             ? '4px solid #fbbf24'
+            : isCocked
+            ? '4px solid #10b981'
             : '4px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: isRapidFiring
-            ? 'inset 0 0 30px #06b6d4'
-            : isFeverReady
+          boxShadow: isFeverReady
             ? 'inset 0 0 30px #fbbf24'
+            : isCocked
+            ? 'inset 0 0 30px #10b981'
             : 'none',
           transition: 'border 0.15s, box-shadow 0.15s',
         }}
       >
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-          {isRapidFiring ? '🔫' : isFeverReady ? '🔥' : isCocked ? '🔒' : '👆'}
+        <div style={{ fontSize: '56px', marginBottom: '16px' }}>
+          {isFeverReady ? '🔥' : isCocked ? '🔒' : '👆'}
         </div>
 
         <div
           style={{
             fontSize: '22px',
             fontWeight: 900,
-            color: isRapidFiring
-              ? '#06b6d4'
-              : isFeverReady
-              ? '#fbbf24'
-              : isCocked
-              ? '#34d399'
-              : '#f8fafc',
-            marginBottom: '16px',
+            color: isFeverReady ? '#fbbf24' : isCocked ? '#34d399' : '#f8fafc',
+            marginBottom: '20px',
             textAlign: 'center',
-            letterSpacing: '1px',
+            letterSpacing: '0.5px',
           }}
         >
-          {isRapidFiring
-            ? '🔫 AUTO RAPID FIRE!'
-            : isFeverReady
+          {isFeverReady
             ? '🔥 따닥 더블탭하여 FEVER 발동!'
             : isCocked
             ? '🔒 철컥! 조준 고정 중 (위로 휙 채면 발사)'
-            : '통합 액션 터치패드'}
+            : '화면을 터치하여 코킹 장전'}
         </div>
 
         <div
           style={{
-            background: 'rgba(0, 0, 0, 0.5)',
+            background: 'rgba(0, 0, 0, 0.55)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: '14px',
-            padding: '16px 20px',
+            borderRadius: '16px',
+            padding: '20px',
             maxWidth: '340px',
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
-            fontSize: '13px',
+            gap: '12px',
+            fontSize: '14px',
             color: '#94a3b8',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#34d399', fontWeight: 800 }}>🔒 화면 터치:</span>
-            <span style={{ color: '#f8fafc' }}>"철컥!" 코킹 장전 & 조준 고정</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: '#34d399', fontWeight: 900, fontSize: '15px' }}>🔒 화면 터치:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>"철컥!" 코킹 장전 & 조준 고정</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#38bdf8', fontWeight: 800 }}>⚡ 위로 휙 채기:</span>
-            <span style={{ color: '#f8fafc' }}>"탕!" 반동 스냅 사격</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: '#38bdf8', fontWeight: 900, fontSize: '15px' }}>⚡ 위로 휙 채기:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>"탕!" 1발 단발 사격</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#fbbf24', fontWeight: 800 }}>🔥 빠르게 두번 탭:</span>
-            <span style={{ color: '#f8fafc' }}>피버 모드 발동</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#a78bfa', fontWeight: 800 }}>꾹 누르기 (0.25s↑):</span>
-            <span style={{ color: '#f8fafc' }}>기관총 자동 연사</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '15px' }}>🔥 빠르게 두번 탭:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>피버 모드 발동 (자동 10연사)</span>
           </div>
         </div>
 
-        {isGameWaiting && onRequestStartGame ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              triggerHaptic([50, 80]);
-              onRequestStartGame();
-            }}
-            style={{
-              marginTop: '16px',
-              width: '100%',
-              maxWidth: '340px',
-              padding: '16px',
-              borderRadius: '14px',
-              border: 'none',
-              background: 'linear-gradient(90deg, #10b981, #059669)',
-              color: '#ffffff',
-              fontSize: '18px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 6px 20px rgba(16, 185, 129, 0.45)',
-              animation: 'pulse 1.5s infinite',
-            }}
-          >
-            🚀 준비 완료! 게임 시작
-          </button>
-        ) : null}
-
         {/* 100% Auto Reload Reminder */}
-        <div style={{ marginTop: '20px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
-          ⚡ 탄창 소진 시 1.2초 뒤 자동으로 재장전됩니다 (수동 조작 불필요)
+        <div style={{ marginTop: '24px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
+          ⚡ 10발 소진 시 1.2초 뒤 자동으로 재장전됩니다
         </div>
       </div>
     </div>

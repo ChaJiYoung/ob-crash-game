@@ -58,41 +58,31 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     expect(snap2).toBe(true);
   });
 
-  it('should differentiate tap-fire, hold rapid-fire and double-tap fever', async () => {
+  it('should trigger double-tap fever without tap-fire or hold rapid-fire', async () => {
     vi.useFakeTimers();
 
-    const onRapidFireChange = vi.fn();
     const onFeverTrigger = vi.fn();
-    const onTapFire = vi.fn();
 
     const pad = new UnifiedTouchPadController({
-      onRapidFireChange,
       onFeverTrigger,
-      onTapFire,
     });
 
-    // 1. Single tap fire (immediate on pointer down)
+    // 1. Single tap touch down (cocking only, no fever)
     pad.handlePointerDown(1000);
-    expect(onTapFire).toHaveBeenCalledTimes(1);
-    expect(onRapidFireChange).not.toHaveBeenCalled();
+    expect(onFeverTrigger).not.toHaveBeenCalled();
 
-    // Advance 260ms -> hold triggers rapid-fire
-    vi.advanceTimersByTime(260);
-    expect(onRapidFireChange).toHaveBeenCalledWith(true);
+    // Advance 500ms -> holding must NEVER trigger rapid fire
+    vi.advanceTimersByTime(500);
+    pad.handlePointerUp(1500);
+    expect(onFeverTrigger).not.toHaveBeenCalled();
 
-    pad.handlePointerUp(1300);
-    expect(onRapidFireChange).toHaveBeenCalledWith(false);
-
-    // 2. Double-tap gesture (two taps within 300ms)
+    // 2. Double-tap gesture (two taps within 300ms) triggers Fever
     pad.handlePointerDown(2000);
-    expect(onTapFire).toHaveBeenCalledTimes(2);
     pad.handlePointerUp(2080);
     expect(onFeverTrigger).not.toHaveBeenCalled();
 
     pad.handlePointerDown(2220); // 220ms after first tap (< 300ms)
     expect(onFeverTrigger).toHaveBeenCalledTimes(1);
-    // Double tap also fired initial tap
-    expect(onTapFire).toHaveBeenCalledTimes(2);
 
     pad.dispose();
     vi.useRealTimers();

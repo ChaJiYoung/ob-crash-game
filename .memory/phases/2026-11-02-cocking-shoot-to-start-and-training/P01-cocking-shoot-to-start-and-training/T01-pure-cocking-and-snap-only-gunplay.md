@@ -1,6 +1,6 @@
 # Task: T01 터치패드 탭 사격 & 홀드 연사 완전 제거 및 순수 코킹-스냅 메커니즘과 모바일 패드 직행
 
-## Status: pending
+## Status: done
 
 ## Goal
 화면을 누를 때 발생하던 즉시 탭 사격(`onTapFire`)과 0.25초 홀드 연사(`rapidFireHold`)를 완전히 제거하여 화면 터치 = 오직 "철컥!" 코킹 장전 & 조준 고정(Aim Lock)만 수행하고, 오직 손목을 위로 채 올릴 때(Snap Up)만 마우스 클릭처럼 1발 단발 "탕!" 격발되도록 수정한다. 또한 폰 화면에 남아 있던 '준비 완료' 버튼과 사전 영점 화면을 완전히 없애고 닉네임 입력 후 곧바로 심플한 건 컨트롤러 패드로 직행하도록 만든다.
@@ -45,11 +45,11 @@
      - `onMotion`: 오직 `isCockedRef.current === true` 일 때만 `snapFireRef.current = true; flushSensorFrame();`.
 
 ## Acceptance Criteria
-- [ ] 폰 화면을 엄지로 누르고 있어도 총알이 발사되지 않고 연사도 나가지 않는다.
-- [ ] 화면을 터치하는 순간 "철컥!" 코킹 효과음과 햅틱 진동이 발생하며 조준선이 고정된다.
-- [ ] 화면을 누른 채 손목을 위로 채 올릴 때만 "탕!" 하고 1발씩 단발 격발된다.
-- [ ] 닉네임 입력 및 권한 승인 후 폰 화면에 불필요한 '준비' 버튼이나 영점 화면 없이 바로 컨트롤러 패드가 뜬다.
-- [ ] `tests/controller-sensors.test.ts` 통과.
+- [x] 폰 화면을 엄지로 누르고 있어도 총알이 발사되지 않고 연사도 나가지 않는다.
+- [x] 화면을 터치하는 순간 "철컥!" 코킹 효과음과 햅틱 진동이 발생하며 조준선이 고정된다.
+- [x] 화면을 누른 채 손목을 위로 채 올릴 때만 "탕!" 하고 1발씩 단발 격발된다.
+- [x] 닉네임 입력 및 권한 승인 후 폰 화면에 불필요한 '준비' 버튼이나 영점 화면 없이 바로 컨트롤러 패드가 뜬다.
+- [x] `tests/controller-sensors.test.ts` 통과.
 
 ## Validation
 - `npx vitest run tests/controller-sensors.test.ts` — 코킹-스냅 단발 사격 검증
@@ -70,6 +70,6 @@ Task: T01-pure-cocking-and-snap-only-gunplay
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

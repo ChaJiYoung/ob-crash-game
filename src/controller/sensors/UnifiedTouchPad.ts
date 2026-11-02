@@ -1,16 +1,12 @@
 import { WEAPON_CONSTANTS } from '../../shared/constants';
 
 export interface TouchPadCallbacks {
-  onRapidFireChange: (active: boolean) => void;
   onFeverTrigger: () => void;
-  onTapFire?: () => void;
 }
 
 export class UnifiedTouchPadController {
   private callbacks: TouchPadCallbacks;
   private lastTapMs = 0;
-  private holdTimer: NodeJS.Timeout | null = null;
-  private isRapidFiring = false;
 
   constructor(callbacks: TouchPadCallbacks) {
     this.callbacks = callbacks;
@@ -19,53 +15,22 @@ export class UnifiedTouchPadController {
   public handlePointerDown(nowMs?: number): void {
     const now = nowMs ?? performance.now();
     const doubleTapWindow = WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS; // 300ms
-    const holdThreshold = WEAPON_CONSTANTS.RAPID_FIRE_HOLD_MS; // 250ms
 
-    // Check for double-tap
+    // Check for double-tap to trigger Fever
     if (this.lastTapMs > 0 && now - this.lastTapMs <= doubleTapWindow) {
-      if (this.holdTimer) {
-        clearTimeout(this.holdTimer);
-        this.holdTimer = null;
-      }
       this.lastTapMs = 0;
       this.callbacks.onFeverTrigger();
       return;
     }
 
     this.lastTapMs = now;
-    // Trigger immediate single tap shot on first touch down
-    this.callbacks.onTapFire?.();
-
-    // Start hold timer for continuous rapid fire
-    if (this.holdTimer) {
-      clearTimeout(this.holdTimer);
-    }
-
-    this.holdTimer = setTimeout(() => {
-      this.isRapidFiring = true;
-      this.callbacks.onRapidFireChange(true);
-      this.holdTimer = null;
-    }, holdThreshold);
   }
 
-  public handlePointerUp(nowMs?: number): void {
-    if (this.holdTimer) {
-      clearTimeout(this.holdTimer);
-      this.holdTimer = null;
-    }
-
-    if (this.isRapidFiring) {
-      this.isRapidFiring = false;
-      this.callbacks.onRapidFireChange(false);
-    }
+  public handlePointerUp(_nowMs?: number): void {
+    // Pure cocking/snap: touch release does not trigger shots or timer cleanup
   }
 
   public dispose(): void {
-    if (this.holdTimer) {
-      clearTimeout(this.holdTimer);
-      this.holdTimer = null;
-    }
-    this.isRapidFiring = false;
     this.lastTapMs = 0;
   }
 }

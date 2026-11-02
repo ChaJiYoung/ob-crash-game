@@ -325,16 +325,8 @@ export const MobileControllerPage: React.FC = () => {
       {step === 'PAD' && (
         <GunGripPad
           onRecalibrateZero={handleCalibrateZero}
-          onRapidFireChange={(active) => {
-            rapidFireHoldRef.current = active;
-            flushSensorFrame();
-          }}
           onFeverTrigger={() => {
             feverTriggeredRef.current = true;
-            flushSensorFrame();
-          }}
-          onTapFire={() => {
-            snapFireRef.current = true;
             flushSensorFrame();
           }}
           onCockingChange={(cocked) => {
@@ -342,8 +334,6 @@ export const MobileControllerPage: React.FC = () => {
             flushSensorFrame();
           }}
           isFeverReady={isFeverReady}
-          isGameWaiting={isGameWaiting}
-          onRequestStartGame={handleRequestStartGame}
         />
       )}
 
