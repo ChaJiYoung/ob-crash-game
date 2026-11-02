@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 코킹-스냅 사격 메커니즘, 피버 콤보 하한선 보호 및 원스톱 시작 동선 구축 | [P01](../phases/2026-11-02-cocking-snap-fevercombo-startflow/P01-cocking-snap-fevercombo-startflow/phase.md) |
+| P01 | `done` | 코킹-스냅 사격 메커니즘, 피버 콤보 하한선 보호 및 원스톱 시작 동선 구축 | [P01](../phases/2026-11-02-cocking-snap-fevercombo-startflow/P01-cocking-snap-fevercombo-startflow/phase.md) |
