@@ -1,6 +1,6 @@
 # Task: T02 Wave Timeline Progress Bar HUD
 
-## Status: pending
+## Status: done
 
 ## Goal
 화면 상단 중앙에 현재 웨이브의 토벌 진행도(남은 몬스터 수 / 전체 몬스터 수)와 진행률 퍼센트(%)를 나타내는 컴팩트 단일 바 HUD를 렌더링하여 이번 웨이브 잔여 적 정보를 플레이어가 직관적으로 파악할 수 있도록 한다.
@@ -79,6 +79,6 @@ Task: T02-wave-timeline-hud
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

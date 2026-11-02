@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { BeerCrusherEngine, EngineShootResult } from './engine/BeerCrusherEngine';
+import { BeerCrusherEngine, EngineShootResult, WaveProgressInfo } from './engine/BeerCrusherEngine';
 import { GameCanvas3D, GameCanvas3DHandle } from './components/GameCanvas3D';
 import { ArcadeOverlayHUD } from './components/ArcadeOverlayHUD';
 import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
@@ -91,6 +91,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     activeBuffs: [] as ActiveBuffState[],
     isWideScopeActive: false,
     isPowerShotActive: false,
+    waveProgress: undefined as WaveProgressInfo | undefined,
   });
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -319,6 +320,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         activeBuffs,
         isWideScopeActive,
         isPowerShotActive,
+        waveProgress: engine.getWaveProgress(),
       });
 
       // 100% Auto-Rapid-Fire loop during active Fever mode
@@ -540,6 +542,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             bossEntity={bossEntity}
             activeBuffs={hudState.activeBuffs}
+            waveProgress={hudState.waveProgress}
             onOpenGuide={handleOpenGuide}
           />
           <CrosshairOverlay

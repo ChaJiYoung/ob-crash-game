@@ -60,6 +60,15 @@ export interface SandboxSpawnOptions {
   customBaseY?: number;
 }
 
+export interface WaveProgressInfo {
+  wave: number;
+  totalWaves: number;
+  killedInWave: number;
+  totalSpawns: number;
+  remainingInWave: number;
+  progressPercent: number; // 0 to 100
+}
+
 export class BeerCrusherEngine {
   public gamePhase: GamePhase = 'PAIRING';
   public currentWave = 1;
@@ -146,6 +155,23 @@ export class BeerCrusherEngine {
     this.projCamera.lookAt(0, 1.35, -12);
     this.projCamera.updateProjectionMatrix();
     this.projCamera.updateMatrixWorld(true);
+  }
+
+  public getWaveProgress(): WaveProgressInfo {
+    const currentDef = this.waveDefinitions[this.currentWave];
+    const totalSpawns = currentDef ? currentDef.totalSpawns : 1;
+    const killed = this.killedInWave;
+    const remaining = Math.max(0, totalSpawns - killed);
+    const progressPercent = Math.min(100, Math.round((killed / totalSpawns) * 100));
+
+    return {
+      wave: this.currentWave,
+      totalWaves: STAGE_CONSTANTS.TOTAL_WAVES,
+      killedInWave: killed,
+      totalSpawns,
+      remainingInWave: remaining,
+      progressPercent,
+    };
   }
 
   public setPaused(paused: boolean, nowMs: number = performance.now()): void {

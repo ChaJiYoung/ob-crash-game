@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActiveBuffState, PlayerProfile } from '../../shared/types';
 import { ITEM_BUFF_SPECS, STAGE_CONSTANTS } from '../../shared/constants';
-import { ActiveTargetEntity } from '../engine/BeerCrusherEngine';
+import { ActiveTargetEntity, WaveProgressInfo } from '../engine/BeerCrusherEngine';
 
 export function formatAmmoStatusText(
   ammo: number,
@@ -87,6 +87,7 @@ export interface ArcadeOverlayHUDProps {
   isFeverActive: boolean;
   bossEntity?: ActiveTargetEntity;
   activeBuffs?: ActiveBuffState[];
+  waveProgress?: WaveProgressInfo;
   onOpenGuide?: () => void;
 }
 
@@ -107,6 +108,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   isFeverActive,
   bossEntity,
   activeBuffs = [],
+  waveProgress,
   onOpenGuide,
 }) => {
   const ammoText = formatAmmoStatusText(ammo, maxAmmo, isReloading, isFeverActive);
@@ -225,6 +227,58 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
           >
             WAVE {wave} / {totalWaves}
           </div>
+
+          {/* Compact Wave Progress Bar */}
+          {waveProgress && (
+            <div
+              style={{
+                width: '320px',
+                background: 'rgba(17, 24, 39, 0.88)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+                borderRadius: '10px',
+                padding: '4px 8px',
+                boxShadow: '0 0 12px rgba(245, 158, 11, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#fbbf24',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                <span>🎯 웨이브 토벌 {waveProgress.killedInWave}/{waveProgress.totalSpawns}</span>
+                <span>{waveProgress.progressPercent}% (남은 적 {waveProgress.remainingInWave})</span>
+              </div>
+              <div
+                style={{
+                  width: '100%',
+                  height: '8px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${waveProgress.progressPercent}%`,
+                    background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                    boxShadow: '0 0 8px rgba(245, 158, 11, 0.7)',
+                    borderRadius: '4px',
+                    transition: 'width 0.25s ease-out',
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           {bossEntity && (
             <div
