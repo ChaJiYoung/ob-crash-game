@@ -383,6 +383,28 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     };
     const distantProj = engine.computeTargetAimCoords(distantTarget);
     expect(distantProj.apparentHitRadius).toBeGreaterThanOrEqual(0.14);
+
+    // 4. Exact 3D camera projection 1:1 hit verification on angled target
+    const angledTarget = {
+      id: 'angled_1',
+      kind: 'bottle' as const,
+      hp: 3,
+      maxHp: 3,
+      radiusM: 14.0,
+      thetaRad: 0.30,
+      x: 14.0 * Math.sin(0.30),
+      z: -14.0 * Math.cos(0.30),
+      speedMps: 1.5,
+      hitRadiusM: 1.15,
+      killBonusScore: 160,
+      breached: false,
+    };
+    const angledProj = engine.computeTargetAimCoords(angledTarget);
+    engine.activeTargets = [angledTarget];
+    const exactShot = engine.shootAt(angledProj.targetNormX, angledProj.targetNormY, 2500);
+    expect(exactShot.fired).toBe(true);
+    expect(exactShot.grade).toBe('PERFECT');
+    expect(exactShot.errorRatio).toBeLessThan(0.05);
   });
 
   it('should freeze monster movement, spawns, fever/buff timers when paused and time-shift upon unpause (D03)', () => {

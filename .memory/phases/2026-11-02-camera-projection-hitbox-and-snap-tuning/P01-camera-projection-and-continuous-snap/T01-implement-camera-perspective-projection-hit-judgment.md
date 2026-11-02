@@ -83,10 +83,10 @@
 - NDC 변환 좌표계를 바탕으로 중앙(0, 0), 좌/우 타겟에 대한 명중 판정 및 PERFECT/GREAT/GOOD/MISS 등급 검증.
 
 ## Acceptance Criteria
-- [ ] 3D 화면상 조준경 링 안에 몬스터 메쉬가 걸려 있으면 오차 0.00으로 `PERFECT!` 또는 `GREAT!`가 즉시 발생한다.
-- [ ] 24m 원거리부터 2.5m 근거리까지 모든 거리에서 화면 시각적 위치와 판정 위치가 100% 일치한다.
-- [ ] `tests/engine-judgment-and-spawn.test.ts` 및 전체 테스트 통과.
-- [ ] `npm run build` 성공.
+- [x] 3D 화면상 조준경 링 안에 몬스터 메쉬가 걸려 있으면 오차 0.00으로 `PERFECT!` 또는 `GREAT!`가 즉시 발생한다.
+- [x] 24m 원거리부터 2.5m 근거리까지 모든 거리에서 화면 시각적 위치와 판정 위치가 100% 일치한다.
+- [x] `tests/engine-judgment-and-spawn.test.ts` 및 전체 테스트 통과.
+- [x] `npm run build` 성공.
 
 ## Validation
 - `npx vitest run tests/engine-judgment-and-spawn.test.ts` — 투영 좌표 및 판정 테스트 통과
@@ -106,6 +106,6 @@ Task: T01-implement-camera-perspective-projection-hit-judgment
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

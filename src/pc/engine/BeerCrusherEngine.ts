@@ -1,9 +1,11 @@
+import * as THREE from 'three';
 import { ActiveBuffState, GamePhase, ItemBuffKind, JudgmentGrade, TargetKind, TutorialStep } from '../../shared/types';
 import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, TARGET_SPECS } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
+import { getTargetBaseY } from '../three/TargetModels3D';
 
 export interface ActiveTargetEntity {
   id: string;
@@ -135,6 +137,16 @@ export class BeerCrusherEngine {
 
   public aspect = 16 / 9;
   public vFovDeg = STAGE_CONSTANTS.CAMERA_FOV_DEG;
+  public readonly projCamera = new THREE.PerspectiveCamera(STAGE_CONSTANTS.CAMERA_FOV_DEG, 16 / 9, 0.1, 100);
+
+  public syncProjectionCamera(): void {
+    this.projCamera.fov = this.vFovDeg;
+    this.projCamera.aspect = this.aspect;
+    this.projCamera.position.set(0, 1.65, 2.2);
+    this.projCamera.lookAt(0, 1.35, -12);
+    this.projCamera.updateProjectionMatrix();
+    this.projCamera.updateMatrixWorld(true);
+  }
 
   public setPaused(paused: boolean, nowMs: number = performance.now()): void {
     if (paused && !this.isPaused) {
@@ -688,27 +700,33 @@ export class BeerCrusherEngine {
     target: ActiveTargetEntity,
     wideScopeMult = 1.0
   ): TargetAimProjection {
-    const hHalfFov = computeHorizontalHalfFovRad(this.vFovDeg, this.aspect);
-    const targetNormX = target.thetaRad / (hHalfFov * STAGE_CONSTANTS.FAN_MARGIN_RATIO);
+    this.syncProjectionCamera();
 
+    let targetNormX = 0;
     let targetNormY = 0;
+    let camDist = Math.max(2.5, target.radiusM);
+
     if (target.customNormY !== undefined) {
+      const hHalfFov = computeHorizontalHalfFovRad(this.vFovDeg, this.aspect);
+      targetNormX = target.thetaRad / (hHalfFov * STAGE_CONSTANTS.FAN_MARGIN_RATIO);
       targetNormY = target.customNormY;
     } else {
-      let visualCenterY = 0.72; // 지상 기본
-      if (target.kind === 'pilgood' || target.kind === 'caslight') {
-        visualCenterY = 1.55;
-      } else if (target.isItem || target.kind === 'boss') {
-        visualCenterY = 1.20;
-      }
-      const eyeRefY = 1.18;
-      const deltaY = visualCenterY - eyeRefY;
-      const vHalfFovRad = (this.vFovDeg * Math.PI) / 360;
-      const effDist = Math.max(2.5, target.radiusM);
-      targetNormY = Math.max(-0.85, Math.min(0.85, deltaY / (effDist * Math.tan(vHalfFovRad) * 0.76)));
+      const baseY = target.customBaseY ?? getTargetBaseY(target.kind, target.isItem);
+      // Mesh visual center is around baseY + 0.35
+      const worldPos = new THREE.Vector3(target.x, baseY + 0.35, target.z);
+      camDist = this.projCamera.position.distanceTo(worldPos);
+
+      // Project worldPos into camera NDC [-1, 1]
+      const proj = worldPos.clone().project(this.projCamera);
+      // Map camera NDC to crosshair aim coordinates [-1, 1] (CrosshairOverlay ndc factor: X: 0.94, Y: 0.84)
+      targetNormX = Math.max(-1, Math.min(1, proj.x / 0.94));
+      targetNormY = Math.max(-1, Math.min(1, proj.y / 0.84));
     }
 
-    const apparentHitRadius = Math.max(0.14, (target.hitRadiusM * 4.2 * wideScopeMult) / target.radiusM);
+    const vFovRad = (this.vFovDeg * Math.PI) / 180;
+    const tanHalfFov = Math.tan(vFovRad / 2);
+    const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
+    const apparentHitRadius = Math.max(0.14, baseHitRadius / 0.84);
 
     return { targetNormX, targetNormY, apparentHitRadius };
   }
@@ -744,7 +762,7 @@ export class BeerCrusherEngine {
       const dx = aimX - proj.targetNormX;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
-        : Math.min(Math.abs(aimY - proj.targetNormY), Math.abs(aimY) * 0.65) * 0.65;
+        : (aimY - proj.targetNormY) * 0.85;
       const dist = Math.hypot(dx, dy);
 
       if (dist <= proj.apparentHitRadius) {
