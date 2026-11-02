@@ -123,13 +123,13 @@ export interface JudgmentSpec {
 
 export const JUDGMENT_SPECS: Record<Exclude<JudgmentGrade, 'MISS'>, JudgmentSpec> = {
   PERFECT: {
-    maxErrorRatio: 0.15,
+    maxErrorRatio: 0.25,
     baseScore: 150,
     feverDelta: 30,
     colorHex: '#fbbf24',
   },
   GREAT: {
-    maxErrorRatio: 0.45,
+    maxErrorRatio: 0.55,
     baseScore: 100,
     feverDelta: 20,
     colorHex: '#38bdf8',

@@ -708,7 +708,7 @@ export class BeerCrusherEngine {
       targetNormY = Math.max(-0.85, Math.min(0.85, deltaY / (effDist * Math.tan(vHalfFovRad) * 0.76)));
     }
 
-    const apparentHitRadius = Math.max(0.09, (target.hitRadiusM * 2.8 * wideScopeMult) / target.radiusM);
+    const apparentHitRadius = Math.max(0.14, (target.hitRadiusM * 4.2 * wideScopeMult) / target.radiusM);
 
     return { targetNormX, targetNormY, apparentHitRadius };
   }

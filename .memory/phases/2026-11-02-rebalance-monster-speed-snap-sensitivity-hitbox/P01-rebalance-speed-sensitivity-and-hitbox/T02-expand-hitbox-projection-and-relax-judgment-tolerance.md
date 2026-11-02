@@ -1,6 +1,6 @@
 # Task: T02 아케이드 자석 피격 판정(Hitbox 1.5배 확대) 및 PERFECT/GREAT 등급 오차율 완화
 
-## Status: pending
+## Status: done
 
 ## Goal
 3D 화면상에 투영되는 몬스터 피격 판정(Hitbox)의 투영 배수를 기존 2.8에서 4.2로 1.5배 확장하고, 최소 유효 반경 바닥값을 0.09에서 0.14로 상향하여 24m 원거리 몬스터라도 조준경 링 안에 대략 걸치면 억울하게 빗나가지 않고 자석처럼 시원하게 명중하도록 개선한다. 또한 판정 등급 중 `PERFECT` 오차 범위를 0.15에서 0.25로, `GREAT` 오차 범위를 0.45에서 0.55로 완화하여 호쾌한 아케이드 건슈팅 타격감과 연속 콤보 손맛을 선사한다.
@@ -64,10 +64,10 @@
   ```
 
 ## Acceptance Criteria
-- [ ] 24m 원거리에 위치한 몬스터라도 조준경 링 근처에 걸친 상태에서 사격하면 `MISS`로 새지 않고 시원하게 명중한다.
-- [ ] 조준 오차가 20% 수준이어도 이전과 달리 `PERFECT!` 골드 판정과 사운드가 경쾌하게 출력된다.
-- [ ] `tests/engine-judgment-and-spawn.test.ts` 및 전체 테스트 통과.
-- [ ] `npm run build` 성공.
+- [x] 24m 원거리에 위치한 몬스터라도 조준경 링 근처에 걸친 상태에서 사격하면 `MISS`로 새지 않고 시원하게 명중한다.
+- [x] 조준 오차가 20% 수준이어도 이전과 달리 `PERFECT!` 골드 판정과 사운드가 경쾌하게 출력된다.
+- [x] `tests/engine-judgment-and-spawn.test.ts` 및 전체 테스트 통과.
+- [x] `npm run build` 성공.
 
 ## Validation
 - `npx vitest run tests/engine-judgment-and-spawn.test.ts` — 확장된 Hitbox 및 완화된 판정 등급 테스트 통과
@@ -88,6 +88,6 @@ Task: T02-expand-hitbox-projection-and-relax-judgment-tolerance
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

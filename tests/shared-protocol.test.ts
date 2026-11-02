@@ -27,7 +27,7 @@ describe('Shared Protocol & Constants', () => {
     expect(TARGET_SPECS.obi.maxHp).toBe(2);
     expect(TARGET_SPECS.hanmac.maxHp).toBe(2);
     expect(TARGET_SPECS.bottle.maxHp).toBe(3);
-    expect(TARGET_SPECS.bottle.speedMps).toBe(2.3);
+    expect(TARGET_SPECS.bottle.speedMps).toBe(1.5);
     expect(TARGET_SPECS.bottle.killBonusScore).toBe(160);
     expect(TARGET_SPECS.bottle.isAirborne).toBe(false);
     expect(TARGET_SPECS.boss.maxHp).toBe(40);
@@ -35,11 +35,11 @@ describe('Shared Protocol & Constants', () => {
   });
 
   it('should define 3-tier judgment thresholds and scores', () => {
-    expect(JUDGMENT_SPECS.PERFECT.maxErrorRatio).toBe(0.15);
+    expect(JUDGMENT_SPECS.PERFECT.maxErrorRatio).toBe(0.25);
     expect(JUDGMENT_SPECS.PERFECT.baseScore).toBe(150);
     expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(30);
 
-    expect(JUDGMENT_SPECS.GREAT.maxErrorRatio).toBe(0.45);
+    expect(JUDGMENT_SPECS.GREAT.maxErrorRatio).toBe(0.55);
     expect(JUDGMENT_SPECS.GREAT.baseScore).toBe(100);
     expect(JUDGMENT_SPECS.GREAT.feverDelta).toBe(20);
 
@@ -58,10 +58,10 @@ describe('Shared Protocol & Constants', () => {
     expect(WEAPON_CONSTANTS.AUTO_RELOAD_MS).toBe(1200);
     expect(WEAPON_CONSTANTS.RAPID_FIRE_HOLD_MS).toBe(250);
     expect(WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS).toBe(300);
-    expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(8.0);
+    expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(4.8);
     expect(WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS).toBe(95);
 
-    expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(18.0);
+    expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(24.0);
     expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);
     expect(STAGE_CONSTANTS.PLAYER_MAX_LIVES).toBe(5);
     expect(STAGE_CONSTANTS.TOTAL_WAVES).toBe(5);

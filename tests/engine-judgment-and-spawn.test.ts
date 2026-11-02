@@ -51,6 +51,14 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(great.baseScore).toBe(100);
     expect(great.feverDelta).toBe(20);
 
+    // Rebalanced D03: relaxed PERFECT tolerance (up to 0.25)
+    const relaxedPerfect = evaluateHitJudgment(0.22, 1.0);
+    expect(relaxedPerfect.grade).toBe('PERFECT');
+
+    // Rebalanced D03: relaxed GREAT tolerance (up to 0.55)
+    const relaxedGreat = evaluateHitJudgment(0.50, 1.0);
+    expect(relaxedGreat.grade).toBe('GREAT');
+
     const good = evaluateHitJudgment(0.85, 1.0);
     expect(good.grade).toBe('GOOD');
     expect(good.baseScore).toBe(50);
@@ -357,6 +365,24 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const groundShot = engine.shootAt(0, groundProj.targetNormY, 2200);
     expect(groundShot.fired).toBe(true);
     expect(groundShot.grade).toBe('PERFECT');
+
+    // 3. Distant 24m target hitbox floor test (D03)
+    const distantTarget = {
+      id: 'distant_1',
+      kind: 'pilgood' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 24.0,
+      thetaRad: 0,
+      x: 0,
+      z: -24.0,
+      speedMps: 2.6,
+      hitRadiusM: 0.85,
+      killBonusScore: 30,
+      breached: false,
+    };
+    const distantProj = engine.computeTargetAimCoords(distantTarget);
+    expect(distantProj.apparentHitRadius).toBeGreaterThanOrEqual(0.14);
   });
 
   it('should freeze monster movement, spawns, fever/buff timers when paused and time-shift upon unpause (D03)', () => {
