@@ -67,6 +67,39 @@ export function applyCachedHdriToScene(scene: THREE.Scene): void {
   }
 }
 
+export function createHazardStripeTexture(): THREE.Texture {
+  if (typeof document === 'undefined') {
+    const data = new Uint8Array([245, 158, 11, 255]);
+    const tex = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat);
+    tex.needsUpdate = true;
+    return tex;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#f59e0b'; // Amber-gold background
+    ctx.fillRect(0, 0, 512, 64);
+    ctx.fillStyle = '#1e140d'; // Dark brown/black diagonal stripes
+    const stripeWidth = 32;
+    for (let x = -64; x < 512 + 64; x += stripeWidth * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + stripeWidth, 0);
+      ctx.lineTo(x + stripeWidth + 64, 64);
+      ctx.lineTo(x + 64, 64);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.repeat.set(16, 1);
+  return tex;
+}
+
 export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   const root = new THREE.Group();
   root.name = 'BreweryStage3D';
@@ -111,19 +144,36 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   floor.receiveShadow = true;
   root.add(floor);
 
-  // 3. Defense Line Bar Counter at R = 1.8m (Wooden & Brass Counter)
-  const defArcGeo = new THREE.RingGeometry(1.75, 1.85, 48, 1, 0, Math.PI);
-  const defArcMat = new THREE.MeshStandardMaterial({
-    color: 0xf59e0b,
-    roughness: 0.32,
-    metalness: 0.8,
+  // 3. Defense Line Bar Counter at R = 1.8m with 30cm Hazard Stripe (Floor y = 0.02)
+  const hazardTex = createHazardStripeTexture();
+  const defArcGeo = new THREE.RingGeometry(1.65, 1.95, 64, 1, 0, Math.PI);
+  const defArcMat = new THREE.MeshBasicMaterial({
+    map: hazardTex,
     side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.95,
+    depthWrite: false,
   });
   const defenseArcMesh = new THREE.Mesh(defArcGeo, defArcMat);
   defenseArcMesh.rotation.x = -Math.PI / 2;
   defenseArcMesh.rotation.z = Math.PI; // Face forward (-Z)
-  defenseArcMesh.position.set(0, 0.01, 0);
+  defenseArcMesh.position.set(0, 0.02, 0);
   root.add(defenseArcMesh);
+
+  // Outer Neon Glow Perimeter Line (R = 1.94 ~ 1.98 at floor y = 0.022)
+  const neonRimGeo = new THREE.RingGeometry(1.94, 1.98, 64, 1, 0, Math.PI);
+  const neonRimMat = new THREE.MeshBasicMaterial({
+    color: 0xef4444,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+  });
+  const neonRimMesh = new THREE.Mesh(neonRimGeo, neonRimMat);
+  neonRimMesh.rotation.x = -Math.PI / 2;
+  neonRimMesh.rotation.z = Math.PI;
+  neonRimMesh.position.set(0, 0.022, 0);
+  root.add(neonRimMesh);
 
   // Emerald heal pulse shockwave ring on bar defense line
   const healPulseGeo = new THREE.RingGeometry(1.72, 1.88, 48, 1, 0, Math.PI);
@@ -296,10 +346,12 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
 
     if (dangerAlert) {
       alertLight.intensity = 3.6 + Math.sin(elapsedSec * 16) * 2.4;
-      (defArcMat as THREE.MeshStandardMaterial).color.setHex(0xef4444);
+      neonRimMat.color.setHex(0xef4444);
+      neonRimMat.opacity = Math.min(1.0, 0.85 + Math.sin(elapsedSec * 16) * 0.25);
     } else {
       alertLight.intensity = 0.6;
-      (defArcMat as THREE.MeshStandardMaterial).color.setHex(isFeverActive ? 0xffd700 : 0xf59e0b);
+      neonRimMat.color.setHex(isFeverActive ? 0xffd700 : 0xf59e0b);
+      neonRimMat.opacity = 0.80;
     }
 
     // Emerald heal pulse expansion & fadeout over 0.5s

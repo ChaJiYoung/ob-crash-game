@@ -40,10 +40,10 @@
   ```
 
 ## Acceptance Criteria
-- [ ] 3D 씬의 1.8m 바 카운터 앞 바닥에 30cm 폭의 선명한 경고 띠 및 발광 아크가 렌더링된다.
-- [ ] 몬스터 발밑 그림자가 공중에 뜨지 않고 실제 바닥 표면에 밀착되어 몬스터와 함께 이동한다.
-- [ ] `tests/three-stage-and-models.test.ts` 통과.
-- [ ] `npm run build` 성공.
+- [x] 3D 씬의 1.8m 바 카운터 앞 바닥에 30cm 폭의 선명한 경고 띠 및 발광 아크가 렌더링된다.
+- [x] 몬스터 발밑 그림자가 공중에 뜨지 않고 실제 바닥 표면에 밀착되어 몬스터와 함께 이동한다.
+- [x] `tests/three-stage-and-models.test.ts` 통과.
+- [x] `npm run build` 성공.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts` — 3D 스테이지 및 타겟 모델 생성 검증
@@ -63,6 +63,6 @@ Task: T02-ground-floor-defense-line-and-shadows
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

@@ -27,6 +27,9 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       expect(mesh.userData.hitRadiusM).toBeGreaterThan(0);
       expect(mesh.userData.baseScale).toBeGreaterThanOrEqual(1.6);
       expect(mesh.userData.shadowMesh).toBeInstanceOf(THREE.Mesh);
+      const shadowMesh = mesh.userData.shadowMesh as THREE.Mesh;
+      const expectedBaseY = getTargetBaseY(kind);
+      expect(shadowMesh.position.y).toBeCloseTo(-expectedBaseY + 0.01, 3);
 
       const inner = mesh.userData.inner as THREE.Group;
       expect(inner).toBeDefined();

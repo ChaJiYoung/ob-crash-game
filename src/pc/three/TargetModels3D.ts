@@ -234,8 +234,10 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   const baseScale = spec.modelScale ?? 1.85;
   inner.scale.setScalar(baseScale);
 
-  // Floor-locked circular drop shadow
+  // Floor-locked circular drop shadow (snapped directly to world ground y=0.01)
+  const baseY = getTargetBaseY(kind);
   const shadowMesh = createFloorShadowMesh(spec.hitRadiusM * 0.72);
+  shadowMesh.position.y = -baseY + 0.01;
   root.add(shadowMesh);
 
   const capMat = new THREE.MeshStandardMaterial({
@@ -524,8 +526,10 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
   const baseScale = 1.35;
   inner.scale.setScalar(baseScale);
 
-  // Floor-locked circular drop shadow
+  // Floor-locked circular drop shadow (snapped directly to world ground y=0.01)
+  const itemBaseY = getTargetBaseY('bottle' as any, true);
   const shadowMesh = createFloorShadowMesh(0.55);
+  shadowMesh.position.y = -itemBaseY + 0.01;
   root.add(shadowMesh);
 
   // Rotating glowing aura torus ring
