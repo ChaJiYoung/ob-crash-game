@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 순수 코킹-스냅 건슈팅, [SHOOT TO START] 과녁 시작, 훈련장 전면 개편 | [P01](../phases/2026-11-02-cocking-shoot-to-start-and-training/P01-cocking-shoot-to-start-and-training/phase.md) |
+| P01 | `done` | 순수 코킹-스냅 건슈팅, [SHOOT TO START] 과녁 시작, 훈련장 전면 개편 | [P01](../phases/2026-11-02-cocking-shoot-to-start-and-training/P01-cocking-shoot-to-start-and-training/phase.md) |
