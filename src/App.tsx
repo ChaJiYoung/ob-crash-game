@@ -2,9 +2,16 @@ import React from 'react';
 import { PCGamePage } from './pc/PCGamePage';
 import { MobileControllerPage } from './controller/MobileControllerPage';
 
-export function resolveRouteMode(pathname: string, search: string): 'PC' | 'CONTROLLER' {
-  if (pathname.startsWith('/controller') || new URLSearchParams(search).has('room')) {
+export function resolveRouteMode(
+  pathname: string,
+  search: string
+): 'PC' | 'CONTROLLER' | 'SANDBOX' {
+  const params = new URLSearchParams(search);
+  if (pathname.startsWith('/controller') || params.has('room')) {
     return 'CONTROLLER';
+  }
+  if (pathname.startsWith('/sensor-test') || params.get('mode') === 'test') {
+    return 'SANDBOX';
   }
   return 'PC';
 }
@@ -16,6 +23,10 @@ export const App: React.FC = () => {
 
   if (mode === 'CONTROLLER') {
     return <MobileControllerPage />;
+  }
+
+  if (mode === 'SANDBOX') {
+    return <PCGamePage initialPhase="SANDBOX" />;
   }
 
   return <PCGamePage />;

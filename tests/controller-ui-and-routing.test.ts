@@ -23,5 +23,11 @@ describe('Controller Login Validation & App Route Resolution', () => {
     expect(resolveRouteMode('/controller', '?room=AB12')).toBe('CONTROLLER');
     expect(resolveRouteMode('/controller', '')).toBe('CONTROLLER');
     expect(resolveRouteMode('/', '?room=XYZ9')).toBe('CONTROLLER');
+
+    // Sandbox Test Lab routing
+    expect(resolveRouteMode('/sensor-test', '')).toBe('SANDBOX');
+    expect(resolveRouteMode('/sensor-test/', '')).toBe('SANDBOX');
+    expect(resolveRouteMode('/', '?mode=test')).toBe('SANDBOX');
+    expect(resolveRouteMode('/play', '?mode=test')).toBe('SANDBOX');
   });
 });

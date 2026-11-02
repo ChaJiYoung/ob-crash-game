@@ -1,6 +1,6 @@
 # Task: T04 올인원 센서·영점 & 게임 모듈 테스트장(Sandbox Test Lab) UI 및 `/sensor-test` 라우팅 통합
 
-## Status: pending
+## Status: done
 
 ## Goal
 사용자가 스마트폰 조준 움직임·인식 정도(상하/좌우 각도, 감도, 영점)를 실시간 게이지로 점검하고, 동시에 피버 발동·총 쏘는 반동 모션·몬스터 6종 피격 및 처치 모습·아이템 4종 효과를 한 화면에서 마음껏 테스트할 수 있는 `SensorAndModuleTestLabOverlay` 컴포넌트와 `/sensor-test` 진입 경로를 구현합니다.
@@ -143,6 +143,6 @@ Task: T04-interactive-sensor-and-module-test-lab
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: completed

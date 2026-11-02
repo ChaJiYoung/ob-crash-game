@@ -8,6 +8,7 @@ import { QRPairingModal } from './components/QRPairingModal';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
+import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
@@ -33,6 +34,32 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [isZeroCalibrated, setIsZeroCalibrated] = useState<boolean>(false);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [diagnostics, setDiagnostics] = useState<SensorDiagnosticsState>({
+    aimX: 0,
+    aimY: 0,
+    yawDeg: 0,
+    pitchDeg: 0,
+    rollDeg: 0,
+    sensitivityX: 1.0,
+    sensitivityY: 1.0,
+    invertY: false,
+    rapidFireHold: false,
+    packetHz: 0,
+  });
+  const [stationarySpawn, setStationarySpawn] = useState<boolean>(true);
+  const [sandboxInfiniteAmmo, setSandboxInfiniteAmmo] = useState<boolean>(false);
+  const packetCountRef = useRef(0);
+  const lastPacketTimeRef = useRef(performance.now());
+  const zeroOffsetRef = useRef({ offsetX: 0, offsetY: 0 });
+  const diagnosticsRef = useRef(diagnostics);
+  diagnosticsRef.current = diagnostics;
+
+  useEffect(() => {
+    if (initialPhase === 'SANDBOX') {
+      engine.startSandboxMode();
+    }
+  }, [initialPhase, engine]);
 
   const canvasRef = useRef<GameCanvas3DHandle>(null);
   const crosshairRef = useRef<CrosshairOverlayHandle>(null);
@@ -133,10 +160,39 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'SENSOR_RELAY': {
             const p = msg.payload;
-            updateAimDirect(p.aimX, p.aimY, false);
+            packetCountRef.current += 1;
+            const now = performance.now();
+            if (now - lastPacketTimeRef.current >= 1000) {
+              setDiagnostics((prev) => ({
+                ...prev,
+                packetHz: packetCountRef.current,
+              }));
+              packetCountRef.current = 0;
+              lastPacketTimeRef.current = now;
+            }
+
+            const curDiag = diagnosticsRef.current;
+            const rawAimX = (p.aimX - zeroOffsetRef.current.offsetX) * curDiag.sensitivityX;
+            const signedAimY = curDiag.invertY ? -p.aimY : p.aimY;
+            const rawAimY = (signedAimY - zeroOffsetRef.current.offsetY) * curDiag.sensitivityY;
+            const effectiveAimX = Math.max(-1, Math.min(1, rawAimX));
+            const effectiveAimY = Math.max(-1, Math.min(1, rawAimY));
+
+            updateAimDirect(effectiveAimX, effectiveAimY, false);
+
+            setDiagnostics((prev) => ({
+              ...prev,
+              aimX: effectiveAimX,
+              aimY: effectiveAimY,
+              yawDeg: p.yawDeg,
+              pitchDeg: p.pitchDeg,
+              rollDeg: p.rollDeg,
+              rapidFireHold: p.rapidFireHold,
+              lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
+            }));
 
             if (p.snapFire) {
-              const res = engine.shootAt(p.aimX, p.aimY, performance.now());
+              const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now());
               handleShootEvent(res);
             }
 
@@ -395,6 +451,80 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             isWideScopeActive={false}
             isPowerShotActive={false}
+            shotTriggerKey={lastShootResult?.key || 0}
+          />
+          <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
+        </>
+      )}
+
+      {/* 2-C. Sandbox Mode Interactive HUD & Controls */}
+      {gamePhase === 'SANDBOX' && (
+        <>
+          <SensorAndModuleTestLabOverlay
+            roomId={roomId}
+            lanIp={lanIp}
+            pairedPlayer={pairedPlayer}
+            diagnostics={diagnostics}
+            targetsCount={engine.activeTargets.length}
+            stationarySpawn={stationarySpawn}
+            infiniteAmmo={sandboxInfiniteAmmo}
+            ammo={hudState.ammo}
+            maxAmmo={hudState.maxAmmo}
+            isReloading={hudState.isReloading}
+            feverGauge={hudState.feverGauge}
+            isFeverReady={hudState.isFeverReady}
+            isFeverActive={hudState.isFeverActive}
+            activeBuffs={hudState.activeBuffs}
+            lastJudgment={lastJudgment}
+            onToggleStationarySpawn={setStationarySpawn}
+            onSpawnTarget={(k) => engine.spawnSandboxTarget(k, { stationary: stationarySpawn })}
+            onSpawnFivePointTargets={() => engine.spawnCalibrationFiveTargets()}
+            onClearTargets={() => engine.clearSandboxTargets()}
+            onSpawnItem={(ik) => engine.spawnItemTarget(ik, performance.now())}
+            onActivateBuffImmediate={(ik) => engine.activateItemBuff(ik, performance.now())}
+            onTriggerFeverImmediate={() => {
+              engine.triggerSandboxFever(performance.now());
+              soundSynth.playFeverStart();
+            }}
+            onToggleInfiniteAmmo={(inf) => {
+              setSandboxInfiniteAmmo(inf);
+              engine.setInfiniteAmmo(inf);
+            }}
+            onTestFireShot={() => {
+              const res = engine.shootAt(
+                latestAimRef.current.aimX,
+                latestAimRef.current.aimY,
+                performance.now()
+              );
+              handleShootEvent(res);
+            }}
+            onSensitivityChange={(sx, sy, inv) => {
+              setDiagnostics((prev) => ({
+                ...prev,
+                sensitivityX: sx,
+                sensitivityY: sy,
+                invertY: inv,
+              }));
+            }}
+            onResetZeroCenter={() => {
+              zeroOffsetRef.current = {
+                offsetX: latestAimRef.current.aimX,
+                offsetY: latestAimRef.current.aimY,
+              };
+            }}
+            onStartRealGame={startCountdownAndGame}
+            onExitToLobby={() => {
+              engine.exitSandboxMode();
+              setGamePhase('PAIRING');
+            }}
+          />
+          <CrosshairOverlay
+            ref={crosshairRef}
+            aimX={latestAimRef.current.aimX}
+            aimY={latestAimRef.current.aimY}
+            isFeverActive={hudState.isFeverActive}
+            isWideScopeActive={hudState.isWideScopeActive}
+            isPowerShotActive={hudState.isPowerShotActive}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
