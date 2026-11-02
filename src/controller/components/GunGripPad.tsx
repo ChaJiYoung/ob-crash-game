@@ -8,6 +8,8 @@ export interface GunGripPadProps {
   onFeverTrigger: () => void;
   onTapFire?: () => void;
   isFeverReady?: boolean;
+  isGameWaiting?: boolean;
+  onRequestStartGame?: () => void;
 }
 
 export const GunGripPad: React.FC<GunGripPadProps> = ({
@@ -16,6 +18,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onFeverTrigger,
   onTapFire,
   isFeverReady = false,
+  isGameWaiting = false,
+  onRequestStartGame,
 }) => {
   const [isRapidFiring, setIsRapidFiring] = useState(false);
   const touchPadRef = useRef<UnifiedTouchPadController | null>(null);
@@ -199,6 +203,33 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
             <span style={{ color: '#f8fafc' }}>권총 반동 스냅 단발 사격</span>
           </div>
         </div>
+
+        {isGameWaiting && onRequestStartGame ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              triggerHaptic([50, 80]);
+              onRequestStartGame();
+            }}
+            style={{
+              marginTop: '16px',
+              width: '100%',
+              maxWidth: '340px',
+              padding: '16px',
+              borderRadius: '14px',
+              border: 'none',
+              background: 'linear-gradient(90deg, #10b981, #059669)',
+              color: '#ffffff',
+              fontSize: '18px',
+              fontWeight: 900,
+              cursor: 'pointer',
+              boxShadow: '0 6px 20px rgba(16, 185, 129, 0.45)',
+              animation: 'pulse 1.5s infinite',
+            }}
+          >
+            🚀 준비 완료! 게임 시작
+          </button>
+        ) : null}
 
         {/* 100% Auto Reload Reminder */}
         <div style={{ marginTop: '20px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>

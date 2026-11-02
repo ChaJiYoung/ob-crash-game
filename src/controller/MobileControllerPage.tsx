@@ -20,6 +20,7 @@ export const MobileControllerPage: React.FC = () => {
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
   const [player, setPlayer] = useState<PlayerProfile | undefined>();
   const [isFeverReady, setIsFeverReady] = useState<boolean>(false);
+  const [isGameWaiting, setIsGameWaiting] = useState<boolean>(true);
 
   const wsRef = useRef<WebSocket | null>(null);
   const latestOrientationRef = useRef<EulerOrientation>({ alpha: 0, beta: 0, gamma: 0 });
@@ -201,16 +202,38 @@ export const MobileControllerPage: React.FC = () => {
     setStep('PAD');
   };
 
+  const handleStartRangeMeasure = () => {
+    tracker.startRangeMeasurement();
+  };
+
+  const handleFinishRangeMeasure = () => {
+    tracker.finishRangeMeasurement();
+    setStep('PAD');
+  };
+
+  const handleRequestStartGame = () => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'START_GAME_REQUEST',
+          roomId,
+          deviceId,
+        })
+      );
+    }
+    setIsGameWaiting(false);
+  };
+
   // 6. 60Hz Sensor Streaming Loop (every 16ms)
   useEffect(() => {
-    if (step !== 'PAD') return;
+    if (step === 'LOGIN_GATE' || !sensorsActive) return;
 
     const streamInterval = setInterval(() => {
       flushSensorFrame();
     }, 16);
 
     return () => clearInterval(streamInterval);
-  }, [step, flushSensorFrame]);
+  }, [step, sensorsActive, flushSensorFrame]);
 
   if (!roomId) {
     return (
@@ -250,7 +273,13 @@ export const MobileControllerPage: React.FC = () => {
         />
       )}
 
-      {step === 'ZEROING' && <ZeroingGuide onCalibrateZero={handleCalibrateZero} />}
+      {step === 'ZEROING' && (
+        <ZeroingGuide
+          onCalibrateZero={handleCalibrateZero}
+          onStartRangeMeasure={handleStartRangeMeasure}
+          onFinishRangeMeasure={handleFinishRangeMeasure}
+        />
+      )}
 
       {step === 'PAD' && (
         <GunGripPad
@@ -268,6 +297,8 @@ export const MobileControllerPage: React.FC = () => {
             flushSensorFrame();
           }}
           isFeverReady={isFeverReady}
+          isGameWaiting={isGameWaiting}
+          onRequestStartGame={handleRequestStartGame}
         />
       )}
     </>

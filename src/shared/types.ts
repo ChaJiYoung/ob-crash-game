@@ -1,7 +1,7 @@
 export type TargetKind = 'pilgood' | 'caslight' | 'obi' | 'hanmac' | 'bottle' | 'boss';
 export type ItemBuffKind = 'power_shot' | 'wide_scope' | 'ice_freeze' | 'bar_repair';
 export type JudgmentGrade = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
-export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'GAMEOVER' | 'VICTORY';
+export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'SANDBOX' | 'GAMEOVER' | 'VICTORY';
 
 export type TutorialStep = 1 | 2 | 3 | 'COMPLETED';
 
@@ -66,6 +66,7 @@ export type ClientToServerMessage =
   | { type: 'DEVICE_CHECK'; roomId: string; deviceId: string }
   | { type: 'REGISTER_NICKNAME'; roomId: string; deviceId: string; nickname: string }
   | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string }
+  | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string }
   | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean }
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number };
@@ -75,6 +76,7 @@ export type ServerToClientMessage =
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: PlayerProfile[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string }
+  | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string }
   | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload }
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }
   | { type: 'RANKING_UPDATED'; rankings: PlayerProfile[]; updatedPlayer?: PlayerProfile }

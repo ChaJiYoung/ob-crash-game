@@ -153,6 +153,13 @@ describe('PlayerStore & WebSocket Server', () => {
     const zeroMsg = await zeroPromise;
     expect(zeroMsg.deviceId).toBe('phone-xyz-123');
 
+    // 4-B. Start game request relay
+    const startPromise = waitForMessage(pcWs, 'GAME_START_RELAY');
+    mobileWs.send(JSON.stringify({ type: 'START_GAME_REQUEST', roomId, deviceId: 'phone-xyz-123' }));
+    const startMsg = await startPromise;
+    expect(startMsg.roomId).toBe(roomId);
+    expect(startMsg.deviceId).toBe('phone-xyz-123');
+
     // 5. Sensor frame relay
     const sensorPromise = waitForMessage(pcWs, 'SENSOR_RELAY');
 

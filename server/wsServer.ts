@@ -206,6 +206,27 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'START_GAME_REQUEST': {
+            const { roomId, deviceId } = msg;
+            if (!roomId || !deviceId) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'roomId and deviceId are required for START_GAME_REQUEST',
+              });
+              return;
+            }
+            const session = roomManager.getRoom(roomId);
+            if (session && session.pcSocket) {
+              sendJson(session.pcSocket, {
+                type: 'GAME_START_RELAY',
+                roomId,
+                deviceId,
+              });
+            }
+            break;
+          }
+
           case 'SENSOR_FRAME': {
             const session = roomManager.getRoom(msg.roomId);
             if (session && session.pcSocket) {

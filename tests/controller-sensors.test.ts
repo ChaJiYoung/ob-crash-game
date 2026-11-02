@@ -116,4 +116,40 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const flickResult = tracker.computeAim(flickSample, 0.5);
     expect(flickResult.aimX).toBeGreaterThan(0.5);
   });
+
+  it('should support beta pitch elevation, 2-step custom range calibration and sensitivity scaling', () => {
+    const tracker = new GunGripTracker();
+    const zeroPose = { alpha: 180, beta: 20, gamma: -80 };
+    tracker.calibrateZero(zeroPose);
+
+    // 1. Beta tilt up (beta increases from 20 to 30) -> aimY > 0
+    const tiltUp = tracker.computeAim({ alpha: 180, beta: 30, gamma: -80 });
+    expect(tiltUp.pitchDeg).toBeCloseTo(10, 1);
+    expect(tiltUp.aimY).toBeGreaterThan(0.3);
+
+    // Tilt down (beta decreases from 20 to 10) -> aimY < 0
+    const tiltDown = tracker.computeAim({ alpha: 180, beta: 10, gamma: -80 });
+    expect(tiltDown.pitchDeg).toBeCloseTo(-10, 1);
+    expect(tiltDown.aimY).toBeLessThan(-0.3);
+
+    // 2. Range calibration: user only moves wrist 10 degrees yaw and 8 degrees pitch
+    tracker.startRangeMeasurement();
+    tracker.recordRangeSample({ alpha: 170, beta: 20, gamma: -80 }); // yaw +10
+    tracker.recordRangeSample({ alpha: 190, beta: 20, gamma: -80 }); // yaw -10
+    tracker.recordRangeSample({ alpha: 180, beta: 28, gamma: -80 }); // pitch +8
+    tracker.recordRangeSample({ alpha: 180, beta: 12, gamma: -80 }); // pitch -8
+    const updatedConfig = tracker.finishRangeMeasurement();
+
+    expect(updatedConfig.yawHalfRangeDeg).toBeLessThanOrEqual(12);
+    expect(updatedConfig.pitchHalfRangeDeg).toBeLessThanOrEqual(10);
+
+    // Now moving 10 degrees yaw hits full scale (aimX ≈ 1.0)
+    const smallFlick = tracker.computeAim({ alpha: 170, beta: 20, gamma: -80 });
+    expect(smallFlick.aimX).toBeGreaterThanOrEqual(0.9);
+
+    // 3. Sensitivity & Invert Y
+    tracker.setCalibrationConfig({ sensitivityX: 1.5, invertY: true });
+    const invertedAim = tracker.computeAim({ alpha: 180, beta: 28, gamma: -80 }); // was positive pitch
+    expect(invertedAim.aimY).toBeLessThan(0); // inverted to negative
+  });
 });
