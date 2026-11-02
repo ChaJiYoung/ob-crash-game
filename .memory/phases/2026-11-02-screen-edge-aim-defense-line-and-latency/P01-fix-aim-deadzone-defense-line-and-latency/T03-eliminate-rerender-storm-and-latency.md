@@ -50,10 +50,10 @@ PC 쪽에서 초당 60회 발생하던 최상위 페이지(`PCGamePage`)의 Reac
   - `smoothingAlpha = 0.92` (기존 0.72에서 대폭 상향, 미세 손떨림만 부드럽게 유지하고 빠른 손목 조준 이동 시 잔류 지연 없이 1:1 즉각 추적).
 
 ## Acceptance Criteria
-- [ ] `PCGamePage`에서 `setDiagnostics`가 250ms 주기로 스로틀링되어 React 리렌더링 폭풍이 완전히 제거된다.
-- [ ] 조준선 위치(`CrosshairOverlay`) 및 3D 총구 방향은 여전히 60~120fps로 매끄럽고 즉각적으로 반응한다.
-- [ ] `GunGripTracker`의 기본 스무딩 알파가 0.92로 적용되어 모바일 조준 지연이 체감상 즉시 반응 수준으로 단축된다.
-- [ ] 전체 테스트 통과 및 `npm run build` 성공.
+- [x] `PCGamePage`에서 `setDiagnostics`가 250ms 주기로 스로틀링되어 React 리렌더링 폭풍이 완전히 제거된다.
+- [x] 조준선 위치(`CrosshairOverlay`) 및 3D 총구 방향은 여전히 60~120fps로 매끄럽고 즉각적으로 반응한다.
+- [x] `GunGripTracker`의 기본 스무딩 알파가 0.92로 적용되어 모바일 조준 지연이 체감상 즉시 반응 수준으로 단축된다.
+- [x] 전체 테스트 통과 및 `npm run build` 성공.
 
 ## Validation
 - `npx vitest run tests/controller-sensors.test.ts` — 완화된 스무딩 및 센서 추적 테스트 통과
@@ -74,6 +74,6 @@ Task: T03-eliminate-rerender-storm-and-latency
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

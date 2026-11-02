@@ -129,7 +129,7 @@ export class GunGripTracker {
 
   public getEffectiveAim(
     sample: EulerOrientation,
-    smoothingAlpha = 0.72
+    smoothingAlpha = 0.92
   ): { aim: AimResult; isLocked: boolean } {
     if (this.lockedAim) {
       return { aim: this.lockedAim, isLocked: true };
@@ -221,7 +221,7 @@ export class GunGripTracker {
     return { yawDeg, pitchDeg, rollDeg };
   }
 
-  public computeAim(sample: EulerOrientation, smoothingAlpha = 0.72): AimResult {
+  public computeAim(sample: EulerOrientation, smoothingAlpha = 0.92): AimResult {
     if (!this.isCalibrated) {
       this.calibrateZero(sample);
       return { aimX: 0, aimY: 0, yawDeg: 0, pitchDeg: 0, rollDeg: 0 };

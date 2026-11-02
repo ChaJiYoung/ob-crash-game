@@ -102,6 +102,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const latestAimRef = useRef({ aimX: 0, aimY: 0 });
   const lastSentFeverReadyRef = useRef<boolean>(false);
   const lastIsCockedRef = useRef<boolean>(false);
+  const lastDiagUpdateTimeRef = useRef<number>(0);
 
   const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
     latestAimRef.current = { aimX: x, aimY: y };
@@ -195,16 +196,19 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
             updateAimDirect(effectiveAimX, effectiveAimY, false);
 
-            setDiagnostics((prev) => ({
-              ...prev,
-              aimX: effectiveAimX,
-              aimY: effectiveAimY,
-              yawDeg: p.yawDeg,
-              pitchDeg: p.pitchDeg,
-              rollDeg: p.rollDeg,
-              rapidFireHold: p.rapidFireHold,
-              lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
-            }));
+            if (now - lastDiagUpdateTimeRef.current >= 250) {
+              lastDiagUpdateTimeRef.current = now;
+              setDiagnostics((prev) => ({
+                ...prev,
+                aimX: effectiveAimX,
+                aimY: effectiveAimY,
+                yawDeg: p.yawDeg,
+                pitchDeg: p.pitchDeg,
+                rollDeg: p.rollDeg,
+                rapidFireHold: p.rapidFireHold,
+                lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
+              }));
+            }
 
             if (p.isCocked && !lastIsCockedRef.current) {
               soundSynth.playCocking();
