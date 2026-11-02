@@ -1,18 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Cocking Aim Lock, Snap Fire Stabilization, and Lock-On Visual Feedback](./plans/2026-11-02-cocking-aim-lock-and-snap-fire.md)
+[Rebalance Monster Speed, Snap Sensitivity, and Hitbox Judgment](./plans/2026-11-02-rebalance-monster-speed-snap-sensitivity-hitbox.md)
 
 ## Active Phase
-[P01 Cocking Aim Lock, Snap Fire Stabilization, and Lock-On Visual Feedback](./phases/2026-11-02-cocking-aim-lock-and-snap-fire/P01-cocking-aim-lock-and-snap-fire/phase.md)
+[P01 Rebalance Speed, Sensitivity, and Hitbox](./phases/2026-11-02-rebalance-monster-speed-snap-sensitivity-hitbox/P01-rebalance-speed-sensitivity-and-hitbox/phase.md)
 
 ## Active Task
-None (All tasks in Plan completed)
+[T01 몬스터 스폰 거리 24m 확장, 이동 속도 35% 감속 및 발사 스냅 감도(4.8 m/s²) 완화](./phases/2026-11-02-rebalance-monster-speed-snap-sensitivity-hitbox/P01-rebalance-speed-sensitivity-and-hitbox/T01-rebalance-spawn-distance-speed-and-snap-threshold.md)
 
 ## Status
-- T01 완료 (feat(controller): freeze aim coordinates on touch cocking and reset single-action on snap fire)
-- T02 완료 (feat(pc): add emerald-green lock-on visual feedback to crosshair and unify lobby snap-fire)
-- 단위/통합 테스트 53개 전원 통과 및 프로덕션 빌드 성공!
+- T01 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-모든 요구사항 구현 및 검증 완료. 사용자 최종 보고
+T01 청사진을 읽고 `src/shared/constants.ts`, `src/pc/engine/BeerCrusherEngine.ts`, `tests/controller-sensors.test.ts`, `tests/engine-judgment-and-spawn.test.ts` 파일 구현 시작
