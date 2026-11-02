@@ -25,6 +25,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const soundSynth = useMemo(() => new SoundSynthesizer(), []);
 
   const [gamePhase, setGamePhase] = useState<GamePhase>(initialPhase ?? 'PAIRING');
+  const gamePhaseRef = useRef<GamePhase>(gamePhase);
+  gamePhaseRef.current = gamePhase;
   const [roomId, setRoomId] = useState<string>('');
   const [lanIp, setLanIp] = useState<string>('');
   const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
@@ -154,13 +156,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'ZERO_CALIBRATED':
             setIsZeroCalibrated(true);
-            setGamePhase('ZEROING');
+            if (gamePhaseRef.current === 'PAIRING') {
+              setGamePhase('ZEROING');
+            }
             break;
 
           case 'GAME_COUNTDOWN_START':
           case 'GAME_START_RELAY':
             soundSynth.unlockAudio();
-            startCountdownAndGameRef.current();
+            if (gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING') {
+              startCountdownAndGameRef.current();
+            }
             break;
 
           case 'SENSOR_RELAY': {
@@ -202,7 +208,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             lastIsCockedRef.current = !!p.isCocked;
 
             if (p.snapFire) {
-              if (gamePhase === 'PAIRING' || gamePhase === 'ZEROING') {
+              const curPhase = gamePhaseRef.current;
+              if (curPhase === 'PAIRING' || curPhase === 'ZEROING') {
                 soundSynth.playShoot(false);
                 // Shoot to start target hit when aiming at monitor center
                 if (Math.abs(effectiveAimX) < 0.65 && Math.abs(effectiveAimY) < 0.65) {
@@ -371,6 +378,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const startCountdownAndGame = useCallback(() => {
     soundSynth.unlockAudio();
     if (countdownTimerRef.current) return;
+    if (gamePhaseRef.current !== 'PAIRING' && gamePhaseRef.current !== 'ZEROING') return;
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
       wsRef.current.send(

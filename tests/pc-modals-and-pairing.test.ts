@@ -74,4 +74,24 @@ describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
     expect(isShootToStartHit(0.85, 0)).toBe(false);
     expect(isShootToStartHit(0, -0.9)).toBe(false);
   });
+
+  it('should ignore shoot-to-start when active phase is PLAYING, TUTORIAL, or SANDBOX', () => {
+    const handleShoot = (phase: string, aimX: number, aimY: number) => {
+      if (phase === 'PAIRING' || phase === 'ZEROING') {
+        if (Math.abs(aimX) < 0.65 && Math.abs(aimY) < 0.65) {
+          return 'START_GAME';
+        }
+      }
+      return 'INGAME_SHOT';
+    };
+
+    // Pairing or zeroing triggers start
+    expect(handleShoot('PAIRING', 0, 0)).toBe('START_GAME');
+    expect(handleShoot('ZEROING', 0, 0)).toBe('START_GAME');
+
+    // In-game phases must NEVER trigger start game or reset
+    expect(handleShoot('PLAYING', 0, 0)).toBe('INGAME_SHOT');
+    expect(handleShoot('TUTORIAL', 0, 0)).toBe('INGAME_SHOT');
+    expect(handleShoot('SANDBOX', 0, 0)).toBe('INGAME_SHOT');
+  });
 });

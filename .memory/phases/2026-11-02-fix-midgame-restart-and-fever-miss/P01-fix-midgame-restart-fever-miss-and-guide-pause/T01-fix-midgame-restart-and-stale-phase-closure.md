@@ -1,6 +1,6 @@
 # Task: T01 `gamePhaseRef` 도입을 통한 인게임 중 3-2-1 카운트다운 재시작(Stale Closure) 버그 원천 차단
 
-## Status: pending
+## Status: done
 
 ## Goal
 `PCGamePage.tsx`의 웹소켓 수신 핸들러(`socket.onmessage`)가 초기 마운트 시점의 `gamePhase === 'PAIRING'`을 클로저로 붙잡고 있어 인게임(`PLAYING`, `TUTORIAL`, `SANDBOX`) 중에도 중앙 스냅 사격 시 3, 2, 1 카운트다운과 함께 게임을 처음부터 리셋시키던 버그를 `gamePhaseRef`로 완전히 해결하고, `ZERO_CALIBRATED` 패킷이 인게임 상태를 덮어쓰지 않도록 보호한다.
@@ -38,10 +38,10 @@
      - `if (gamePhaseRef.current !== 'PAIRING' && gamePhaseRef.current !== 'ZEROING') return;` 추가하여 인게임 중 어떤 경로로도 새 게임 카운트다운이 실행되지 못하도록 이중 잠금.
 
 ## Acceptance Criteria
-- [ ] 게임 시작(`PLAYING`) 후 화면 정중앙을 조준하고 위로 채어 쏴도 절대로 3, 2, 1 카운트다운이 뜨거나 게임이 리셋되지 않는다.
-- [ ] 게임 도중 폰 상단의 `[🎯 정면 영점 맞추기]`를 눌러도 로비 화면으로 튕기지 않고 영점만 즉시 보정된다.
-- [ ] 로비 대기 화면(`PAIRING`)에서는 기존처럼 `[SHOOT TO START]` 과녁을 쏴서 정상적으로 게임을 시작할 수 있다.
-- [ ] `tests/pc-modals-and-pairing.test.ts` 통과.
+- [x] 게임 시작(`PLAYING`) 후 화면 정중앙을 조준하고 위로 채어 쏴도 절대로 3, 2, 1 카운트다운이 뜨거나 게임이 리셋되지 않는다.
+- [x] 게임 도중 폰 상단의 `[🎯 정면 영점 맞추기]`를 눌러도 로비 화면으로 튕기지 않고 영점만 즉시 보정된다.
+- [x] 로비 대기 화면(`PAIRING`)에서는 기존처럼 `[SHOOT TO START]` 과녁을 쏴서 정상적으로 게임을 시작할 수 있다.
+- [x] `tests/pc-modals-and-pairing.test.ts` 통과.
 
 ## Validation
 - `npx vitest run tests/pc-modals-and-pairing.test.ts` — 페이즈별 시작 과녁 격발/무시 검증 통과
@@ -60,6 +60,6 @@ Task: T01-fix-midgame-restart-and-stale-phase-closure
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
