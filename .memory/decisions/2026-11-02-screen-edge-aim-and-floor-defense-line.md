@@ -1,4 +1,4 @@
-# Decisions: Screen Edge Aim Deadzone Fix and Floor Defense Line Visualization
+# Decisions: Screen Edge Aim Deadzone, Floor Defense Line, and Input Latency Fix
 
 - Date: 2026-11-02
 - Status: Confirmed
@@ -14,3 +14,11 @@
 - **Rationale**:
   - 기존에는 플레이어 앞 1.8m 침범 시 라이프가 깎이는데도 바닥에 어두운 얇은 링 하나만 깔려 있고, 몬스터 그림자가 공중(몬스터 높이)에 떠서 이동하여 침범 기준선이 전혀 보이지 않았습니다.
   - 화면을 가리는 공중 UI 대신 펍 바닥에 확실한 공사장/공장형 사선 안전 경고 라인을 깔고, 몬스터 발밑 그림자를 바닥에 밀착시켜 몬스터가 경고선을 밟는 순간을 직관적으로 즉시 인지할 수 있도록 합니다.
+
+## D03. PC React Re-render Storm Elimination and Low-Latency Aim Tracking (PC 조준 버벅임 제거 및 모바일 초저지연 입력)
+- **Chosen**:
+  1. **PC React 리렌더링 차단**: `PCGamePage.tsx`에서 매 센서 패킷(초당 60회)마다 발생하던 전체 컴포넌트 리렌더링(`setDiagnostics`)을 차단하고, 디버그 패널이 열렸을 때만 초당 4회(250ms)로 스로틀링. 조준선과 3D 총구는 direct DOM 및 Three.js 렌더 루프를 통해 60~120fps로 직결 갱신.
+  2. **모바일 센서 고무줄 지연 제거**: `GunGripTracker.ts`의 조준 평활화 필터를 기존 `0.72`에서 즉각 1:1 반응에 가까운 `0.92`로 상향하여 잔류 지연(Floaty feel)을 없애고, 모바일 전송 타이머 지터를 최소화.
+- **Rationale**:
+  - 모바일에서 60Hz로 신호가 올 때마다 최상위 페이지의 React Virtual DOM 비교가 초당 60회씩 실행되어 브라우저 메인 스레드가 마비되고 화면이 버벅였습니다.
+  - 이를 direct DOM/Three.js 파이프라인으로 전환하고 모바일 스무딩 지연을 걷어냄으로써, 손목을 꺾는 즉시 조준선이 1:1로 칼반응하는 아케이드 건슈팅 손맛을 구현합니다.
