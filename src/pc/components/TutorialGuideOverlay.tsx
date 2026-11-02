@@ -82,9 +82,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
           <div style={{ fontSize: '15px', color: '#f8fafc', fontWeight: 600, lineHeight: '1.5' }}>
             {step === 1 && (
               <>
-                마우스를 움직여 화면에 정지된 <strong>연습 캔 표적 3개</strong>를 차례대로 맞히세요!
+                스마트폰을 모니터로 겨누고 <strong>화면 터치(철컥! 장전) 후 위로 휙 채어(탕! 발사)</strong> 정지된 <strong>연습 캔 3개</strong>를 맞히세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 정중앙에 가까울수록 높은 판정(PERFECT)이 발생합니다. (남은 표적:{' '}
+                  💡 화면을 누르고 있으면 조준선이 타겟에 단단히 고정(Aim Lock)됩니다. (남은 표적:{' '}
                   <span style={{ color: '#fbbf24', fontWeight: 800 }}>{targetsRemaining}개</span>)
                 </div>
               </>
@@ -92,9 +92,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 2 && (
               <>
-                다가오는 단단한 <strong>카스 병맥주 (체력 3HP)</strong>를 빠른 <strong>연타(홀드)</strong>로 격파하세요!
+                다가오는 단단한 <strong>카스 병맥주 (체력 3HP)</strong>를 빠른 <strong>코킹 & 스냅(장전 후 위로 채기 3회)</strong>으로 격파하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 10발 소진 시 1.2초간 자동 재장전됩니다. (현재 탄창:{' '}
+                  💡 10발 소진 시 1.2초간 자동으로 재장전됩니다. (현재 탄창:{' '}
                   <span style={{ color: '#38bdf8', fontWeight: 800 }}>
                     {isReloading ? '⚡ 재장전 중...' : `${ammo}/${maxAmmo}`}
                   </span>
@@ -105,16 +105,14 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 3 && (
               <>
-                피버 게이지 100% 충전 완료!{' '}
-                <strong style={{ color: '#fbbf24' }}>[Space] 키</strong>(또는 모바일{' '}
-                <strong style={{ color: '#ef4444' }}>[🔥 FEVER]</strong>)를 눌러 피버를 발동하세요!
+                피버 게이지 100% 충전 완료! 화면을 <strong style={{ color: '#fbbf24' }}>따닥! 빠르게 두 번 탭</strong>하거나 PC <strong style={{ color: '#fbbf24' }}>[Space] 키</strong>를 눌러 피버를 발동하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
-                      🔥 피버 발동 중! 탄창 무제한 난사로 쏟아지는 타겟들을 전멸시키세요!
+                      🔥 피버 발동 중! 손을 대지 않아도 초당 10발씩 자동으로 와다다다 난사되며 콤보가 유지됩니다!
                     </span>
                   ) : (
-                    <span>💡 8초 동안 탄창 무제한(재장전 없음) & 공격력 2배로 폭주합니다!</span>
+                    <span>💡 피버 중에는 초당 10발 자동 연사 & 탄환이 빗맞아도 콤보가 100% 보존됩니다!</span>
                   )}
                 </div>
               </>
@@ -122,7 +120,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 'COMPLETED' && (
               <>
-                모든 조작법(단발 조준, 3HP 연타 격파, 피버 난사)을 완벽히 마스터하셨습니다!
+                모든 건슈팅 조작법(철컥 탕! 코킹 스냅, 더블탭 피버 자동 난사)을 완벽히 마스터하셨습니다!
                 <div style={{ fontSize: '13px', color: '#10b981', marginTop: '4px' }}>
                   이제 오비맥주 브루어리를 지키는 실전 배틀(Wave 1~5)에 도전해보세요!
                 </div>

@@ -340,16 +340,19 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                       <strong>자이로 조준</strong>: 폰을 권총처럼 쥐고 모니터를 향해 겨누어 조준
                     </li>
                     <li>
-                      <strong>단발 사격</strong>: 엄지손가락으로 화면 패드 탭
+                      <strong>코킹 장전 (Aim Lock)</strong>: 화면을 엄지로 터치하면 "철컥!" 소리와 함께 조준선 고정 (총알 발사 없음)
                     </li>
                     <li>
-                      <strong>연사 홀드</strong>: 패드를 길게 누르면 0.25초 간격으로 연속 사격
+                      <strong>스냅 단발 사격</strong>: 터치 상태에서 손목을 위로 휙 채 올리면 "탕!" 1발 격발
                     </li>
                     <li>
-                      <strong>영점 조절</strong>: 조준이 빗나갈 때 화면 상단 [영점 재설정] 탭
+                      <strong>게임 시작 (Start)</strong>: 대기 화면에서 모니터 중앙의 [SHOOT TO START] 과녁을 조준 사격
                     </li>
                     <li>
-                      <strong>피버 발동</strong>: 100% 충전 시 화면의 <kbd style={kbdStyle}>🔥 FEVER</kbd> 버튼 터치
+                      <strong>피버 모드 발동</strong>: 100% 충전 시 화면을 빠르게 따닥 더블탭 (초당 10발 자동 난사)
+                    </li>
+                    <li>
+                      <strong>영점 조절</strong>: 조준이 빗나갈 때 화면 상단 [영점 맞추기] 탭
                     </li>
                   </ul>
                 </div>

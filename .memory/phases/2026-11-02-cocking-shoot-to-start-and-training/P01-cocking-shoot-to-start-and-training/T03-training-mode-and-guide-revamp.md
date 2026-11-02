@@ -1,6 +1,6 @@
 # Task: T03 훈련장(TRAINING MODE) 3단계 미션 및 가이드 모달 신규 건슈팅 조작법 전면 개편
 
-## Status: pending
+## Status: done
 
 ## Goal
 훈련장(TRAINING MODE / Tutorial)의 안내 문구와 미션 판정에서 구시대의 "마우스 조작 / 연타(홀드) 연사" 설명을 완전히 걷어내고, 신규 건슈팅 아케이드 메커니즘("화면 터치 장전 ➔ 위로 채기 단발 사격", "더블탭 피버 발동")에 맞게 3단계 미션 가이드를 최신화한다. 아울러 게임 가이드 모달(`GuideModal`)의 조작법 탭 설명도 신규 조작법에 부합하도록 일괄 개편한다.
@@ -42,9 +42,9 @@
     - 🔄 **자동 재장전**: 10발 소진 시 1.2초 후 자동 장전
 
 ## Acceptance Criteria
-- [ ] 훈련장(TRAINING MODE) 진입 시 Step 1, 2, 3 안내 배너에 "화면 터치 장전, 위로 채기 발사, 더블탭 피버"가 정확히 안내된다.
-- [ ] 가이드 모달(조작 방법 탭)에서 홀드 연사 설명이 사라지고 신규 코킹-스냅 메커니즘과 [SHOOT TO START] 시작법이 명시된다.
-- [ ] `tests/tutorial-and-guide.test.ts` 통과.
+- [x] 훈련장(TRAINING MODE) 진입 시 Step 1, 2, 3 안내 배너에 "화면 터치 장전, 위로 채기 발사, 더블탭 피버"가 정확히 안내된다.
+- [x] 가이드 모달(조작 방법 탭)에서 홀드 연사 설명이 사라지고 신규 코킹-스냅 메커니즘과 [SHOOT TO START] 시작법이 명시된다.
+- [x] `tests/tutorial-and-guide.test.ts` 통과.
 
 ## Validation
 - `npx vitest run tests/tutorial-and-guide.test.ts` — 훈련장 가이드 및 도감 텍스트 검증
@@ -65,6 +65,6 @@ Task: T03-training-mode-and-guide-revamp
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
