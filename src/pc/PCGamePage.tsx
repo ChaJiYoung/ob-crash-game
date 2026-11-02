@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { BeerCrusherEngine, EngineShootResult } from './engine/BeerCrusherEngine';
-import { GameCanvas3D } from './components/GameCanvas3D';
+import { GameCanvas3D, GameCanvas3DHandle } from './components/GameCanvas3D';
 import { ArcadeOverlayHUD } from './components/ArcadeOverlayHUD';
-import { CrosshairOverlay } from './components/CrosshairOverlay';
+import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
 import { JudgmentBanner } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
 import { ResultRankingModal } from './components/ResultRankingModal';
@@ -27,8 +27,9 @@ export const PCGamePage: React.FC = () => {
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
 
-  const [aimX, setAimX] = useState<number>(0);
-  const [aimY, setAimY] = useState<number>(0);
+  const canvasRef = useRef<GameCanvas3DHandle>(null);
+  const crosshairRef = useRef<CrosshairOverlayHandle>(null);
+
   const [lastJudgment, setLastJudgment] = useState<{ grade: JudgmentGrade; key: number }>({
     grade: 'GOOD',
     key: 0,
@@ -61,9 +62,14 @@ export const PCGamePage: React.FC = () => {
   pairedPlayerRef.current = pairedPlayer;
 
   const latestAimRef = useRef({ aimX: 0, aimY: 0 });
-  latestAimRef.current = { aimX, aimY };
 
-  const handleShootEvent = (result: EngineShootResult) => {
+  const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
+    latestAimRef.current = { aimX: x, aimY: y };
+    canvasRef.current?.setAim(x, y, immediate);
+    crosshairRef.current?.updatePosition(x, y);
+  }, []);
+
+  const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (result.fired) {
       const isFever = engine.scoreManager.getState().isFeverActive;
       soundSynth.playShoot(isFever);
@@ -74,7 +80,7 @@ export const PCGamePage: React.FC = () => {
       setLastJudgment({ grade: result.grade, key: Date.now() });
       setLastShootResult({ result, key: Date.now() });
     }
-  };
+  }, [engine, soundSynth]);
 
   // 1. WebSocket Setup (Isolated from pairedPlayer re-renders to prevent socket close loop)
   useEffect(() => {
@@ -114,9 +120,7 @@ export const PCGamePage: React.FC = () => {
 
           case 'SENSOR_RELAY': {
             const p = msg.payload;
-            latestAimRef.current = { aimX: p.aimX, aimY: p.aimY };
-            setAimX(p.aimX);
-            setAimY(p.aimY);
+            updateAimDirect(p.aimX, p.aimY, false);
 
             if (p.snapFire) {
               const res = engine.shootAt(p.aimX, p.aimY, performance.now());
@@ -159,6 +163,15 @@ export const PCGamePage: React.FC = () => {
               setPairedPlayer(msg.updatedPlayer);
             }
             break;
+
+          case 'ERROR':
+            if (msg.code === 'CONTROLLER_DISCONNECTED') {
+              if (rapidFireTimerRef.current) {
+                clearInterval(rapidFireTimerRef.current);
+                rapidFireTimerRef.current = null;
+              }
+            }
+            break;
         }
       } catch (err) {
         console.error('Error handling WebSocket message', err);
@@ -169,7 +182,7 @@ export const PCGamePage: React.FC = () => {
       if (rapidFireTimerRef.current) clearInterval(rapidFireTimerRef.current);
       socket.close();
     };
-  }, [engine, soundSynth]);
+  }, [engine, soundSynth, updateAimDirect, handleShootEvent]);
 
   // 2. Engine HUD Tick
   useEffect(() => {
@@ -229,27 +242,27 @@ export const PCGamePage: React.FC = () => {
     }
   };
 
-  const handleStartGame = () => {
+  const handleStartGame = useCallback(() => {
     engine.startGame();
     setGamePhase('PLAYING');
     setIsNewRecord(false);
-  };
+  }, [engine]);
 
-  const handleStartTutorial = () => {
+  const handleStartTutorial = useCallback(() => {
     setIsGuideOpen(false);
     engine.startTutorialMode();
     setGamePhase('TUTORIAL');
-  };
+  }, [engine]);
 
-  const handleExitTutorial = () => {
+  const handleExitTutorial = useCallback(() => {
     engine.exitTutorialMode();
     setGamePhase('PAIRING');
-  };
+  }, [engine]);
 
-  const handleReturnToLobby = () => {
+  const handleReturnToLobby = useCallback(() => {
     engine.gamePhase = 'PAIRING';
     setGamePhase('PAIRING');
-  };
+  }, [engine]);
 
   const bossEntity = engine.getBossEntity();
 
@@ -257,12 +270,12 @@ export const PCGamePage: React.FC = () => {
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       {/* 1. 3D WebGL Canvas */}
       <GameCanvas3D
+        ref={canvasRef}
         engine={engine}
-        aimX={aimX}
-        aimY={aimY}
+        aimX={0}
+        aimY={0}
         onAimChange={(x, y) => {
-          setAimX(x);
-          setAimY(y);
+          updateAimDirect(x, y, true);
         }}
         onShoot={handleShootEvent}
         soundSynth={soundSynth}
@@ -292,8 +305,9 @@ export const PCGamePage: React.FC = () => {
             onOpenGuide={() => setIsGuideOpen(true)}
           />
           <CrosshairOverlay
-            aimX={aimX}
-            aimY={aimY}
+            ref={crosshairRef}
+            aimX={latestAimRef.current.aimX}
+            aimY={latestAimRef.current.aimY}
             isFeverActive={hudState.isFeverActive}
             isWideScopeActive={hudState.isWideScopeActive}
             isPowerShotActive={hudState.isPowerShotActive}
@@ -318,8 +332,9 @@ export const PCGamePage: React.FC = () => {
             onExitToLobby={handleExitTutorial}
           />
           <CrosshairOverlay
-            aimX={aimX}
-            aimY={aimY}
+            ref={crosshairRef}
+            aimX={latestAimRef.current.aimX}
+            aimY={latestAimRef.current.aimY}
             isFeverActive={hudState.isFeverActive}
             isWideScopeActive={false}
             isPowerShotActive={false}

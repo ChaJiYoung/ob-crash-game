@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 
 export function aimToViewportPercent(
   aimX: number,
@@ -59,6 +59,10 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
   };
 }
 
+export interface CrosshairOverlayHandle {
+  updatePosition: (aimX: number, aimY: number) => void;
+}
+
 export interface CrosshairOverlayProps {
   aimX: number;
   aimY: number;
@@ -68,46 +72,63 @@ export interface CrosshairOverlayProps {
   shotTriggerKey?: number;
 }
 
-export const CrosshairOverlay: React.FC<CrosshairOverlayProps> = ({
-  aimX,
-  aimY,
-  isFeverActive = false,
-  isWideScopeActive = false,
-  isPowerShotActive = false,
-  shotTriggerKey = 0,
-}) => {
-  const { leftPercent, topPercent } = aimToViewportPercent(aimX, aimY);
-  const spec = getCrosshairVisualSpec({ isFeverActive, isWideScopeActive, isPowerShotActive });
+export const CrosshairOverlay = React.memo(
+  forwardRef<CrosshairOverlayHandle, CrosshairOverlayProps>(({
+    aimX,
+    aimY,
+    isFeverActive = false,
+    isWideScopeActive = false,
+    isPowerShotActive = false,
+    shotTriggerKey = 0,
+  }, ref) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const { leftPercent, topPercent } = aimToViewportPercent(aimX, aimY);
+    const spec = getCrosshairVisualSpec({ isFeverActive, isWideScopeActive, isPowerShotActive });
 
-  const [isKicking, setIsKicking] = useState(false);
+    useImperativeHandle(
+      ref,
+      () => ({
+        updatePosition(nextAimX: number, nextAimY: number) {
+          if (containerRef.current) {
+            const pos = aimToViewportPercent(nextAimX, nextAimY);
+            containerRef.current.style.left = `${pos.leftPercent}%`;
+            containerRef.current.style.top = `${pos.topPercent}%`;
+          }
+        },
+      }),
+      []
+    );
 
-  useEffect(() => {
-    if (shotTriggerKey > 0) {
-      setIsKicking(true);
-      const timer = setTimeout(() => setIsKicking(false), 120);
-      return () => clearTimeout(timer);
-    }
-  }, [shotTriggerKey]);
+    const [isKicking, setIsKicking] = useState(false);
 
-  const cornerSize = spec.sizePx * 0.24;
+    useEffect(() => {
+      if (shotTriggerKey > 0) {
+        setIsKicking(true);
+        const timer = setTimeout(() => setIsKicking(false), 120);
+        return () => clearTimeout(timer);
+      }
+    }, [shotTriggerKey]);
 
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: `${leftPercent}%`,
-        top: `${topPercent}%`,
-        width: `${spec.sizePx}px`,
-        height: `${spec.sizePx}px`,
-        transform: `translate(-50%, -50%) scale(${isKicking ? 1.28 : 1.0})`,
-        pointerEvents: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 40,
-        transition: 'transform 0.08s ease-out, left 0.04s linear, top 0.04s linear',
-      }}
-    >
+    const cornerSize = spec.sizePx * 0.24;
+
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          position: 'absolute',
+          left: `${leftPercent}%`,
+          top: `${topPercent}%`,
+          width: `${spec.sizePx}px`,
+          height: `${spec.sizePx}px`,
+          transform: `translate(-50%, -50%) scale(${isKicking ? 1.28 : 1.0})`,
+          pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 40,
+          transition: 'transform 0.08s ease-out',
+        }}
+      >
       {/* 4 Corner Targeting Brackets ┌ ┐ └ ┘ */}
       {/* Top-Left ┌ */}
       <div
@@ -229,4 +250,5 @@ export const CrosshairOverlay: React.FC<CrosshairOverlayProps> = ({
       )}
     </div>
   );
-};
+}));
+

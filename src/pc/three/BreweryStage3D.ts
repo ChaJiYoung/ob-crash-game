@@ -11,6 +11,62 @@ export interface BreweryStageRig {
   updateStageAnimation: (elapsedSec: number, isFeverActive: boolean, dangerAlert: boolean) => void;
 }
 
+let cachedHdriTexture: THREE.DataTexture | null = null;
+let hdriLoadCallbacks: Array<(tex: THREE.DataTexture) => void> | null = null;
+
+export function applyCachedHdriToScene(scene: THREE.Scene): void {
+  if (cachedHdriTexture) {
+    scene.environment = cachedHdriTexture;
+    scene.background = cachedHdriTexture;
+    scene.backgroundBlurriness = 0.08;
+    scene.backgroundIntensity = 0.72;
+    return;
+  }
+
+  if (typeof window === 'undefined') return;
+
+  if (hdriLoadCallbacks !== null) {
+    hdriLoadCallbacks.push((texture) => {
+      scene.environment = texture;
+      scene.background = texture;
+      scene.backgroundBlurriness = 0.08;
+      scene.backgroundIntensity = 0.72;
+    });
+    return;
+  }
+
+  hdriLoadCallbacks = [
+    (texture) => {
+      scene.environment = texture;
+      scene.background = texture;
+      scene.backgroundBlurriness = 0.08;
+      scene.backgroundIntensity = 0.72;
+    },
+  ];
+
+  try {
+    const rgbeLoader = new RGBELoader();
+    rgbeLoader.load(
+      '/hdri/pub_interior_2k.hdr',
+      (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        cachedHdriTexture = texture;
+        const cbs = hdriLoadCallbacks || [];
+        hdriLoadCallbacks = null;
+        cbs.forEach((cb) => cb(texture));
+      },
+      undefined,
+      (err) => {
+        console.warn('Failed to load HDRI texture, using canvas fallback:', err);
+        hdriLoadCallbacks = null;
+      }
+    );
+  } catch (err) {
+    console.warn('RGBELoader failed to initialize:', err);
+    hdriLoadCallbacks = null;
+  }
+}
+
 export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   const root = new THREE.Group();
   root.name = 'BreweryStage3D';
@@ -39,21 +95,8 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
     }
   }
 
-  // Load Real CC0 2K Pub HDRI Environment in Browser
-  if (typeof window !== 'undefined') {
-    try {
-      const rgbeLoader = new RGBELoader();
-      rgbeLoader.load('/hdri/pub_interior_2k.hdr', (texture) => {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        scene.environment = texture;
-        scene.background = texture;
-        scene.backgroundBlurriness = 0.08;
-        scene.backgroundIntensity = 0.72;
-      });
-    } catch {
-      // Keep canvas fallback
-    }
-  }
+  // Load Real CC0 2K Pub HDRI Environment in Browser (Singleton cached)
+  applyCachedHdriToScene(scene);
 
   // 2. Warm Brewery Wooden Floor (100m x 100m)
   const floorGeo = new THREE.PlaneGeometry(100, 100, 32, 32);
