@@ -6,4 +6,4 @@ Three.js 3D 카메라의 실제 뷰-투영 행렬(`Vector3.project(camera)`)을 
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 3D 카메라 원근 투영 1:1 피격 판정 및 스냅 감도/연속 격발 튜닝 | [P01](../phases/2026-11-02-camera-projection-hitbox-and-snap-tuning/P01-camera-projection-and-continuous-snap/phase.md) |
+| P01 | `done` | 3D 카메라 원근 투영 1:1 피격 판정 및 스냅 감도/연속 격발 튜닝 | [P01](../phases/2026-11-02-camera-projection-hitbox-and-snap-tuning/P01-camera-projection-and-continuous-snap/phase.md) |
