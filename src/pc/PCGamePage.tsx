@@ -92,6 +92,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const wsRef = useRef<WebSocket | null>(null);
   const rapidFireTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const feverAutoFireTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pairedPlayerRef = useRef<PlayerProfile | undefined>(undefined);
   pairedPlayerRef.current = pairedPlayer;
 
@@ -147,6 +148,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'CONTROLLER_PAIRED':
             setPairedPlayer(msg.player);
+            soundSynth.unlockAudio();
             break;
 
           case 'ZERO_CALIBRATED':
@@ -155,6 +157,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             break;
 
           case 'GAME_START_RELAY':
+            soundSynth.unlockAudio();
             startCountdownAndGameRef.current();
             break;
 
@@ -249,6 +252,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
     return () => {
       if (rapidFireTimerRef.current) clearInterval(rapidFireTimerRef.current);
+      if (feverAutoFireTimerRef.current) clearInterval(feverAutoFireTimerRef.current);
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
       socket.close();
     };
@@ -280,6 +284,22 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         isWideScopeActive,
         isPowerShotActive,
       });
+
+      // 100% Auto-Rapid-Fire loop during active Fever mode
+      if (feverState.isFeverActive && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
+        if (!feverAutoFireTimerRef.current) {
+          feverAutoFireTimerRef.current = setInterval(() => {
+            const curAim = latestAimRef.current;
+            const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now());
+            handleShootEvent(res);
+          }, WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS);
+        }
+      } else {
+        if (feverAutoFireTimerRef.current) {
+          clearInterval(feverAutoFireTimerRef.current);
+          feverAutoFireTimerRef.current = null;
+        }
+      }
 
       // Sync fever ready status to mobile controller
       if (roomId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {

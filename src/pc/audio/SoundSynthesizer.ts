@@ -32,6 +32,10 @@ export class SoundSynthesizer {
     return this.ctx;
   }
 
+  public unlockAudio(): void {
+    this.ensureContext();
+  }
+
   public playShoot(isFever = false): void {
     const ctx = this.ensureContext();
     if (!ctx) return;
