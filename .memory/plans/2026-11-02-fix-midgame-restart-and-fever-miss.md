@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 인게임 리셋 버그 차단, 피버 MISS 배너/콤보 보호, 가이드 일시정지 및 3-2-1 재개 카운트다운 | [P01](../phases/2026-11-02-fix-midgame-restart-and-fever-miss/P01-fix-midgame-restart-fever-miss-and-guide-pause/phase.md) |
+| P01 | `done` | 인게임 리셋 버그 차단, 피버 MISS 배너/콤보 보호, 가이드 일시정지 및 3-2-1 재개 카운트다운 | [P01](../phases/2026-11-02-fix-midgame-restart-and-fever-miss/P01-fix-midgame-restart-fever-miss-and-guide-pause/phase.md) |
