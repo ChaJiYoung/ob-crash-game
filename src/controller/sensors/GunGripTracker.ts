@@ -52,6 +52,7 @@ export class GunGripTracker {
   private smoothedAimX = 0;
   private smoothedAimY = 0;
   private hasSmoothedSample = false;
+  private lockedAim: AimResult | null = null;
 
   private config: AimCalibrationConfig = {
     yawHalfRangeDeg: 25,
@@ -110,6 +111,30 @@ export class GunGripTracker {
     this.smoothedAimX = 0;
     this.smoothedAimY = 0;
     this.hasSmoothedSample = false;
+    this.lockedAim = null;
+  }
+
+  public lockAim(sample: EulerOrientation): AimResult {
+    this.lockedAim = this.computeAim(sample);
+    return this.lockedAim;
+  }
+
+  public unlockAim(): void {
+    this.lockedAim = null;
+  }
+
+  public isAimLocked(): boolean {
+    return this.lockedAim !== null;
+  }
+
+  public getEffectiveAim(
+    sample: EulerOrientation,
+    smoothingAlpha = 0.72
+  ): { aim: AimResult; isLocked: boolean } {
+    if (this.lockedAim) {
+      return { aim: this.lockedAim, isLocked: true };
+    }
+    return { aim: this.computeAim(sample, smoothingAlpha), isLocked: false };
   }
 
   public getCalibrationConfig(): AimCalibrationConfig {

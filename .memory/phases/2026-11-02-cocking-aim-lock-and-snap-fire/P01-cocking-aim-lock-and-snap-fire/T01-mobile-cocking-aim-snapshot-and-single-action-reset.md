@@ -1,6 +1,6 @@
 # Task: T01 모바일 컨트롤러 코킹 시 조준 좌표 동결 스냅샷 및 1발 격발 즉시 자동 해제(리볼버 사이클) 구현
 
-## Status: pending
+## Status: done
 
 ## Goal
 모바일 화면 터치 시점(`PointerDown`, 코킹 장전)의 센서 조준 좌표(`aimX`, `aimY`)를 스냅샷하여 화면을 누르고 있는 동안 조준선이 흔들리지 않도록 고정하고, 손목을 위로 휙 채어올려 1발이 발사(`snapFire`)되는 즉시 코킹 및 조준 고정을 자동으로 해제하여(단발 리볼버 사이클) 손목 반동으로 인한 연발 오발을 방지한다. 피버 타임 중에는 조준 고정을 비활성화하여 자유 스윕 조준을 보장한다.
@@ -87,6 +87,6 @@ Task: T01-mobile-cocking-aim-snapshot-and-single-action-reset
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

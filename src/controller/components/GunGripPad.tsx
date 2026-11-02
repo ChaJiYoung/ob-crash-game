@@ -7,6 +7,7 @@ export interface GunGripPadProps {
   onFeverTrigger: () => void;
   onCockingChange?: (cocked: boolean) => void;
   isFeverReady?: boolean;
+  isCocked?: boolean;
 }
 
 export const GunGripPad: React.FC<GunGripPadProps> = ({
@@ -14,8 +15,10 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onFeverTrigger,
   onCockingChange,
   isFeverReady = false,
+  isCocked: isCockedProp,
 }) => {
-  const [isCocked, setIsCocked] = useState(false);
+  const [internalCocked, setInternalCocked] = useState(false);
+  const isCocked = isCockedProp !== undefined ? isCockedProp : internalCocked;
   const touchPadRef = useRef<UnifiedTouchPadController | null>(null);
 
   const onFeverTriggerRef = useRef(onFeverTrigger);
@@ -39,7 +42,7 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
-    setIsCocked(true);
+    setInternalCocked(true);
     triggerHaptic(35);
     onCockingChangeRef.current?.(true);
     touchPadRef.current?.handlePointerDown();
@@ -47,7 +50,7 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
 
   const handlePointerUp = (e: React.PointerEvent) => {
     e.preventDefault();
-    setIsCocked(false);
+    setInternalCocked(false);
     onCockingChangeRef.current?.(false);
     touchPadRef.current?.handlePointerUp();
   };

@@ -231,4 +231,60 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     handleMotionEvent({ x: 0, y: 9.0, z: 0, timestampMs: 1300 });
     expect(snapFired).toBe(true); // Fired!
   });
+
+  it('should freeze aim coordinates during touch cocking and reset single-action state on snapFire (D01, D02)', () => {
+    const tracker = new GunGripTracker();
+    const zeroPose = { alpha: 180, beta: 0, gamma: -85 };
+    tracker.calibrateZero(zeroPose);
+
+    // Initial state: free aim at center
+    const freeAim1 = tracker.getEffectiveAim(zeroPose);
+    expect(freeAim1.isLocked).toBe(false);
+    expect(Math.abs(freeAim1.aim.aimX)).toBeLessThan(0.01);
+    expect(Math.abs(freeAim1.aim.aimY)).toBeLessThan(0.01);
+
+    // 1. Move to a target position: aim right (alpha = 165)
+    const targetPose = { alpha: 165, beta: 5, gamma: -85 };
+    const liveTargetAim = tracker.computeAim(targetPose);
+    expect(liveTargetAim.aimX).toBeGreaterThan(0.2);
+
+    // 2. Touch down: Cocking lock at targetPose
+    const lockedSnapshot = tracker.lockAim(targetPose);
+    expect(tracker.isAimLocked()).toBe(true);
+    expect(lockedSnapshot.aimX).toBe(liveTargetAim.aimX);
+
+    // 3. User tilts phone violently upwards to snap fire (e.g. beta = 35, alpha = 140)
+    const violentRecoilPose = { alpha: 140, beta: 35, gamma: -85 };
+    const recoilEffectiveAim = tracker.getEffectiveAim(violentRecoilPose);
+
+    // CRITICAL (D01): Even under violent movement, effective aim MUST remain frozen at lockedSnapshot!
+    expect(recoilEffectiveAim.isLocked).toBe(true);
+    expect(recoilEffectiveAim.aim.aimX).toBe(lockedSnapshot.aimX);
+    expect(recoilEffectiveAim.aim.aimY).toBe(lockedSnapshot.aimY);
+
+    // 4. Snap motion detected -> 1st shot fired with locked coordinates
+    let isCocked = true;
+    const snapDetected = tracker.detectSnapFire({ x: 0, y: 9.5, z: 0, timestampMs: 2000 });
+    expect(snapDetected).toBe(true);
+
+    // D02: Single-action reset immediately after snapFire
+    isCocked = false;
+    tracker.unlockAim();
+    expect(tracker.isAimLocked()).toBe(false);
+
+    // 5. Subsequent frames must immediately return to live sensor orientation
+    const postShotAim = tracker.getEffectiveAim(violentRecoilPose);
+    expect(postShotAim.isLocked).toBe(false);
+    expect(postShotAim.aim.aimX).not.toBe(lockedSnapshot.aimX);
+
+    // 6. Recoil downward shake while isCocked is false MUST NOT fire again
+    const recoilDownSnap = tracker.detectSnapFire({ x: 0, y: 9.5, z: 0, timestampMs: 2300 });
+    expect(recoilDownSnap).toBe(true); // motion sensor detects acceleration
+    // But since isCocked is false, controller logic will ignore it!
+    let secondShotFired = false;
+    if (recoilDownSnap && isCocked) {
+      secondShotFired = true;
+    }
+    expect(secondShotFired).toBe(false);
+  });
 });

@@ -22,6 +22,7 @@ export const MobileControllerPage: React.FC = () => {
   const [isFeverReady, setIsFeverReady] = useState<boolean>(false);
   const [isGameWaiting, setIsGameWaiting] = useState<boolean>(true);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
+  const [isCockedState, setIsCockedState] = useState<boolean>(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -126,7 +127,8 @@ export const MobileControllerPage: React.FC = () => {
       return;
     }
 
-    const aim = tracker.computeAim(latestOrientationRef.current);
+    const effective = tracker.getEffectiveAim(latestOrientationRef.current);
+    const aim = effective.aim;
     const snapFire = snapFireRef.current;
     snapFireRef.current = false;
 
@@ -176,6 +178,14 @@ export const MobileControllerPage: React.FC = () => {
         });
         if (snap && isCockedRef.current) {
           snapFireRef.current = true;
+          // Send 1st frame with snapFire and locked aim coordinates
+          flushSensorFrame();
+
+          // D02: Single-action reset immediately after snapFire
+          isCockedRef.current = false;
+          tracker.unlockAim();
+          setIsCockedState(false);
+          // Send 2nd frame with uncocked state and live coordinates
           flushSensorFrame();
         }
       }
@@ -197,6 +207,9 @@ export const MobileControllerPage: React.FC = () => {
 
   // 5. Zero Calibration
   const handleCalibrateZero = useCallback(() => {
+    tracker.unlockAim();
+    isCockedRef.current = false;
+    setIsCockedState(false);
     tracker.calibrateZero(latestOrientationRef.current);
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
@@ -324,13 +337,23 @@ export const MobileControllerPage: React.FC = () => {
 
       {step === 'PAD' && (
         <GunGripPad
+          isCocked={isCockedState}
           onRecalibrateZero={handleCalibrateZero}
           onFeverTrigger={() => {
             feverTriggeredRef.current = true;
+            isCockedRef.current = false;
+            tracker.unlockAim();
+            setIsCockedState(false);
             flushSensorFrame();
           }}
           onCockingChange={(cocked) => {
             isCockedRef.current = cocked;
+            setIsCockedState(cocked);
+            if (cocked) {
+              tracker.lockAim(latestOrientationRef.current);
+            } else {
+              tracker.unlockAim();
+            }
             flushSensorFrame();
           }}
           isFeverReady={isFeverReady}
