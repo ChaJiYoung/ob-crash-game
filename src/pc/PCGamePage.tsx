@@ -158,6 +158,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'ZERO_CALIBRATED':
             setIsZeroCalibrated(true);
+            zeroOffsetRef.current = { offsetX: 0, offsetY: 0 };
             if (gamePhaseRef.current === 'PAIRING') {
               setGamePhase('ZEROING');
             }

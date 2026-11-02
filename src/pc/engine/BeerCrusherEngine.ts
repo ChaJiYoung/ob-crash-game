@@ -403,12 +403,17 @@ export class BeerCrusherEngine {
     this.activeBuffUntilMs.set(kind, nowMs + spec.durationMs);
   }
 
-  public isBuffActive(kind: ItemBuffKind, nowMs: number = Date.now()): boolean {
+  public isBuffActive(
+    kind: ItemBuffKind,
+    nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now()
+  ): boolean {
     const untilMs = this.activeBuffUntilMs.get(kind);
     return untilMs !== undefined && untilMs > nowMs;
   }
 
-  public getActiveBuffs(nowMs: number = Date.now()): ActiveBuffState[] {
+  public getActiveBuffs(
+    nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now()
+  ): ActiveBuffState[] {
     const list: ActiveBuffState[] = [];
     for (const [kind, untilMs] of this.activeBuffUntilMs.entries()) {
       if (untilMs > nowMs) {
