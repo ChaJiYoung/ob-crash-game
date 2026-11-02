@@ -359,6 +359,11 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               📖 게임 가이드 & 튜토리얼 (조작법 · 몬스터 도감 · 아이템)
             </button>
           )}
+
+          {/* Sound AutoPlay Tip */}
+          <div style={{ marginTop: '4px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
+            🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.
+          </div>
         </div>
       </div>
     </div>

@@ -156,6 +156,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             setGamePhase('ZEROING');
             break;
 
+          case 'GAME_COUNTDOWN_START':
           case 'GAME_START_RELAY':
             soundSynth.unlockAudio();
             startCountdownAndGameRef.current();
@@ -353,7 +354,19 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [engine]);
 
   const startCountdownAndGame = useCallback(() => {
+    soundSynth.unlockAudio();
     if (countdownTimerRef.current) return;
+
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'START_GAME_REQUEST',
+          roomId,
+          deviceId: pairedPlayerRef.current?.deviceId || 'pc-host',
+        })
+      );
+    }
+
     setCountdownSec(3);
 
     let sec = 3;
@@ -370,7 +383,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         handleStartGame();
       }
     }, 1000);
-  }, [handleStartGame]);
+  }, [handleStartGame, roomId, soundSynth]);
 
   const startCountdownAndGameRef = useRef(startCountdownAndGame);
   startCountdownAndGameRef.current = startCountdownAndGame;

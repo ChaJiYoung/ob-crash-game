@@ -95,28 +95,29 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
       >
         <button
           onClick={() => {
-            triggerHaptic(40);
+            triggerHaptic([40, 60]);
             onRecalibrateZero();
           }}
           style={{
             height: '100%',
             width: '100%',
             maxWidth: '360px',
-            borderRadius: '10px',
-            border: '1px solid #f59e0b',
-            background: 'rgba(19, 26, 41, 0.85)',
+            borderRadius: '12px',
+            border: '2px solid #f59e0b',
+            background: 'linear-gradient(180deg, rgba(245, 158, 11, 0.25), rgba(19, 26, 41, 0.95))',
             color: '#fbbf24',
-            fontSize: '14px',
-            fontWeight: 800,
+            fontSize: '15px',
+            fontWeight: 900,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
             cursor: 'pointer',
+            boxShadow: '0 0 16px rgba(245, 158, 11, 0.2)',
           }}
         >
           <span>🎯</span>
-          <span>정면 영점 재설정 (Recalibrate)</span>
+          <span>정면 영점 맞추기 (모니터 겨누고 탭)</span>
         </button>
       </div>
 

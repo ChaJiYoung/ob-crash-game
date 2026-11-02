@@ -153,12 +153,20 @@ describe('PlayerStore & WebSocket Server', () => {
     const zeroMsg = await zeroPromise;
     expect(zeroMsg.deviceId).toBe('phone-xyz-123');
 
-    // 4-B. Start game request relay
+    // 4-B. Start game request relay & 2-way countdown broadcast
     const startPromise = waitForMessage(pcWs, 'GAME_START_RELAY');
+    const countdownMobilePromise = waitForMessage(mobileWs, 'GAME_COUNTDOWN_START');
+    const countdownPcPromise = waitForMessage(pcWs, 'GAME_COUNTDOWN_START');
     mobileWs.send(JSON.stringify({ type: 'START_GAME_REQUEST', roomId, deviceId: 'phone-xyz-123' }));
     const startMsg = await startPromise;
+    const countdownMobileMsg = await countdownMobilePromise;
+    const countdownPcMsg = await countdownPcPromise;
     expect(startMsg.roomId).toBe(roomId);
     expect(startMsg.deviceId).toBe('phone-xyz-123');
+    expect(countdownMobileMsg.roomId).toBe(roomId);
+    expect(countdownMobileMsg.sec).toBe(3);
+    expect(countdownPcMsg.roomId).toBe(roomId);
+    expect(countdownPcMsg.sec).toBe(3);
 
     // 5. Sensor frame relay
     const sensorPromise = waitForMessage(pcWs, 'SENSOR_RELAY');

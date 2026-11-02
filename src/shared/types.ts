@@ -76,6 +76,8 @@ export type ServerToClientMessage =
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: PlayerProfile[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string }
+  | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
+  | { type: 'GAME_STARTED'; roomId: string }
   | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string }
   | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload }
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }

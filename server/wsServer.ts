@@ -217,12 +217,26 @@ export async function createBeerCrusherServer(options?: {
               return;
             }
             const session = roomManager.getRoom(roomId);
-            if (session && session.pcSocket) {
-              sendJson(session.pcSocket, {
-                type: 'GAME_START_RELAY',
-                roomId,
-                deviceId,
-              });
+            if (session) {
+              if (session.pcSocket) {
+                sendJson(session.pcSocket, {
+                  type: 'GAME_COUNTDOWN_START',
+                  roomId,
+                  sec: 3,
+                });
+                sendJson(session.pcSocket, {
+                  type: 'GAME_START_RELAY',
+                  roomId,
+                  deviceId,
+                });
+              }
+              if (session.controllerSocket) {
+                sendJson(session.controllerSocket, {
+                  type: 'GAME_COUNTDOWN_START',
+                  roomId,
+                  sec: 3,
+                });
+              }
             }
             break;
           }

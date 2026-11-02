@@ -21,8 +21,11 @@ export const MobileControllerPage: React.FC = () => {
   const [player, setPlayer] = useState<PlayerProfile | undefined>();
   const [isFeverReady, setIsFeverReady] = useState<boolean>(false);
   const [isGameWaiting, setIsGameWaiting] = useState<boolean>(true);
+  const [countdownSec, setCountdownSec] = useState<number | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
+  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const startCountdownRef = useRef<(sec?: number) => void>(() => {});
   const latestOrientationRef = useRef<EulerOrientation>({ alpha: 0, beta: 0, gamma: 0 });
   const snapFireRef = useRef<boolean>(false);
   const rapidFireHoldRef = useRef<boolean>(false);
@@ -81,6 +84,10 @@ export const MobileControllerPage: React.FC = () => {
             }
             break;
 
+          case 'GAME_COUNTDOWN_START':
+            startCountdownRef.current(msg.sec || 3);
+            break;
+
           case 'ERROR':
             if (msg.code === 'PC_DISCONNECTED') {
               alert('PC 호스트와의 연결이 끊어졌습니다.');
@@ -93,6 +100,7 @@ export const MobileControllerPage: React.FC = () => {
     };
 
     return () => {
+      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
       socket.close();
     };
   }, [roomId, deviceId]);
@@ -186,7 +194,7 @@ export const MobileControllerPage: React.FC = () => {
   };
 
   // 5. Zero Calibration
-  const handleCalibrateZero = () => {
+  const handleCalibrateZero = useCallback(() => {
     tracker.calibrateZero(latestOrientationRef.current);
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
@@ -200,7 +208,38 @@ export const MobileControllerPage: React.FC = () => {
     }
 
     setStep('PAD');
-  };
+  }, [tracker, roomId, deviceId]);
+
+  const startCountdown = useCallback(
+    (initialSec = 3) => {
+      if (countdownTimerRef.current) {
+        clearInterval(countdownTimerRef.current);
+      }
+      setCountdownSec(initialSec);
+      setStep('PAD');
+      setIsGameWaiting(false);
+      triggerHaptic(60);
+
+      let cur = initialSec;
+      countdownTimerRef.current = setInterval(() => {
+        cur -= 1;
+        if (cur > 0) {
+          setCountdownSec(cur);
+          triggerHaptic(60);
+        } else {
+          if (countdownTimerRef.current) {
+            clearInterval(countdownTimerRef.current);
+            countdownTimerRef.current = null;
+          }
+          setCountdownSec(null);
+          handleCalibrateZero();
+          triggerHaptic([100, 50, 150]);
+        }
+      }, 1000);
+    },
+    [handleCalibrateZero]
+  );
+  startCountdownRef.current = startCountdown;
 
   const handleStartRangeMeasure = () => {
     tracker.startRangeMeasurement();
@@ -221,7 +260,7 @@ export const MobileControllerPage: React.FC = () => {
         })
       );
     }
-    setIsGameWaiting(false);
+    startCountdown(3);
   };
 
   // 6. 60Hz Sensor Streaming Loop (every 16ms)
@@ -300,6 +339,46 @@ export const MobileControllerPage: React.FC = () => {
           isGameWaiting={isGameWaiting}
           onRequestStartGame={handleRequestStartGame}
         />
+      )}
+
+      {countdownSec !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(5, 7, 12, 0.85)',
+            backdropFilter: 'blur(12px)',
+            zIndex: 200,
+            userSelect: 'none',
+            padding: '24px',
+            textAlign: 'center',
+            fontFamily: "'Noto Sans KR', sans-serif",
+          }}
+        >
+          <div
+            style={{
+              fontSize: '110px',
+              fontWeight: 900,
+              background: 'linear-gradient(180deg, #f59e0b, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 35px rgba(245, 158, 11, 0.6)',
+              animation: 'pulse 0.9s infinite',
+            }}
+          >
+            {countdownSec}
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 900, color: '#f8fafc', marginTop: '16px' }}>
+            🎯 폰을 모니터 정중앙으로 겨누세요!
+          </div>
+          <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '8px' }}>
+            0초가 되면 현재 방향이 정면 영점으로 자동 고정됩니다
+          </div>
+        </div>
       )}
     </>
   );
