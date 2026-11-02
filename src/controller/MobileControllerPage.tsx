@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { getOrCreateDeviceId } from './sensors/DeviceIdentity';
 import { GunGripTracker, EulerOrientation } from './sensors/GunGripTracker';
 import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
 import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
+import { triggerHaptic } from './sensors/HapticFeedback';
 import { PlayerProfile, ServerToClientMessage } from '../shared/types';
 
 export const MobileControllerPage: React.FC = () => {
@@ -72,6 +73,13 @@ export const MobileControllerPage: React.FC = () => {
             }
             break;
 
+          case 'FEVER_STATUS_RELAY':
+            setIsFeverReady(msg.isFeverReady);
+            if (msg.isFeverReady) {
+              triggerHaptic([60, 40, 80]);
+            }
+            break;
+
           case 'ERROR':
             if (msg.code === 'PC_DISCONNECTED') {
               alert('PC 호스트와의 연결이 끊어졌습니다.');
@@ -102,6 +110,39 @@ export const MobileControllerPage: React.FC = () => {
     }
   };
 
+  // Immediate frame flusher for zero-delay shooting and haptics
+  const flushSensorFrame = useCallback(() => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !roomId) {
+      return;
+    }
+
+    const aim = tracker.computeAim(latestOrientationRef.current);
+    const snapFire = snapFireRef.current;
+    snapFireRef.current = false;
+
+    const feverTriggered = feverTriggeredRef.current;
+    feverTriggeredRef.current = false;
+
+    wsRef.current.send(
+      JSON.stringify({
+        type: 'SENSOR_FRAME',
+        roomId,
+        deviceId,
+        payload: {
+          aimX: aim.aimX,
+          aimY: aim.aimY,
+          pitchDeg: aim.pitchDeg,
+          yawDeg: aim.yawDeg,
+          rollDeg: aim.rollDeg,
+          snapFire,
+          rapidFireHold: rapidFireHoldRef.current,
+          feverTriggered,
+          timestamp: Date.now(),
+        },
+      })
+    );
+  }, [roomId, deviceId, tracker]);
+
   // 4. Start Sensors after permission granted with lifecycle cleanup
   useEffect(() => {
     if (!sensorsActive) return;
@@ -124,6 +165,7 @@ export const MobileControllerPage: React.FC = () => {
         });
         if (snap) {
           snapFireRef.current = true;
+          flushSensorFrame();
         }
       }
     };
@@ -135,7 +177,7 @@ export const MobileControllerPage: React.FC = () => {
       window.removeEventListener('deviceorientation', onOrientation);
       window.removeEventListener('devicemotion', onMotion);
     };
-  }, [sensorsActive, tracker]);
+  }, [sensorsActive, tracker, flushSensorFrame]);
 
   const handlePermissionGranted = () => {
     setSensorsActive(true);
@@ -164,39 +206,11 @@ export const MobileControllerPage: React.FC = () => {
     if (step !== 'PAD') return;
 
     const streamInterval = setInterval(() => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !roomId) {
-        return;
-      }
-
-      const aim = tracker.computeAim(latestOrientationRef.current);
-      const snapFire = snapFireRef.current;
-      snapFireRef.current = false;
-
-      const feverTriggered = feverTriggeredRef.current;
-      feverTriggeredRef.current = false;
-
-      wsRef.current.send(
-        JSON.stringify({
-          type: 'SENSOR_FRAME',
-          roomId,
-          deviceId,
-          payload: {
-            aimX: aim.aimX,
-            aimY: aim.aimY,
-            pitchDeg: aim.pitchDeg,
-            yawDeg: aim.yawDeg,
-            rollDeg: aim.rollDeg,
-            snapFire,
-            rapidFireHold: rapidFireHoldRef.current,
-            feverTriggered,
-            timestamp: Date.now(),
-          },
-        })
-      );
+      flushSensorFrame();
     }, 16);
 
     return () => clearInterval(streamInterval);
-  }, [step, roomId, deviceId, tracker]);
+  }, [step, flushSensorFrame]);
 
   if (!roomId) {
     return (
@@ -243,9 +257,15 @@ export const MobileControllerPage: React.FC = () => {
           onRecalibrateZero={handleCalibrateZero}
           onRapidFireChange={(active) => {
             rapidFireHoldRef.current = active;
+            flushSensorFrame();
           }}
           onFeverTrigger={() => {
             feverTriggeredRef.current = true;
+            flushSensorFrame();
+          }}
+          onTapFire={() => {
+            snapFireRef.current = true;
+            flushSensorFrame();
           }}
           isFeverReady={isFeverReady}
         />

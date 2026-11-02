@@ -179,6 +179,19 @@ describe('PlayerStore & WebSocket Server', () => {
     expect(relayMsg.payload.aimX).toBe(0.12);
     expect(relayMsg.payload.snapFire).toBe(true);
 
+    // 5-B. Fever status sync from PC to mobile controller
+    const feverPromise = waitForMessage(mobileWs, 'FEVER_STATUS_RELAY');
+    pcWs.send(
+      JSON.stringify({
+        type: 'FEVER_STATUS_SYNC',
+        roomId,
+        isFeverReady: true,
+      })
+    );
+    const feverRelay = await feverPromise;
+    expect(feverRelay.roomId).toBe(roomId);
+    expect(feverRelay.isFeverReady).toBe(true);
+
     // 6. Submit score and receive updated rankings
     const rankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
     mobileWs.send(

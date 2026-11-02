@@ -6,6 +6,7 @@ export interface GunGripPadProps {
   onRecalibrateZero: () => void;
   onRapidFireChange: (active: boolean) => void;
   onFeverTrigger: () => void;
+  onTapFire?: () => void;
   isFeverReady?: boolean;
 }
 
@@ -13,21 +14,33 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onRecalibrateZero,
   onRapidFireChange,
   onFeverTrigger,
+  onTapFire,
   isFeverReady = false,
 }) => {
   const [isRapidFiring, setIsRapidFiring] = useState(false);
   const touchPadRef = useRef<UnifiedTouchPadController | null>(null);
 
+  const onRapidFireChangeRef = useRef(onRapidFireChange);
+  onRapidFireChangeRef.current = onRapidFireChange;
+  const onFeverTriggerRef = useRef(onFeverTrigger);
+  onFeverTriggerRef.current = onFeverTrigger;
+  const onTapFireRef = useRef(onTapFire);
+  onTapFireRef.current = onTapFire;
+
   useEffect(() => {
     const pad = new UnifiedTouchPadController({
       onRapidFireChange: (active) => {
         setIsRapidFiring(active);
-        onRapidFireChange(active);
+        onRapidFireChangeRef.current(active);
         if (active) triggerHaptic([30, 40, 30]);
       },
       onFeverTrigger: () => {
         triggerHaptic([50, 50, 100]);
-        onFeverTrigger();
+        onFeverTriggerRef.current();
+      },
+      onTapFire: () => {
+        triggerHaptic(18);
+        onTapFireRef.current?.();
       },
     });
 
@@ -35,7 +48,7 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
     return () => {
       pad.dispose();
     };
-  }, [onRapidFireChange, onFeverTrigger]);
+  }, []);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();

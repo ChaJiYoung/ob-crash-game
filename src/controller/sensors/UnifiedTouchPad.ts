@@ -3,6 +3,7 @@ import { WEAPON_CONSTANTS } from '../../shared/constants';
 export interface TouchPadCallbacks {
   onRapidFireChange: (active: boolean) => void;
   onFeverTrigger: () => void;
+  onTapFire?: () => void;
 }
 
 export class UnifiedTouchPadController {
@@ -32,6 +33,8 @@ export class UnifiedTouchPadController {
     }
 
     this.lastTapMs = now;
+    // Trigger immediate single tap shot on first touch down
+    this.callbacks.onTapFire?.();
 
     // Start hold timer for continuous rapid fire
     if (this.holdTimer) {

@@ -62,6 +62,7 @@ export const PCGamePage: React.FC = () => {
   pairedPlayerRef.current = pairedPlayer;
 
   const latestAimRef = useRef({ aimX: 0, aimY: 0 });
+  const lastSentFeverReadyRef = useRef<boolean>(false);
 
   const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
     latestAimRef.current = { aimX: x, aimY: y };
@@ -210,6 +211,20 @@ export const PCGamePage: React.FC = () => {
         isWideScopeActive,
         isPowerShotActive,
       });
+
+      // Sync fever ready status to mobile controller
+      if (roomId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        if (lastSentFeverReadyRef.current !== feverState.isFeverReady) {
+          lastSentFeverReadyRef.current = feverState.isFeverReady;
+          wsRef.current.send(
+            JSON.stringify({
+              type: 'FEVER_STATUS_SYNC',
+              roomId,
+              isFeverReady: feverState.isFeverReady,
+            })
+          );
+        }
+      }
 
       // Synchronize game over / victory
       if (engine.gamePhase === 'GAMEOVER' && gamePhase === 'PLAYING') {

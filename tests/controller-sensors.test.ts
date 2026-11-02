@@ -57,22 +57,25 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     expect(snap2).toBe(true);
   });
 
-  it('should differentiate hold rapid-fire from double-tap fever', async () => {
+  it('should differentiate tap-fire, hold rapid-fire and double-tap fever', async () => {
     vi.useFakeTimers();
 
     const onRapidFireChange = vi.fn();
     const onFeverTrigger = vi.fn();
+    const onTapFire = vi.fn();
 
     const pad = new UnifiedTouchPadController({
       onRapidFireChange,
       onFeverTrigger,
+      onTapFire,
     });
 
-    // 1. Hold gesture (>= 250ms)
+    // 1. Single tap fire (immediate on pointer down)
     pad.handlePointerDown(1000);
+    expect(onTapFire).toHaveBeenCalledTimes(1);
     expect(onRapidFireChange).not.toHaveBeenCalled();
 
-    // Advance 260ms
+    // Advance 260ms -> hold triggers rapid-fire
     vi.advanceTimersByTime(260);
     expect(onRapidFireChange).toHaveBeenCalledWith(true);
 
@@ -81,13 +84,36 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
 
     // 2. Double-tap gesture (two taps within 300ms)
     pad.handlePointerDown(2000);
+    expect(onTapFire).toHaveBeenCalledTimes(2);
     pad.handlePointerUp(2080);
     expect(onFeverTrigger).not.toHaveBeenCalled();
 
     pad.handlePointerDown(2220); // 220ms after first tap (< 300ms)
     expect(onFeverTrigger).toHaveBeenCalledTimes(1);
+    // Double tap also fired initial tap
+    expect(onTapFire).toHaveBeenCalledTimes(2);
 
     pad.dispose();
     vi.useRealTimers();
+  });
+
+  it('should apply adaptive smoothing to aim coordinates for tremor suppression', () => {
+    const tracker = new GunGripTracker();
+    const zeroPose = { alpha: 180, beta: 0, gamma: -85 };
+    tracker.calibrateZero(zeroPose);
+
+    // Tiny jitter movement (alpha moves by 0.5 degrees, ~0.02 aim delta)
+    const jitterSample = { alpha: 179.5, beta: 0, gamma: -85 };
+    const firstSmooth = tracker.computeAim(jitterSample, 0.5);
+
+    // Raw delta would be around (0.5/25) = 0.02
+    // With 0.5 alpha filter, smoothed value should be less than raw
+    expect(firstSmooth.aimX).toBeGreaterThan(0);
+    expect(firstSmooth.aimX).toBeLessThan(0.025);
+
+    // Large flick movement (alpha moves by 15 degrees, >0.15 delta) -> instant snap
+    const flickSample = { alpha: 165, beta: 0, gamma: -85 };
+    const flickResult = tracker.computeAim(flickSample, 0.5);
+    expect(flickResult.aimX).toBeGreaterThan(0.5);
   });
 });

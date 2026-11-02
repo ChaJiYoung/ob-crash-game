@@ -219,6 +219,18 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'FEVER_STATUS_SYNC': {
+            const session = roomManager.getRoom(msg.roomId);
+            if (session && session.controllerSocket) {
+              sendJson(session.controllerSocket, {
+                type: 'FEVER_STATUS_RELAY',
+                roomId: msg.roomId,
+                isFeverReady: Boolean(msg.isFeverReady),
+              });
+            }
+            break;
+          }
+
           case 'GAME_SCORE_SUBMIT': {
             const { deviceId, score, roomId } = msg;
             if (!deviceId || typeof score !== 'number' || isNaN(score) || !roomId) {

@@ -26,6 +26,9 @@ export class GunGripTracker {
   private invZeroQuaternion: THREE.Quaternion = new THREE.Quaternion();
   private isCalibrated = false;
   private lastSnapTimeMs = 0;
+  private smoothedAimX = 0;
+  private smoothedAimY = 0;
+  private hasSmoothedSample = false;
 
   private eulerToQuaternion(sample: EulerOrientation): THREE.Quaternion {
     const radBeta = THREE.MathUtils.degToRad(sample.beta);
@@ -41,9 +44,12 @@ export class GunGripTracker {
     const qCurrent = this.eulerToQuaternion(sample);
     this.invZeroQuaternion = qCurrent.clone().invert();
     this.isCalibrated = true;
+    this.smoothedAimX = 0;
+    this.smoothedAimY = 0;
+    this.hasSmoothedSample = false;
   }
 
-  public computeAim(sample: EulerOrientation): AimResult {
+  public computeAim(sample: EulerOrientation, smoothingAlpha = 0.72): AimResult {
     const qCurrent = this.eulerToQuaternion(sample);
 
     // If not calibrated yet, treat first sample as zero
@@ -70,12 +76,18 @@ export class GunGripTracker {
     // Normalized aim coordinates [-1.0, +1.0]
     // 25 degrees horizontal yaw -> full screen width
     // 18 degrees vertical pitch -> full screen height
-    const aimX = Math.max(-1, Math.min(1, yawDeg / 25));
-    const aimY = Math.max(-1, Math.min(1, pitchDeg / 18));
+    const rawAimX = Math.max(-1, Math.min(1, yawDeg / 25));
+    const rawAimY = Math.max(-1, Math.min(1, pitchDeg / 18));
+
+    const delta = Math.hypot(rawAimX - this.smoothedAimX, rawAimY - this.smoothedAimY);
+    const effectiveAlpha = !this.hasSmoothedSample || delta > 0.15 ? 1.0 : smoothingAlpha;
+    this.smoothedAimX += (rawAimX - this.smoothedAimX) * effectiveAlpha;
+    this.smoothedAimY += (rawAimY - this.smoothedAimY) * effectiveAlpha;
+    this.hasSmoothedSample = true;
 
     return {
-      aimX,
-      aimY,
+      aimX: this.smoothedAimX,
+      aimY: this.smoothedAimY,
       yawDeg,
       pitchDeg,
       rollDeg: 0,
