@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 몬스터 스폰 거리/속도 밸런싱, 발사 스냅 감도 완화 및 자석 피격 판정(Hitbox) 확대 | [P01](../phases/2026-11-02-rebalance-monster-speed-snap-sensitivity-hitbox/P01-rebalance-speed-sensitivity-and-hitbox/phase.md) |
+| P01 | `done` | 몬스터 스폰 거리/속도 밸런싱, 발사 스냅 감도 완화 및 자석 피격 판정(Hitbox) 확대 | [P01](../phases/2026-11-02-rebalance-monster-speed-snap-sensitivity-hitbox/P01-rebalance-speed-sensitivity-and-hitbox/phase.md) |
