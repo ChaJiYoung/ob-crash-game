@@ -44,7 +44,9 @@ export function shortestAngleDeltaDeg(fromDeg: number, toDeg: number): number {
 
 export class GunGripTracker {
   private zeroSample: EulerOrientation = { alpha: 0, beta: 0, gamma: 0 };
-  private invZeroQuaternion: THREE.Quaternion = new THREE.Quaternion();
+  private zeroForward: THREE.Vector3 = new THREE.Vector3(0, 1, 0);
+  private zeroRight: THREE.Vector3 = new THREE.Vector3(1, 0, 0);
+  private zeroUp: THREE.Vector3 = new THREE.Vector3(0, 0, 1);
   private isCalibrated = false;
   private lastSnapTimeMs = 0;
   private smoothedAimX = 0;
@@ -69,18 +71,41 @@ export class GunGripTracker {
   };
 
   private eulerToQuaternion(sample: EulerOrientation): THREE.Quaternion {
-    const radBeta = THREE.MathUtils.degToRad(sample.beta);
     const radAlpha = THREE.MathUtils.degToRad(sample.alpha);
-    const radGamma = THREE.MathUtils.degToRad(-sample.gamma);
+    const radBeta = THREE.MathUtils.degToRad(sample.beta);
+    const radGamma = THREE.MathUtils.degToRad(sample.gamma);
 
-    const euler = new THREE.Euler(radBeta, radAlpha, radGamma, 'YXZ');
-    return new THREE.Quaternion().setFromEuler(euler);
+    const qAlpha = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), radAlpha);
+    const qBeta = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), radBeta);
+    const qGamma = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), radGamma);
+
+    return qAlpha.multiply(qBeta).multiply(qGamma);
   }
 
   public calibrateZero(sample: EulerOrientation): void {
     this.zeroSample = { ...sample };
     const qCurrent = this.eulerToQuaternion(sample);
-    this.invZeroQuaternion = qCurrent.clone().invert();
+
+    // 폰 총구(+Y) 방향을 회전시킨 월드 정면 벡터
+    this.zeroForward.set(0, 1, 0).applyQuaternion(qCurrent).normalize();
+
+    // 월드 하늘 방향(Z=Up)과 외적하여 화면 수평축(Right) 계산
+    let worldUp = new THREE.Vector3(0, 0, 1);
+    this.zeroRight.crossVectors(this.zeroForward, worldUp);
+
+    // 수직 천장/바닥을 정면으로 겨눌 때의 특이점(외적=0) 방어
+    if (this.zeroRight.lengthSq() < 1e-4) {
+      worldUp.set(0, 1, 0);
+      this.zeroRight.crossVectors(this.zeroForward, worldUp);
+      if (this.zeroRight.lengthSq() < 1e-4) {
+        this.zeroRight.set(1, 0, 0);
+      }
+    }
+    this.zeroRight.normalize();
+
+    // 화면 수직축(Up = Right x Forward)
+    this.zeroUp.crossVectors(this.zeroRight, this.zeroForward).normalize();
+
     this.isCalibrated = true;
     this.smoothedAimX = 0;
     this.smoothedAimY = 0;
@@ -156,22 +181,17 @@ export class GunGripTracker {
       return { yawDeg: 0, pitchDeg: 0, rollDeg: 0 };
     }
 
-    // 1. 수평 Yaw (우측 회전 시 alpha 감소 -> zero - sample > 0이 우측 조준 +X)
-    const yawDeg = shortestAngleDeltaDeg(sample.alpha, this.zeroSample.alpha);
+    const qCurrent = this.eulerToQuaternion(sample);
+    const currentForward = new THREE.Vector3(0, 1, 0).applyQuaternion(qCurrent).normalize();
 
-    // 2. 수직 Pitch: W3C 표준 기준 폰 상단을 위로 올리면 beta 증가
-    const deltaBeta = shortestAngleDeltaDeg(this.zeroSample.beta, sample.beta);
+    // 가상 모니터 직교 기저(zeroRight, zeroUp, zeroForward)로 투영
+    const projX = currentForward.dot(this.zeroRight);
+    const projY = currentForward.dot(this.zeroUp);
+    const projZ = currentForward.dot(this.zeroForward);
 
-    // 권총 측면 파지 (screen facing left, gamma ≈ -90) 환경 호환:
-    // deltaBeta가 작고 gamma 변화량이 크면 deltaGamma를 pitch로 보조
-    const deltaGamma = -(sample.gamma - this.zeroSample.gamma);
-    let pitchDeg = deltaBeta;
-    if (Math.abs(deltaBeta) < Math.abs(deltaGamma) * 0.5) {
-      pitchDeg = deltaBeta + deltaGamma;
-    }
-
-    // 3. Roll
-    const rollDeg = sample.gamma - this.zeroSample.gamma;
+    const yawDeg = THREE.MathUtils.radToDeg(Math.atan2(projX, projZ));
+    const pitchDeg = THREE.MathUtils.radToDeg(Math.atan2(projY, projZ));
+    const rollDeg = 0;
 
     return { yawDeg, pitchDeg, rollDeg };
   }

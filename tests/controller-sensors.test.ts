@@ -37,8 +37,8 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const turnRight = tracker.computeAim({ alpha: 165, beta: 0, gamma: -85 });
     expect(turnRight.aimX).toBeGreaterThan(0.2);
 
-    // Aim up: tilt gun barrel up (pitch elevation changes gamma from -85 to -97)
-    const tiltUp = tracker.computeAim({ alpha: 180, beta: 0, gamma: -97 });
+    // Aim up: tilt gun barrel up (pitch elevation increases beta)
+    const tiltUp = tracker.computeAim({ alpha: 180, beta: 10, gamma: -85 });
     expect(tiltUp.aimY).toBeGreaterThan(0.2);
 
     // Snap fire test
