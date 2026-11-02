@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | PC 3D 캔버스 생명주기 격리·직접 DOM 조준선 갱신 및 모바일 초저지연 컨트롤러 개선 | [P01](../phases/2026-11-02-screen-stutter-and-aim-optimization/P01-stutter-and-aim-optimization/phase.md) |
+| P01 | `done ✅` | PC 3D 캔버스 생명주기 격리·직접 DOM 조준선 갱신 및 모바일 초저지연 컨트롤러 개선 | [P01](../phases/2026-11-02-screen-stutter-and-aim-optimization/P01-stutter-and-aim-optimization/phase.md) |
