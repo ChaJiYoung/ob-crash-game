@@ -13,6 +13,8 @@ import {
 import { DraftTapGun3D } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
+import { computeAimWorldPoint } from '../src/pc/components/GameCanvas3D';
+import { aimToNdc } from '../src/pc/components/CrosshairOverlay';
 
 describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
   it('should create all 6 procedural 3D target models with correct geometries, drop shadows, and scale', () => {
@@ -134,9 +136,11 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     rig.updateStageAnimation(2.0, true, true);
   });
 
-  it('should handle DraftTapGun3D recoil and aim updates', () => {
+  it('should handle DraftTapGun3D center mount, recoil, and aim updates', () => {
     const gun = new DraftTapGun3D();
     expect(gun.group).toBeInstanceOf(THREE.Group);
+    // Center mount: X position should be centered at 0.0 to eliminate horizontal parallax
+    expect(gun.group.position.x).toBeCloseTo(0.0, 2);
 
     const initialZ = gun.group.position.z;
     gun.triggerRecoil(false);
@@ -170,6 +174,23 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     gun.setScopeMode(false);
     expect(gun.isScope).toBe(false);
     expect(gun.scopeBeamVisible).toBe(false);
+  });
+
+  it('should project aimWorldPoint matching CrosshairOverlay NDC exactly', () => {
+    const camera = new THREE.PerspectiveCamera(52, 16 / 9, 0.1, 100);
+    camera.position.set(0, 1.65, 2.2);
+    camera.lookAt(0, 1.35, -12);
+    camera.updateMatrixWorld(true);
+    camera.updateProjectionMatrix();
+
+    // Aim right-up: aimX = 0.5, aimY = 0.5
+    const pt = computeAimWorldPoint(camera, 0.5, 0.5, 10);
+    const ndcExpected = aimToNdc(0.5, 0.5);
+
+    // Project 3D point back to NDC
+    const projected = pt.clone().project(camera);
+    expect(projected.x).toBeCloseTo(ndcExpected.ndcX, 2);
+    expect(projected.y).toBeCloseTo(ndcExpected.ndcY, 2);
   });
 
   it('should manage 3D particle effects pool and floating combat labels', () => {

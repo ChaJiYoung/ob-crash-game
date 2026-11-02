@@ -20,6 +20,14 @@ export interface ActiveTargetEntity {
   breached: boolean;
   isItem?: boolean;
   itemKind?: ItemBuffKind;
+  customNormY?: number;
+  customBaseY?: number;
+}
+
+export interface TargetAimProjection {
+  targetNormX: number;
+  targetNormY: number;
+  apparentHitRadius: number;
 }
 
 export interface EngineShootResult {
@@ -511,8 +519,37 @@ export class BeerCrusherEngine {
     this.lastSpawnTimeMs = nowMs;
   }
 
+  public computeTargetAimCoords(
+    target: ActiveTargetEntity,
+    wideScopeMult = 1.0
+  ): TargetAimProjection {
+    const hHalfFov = computeHorizontalHalfFovRad(this.vFovDeg, this.aspect);
+    const targetNormX = target.thetaRad / (hHalfFov * STAGE_CONSTANTS.FAN_MARGIN_RATIO);
+
+    let targetNormY = 0;
+    if (target.customNormY !== undefined) {
+      targetNormY = target.customNormY;
+    } else {
+      let visualCenterY = 0.72; // 지상 기본
+      if (target.kind === 'pilgood' || target.kind === 'caslight') {
+        visualCenterY = 1.55;
+      } else if (target.isItem || target.kind === 'boss') {
+        visualCenterY = 1.20;
+      }
+      const eyeRefY = 1.18;
+      const deltaY = visualCenterY - eyeRefY;
+      const vHalfFovRad = (this.vFovDeg * Math.PI) / 360;
+      const effDist = Math.max(2.5, target.radiusM);
+      targetNormY = Math.max(-0.85, Math.min(0.85, deltaY / (effDist * Math.tan(vHalfFovRad) * 0.76)));
+    }
+
+    const apparentHitRadius = Math.max(0.09, (target.hitRadiusM * 2.8 * wideScopeMult) / target.radiusM);
+
+    return { targetNormX, targetNormY, apparentHitRadius };
+  }
+
   public shootAt(aimX: number, aimY: number, nowMs: number): EngineShootResult {
-    if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL') {
+    if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
       return { fired: false, grade: 'MISS' };
     }
 
@@ -527,7 +564,6 @@ export class BeerCrusherEngine {
     const wideScopeMult = isWideScope ? 1.6 : 1.0;
 
     // Find best target intersecting aim point
-    // Convert target radial pos (x, z) to approximate normalized aim coords [-1, 1]
     let bestHit:
       | { target: ActiveTargetEntity; result: HitJudgmentResult; index: number }
       | undefined;
@@ -535,19 +571,15 @@ export class BeerCrusherEngine {
 
     for (let i = 0; i < this.activeTargets.length; i++) {
       const target = this.activeTargets[i];
-      // Target yaw relative to player
-      const targetAngle = target.thetaRad;
-      // Normalized X from horizontal FOV
-      const hHalfFov = computeHorizontalHalfFovRad(this.vFovDeg, this.aspect);
-      const targetNormX = targetAngle / (hHalfFov * STAGE_CONSTANTS.FAN_MARGIN_RATIO);
-      const targetNormY = 0; // Targets hover around eye level
+      const proj = this.computeTargetAimCoords(target, wideScopeMult);
+      const dx = aimX - proj.targetNormX;
+      const dy = target.customNormY !== undefined
+        ? (aimY - proj.targetNormY)
+        : Math.min(Math.abs(aimY - proj.targetNormY), Math.abs(aimY) * 0.65) * 0.65;
+      const dist = Math.hypot(dx, dy);
 
-      // Apparent radius in normalized aim space shrinks as distance increases
-      const apparentHitRadius = Math.max(0.09, (target.hitRadiusM * 2.8 * wideScopeMult) / target.radiusM);
-      const dist = Math.hypot(aimX - targetNormX, aimY - targetNormY);
-
-      if (dist <= apparentHitRadius) {
-        const judgment = evaluateHitJudgment(dist, apparentHitRadius, {
+      if (dist <= proj.apparentHitRadius) {
+        const judgment = evaluateHitJudgment(dist, proj.apparentHitRadius, {
           isFeverActive: isFever,
           isPowerShotActive: isPowerShot,
           isWideScopeActive: isWideScope,

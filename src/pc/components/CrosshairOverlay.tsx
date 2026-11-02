@@ -14,6 +14,22 @@ export function aimToViewportPercent(
   };
 }
 
+export function aimToNdc(aimX: number, aimY: number): { ndcX: number; ndcY: number } {
+  const { leftPercent, topPercent } = aimToViewportPercent(aimX, aimY);
+  return {
+    ndcX: (leftPercent - 50) / 50, // [-0.84, +0.84]
+    ndcY: (50 - topPercent) / 50,  // [-0.76, +0.76]
+  };
+}
+
+export function viewportRatioToAim(normX: number, normY: number): { aimX: number; aimY: number } {
+  // normX, normY in [-1, 1] from mouse screen events -> mapped so crosshair sits directly under cursor
+  return {
+    aimX: Math.max(-1, Math.min(1, normX / 0.84)),
+    aimY: Math.max(-1, Math.min(1, normY / 0.76)),
+  };
+}
+
 export interface CrosshairVisualSpecOptions {
   isFeverActive?: boolean;
   isWideScopeActive?: boolean;

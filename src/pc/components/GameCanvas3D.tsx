@@ -17,6 +17,19 @@ import { DraftTapGun3D } from '../three/DraftTapGun3D';
 import { ParticleEffects3D } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
+import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
+
+export function computeAimWorldPoint(
+  camera: THREE.PerspectiveCamera,
+  aimX: number,
+  aimY: number,
+  distanceM = 14
+): THREE.Vector3 {
+  const { ndcX, ndcY } = aimToNdc(aimX, aimY);
+  const targetNDC = new THREE.Vector3(ndcX, ndcY, 0.5).unproject(camera);
+  const dir = targetNDC.sub(camera.position).normalize();
+  return camera.position.clone().addScaledVector(dir, distanceM);
+}
 
 function disposeGroup(group: THREE.Group): void {
   group.traverse((obj) => {
@@ -108,11 +121,13 @@ export const GameCanvas3D = React.memo(
 
         let targetPos: THREE.Vector3;
         let beamColor = isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8';
+        const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
+        const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
 
         if (result.grade !== 'MISS' && result.target) {
           const mesh = targetMeshMapRef.current.get(result.target.id);
           if (mesh) {
-            targetPos = mesh.position.clone();
+            targetPos = projectedAimPoint.clone().lerp(mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)), 0.35);
             applyTargetHitFlash3D(mesh, performance.now() / 1000);
 
             const hitColor = result.target.isItem && result.target.itemKind
@@ -134,11 +149,11 @@ export const GameCanvas3D = React.memo(
               particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
             }
           } else {
-            targetPos = new THREE.Vector3(curAim.aimX * 7.5, 1.2 + curAim.aimY * 4.2, -14);
+            targetPos = projectedAimPoint;
           }
         } else {
-          // Miss shot: tracer shoots into distance
-          targetPos = new THREE.Vector3(curAim.aimX * 8.5, 1.2 + curAim.aimY * 4.5, -16);
+          // Miss shot: tracer shoots straight through the crosshair unprojected ray
+          targetPos = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, 16);
         }
 
         particlesRef.current.spawnTracerBeam(muzzlePos, targetPos, beamColor, isFeverOrPower);
@@ -231,10 +246,11 @@ export const GameCanvas3D = React.memo(
         const rect = container.getBoundingClientRect();
         const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         const normY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-        targetAimRef.current = { aimX: normX, aimY: normY };
-        currentAimRef.current = { aimX: normX, aimY: normY };
+        const mapped = viewportRatioToAim(normX, normY);
+        targetAimRef.current = mapped;
+        currentAimRef.current = mapped;
         if (onAimChangeRef.current) {
-          onAimChangeRef.current(normX, normY);
+          onAimChangeRef.current(mapped.aimX, mapped.aimY);
         }
       };
 
@@ -320,7 +336,7 @@ export const GameCanvas3D = React.memo(
             targetMeshMap.set(target.id, mesh);
           }
 
-          const baseY = getTargetBaseY(target.kind, target.isItem);
+          const baseY = (target as any).customBaseY ?? getTargetBaseY(target.kind, target.isItem);
           mesh.position.set(target.x, baseY, target.z);
 
           if (target.isItem && target.itemKind) {

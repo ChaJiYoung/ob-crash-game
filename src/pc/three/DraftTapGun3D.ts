@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export class DraftTapGun3D {
   public readonly group: THREE.Group;
-  private readonly basePosition = new THREE.Vector3(0.48, -0.46, -0.95);
+  private readonly basePosition = new THREE.Vector3(0.0, -0.46, -0.92);
   private currentRecoilZ = 0;
   private currentRecoilPitch = 0;
   private nozzleMesh: THREE.Mesh;
@@ -121,15 +121,15 @@ export class DraftTapGun3D {
   }
 
   public updateAimAndRecoil(aimX: number, aimY: number, dtSec: number, isFeverActive: boolean): void {
-    // Aim tilt
-    const targetRotX = aimY * 0.18 + this.currentRecoilPitch;
-    const targetRotY = -aimX * 0.25;
+    // Aim tilt aligned with center-mounted lookAt
+    const targetRotX = aimY * 0.36 + this.currentRecoilPitch;
+    const targetRotY = -aimX * 0.58;
     this.group.rotation.x += (targetRotX - this.group.rotation.x) * Math.min(1, dtSec * 18);
     this.group.rotation.y += (targetRotY - this.group.rotation.y) * Math.min(1, dtSec * 18);
 
     // Aim position sway + recoil
-    const targetPosX = this.basePosition.x + aimX * 0.06;
-    const targetPosY = this.basePosition.y + aimY * 0.05;
+    const targetPosX = this.basePosition.x + aimX * 0.04;
+    const targetPosY = this.basePosition.y + aimY * 0.03;
     const targetPosZ = this.basePosition.z + this.currentRecoilZ;
 
     this.group.position.x += (targetPosX - this.group.position.x) * Math.min(1, dtSec * 18);

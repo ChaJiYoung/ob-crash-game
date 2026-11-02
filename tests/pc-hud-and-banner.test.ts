@@ -5,7 +5,12 @@ import {
   formatActiveBuffBadge,
 } from '../src/pc/components/ArcadeOverlayHUD';
 import { getJudgmentBannerSpec } from '../src/pc/components/JudgmentBanner';
-import { aimToViewportPercent, getCrosshairVisualSpec } from '../src/pc/components/CrosshairOverlay';
+import {
+  aimToViewportPercent,
+  aimToNdc,
+  viewportRatioToAim,
+  getCrosshairVisualSpec,
+} from '../src/pc/components/CrosshairOverlay';
 
 describe('PC Fullscreen HUD & Judgment Banner', () => {
   it('should format ammo status text correctly', () => {
@@ -100,5 +105,24 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     const extreme = aimToViewportPercent(-5, 5);
     expect(extreme.leftPercent).toBe(8);
     expect(extreme.topPercent).toBe(12);
+  });
+
+  it('should map between viewport percentages, NDC, and mouse aim consistently', () => {
+    // Center: aim (0, 0) -> NDC (0, 0)
+    const centerNdc = aimToNdc(0, 0);
+    expect(centerNdc.ndcX).toBe(0);
+    expect(centerNdc.ndcY).toBe(0);
+
+    // Mouse aiming at center (0, 0) maps to aim (0, 0)
+    const centerAim = viewportRatioToAim(0, 0);
+    expect(centerAim.aimX).toBe(0);
+    expect(centerAim.aimY).toBe(0);
+
+    // Full bounds: NDC within [-0.84, 0.84] and [-0.76, 0.76]
+    const rightNdc = aimToNdc(1, 0);
+    expect(rightNdc.ndcX).toBeCloseTo(0.84, 2);
+
+    const mouseRightAim = viewportRatioToAim(0.84, 0);
+    expect(mouseRightAim.aimX).toBeCloseTo(1.0, 2);
   });
 });

@@ -248,4 +248,56 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(shootRes.activatedItem).toBe('ice_freeze');
     expect(engine.isBuffActive('ice_freeze', now + 1050)).toBe(true);
   });
+
+  it('should project targetNormY based on target altitude (airborne vs ground)', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+
+    // 1. Airborne target (pilgood) -> higher visual center (targetNormY > 0)
+    const airTarget = {
+      id: 'air_1',
+      kind: 'pilgood' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 8.0,
+      thetaRad: 0,
+      x: 0,
+      z: -8.0,
+      speedMps: 3.0,
+      hitRadiusM: 0.85,
+      killBonusScore: 30,
+      breached: false,
+    };
+    const airProj = engine.computeTargetAimCoords(airTarget);
+    expect(airProj.targetNormY).toBeGreaterThan(0.05);
+
+    // 2. Ground target (bottle) -> lower visual center (targetNormY < 0)
+    const groundTarget = {
+      id: 'ground_1',
+      kind: 'bottle' as const,
+      hp: 3,
+      maxHp: 3,
+      radiusM: 8.0,
+      thetaRad: 0,
+      x: 0,
+      z: -8.0,
+      speedMps: 2.0,
+      hitRadiusM: 1.15,
+      killBonusScore: 160,
+      breached: false,
+    };
+    const groundProj = engine.computeTargetAimCoords(groundTarget);
+    expect(groundProj.targetNormY).toBeLessThan(-0.05);
+
+    // Direct hit test with pitch compensation
+    engine.activeTargets = [airTarget];
+    const airShot = engine.shootAt(0, airProj.targetNormY, 2000);
+    expect(airShot.fired).toBe(true);
+    expect(airShot.grade).toBe('PERFECT');
+
+    engine.activeTargets = [groundTarget];
+    const groundShot = engine.shootAt(0, groundProj.targetNormY, 2200);
+    expect(groundShot.fired).toBe(true);
+    expect(groundShot.grade).toBe('PERFECT');
+  });
 });

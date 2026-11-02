@@ -1,6 +1,6 @@
 # Task: T02 3D 총기 중앙 하단 배치(Center Mount), 총구·조준선·탄도 궤적 단일 3D 좌표계 통합 및 몬스터 높이별 Y축 판정 보정
 
-## Status: pending
+## Status: done
 
 ## Goal
 3D 총기(`DraftTapGun3D`)를 화면 우측(`x = 0.48`)에서 정중앙 하단(`x = 0.0`)으로 이동하여 좌우 시차를 제거하고, 2D 조준선(`CrosshairOverlay`)·3D 총구 방향·빅 스코프 레이저·총알 궤적(`spawnTracerBeam`)·몬스터 상하좌우 피격 판정(`BeerCrusherEngine.shootAt`)이 모두 단일 3D 카메라 투영 좌표계를 공유하도록 일원화합니다.
@@ -116,6 +116,6 @@ Task: T02-center-gun-and-unified-3d-aiming
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: completed
