@@ -1,6 +1,6 @@
 # Task: T02 피버 타임 중 허공 자동 연사 `MISS` 배너 숨김 및 피버 충전/활성 중 콤보 100% 보호
 
-## Status: pending
+## Status: done
 
 ## Goal
 피버 타임(`isFeverActive`) 동안 0.095초 간격으로 발사되는 초당 10발 자동 연사 중 허공에 빗맞은 탄환이 발생하더라도 화면에 `MISS` 판정 배너가 절대 표시되지 않도록(명중 시 `PERFECT!`만 표시) 수정하고, 피버 게이지가 100% 충전된 상태(`isFeverReady`) 및 피버 활성 상태(`isFeverActive`)에서는 빗맞은 탄환이 발생해도 콤보가 0으로 깨지지 않도록 `ScoreAndFeverManager`를 보강한다.
@@ -69,6 +69,6 @@ Task: T02-suppress-fever-miss-banner-and-protect-combo
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

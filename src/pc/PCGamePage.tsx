@@ -115,8 +115,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
       if (result.grade !== 'MISS') {
         soundSynth.playHit(result.grade);
+        setLastJudgment({ grade: result.grade, key: Date.now() });
+      } else if (!isFever) {
+        setLastJudgment({ grade: 'MISS', key: Date.now() });
       }
-      setLastJudgment({ grade: result.grade, key: Date.now() });
       setLastShootResult({ result, key: Date.now() });
     }
   }, [engine, soundSynth]);

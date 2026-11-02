@@ -10,6 +10,7 @@ export class ScoreAndFeverManager {
   private isFeverActive = false;
   private feverEndTimeMs = 0;
   private feverBaseCombo = 0;
+  private lastHitCombo = 0;
 
   public getComboMultiplier(): number {
     if (this.combo >= 30) return 2.5;
@@ -31,6 +32,7 @@ export class ScoreAndFeverManager {
     isFeverReady: boolean;
   } {
     this.combo += 1;
+    this.lastHitCombo = this.combo;
     if (this.combo > this.maxCombo) {
       this.maxCombo = this.combo;
     }
@@ -78,10 +80,8 @@ export class ScoreAndFeverManager {
       };
     }
 
-    this.combo = 0;
-
-    // D06 Anti-Regression Guard:
-    // When fever gauge is 100% full (or fever active), missed shots NEVER decrease the gauge!
+    // Fever Ready Protection (D02):
+    // When fever gauge is 100% full (or fever ready), missed shots NEVER reset combo or decrease gauge!
     if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE || this.isFeverReady) {
       return {
         combo: this.combo,
@@ -91,6 +91,7 @@ export class ScoreAndFeverManager {
       };
     }
 
+    this.combo = 0;
     this.feverGauge = Math.max(0, this.feverGauge - FEVER_CONSTANTS.MISS_PENALTY);
     return {
       combo: this.combo,
@@ -108,7 +109,8 @@ export class ScoreAndFeverManager {
     this.isFeverActive = true;
     this.isFeverReady = false;
     this.feverEndTimeMs = nowMs + FEVER_CONSTANTS.DURATION_MS;
-    this.feverBaseCombo = this.combo;
+    this.feverBaseCombo = Math.max(this.combo, this.lastHitCombo);
+    this.combo = this.feverBaseCombo;
     return true;
   }
 
@@ -157,5 +159,6 @@ export class ScoreAndFeverManager {
     this.isFeverActive = false;
     this.feverEndTimeMs = 0;
     this.feverBaseCombo = 0;
+    this.lastHitCombo = 0;
   }
 }

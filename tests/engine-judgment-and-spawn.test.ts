@@ -154,6 +154,23 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(manager.getState().combo).toBe(0);
   });
 
+  it('should protect combo when fever gauge is 100% full (feverReady) even before activation', () => {
+    const manager = new ScoreAndFeverManager();
+    for (let i = 0; i < 10; i++) {
+      manager.registerHit('PERFECT');
+    }
+    expect(manager.getState().combo).toBe(10);
+    expect(manager.getState().isFeverReady).toBe(true);
+
+    // Missed shot right before double-tap fever activation must NOT reset combo!
+    manager.applyMissPenalty();
+    expect(manager.getState().combo).toBe(10);
+
+    const activated = manager.activateFever(1000);
+    expect(activated).toBe(true);
+    expect(manager.getState().feverBaseCombo).toBe(10);
+  });
+
   it('should auto reload 10 rounds after 1.2s delay without manual action', () => {
     const weapon = new WeaponSystem();
     expect(weapon.getState().ammo).toBe(10);
