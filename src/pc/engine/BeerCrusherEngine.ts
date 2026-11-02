@@ -218,7 +218,7 @@ export class BeerCrusherEngine {
     this.activeTargets = [];
 
     if (nextStep === 2) {
-      // Step 2: 1 approaching Cass bottle (3HP, speed = 1.6m/s)
+      // Step 2: 1 approaching Cass bottle (3HP, speed = 1.1m/s synchronized with 35% rebalance)
       this.targetCounter += 1;
       const spec = TARGET_SPECS.bottle;
       this.activeTargets.push({
@@ -230,7 +230,7 @@ export class BeerCrusherEngine {
         thetaRad: 0.0,
         x: 0,
         z: -14.0,
-        speedMps: 1.6,
+        speedMps: 1.1,
         hitRadiusM: spec.hitRadiusM,
         killBonusScore: spec.killBonusScore,
         breached: false,

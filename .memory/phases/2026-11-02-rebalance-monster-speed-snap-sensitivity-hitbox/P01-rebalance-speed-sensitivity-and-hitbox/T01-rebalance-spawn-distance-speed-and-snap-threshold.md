@@ -1,6 +1,6 @@
 # Task: T01 몬스터 스폰 거리 24m 확장, 이동 속도 35% 감속 및 발사 스냅 감도(4.8 m/s²) 완화
 
-## Status: pending
+## Status: done
 
 ## Goal
 몬스터가 스폰되는 반경을 기존 18m에서 24m로 확장하고 일반/보스 몬스터의 전진 속도를 약 35% 감속하여 플레이어가 몬스터를 침착하게 조준할 수 있는 여유 시간(약 7.5~9초)을 확보한다. 또한 손목을 위로 휙 채어 발사하는 가속도 인식 역치(`SNAP_ACCEL_THRESHOLD_MPS2`)를 기존 8.0 m/s²에서 4.8 m/s²로 완화하여 가벼운 손목 스냅만으로도 불발 없이 즉각 "탕!" 격발되도록 조작 편의성을 극대화한다.
@@ -81,6 +81,6 @@ Task: T01-rebalance-spawn-distance-speed-and-snap-threshold
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

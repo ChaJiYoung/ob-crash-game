@@ -8,6 +8,7 @@ import { evaluateHitJudgment } from '../src/pc/engine/HitJudgment';
 import { ScoreAndFeverManager } from '../src/pc/engine/ScoreAndFeverManager';
 import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
+import { STAGE_CONSTANTS } from '../src/shared/constants';
 
 describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload', () => {
   it('should calculate horizontal FOV and sample across the fan arc', () => {
@@ -22,7 +23,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     });
     expect(ptLeft.thetaRad).toBeLessThan(0);
     expect(ptLeft.x).toBeLessThan(0);
-    expect(ptLeft.radiusM).toBe(18.0);
+    expect(ptLeft.radiusM).toBe(STAGE_CONSTANTS.SPAWN_RADIUS_M); // 24.0m rebalanced
 
     const ptRight = sampleFanSpawnPoint({
       vFovDeg: 52,

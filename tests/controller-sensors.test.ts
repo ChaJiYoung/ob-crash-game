@@ -41,12 +41,12 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const tiltUp = tracker.computeAim({ alpha: 180, beta: 10, gamma: -85 });
     expect(tiltUp.aimY).toBeGreaterThan(0.2);
 
-    // Snap fire test with 3D acceleration norm (threshold 8.0 m/s^2)
-    const low = tracker.detectSnapFire({ x: 5.0, y: 0, z: 0, timestampMs: 1000 });
+    // Snap fire test with 3D acceleration norm (relaxed threshold 4.8 m/s^2)
+    const low = tracker.detectSnapFire({ x: 3.2, y: 0, z: 0, timestampMs: 1000 });
     expect(low).toBe(false);
 
-    // Y-axis upward snap (phone barrel elevation snap)
-    const snap1 = tracker.detectSnapFire({ x: 0, y: 8.5, z: 0, timestampMs: 1050 });
+    // Y-axis upward snap (light effortless flick >= 4.8 m/s^2)
+    const snap1 = tracker.detectSnapFire({ x: 0, y: 5.0, z: 0, timestampMs: 1050 });
     expect(snap1).toBe(true);
 
     // Cooldown test (within 180ms)
