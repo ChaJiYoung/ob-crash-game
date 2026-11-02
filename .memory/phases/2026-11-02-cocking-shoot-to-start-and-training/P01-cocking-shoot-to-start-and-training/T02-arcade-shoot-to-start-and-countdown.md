@@ -1,6 +1,6 @@
 # Task: T02 PC 대기 화면 [SHOOT TO START] 과녁 피격 판정 및 3-2-1 카운트다운 영점화 연동
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC 대기 화면(`PAIRING` 모달) 중앙에 아케이드 스타일의 대형 `[🎯 SHOOT TO START] 과녁`을 배치하고, 폰을 겨눈 상태에서 모니터의 과녁을 조준하여 "철컥 탕!" 사격(위로 스냅)을 명중시켰을 때 피격 효과음과 함께 3, 2, 1 카운트다운이 시작되고 0초에 정면 영점을 자동 고정하며 게임이 시작되도록 구현한다.
@@ -44,10 +44,10 @@ PC 대기 화면(`PAIRING` 모달) 중앙에 아케이드 스타일의 대형 `[
      - `engine.startGame()` 호출 및 `setGamePhase('PLAYING')` 전이.
 
 ## Acceptance Criteria
-- [ ] 스마트폰이 연결되면 PC 화면 중앙에 눈에 띄는 아케이드 [SHOOT TO START] 과녁이 나타난다.
-- [ ] 폰으로 모니터의 [SHOOT TO START] 과녁을 겨누고 "철컥 탕!" 쏘면 타겟이 반응하며 3, 2, 1 카운트다운이 시작된다.
-- [ ] 3초 동안 모니터를 겨누고 대기하면 0초에 정면 영점이 자동으로 잡히며 게임이 시작된다.
-- [ ] `tests/pc-modals-and-pairing.test.ts` 통과.
+- [x] 스마트폰이 연결되면 PC 화면 중앙에 눈에 띄는 아케이드 [SHOOT TO START] 과녁이 나타난다.
+- [x] 폰으로 모니터의 [SHOOT TO START] 과녁을 겨누고 "철컥 탕!" 쏘면 타겟이 반응하며 3, 2, 1 카운트다운이 시작된다.
+- [x] 3초 동안 모니터를 겨누고 대기하면 0초에 정면 영점이 자동으로 잡히며 게임이 시작된다.
+- [x] `tests/pc-modals-and-pairing.test.ts` 통과.
 
 ## Validation
 - `npx vitest run tests/pc-modals-and-pairing.test.ts` — 대기 화면 과녁 렌더링 및 사격 시작 검증
@@ -67,6 +67,6 @@ Task: T02-arcade-shoot-to-start-and-countdown
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

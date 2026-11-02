@@ -274,22 +274,30 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
             {pairedPlayer ? (
               <button
+                id="shoot-to-start-target"
                 onClick={onStartWithController}
                 style={{
                   flex: 1,
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: 'linear-gradient(90deg, #10b981, #059669)',
+                  padding: '18px 24px',
+                  borderRadius: '16px',
+                  border: '3px solid #fbbf24',
+                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(16, 185, 129, 0.45))',
                   color: '#ffffff',
-                  fontSize: '16px',
-                  fontWeight: 800,
+                  fontSize: '18px',
+                  fontWeight: 900,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                  boxShadow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.25)',
                   transition: 'transform 0.1s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  letterSpacing: '0.5px',
+                  animation: 'pulse 1.5s infinite',
                 }}
               >
-                🔫 스마트폰 컨트롤러로 게임 시작!
+                <span style={{ fontSize: '26px' }}>🎯</span>
+                <span>SHOOT TO START! (모니터의 과녁을 조준하고 쏘세요)</span>
               </button>
             ) : (
               <button

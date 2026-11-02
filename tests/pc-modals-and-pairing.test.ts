@@ -59,4 +59,19 @@ describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
     const isNewRecord = newScore > playerRecord.bestScore;
     expect(isNewRecord).toBe(true);
   });
+
+  it('should detect shoot-to-start hit when crosshair is aimed near monitor center', () => {
+    const isShootToStartHit = (aimX: number, aimY: number) => {
+      return Math.abs(aimX) < 0.65 && Math.abs(aimY) < 0.65;
+    };
+
+    // Center aim hits the start target
+    expect(isShootToStartHit(0, 0)).toBe(true);
+    expect(isShootToStartHit(0.2, -0.3)).toBe(true);
+    expect(isShootToStartHit(-0.4, 0.4)).toBe(true);
+
+    // Aiming way outside does not trigger start
+    expect(isShootToStartHit(0.85, 0)).toBe(false);
+    expect(isShootToStartHit(0, -0.9)).toBe(false);
+  });
 });

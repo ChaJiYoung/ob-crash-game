@@ -202,8 +202,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             lastIsCockedRef.current = !!p.isCocked;
 
             if (p.snapFire) {
-              const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now());
-              handleShootEvent(res);
+              if (gamePhase === 'PAIRING' || gamePhase === 'ZEROING') {
+                soundSynth.playShoot(false);
+                // Shoot to start target hit when aiming at monitor center
+                if (Math.abs(effectiveAimX) < 0.65 && Math.abs(effectiveAimY) < 0.65) {
+                  soundSynth.playHit('PERFECT');
+                  startCountdownAndGameRef.current();
+                }
+              } else {
+                const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now());
+                handleShootEvent(res);
+              }
             }
 
             // Rapid fire hold using live aim coordinates
@@ -386,6 +395,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           countdownTimerRef.current = null;
         }
         setCountdownSec(null);
+        // Automatically calibrate zero to current aim angle when countdown reaches 0
+        zeroOffsetRef.current = {
+          offsetX: latestAimRef.current.aimX,
+          offsetY: latestAimRef.current.aimY,
+        };
         handleStartGame();
       }
     }, 1000);
