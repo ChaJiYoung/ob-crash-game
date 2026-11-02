@@ -7,6 +7,7 @@ export interface GunGripPadProps {
   onRapidFireChange: (active: boolean) => void;
   onFeverTrigger: () => void;
   onTapFire?: () => void;
+  onCockingChange?: (cocked: boolean) => void;
   isFeverReady?: boolean;
   isGameWaiting?: boolean;
   onRequestStartGame?: () => void;
@@ -17,11 +18,13 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onRapidFireChange,
   onFeverTrigger,
   onTapFire,
+  onCockingChange,
   isFeverReady = false,
   isGameWaiting = false,
   onRequestStartGame,
 }) => {
   const [isRapidFiring, setIsRapidFiring] = useState(false);
+  const [isCocked, setIsCocked] = useState(false);
   const touchPadRef = useRef<UnifiedTouchPadController | null>(null);
 
   const onRapidFireChangeRef = useRef(onRapidFireChange);
@@ -30,6 +33,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onFeverTriggerRef.current = onFeverTrigger;
   const onTapFireRef = useRef(onTapFire);
   onTapFireRef.current = onTapFire;
+  const onCockingChangeRef = useRef(onCockingChange);
+  onCockingChangeRef.current = onCockingChange;
 
   useEffect(() => {
     const pad = new UnifiedTouchPadController({
@@ -43,7 +48,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
         onFeverTriggerRef.current();
       },
       onTapFire: () => {
-        triggerHaptic(18);
+        // 단발 탭 사격
+        triggerHaptic(20);
         onTapFireRef.current?.();
       },
     });
@@ -56,11 +62,16 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
+    setIsCocked(true);
+    triggerHaptic(35);
+    onCockingChangeRef.current?.(true);
     touchPadRef.current?.handlePointerDown();
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     e.preventDefault();
+    setIsCocked(false);
+    onCockingChangeRef.current?.(false);
     touchPadRef.current?.handlePointerUp();
   };
 

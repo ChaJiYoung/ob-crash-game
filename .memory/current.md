@@ -1,18 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Snap Fire, Fever Auto-Rapid-Fire, Auto Zeroing, and Game Start Synchronization](./plans/2026-11-02-snap-fever-zeroing-ux-sync.md)
+[Cocking-Snap Gunplay ("철컥 탕!"), Fever Combo Floor, and Direct Start Flow](./plans/2026-11-02-cocking-snap-fevercombo-startflow.md)
 
 ## Active Phase
-[P01 Snap Fire, Fever Auto-Rapid-Fire, and Countdown Sync](./phases/2026-11-02-snap-fever-zeroing-ux-sync/P01-snap-fever-zeroing-sync/phase.md) (All Tasks Completed)
+[P01 Cocking-Snap Gunplay, Fever Combo Floor, and Direct Start Flow](./phases/2026-11-02-cocking-snap-fevercombo-startflow/P01-cocking-snap-fevercombo-startflow/phase.md)
 
 ## Active Task
-[T02 모바일-PC 양방향 카운트다운 동기화, 0초 자동 영점화 및 햅틱 피드백](./phases/2026-11-02-snap-fever-zeroing-ux-sync/P01-snap-fever-zeroing-sync/T02-countdown-sync-and-auto-zeroing.md) (Completed)
+[T01 "철컥 탕!" 코킹 장전(화면 터치 Aim Lock & 사운드/햅틱) + 위로 휙 채기(Snap Up) 사격 메커니즘](./phases/2026-11-02-cocking-snap-fevercombo-startflow/P01-cocking-snap-fevercombo-startflow/T01-cocking-snap-gunplay.md)
 
 ## Status
-- T01 완료 (`822a1e1`: 스냅 사격 3D 가속도 벡터화 & 피버 타임 전자동 연사 루프 완료)
-- T02 완료 (`b398c5a`: 모바일-PC 2-way 카운트다운 동기화, 0초 자동 영점화 및 햅틱 완료)
-- 모든 Task 구현 및 전체 회귀 테스트 / 프로덕션 빌드 성공
+- T01 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-모든 계획 구현이 완료되었습니다. 스마트폰 컨트롤러로 게임 시작 버튼을 눌러 양방향 3초 카운트다운, 0초 자동 영점화, 시원한 스냅샷 및 피버 자동 연사를 직접 플레이해보세요.
+T01 청사진을 읽고 `src/shared/types.ts`, `src/pc/audio/SoundSynthesizer.ts`, `src/controller/components/GunGripPad.tsx`, `src/controller/MobileControllerPage.tsx`, `src/pc/PCGamePage.tsx` 파일 구현 시작

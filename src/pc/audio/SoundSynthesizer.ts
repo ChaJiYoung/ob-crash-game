@@ -59,6 +59,39 @@ export class SoundSynthesizer {
     osc.stop(now + 0.09);
   }
 
+  public playCocking(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // 1st click (철-)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(240, now);
+    osc1.frequency.exponentialRampToValueAtTime(780, now + 0.04);
+    gain1.gain.setValueAtTime(0.28, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.05);
+
+    // 2nd click (-컥!)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'square';
+    osc2.frequency.setValueAtTime(920, now + 0.045);
+    osc2.frequency.exponentialRampToValueAtTime(320, now + 0.09);
+    gain2.gain.setValueAtTime(0.22, now + 0.045);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.095);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.045);
+    osc2.stop(now + 0.095);
+  }
+
   public playHit(grade: JudgmentGrade): void {
     const ctx = this.ensureContext();
     if (!ctx || grade === 'MISS') return;

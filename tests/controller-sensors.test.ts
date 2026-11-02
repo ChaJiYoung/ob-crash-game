@@ -219,4 +219,26 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     expect(remoteBottomRight.aimX).toBeGreaterThan(0.1);
     expect(remoteBottomRight.aimY).toBeLessThan(-0.1);
   });
+
+  it('should only allow snap fire when screen touch (cocked) is active', () => {
+    const tracker = new GunGripTracker();
+    let isCocked = false;
+    let snapFired = false;
+
+    const handleMotionEvent = (accel: { x: number; y: number; z: number; timestampMs: number }) => {
+      const snap = tracker.detectSnapFire(accel);
+      if (snap && isCocked) {
+        snapFired = true;
+      }
+    };
+
+    // 1. Shaking phone without touching screen (isCocked = false)
+    handleMotionEvent({ x: 0, y: 9.0, z: 0, timestampMs: 1000 });
+    expect(snapFired).toBe(false); // No shot!
+
+    // 2. Touch down: cocked! (isCocked = true)
+    isCocked = true;
+    handleMotionEvent({ x: 0, y: 9.0, z: 0, timestampMs: 1300 });
+    expect(snapFired).toBe(true); // Fired!
+  });
 });

@@ -30,6 +30,7 @@ export const MobileControllerPage: React.FC = () => {
   const snapFireRef = useRef<boolean>(false);
   const rapidFireHoldRef = useRef<boolean>(false);
   const feverTriggeredRef = useRef<boolean>(false);
+  const isCockedRef = useRef<boolean>(false);
 
   // 1. Parse Room ID from URL
   useEffect(() => {
@@ -146,6 +147,7 @@ export const MobileControllerPage: React.FC = () => {
           snapFire,
           rapidFireHold: rapidFireHoldRef.current,
           feverTriggered,
+          isCocked: isCockedRef.current,
           timestamp: Date.now(),
         },
       })
@@ -172,7 +174,7 @@ export const MobileControllerPage: React.FC = () => {
           z: e.acceleration.z || 0,
           timestampMs: performance.now(),
         });
-        if (snap) {
+        if (snap && isCockedRef.current) {
           snapFireRef.current = true;
           flushSensorFrame();
         }
@@ -333,6 +335,10 @@ export const MobileControllerPage: React.FC = () => {
           }}
           onTapFire={() => {
             snapFireRef.current = true;
+            flushSensorFrame();
+          }}
+          onCockingChange={(cocked) => {
+            isCockedRef.current = cocked;
             flushSensorFrame();
           }}
           isFeverReady={isFeverReady}

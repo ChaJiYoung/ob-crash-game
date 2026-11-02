@@ -58,6 +58,7 @@ export interface SensorFramePayload {
   snapFire: boolean; // +X축 상단 스냅 단발 사격 트리거
   rapidFireHold: boolean; // 85% 통합 패드 0.25s 홀드 연사 상태
   feverTriggered: boolean; // 85% 통합 패드 0.3s 더블탭 피버 발동 트리거
+  isCocked: boolean; // 화면 터치 홀드로 코킹(장전) 및 조준 고정 상태 여부
   timestamp: number;
 }
 
