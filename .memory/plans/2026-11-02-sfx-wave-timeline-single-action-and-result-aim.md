@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 사운드 분기 복원, 웨이브 타임라인 HUD, 단발 안전장치, 결과창 조준경 선택 통합 구현 | [P01](../phases/2026-11-02-sfx-wave-timeline-single-action-and-result-aim/P01-sfx-timeline-action-result/phase.md) |
+| P01 | `done ✅` | 사운드 분기 복원, 웨이브 타임라인 HUD, 단발 안전장치, 결과창 조준경 선택 통합 구현 | [P01](../phases/2026-11-02-sfx-wave-timeline-single-action-and-result-aim/P01-sfx-timeline-action-result/phase.md) |
