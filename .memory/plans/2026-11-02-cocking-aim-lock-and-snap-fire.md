@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 모바일 코킹 조준 스냅샷, 단발 리볼버 사이클, PC 조준경 락온 시각 효과 및 로비 연동 | [P01](../phases/2026-11-02-cocking-aim-lock-and-snap-fire/P01-cocking-aim-lock-and-snap-fire/phase.md) |
+| P01 | `done` | 모바일 코킹 조준 스냅샷, 단발 리볼버 사이클, PC 조준경 락온 시각 효과 및 로비 연동 | [P01](../phases/2026-11-02-cocking-aim-lock-and-snap-fire/P01-cocking-aim-lock-and-snap-fire/phase.md) |
