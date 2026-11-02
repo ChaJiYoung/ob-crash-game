@@ -178,15 +178,11 @@ export const MobileControllerPage: React.FC = () => {
         });
         if (snap && isCockedRef.current) {
           snapFireRef.current = true;
-          // Send 1st frame with snapFire and locked aim coordinates
+          // Send frame with snapFire and aim coordinates
           flushSensorFrame();
 
-          // D02: Single-action reset immediately after snapFire
-          isCockedRef.current = false;
+          // Continuous Cocking: Keep cocked while finger is held on screen; unlock aim for live tracking
           tracker.unlockAim();
-          setIsCockedState(false);
-          // Send 2nd frame with uncocked state and live coordinates
-          flushSensorFrame();
         }
       }
     };

@@ -61,10 +61,10 @@
   - 사격 직후 조준 좌표 고정(Lock)만 실시간 좌표로 갱신되도록 `tracker.unlockAim()`을 호출하여 부드러운 타겟 추적 지원.
 
 ## Acceptance Criteria
-- [ ] 손목을 가볍게 튕겼을 때(가속도 2.2 m/s² 이상) 즉각 발사된다.
-- [ ] 손가락으로 화면을 누르고 있는 동안 손목을 연속으로 튕기면 "타닥타닥타닥" 지연 없이 연속 발사된다.
-- [ ] 손가락을 화면에서 떼면 코킹이 정상 해제된다.
-- [ ] 전체 테스트 통과 및 `npm run build` 성공.
+- [x] 손목을 가볍게 튕겼을 때(가속도 2.2 m/s² 이상) 즉각 발사된다.
+- [x] 손가락으로 화면을 누르고 있는 동안 손목을 연속으로 튕기면 "타닥타닥타닥" 지연 없이 연속 발사된다.
+- [x] 손가락을 화면에서 떼면 코킹이 정상 해제된다.
+- [x] 전체 테스트 통과 및 `npm run build` 성공.
 
 ## Validation
 - `npx vitest run tests/controller-sensors.test.ts tests/shared-protocol.test.ts` — 완화된 스냅 역치 및 연속 격발 테스트 통과
@@ -84,6 +84,6 @@ Task: T02-relax-snap-threshold-and-enable-continuous-cocking
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

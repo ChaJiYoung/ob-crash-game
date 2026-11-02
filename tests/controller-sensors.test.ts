@@ -41,20 +41,20 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const tiltUp = tracker.computeAim({ alpha: 180, beta: 10, gamma: -85 });
     expect(tiltUp.aimY).toBeGreaterThan(0.2);
 
-    // Snap fire test with 3D acceleration norm (relaxed threshold 4.8 m/s^2)
-    const low = tracker.detectSnapFire({ x: 3.2, y: 0, z: 0, timestampMs: 1000 });
+    // Snap fire test with 3D acceleration norm (relaxed threshold 2.2 m/s^2)
+    const low = tracker.detectSnapFire({ x: 1.5, y: 0, z: 0, timestampMs: 1000 });
     expect(low).toBe(false);
 
-    // Y-axis upward snap (light effortless flick >= 4.8 m/s^2)
-    const snap1 = tracker.detectSnapFire({ x: 0, y: 5.0, z: 0, timestampMs: 1050 });
+    // Y-axis upward snap (light effortless flick >= 2.2 m/s^2)
+    const snap1 = tracker.detectSnapFire({ x: 0, y: 2.5, z: 0, timestampMs: 1050 });
     expect(snap1).toBe(true);
 
-    // Cooldown test (within 180ms)
+    // Cooldown test (within 110ms)
     const snapCooldown = tracker.detectSnapFire({ x: 0, y: 0, z: 12.0, timestampMs: 1120 });
     expect(snapCooldown).toBe(false);
 
-    // After cooldown: combined 3D acceleration vector sqrt(5^2 + 5^2 + 5^2) ≈ 8.66 >= 8.0
-    const snap2 = tracker.detectSnapFire({ x: 5.0, y: 5.0, z: 5.0, timestampMs: 1300 });
+    // After 110ms cooldown: combined 3D acceleration vector sqrt(2^2 + 2^2) ≈ 2.82 >= 2.2
+    const snap2 = tracker.detectSnapFire({ x: 2.0, y: 2.0, z: 0, timestampMs: 1180 });
     expect(snap2).toBe(true);
   });
 

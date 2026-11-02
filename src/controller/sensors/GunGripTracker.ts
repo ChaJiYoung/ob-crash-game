@@ -261,7 +261,7 @@ export class GunGripTracker {
 
   public detectSnapFire(sample: LinearAccelerationSample): boolean {
     const threshold = WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2;
-    const cooldownMs = 180;
+    const cooldownMs = 110;
     const magnitude = Math.hypot(sample.x, sample.y, sample.z);
 
     if (magnitude >= threshold) {
