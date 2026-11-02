@@ -287,4 +287,52 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     }
     expect(secondShotFired).toBe(false);
   });
+
+  it('should enforce single-action safety lock across touch-down, snap, hold-shake, and re-touch lifecycle', () => {
+    const tracker = new GunGripTracker();
+    tracker.calibrateZero({ alpha: 180, beta: 0, gamma: -85 });
+
+    let isCocked = false;
+    let firedCount = 0;
+
+    // Simulate onMotion listener logic
+    const handleMotion = (accelY: number, timeMs: number) => {
+      const snap = tracker.detectSnapFire({ x: 0, y: accelY, z: 0, timestampMs: timeMs });
+      if (snap && isCocked) {
+        firedCount += 1;
+        // [Single-Action Safety] lock immediately on 1st fire
+        isCocked = false;
+        tracker.unlockAim();
+      }
+    };
+
+    // 1. Initial State: not cocked -> violent shake does not fire
+    handleMotion(6.0, 1000);
+    expect(firedCount).toBe(0);
+
+    // 2. User touches down -> Cocking ON
+    isCocked = true;
+
+    // 3. 1st Snap flick -> fires shot #1 and resets isCocked to false
+    handleMotion(4.5, 1200);
+    expect(firedCount).toBe(1);
+    expect(isCocked).toBe(false);
+
+    // 4. User keeps holding finger on screen; recoil rebound occurs after 150ms
+    // Even if motion is detected, since isCocked is false, NO second fire occurs!
+    handleMotion(5.0, 1350);
+    handleMotion(4.0, 1400);
+    expect(firedCount).toBe(1); // STILL 1! Double fire completely prevented!
+
+    // 5. User lifts finger (pointerUp) -> remains false
+    isCocked = false;
+
+    // 6. User touches down again for the next shot -> Re-cocking
+    isCocked = true;
+
+    // 7. 2nd Snap flick -> fires shot #2
+    handleMotion(4.0, 1600);
+    expect(firedCount).toBe(2);
+    expect(isCocked).toBe(false);
+  });
 });

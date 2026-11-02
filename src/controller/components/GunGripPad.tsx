@@ -43,7 +43,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     setInternalCocked(true);
-    triggerHaptic(35);
+    // 25ms 숏 햅틱 피드백으로 경쾌한 재코킹 촉각 전달
+    triggerHaptic(25);
     onCockingChangeRef.current?.(true);
     touchPadRef.current?.handlePointerDown();
   };

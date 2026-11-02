@@ -178,10 +178,12 @@ export const MobileControllerPage: React.FC = () => {
         });
         if (snap && isCockedRef.current) {
           snapFireRef.current = true;
+          // [단발 안전장치] 격발 즉시 코킹 잠금 해제 (손을 뗄 때까지 2차 오발 원천 차단)
+          isCockedRef.current = false;
+          setIsCockedState(false);
           // Send frame with snapFire and aim coordinates
           flushSensorFrame();
 
-          // Continuous Cocking: Keep cocked while finger is held on screen; unlock aim for live tracking
           tracker.unlockAim();
         }
       }

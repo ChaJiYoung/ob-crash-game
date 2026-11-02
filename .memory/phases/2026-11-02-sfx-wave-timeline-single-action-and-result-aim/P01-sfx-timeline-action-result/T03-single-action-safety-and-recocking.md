@@ -1,6 +1,6 @@
 # Task: T03 Single-Action Safety Lock and Re-Cocking Haptic Feedback
 
-## Status: pending
+## Status: done
 
 ## Goal
 손목 스냅 1발 발사 즉시 격발 잠금(isCocked = false)을 걸어 화면에서 손을 뗄 때까지 반동 흔들림으로 인한 2차 오발(Double-Fire)을 원천 차단하고, 손을 뗐다가 다시 누를 때 25ms 숏 햅틱과 찰칵 장전음으로 다음 탄환 준비를 명확히 인지시킨다.
@@ -89,6 +89,6 @@ Task: T03-single-action-safety-and-recocking
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
