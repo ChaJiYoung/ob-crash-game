@@ -395,22 +395,24 @@ export class ParticleEffects3D {
       // 2. 오프너 불릿 타임 & 참격: Giant Golden Bottle Opener Boomerang
       const boomerangGroup = new THREE.Group();
       const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xfbbf24,
-        emissive: 0xd97706,
-        emissiveIntensity: 0.8,
+        color: 0xffd700,
+        emissive: 0xf59e0b,
+        emissiveIntensity: 1.5,
         metalness: 0.95,
+        roughness: 0.1,
       });
 
-      // Opener Ring Blade
-      const blade = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.075, 12, 32), goldMat);
-      blade.rotation.x = Math.PI / 2;
+      // Opener Ring Blade (Large 2.7m diameter golden blade tilted toward camera)
+      const blade = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.12, 16, 36), goldMat);
+      blade.rotation.x = Math.PI / 3.5;
       boomerangGroup.add(blade);
 
-      const hook = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.12, 0.14), goldMat);
-      hook.position.set(0.55, 0, 0);
+      const hook = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.22, 0.24), goldMat);
+      hook.position.set(0.95, 0, 0);
       boomerangGroup.add(hook);
 
-      boomerangGroup.position.set(0, 0.8, -2.5);
+      // Eye-level starting position right in front of camera
+      boomerangGroup.position.set(0, 1.35, -2.2);
       this.group.add(boomerangGroup);
 
       this.skillEffects.push({
@@ -420,32 +422,34 @@ export class ParticleEffects3D {
         maxLifeSec: 1.8,
         updateFn: (dt, life) => {
           boomerangGroup.rotation.y += dt * 26.0;
-          // Elliptical arc trajectory
+          boomerangGroup.rotation.z += dt * 12.0;
+          // Elliptical arc trajectory centered on monsters
           const t = (life / 1.8) * Math.PI * 2;
-          boomerangGroup.position.x = Math.sin(t) * 3.8;
-          boomerangGroup.position.z = -2.5 - Math.sin(t * 0.5) * 6.5;
+          boomerangGroup.position.x = Math.sin(t) * 2.8;
+          boomerangGroup.position.y = 1.35 + Math.sin(t * 2.0) * 0.25;
+          boomerangGroup.position.z = -2.2 - Math.sin(t * 0.5) * 6.5;
           return life >= 1.8;
         },
       });
     } else {
-      // 3. gatling: 거품 해일 160도 오버히트: 50+ Foam Wave Spheres
+      // 3. gatling: 거품 해일 160도 오버히트: 75+ Huge Creamy Foam Wave Spheres
       const waveGroup = new THREE.Group();
       const halfArc = ((spec.skillArcDeg / 2) * Math.PI) / 180;
-      const foamCount = 55;
+      const foamCount = 75;
 
       for (let k = 0; k < foamCount; k++) {
-        const radius = 0.14 + Math.random() * 0.14;
+        const radius = 0.28 + Math.random() * 0.28;
         const fMat = new THREE.MeshBasicMaterial({
-          color: k % 2 === 0 ? 0xffffff : 0x67e8f9,
+          color: k % 3 === 0 ? 0xffffff : k % 3 === 1 ? 0xe0f2fe : 0x7dd3fc,
           transparent: true,
-          opacity: 0.85,
+          opacity: 0.88,
         });
-        const fMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), fMat);
+        const fMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 10), fMat);
         const theta = (Math.random() * 2 - 1) * halfArc;
         fMesh.userData.theta = theta;
-        fMesh.userData.speed = 12.0 + Math.random() * 6.0;
-        fMesh.userData.dist = 0.5 + Math.random() * 0.5;
-        fMesh.userData.initY = 0.2 + (Math.random() - 0.5) * 0.4;
+        fMesh.userData.speed = 10.0 + Math.random() * 5.0;
+        fMesh.userData.dist = 0.6 + Math.random() * 0.6;
+        fMesh.userData.initY = 1.15 + (Math.random() - 0.5) * 0.55;
         waveGroup.add(fMesh);
       }
       this.group.add(waveGroup);
@@ -454,14 +458,14 @@ export class ParticleEffects3D {
         group: waveGroup,
         kind: 'gatling',
         lifeSec: 0,
-        maxLifeSec: 1.2,
+        maxLifeSec: 1.4,
         updateFn: (dt) => {
           waveGroup.children.forEach((child) => {
             child.userData.dist += dt * child.userData.speed;
             const th = child.userData.theta;
             child.position.set(
               Math.sin(th) * child.userData.dist,
-              child.userData.initY + Math.sin(child.userData.dist * 1.5) * 0.2,
+              child.userData.initY + Math.sin(child.userData.dist * 1.5) * 0.25,
               -Math.cos(th) * child.userData.dist
             );
           });

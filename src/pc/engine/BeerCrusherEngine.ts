@@ -282,12 +282,12 @@ export class BeerCrusherEngine {
   public spawnWeaponSelectTargets(): void {
     this.isWeaponSelectPending = true;
     const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
-    const xPositions = [-2.2, 0, 2.2];
+    const xPositions = [-2.0, 0, 2.0];
 
     weaponKinds.forEach((kind, idx) => {
       this.targetCounter += 1;
       const x = xPositions[idx];
-      const z = -7.5;
+      const z = -6.0;
       const theta = Math.atan2(x, -z);
       const radius = Math.hypot(x, z);
 
@@ -304,7 +304,7 @@ export class BeerCrusherEngine {
         hitRadiusM: 1.15,
         killBonusScore: 50,
         breached: false,
-        customNormY: 0.05,
+        customBaseY: 1.15,
         weaponSelectKind: kind,
       });
     });
@@ -317,12 +317,12 @@ export class BeerCrusherEngine {
       'rapid_reload',
       this.lives < STAGE_CONSTANTS.PLAYER_MAX_LIVES ? 'bar_repair' : 'fever_boost',
     ];
-    const xPositions = [-2.2, 0, 2.2];
+    const xPositions = [-2.0, 0, 2.0];
 
     candidateCards.forEach((cardKind, idx) => {
       this.targetCounter += 1;
       const x = xPositions[idx];
-      const z = -7.5;
+      const z = -6.0;
       const theta = Math.atan2(x, -z);
       const radius = Math.hypot(x, z);
 
@@ -339,7 +339,7 @@ export class BeerCrusherEngine {
         hitRadiusM: 1.15,
         killBonusScore: 100,
         breached: false,
-        customNormY: 0.05,
+        customBaseY: 1.15,
         rewardCardKind: cardKind,
       });
     });

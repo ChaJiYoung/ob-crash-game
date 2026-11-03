@@ -918,7 +918,8 @@ export function createProjectileMesh3D(): THREE.Group {
 export function createCardTargetMesh3D(
   title: string,
   subtitle: string,
-  colorHex: string
+  colorHex: string,
+  icon = '🃏'
 ): THREE.Group {
   const root = new THREE.Group();
   root.name = `Card_${title}`;
@@ -926,19 +927,102 @@ export function createCardTargetMesh3D(
   const inner = new THREE.Group();
   root.add(inner);
 
+  // 1. Holographic Dynamic Canvas Texture (safe in Node.js headless environment)
+  let canvasTexture: THREE.CanvasTexture | null = null;
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 680;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Card background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, 680);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(0.5, '#1e293b');
+      bgGrad.addColorStop(1, '#090d16');
+      ctx.fillStyle = bgGrad;
+      ctx.beginPath();
+      ctx.roundRect(16, 16, 480, 648, 28);
+      ctx.fill();
+
+      // Neon Border
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = colorHex;
+      ctx.shadowColor = colorHex;
+      ctx.shadowBlur = 18;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Header Glow Icon
+      ctx.font = '76px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(icon, 256, 130);
+
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText(title, 256, 210);
+
+      // Divider Line
+      ctx.strokeStyle = colorHex;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(80, 240);
+      ctx.lineTo(432, 240);
+      ctx.stroke();
+
+      // Subtitle / Description
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 24px sans-serif';
+      const subLines = subtitle.split('\n');
+      subLines.forEach((line, idx) => {
+        ctx.fillText(line, 256, 290 + idx * 36);
+      });
+
+      // Shoot to Select Button Badge
+      const btnGrad = ctx.createLinearGradient(0, 520, 0, 610);
+      btnGrad.addColorStop(0, colorHex);
+      btnGrad.addColorStop(1, '#0284c7');
+      ctx.fillStyle = btnGrad;
+      ctx.beginPath();
+      ctx.roundRect(64, 520, 384, 80, 20);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText('🎯 SHOOT TO SELECT', 256, 572);
+    }
+
+    canvasTexture = new THREE.CanvasTexture(canvas);
+    canvasTexture.colorSpace = THREE.SRGBColorSpace;
+  }
+
   const cardMat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(colorHex),
     emissive: new THREE.Color(colorHex),
-    emissiveIntensity: 0.35,
-    metalness: 0.7,
+    emissiveIntensity: 0.25,
+    metalness: 0.8,
     roughness: 0.2,
   });
-  const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.45, 0.08), cardMat);
+  const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.65, 0.08), cardMat);
   inner.add(cardFrame);
 
+  // Card Front Face
+  const frontPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.2, 1.6),
+    new THREE.MeshBasicMaterial({
+      map: canvasTexture,
+      transparent: true,
+      side: THREE.DoubleSide,
+      color: canvasTexture ? 0xffffff : new THREE.Color(colorHex),
+    })
+  );
+  frontPlane.position.z = 0.045;
+  inner.add(frontPlane);
+
   const borderRing = new THREE.Mesh(
-    new THREE.TorusGeometry(0.72, 0.025, 8, 24),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
+    new THREE.TorusGeometry(0.85, 0.025, 8, 24),
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(colorHex) })
   );
   borderRing.position.z = 0.05;
   inner.add(borderRing);
@@ -947,7 +1031,7 @@ export function createCardTargetMesh3D(
     isCard: true,
     inner,
     baseScale: 1.0,
-    hitRadiusM: 1.15,
+    hitRadiusM: 1.25,
   };
 
   return root;

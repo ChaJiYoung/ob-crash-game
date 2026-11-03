@@ -494,7 +494,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   };
 
   const handleStartGame = useCallback(() => {
-    engine.startGame();
+    engine.startGame({ withWeaponSelect: true });
     setGamePhase('PLAYING');
     setIsNewRecord(false);
   }, [engine]);
