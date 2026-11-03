@@ -318,4 +318,80 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     updateTargetAnimation3D(monster, 'bottle', 2.0, 1.0, { isStunned: false });
     expect(stuckGroup.visible).toBe(false);
   });
+
+  it('should spawn 3D flying weapon projectiles for shotgun, revolver, and gatling in ParticleEffects3D', () => {
+    const fx = new ParticleEffects3D();
+    const origin = new THREE.Vector3(0.2, -0.2, 0.4);
+    const target = new THREE.Vector3(0, 1.0, -10.0);
+
+    // 1. Shotgun projectiles
+    fx.spawnWeaponProjectile(origin, target, 'shotgun', 1);
+    expect(fx.activeProjectiles.length).toBeGreaterThanOrEqual(3);
+
+    // 2. Revolver projectile
+    fx.spawnWeaponProjectile(origin, target, 'revolver', 2);
+    expect(fx.activeProjectiles.length).toBeGreaterThan(3);
+
+    // 3. Gatling projectile
+    fx.spawnWeaponProjectile(origin, target, 'gatling', 3);
+    expect(fx.activeProjectiles.length).toBeGreaterThan(4);
+
+    // Update projectiles
+    fx.update(0.016);
+    expect(fx.activeProjectiles.every((p) => p.lifeSec > 0)).toBe(true);
+  });
+
+  it('should spawn and simulate 3 active skill physics FX with floor bounce and target sticking', () => {
+    const fx = new ParticleEffects3D();
+    const monsterPos = [new THREE.Vector3(0, 1.0, -8.0), new THREE.Vector3(1.5, 0.5, -6.0)];
+
+    // 1. Shotgun Skill: 8-way plunger storm
+    fx.spawnSkillEffect('shotgun', 2, monsterPos);
+    expect(fx.parabolicPlungers.length).toBeGreaterThanOrEqual(12);
+
+    // Simulate physics updates (including floor collision at y = -1.15)
+    for (let i = 0; i < 60; i++) {
+      fx.update(0.016);
+    }
+    // Plungers should either stick to targets or bounce at floor y = -1.15 without falling into negative infinity
+    fx.parabolicPlungers.forEach((p) => {
+      expect(p.group.position.y).toBeGreaterThanOrEqual(-1.20);
+    });
+
+    // 2. Revolver Skill: Giant Golden Opener Boomerang
+    fx.spawnSkillEffect('revolver', 3, monsterPos);
+    expect(fx.boomerangBlade).toBeDefined();
+    expect(fx.boomerangBlade?.group.visible).toBe(true);
+    const initYaw = fx.boomerangBlade!.group.rotation.y;
+    fx.update(0.05);
+    expect(fx.boomerangBlade!.group.rotation.y).not.toBe(initYaw);
+
+    // 3. Gatling Skill: 160-degree Foam Tsunami
+    fx.spawnSkillEffect('gatling', 4, monsterPos);
+    expect(fx.tsunamiBubbles.length).toBeGreaterThanOrEqual(45);
+    const initialDist = fx.tsunamiBubbles[0].userData.dist;
+    fx.update(0.05);
+    expect(fx.tsunamiBubbles[0].userData.dist).toBeGreaterThan(initialDist);
+  });
+
+  it('should synthesize procedural audio for 3 weapons and 3 active skills', () => {
+    const synth = new SoundSynthesizer();
+
+    // Weapon shots
+    expect(() => {
+      synth.playWeaponShoot('shotgun', false);
+      synth.playWeaponShoot('shotgun', true);
+      synth.playWeaponShoot('revolver', false);
+      synth.playWeaponShoot('revolver', true);
+      synth.playWeaponShoot('gatling', false);
+      synth.playWeaponShoot('gatling', true);
+    }).not.toThrow();
+
+    // Active skills
+    expect(() => {
+      synth.playSkillActivation('shotgun');
+      synth.playSkillActivation('revolver');
+      synth.playSkillActivation('gatling');
+    }).not.toThrow();
+  });
 });

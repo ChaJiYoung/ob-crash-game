@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { ItemBuffKind } from '../../shared/types';
-import { ITEM_BUFF_SPECS } from '../../shared/constants';
+import { ItemBuffKind, WeaponKind, WeaponLevel } from '../../shared/types';
+import { ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
+import { createRealisticPlungerMesh } from './DraftTapGun3D';
 
 interface ParticleItem {
   mesh: THREE.Mesh;
@@ -24,11 +25,57 @@ export interface FloatingLabelItem {
   maxLifeSec: number;
 }
 
+export interface ProjectileItem {
+  group: THREE.Group;
+  startPos: THREE.Vector3;
+  targetPos: THREE.Vector3;
+  speed: number;
+  progress: number;
+  isStuck?: boolean;
+  stuckTargetPos?: THREE.Vector3;
+  velocity?: THREE.Vector3;
+  lifeSec: number;
+  maxLifeSec: number;
+  isBouncing?: boolean;
+}
+
+export interface SkillEffectItem {
+  group: THREE.Group;
+  kind: WeaponKind;
+  lifeSec: number;
+  maxLifeSec: number;
+  updateFn: (dt: number, life: number) => boolean; // returns true when finished
+}
+
 export class ParticleEffects3D {
   public readonly group: THREE.Group;
   private particles: ParticleItem[] = [];
   private tracerBeams: TracerBeamItem[] = [];
   private floatingLabels: FloatingLabelItem[] = [];
+  private projectiles: ProjectileItem[] = [];
+  private skillEffects: SkillEffectItem[] = [];
+
+  public get activeProjectiles(): ProjectileItem[] {
+    return this.projectiles;
+  }
+
+  public get activeSkillEffects(): SkillEffectItem[] {
+    return this.skillEffects;
+  }
+
+  public get parabolicPlungers(): ProjectileItem[] {
+    return this.projectiles.filter((p) => p.velocity !== undefined);
+  }
+
+  public get boomerangBlade(): SkillEffectItem | undefined {
+    return this.skillEffects.find((s) => s.kind === 'revolver');
+  }
+
+  public get tsunamiBubbles(): THREE.Mesh[] {
+    const s = this.skillEffects.find((fx) => fx.kind === 'gatling');
+    return s ? (s.group.children as THREE.Mesh[]) : [];
+  }
+
   private labelTextureCache = new Map<ItemBuffKind, THREE.Texture>();
   private foamGeo = new THREE.SphereGeometry(0.08, 6, 6);
   private shardGeo = new THREE.BufferGeometry();
@@ -39,7 +86,6 @@ export class ParticleEffects3D {
     this.group = new THREE.Group();
     this.group.name = 'ParticleEffects3D';
 
-    // Triangle shard geometry
     const verts = new Float32Array([
       -0.08, -0.06, 0,
       0.08, -0.04, 0,
@@ -96,7 +142,6 @@ export class ParticleEffects3D {
     const labelText = textMap[itemKind] || (spec ? `${spec.icon} ${spec.shortLabel}` : itemKind);
     const borderColor = spec ? spec.auraColorHex : '#fbbf24';
 
-    // Rounded rectangle card background
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.beginPath();
     if (ctx.roundRect) {
@@ -106,12 +151,10 @@ export class ParticleEffects3D {
     }
     ctx.fill();
 
-    // Glowing border
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // Bold text
     ctx.font = '900 24px "Pretendard", "Apple SD Gothic Neo", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -162,7 +205,7 @@ export class ParticleEffects3D {
 
     const radius = isFeverOrPower ? 0.045 : 0.024;
     const beamGeo = new THREE.CylinderGeometry(radius, radius, distance, 8);
-    beamGeo.rotateX(Math.PI / 2); // Align with Z forward
+    beamGeo.rotateX(Math.PI / 2);
 
     const beamMat = new THREE.MeshBasicMaterial({
       color: new THREE.Color(colorHex),
@@ -175,7 +218,6 @@ export class ParticleEffects3D {
     beamMesh.lookAt(toPos);
     this.group.add(beamMesh);
 
-    // Muzzle flash sphere
     const flashRadius = isFeverOrPower ? 0.16 : 0.11;
     const flashGeo = new THREE.SphereGeometry(flashRadius, 8, 8);
     const flashMat = new THREE.MeshBasicMaterial({
@@ -194,6 +236,223 @@ export class ParticleEffects3D {
       lifeSec: 0,
       maxLifeSec: 0.14,
     });
+  }
+
+  /**
+   * 🔫 1. 3D Flying Weapon Projectiles (Mini Plunger Pellets, Crown Bolt, Carbonation Bubbles)
+   */
+  public spawnWeaponProjectile(
+    origin: THREE.Vector3,
+    targetPos: THREE.Vector3,
+    kind: WeaponKind,
+    level: WeaponLevel
+  ): void {
+    const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
+
+    if (kind === 'shotgun') {
+      const pelletCount = spec.pelletCount;
+      for (let i = 0; i < pelletCount; i++) {
+        const miniPlunger = createRealisticPlungerMesh(0.28);
+        miniPlunger.position.copy(origin);
+        this.group.add(miniPlunger);
+
+        const spread = (i - (pelletCount - 1) / 2) * 0.28;
+        const spreadTarget = targetPos.clone().add(new THREE.Vector3(spread, (Math.random() - 0.5) * 0.25, 0));
+
+        this.projectiles.push({
+          group: miniPlunger,
+          startPos: origin.clone(),
+          targetPos: spreadTarget,
+          speed: 28.0 + Math.random() * 4.0,
+          progress: 0,
+          lifeSec: 0,
+          maxLifeSec: 0.45,
+        });
+      }
+      this.spawnTracerBeam(origin, targetPos, '#ef4444', false);
+    } else if (kind === 'revolver') {
+      const boltGroup = new THREE.Group();
+      const capGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.04, 12);
+      const capMat = new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        emissive: 0xd97706,
+        metalness: 0.9,
+      });
+      const boltMesh = new THREE.Mesh(capGeo, capMat);
+      boltMesh.rotation.x = Math.PI / 2;
+      boltGroup.add(boltMesh);
+      boltGroup.position.copy(origin);
+      this.group.add(boltGroup);
+
+      this.projectiles.push({
+        group: boltGroup,
+        startPos: origin.clone(),
+        targetPos: targetPos.clone(),
+        speed: 45.0,
+        progress: 0,
+        lifeSec: 0,
+        maxLifeSec: 0.35,
+      });
+
+      this.spawnTracerBeam(origin, targetPos, '#f59e0b', true);
+    } else {
+      // gatling
+      const bubbleGroup = new THREE.Group();
+      const bubbleGeo = new THREE.SphereGeometry(0.065, 10, 10);
+      const bubbleMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        transparent: true,
+        opacity: 0.9,
+      });
+      const bMesh = new THREE.Mesh(bubbleGeo, bubbleMat);
+      bubbleGroup.add(bMesh);
+      bubbleGroup.position.copy(origin);
+      this.group.add(bubbleGroup);
+
+      this.projectiles.push({
+        group: bubbleGroup,
+        startPos: origin.clone(),
+        targetPos: targetPos.clone(),
+        speed: 38.0,
+        progress: 0,
+        lifeSec: 0,
+        maxLifeSec: 0.35,
+      });
+
+      this.spawnTracerBeam(origin, targetPos, '#00f5d4', false);
+    }
+  }
+
+  /**
+   * ⚡ 2. 3 Active Skill Physics FX (Plunger Storm / Boomerang / Foam Tsunami)
+   */
+  public spawnSkillEffect(
+    kind: WeaponKind,
+    level: WeaponLevel,
+    monsterPositions: THREE.Vector3[]
+  ): void {
+    const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
+
+    if (kind === 'shotgun') {
+      // 1. 사방 뚫어뻥 폭풍: 12~22 3D Plungers in Parabolic Trajectories
+      const count = spec.skillPlungerCount || 16;
+      for (let i = 0; i < count; i++) {
+        const plunger = createRealisticPlungerMesh(0.52);
+
+        // Spawn from 8 outer screen perimeter positions
+        const angle = (i / count) * Math.PI * 2;
+        const spawnX = Math.cos(angle) * 5.2;
+        const spawnY = Math.sin(angle) * 3.0 + 1.2;
+        const spawnZ = 1.0;
+        plunger.position.set(spawnX, spawnY, spawnZ);
+        this.group.add(plunger);
+
+        let target = monsterPositions[i % Math.max(1, monsterPositions.length)];
+        let isSticking = true;
+
+        if (!target || monsterPositions.length === 0 || i >= monsterPositions.length * 2) {
+          // Missed plunger targets far pub floor/wall (NEVER blocks camera)
+          target = new THREE.Vector3((Math.random() - 0.5) * 8.0, -1.15, -10.0 - Math.random() * 4.0);
+          isSticking = false;
+        }
+
+        const dir = new THREE.Vector3().subVectors(target, plunger.position).normalize();
+        const speed = 16.0 + Math.random() * 6.0;
+        const velocity = dir.multiplyScalar(speed);
+        velocity.y += 2.5; // Initial upward arc
+
+        this.projectiles.push({
+          group: plunger,
+          startPos: plunger.position.clone(),
+          targetPos: target.clone(),
+          speed,
+          progress: 0,
+          velocity,
+          isStuck: false,
+          stuckTargetPos: isSticking ? target.clone() : undefined,
+          isBouncing: !isSticking,
+          lifeSec: 0,
+          maxLifeSec: isSticking ? 1.6 : 1.2,
+        });
+      }
+    } else if (kind === 'revolver') {
+      // 2. 오프너 불릿 타임 & 참격: Giant Golden Bottle Opener Boomerang
+      const boomerangGroup = new THREE.Group();
+      const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xfbbf24,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.8,
+        metalness: 0.95,
+      });
+
+      // Opener Ring Blade
+      const blade = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.075, 12, 32), goldMat);
+      blade.rotation.x = Math.PI / 2;
+      boomerangGroup.add(blade);
+
+      const hook = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.12, 0.14), goldMat);
+      hook.position.set(0.55, 0, 0);
+      boomerangGroup.add(hook);
+
+      boomerangGroup.position.set(0, 0.8, -2.5);
+      this.group.add(boomerangGroup);
+
+      this.skillEffects.push({
+        group: boomerangGroup,
+        kind: 'revolver',
+        lifeSec: 0,
+        maxLifeSec: 1.8,
+        updateFn: (dt, life) => {
+          boomerangGroup.rotation.y += dt * 26.0;
+          // Elliptical arc trajectory
+          const t = (life / 1.8) * Math.PI * 2;
+          boomerangGroup.position.x = Math.sin(t) * 3.8;
+          boomerangGroup.position.z = -2.5 - Math.sin(t * 0.5) * 6.5;
+          return life >= 1.8;
+        },
+      });
+    } else {
+      // 3. gatling: 거품 해일 160도 오버히트: 50+ Foam Wave Spheres
+      const waveGroup = new THREE.Group();
+      const halfArc = ((spec.skillArcDeg / 2) * Math.PI) / 180;
+      const foamCount = 55;
+
+      for (let k = 0; k < foamCount; k++) {
+        const radius = 0.14 + Math.random() * 0.14;
+        const fMat = new THREE.MeshBasicMaterial({
+          color: k % 2 === 0 ? 0xffffff : 0x67e8f9,
+          transparent: true,
+          opacity: 0.85,
+        });
+        const fMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), fMat);
+        const theta = (Math.random() * 2 - 1) * halfArc;
+        fMesh.userData.theta = theta;
+        fMesh.userData.speed = 12.0 + Math.random() * 6.0;
+        fMesh.userData.dist = 0.5 + Math.random() * 0.5;
+        fMesh.userData.initY = 0.2 + (Math.random() - 0.5) * 0.4;
+        waveGroup.add(fMesh);
+      }
+      this.group.add(waveGroup);
+
+      this.skillEffects.push({
+        group: waveGroup,
+        kind: 'gatling',
+        lifeSec: 0,
+        maxLifeSec: 1.2,
+        updateFn: (dt) => {
+          waveGroup.children.forEach((child) => {
+            child.userData.dist += dt * child.userData.speed;
+            const th = child.userData.theta;
+            child.position.set(
+              Math.sin(th) * child.userData.dist,
+              child.userData.initY + Math.sin(child.userData.dist * 1.5) * 0.2,
+              -Math.cos(th) * child.userData.dist
+            );
+          });
+          return false;
+        },
+      });
+    }
   }
 
   public spawnHitEffect(origin: THREE.Vector3, colorHex: string, count = 12): void {
@@ -228,7 +487,6 @@ export class ParticleEffects3D {
   }
 
   public triggerBottleCrash(origin: THREE.Vector3, count = 16): void {
-    // 1. Silver Crown Cap popping up into the air and spinning
     const capGeo = new THREE.CylinderGeometry(0.125, 0.125, 0.04, 16);
     const capMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
     const capMesh = new THREE.Mesh(capGeo, capMat);
@@ -247,7 +505,6 @@ export class ParticleEffects3D {
       rotSpeed: new THREE.Vector3(15.0, 8.0, 20.0),
     });
 
-    // 2. Transparent / light cyan glass shards (16 shards)
     const glassShardMat = this.getMaterial('#bae6fd');
     for (let i = 0; i < count; i++) {
       const shardMesh = new THREE.Mesh(this.shardGeo, glassShardMat);
@@ -275,7 +532,6 @@ export class ParticleEffects3D {
       });
     }
 
-    // 3. Golden beer splash droplets (14 droplets)
     const beerMat = this.getMaterial('#f59e0b');
     for (let i = 0; i < 14; i++) {
       const beerDrop = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), beerMat);
@@ -283,7 +539,7 @@ export class ParticleEffects3D {
 
       const speed = 3.0 + Math.random() * 3.5;
       const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * 0.5 * Math.PI; // Upward spray
+      const phi = Math.random() * 0.5 * Math.PI;
 
       const vx = Math.cos(phi) * Math.sin(theta) * speed;
       const vy = Math.sin(phi) * speed + 1.5;
@@ -354,10 +610,72 @@ export class ParticleEffects3D {
       }
 
       const progress = fl.lifeSec / fl.maxLifeSec;
-      // Float upwards with smooth easing
       fl.sprite.position.y = fl.initialPos.y + Math.sin(progress * Math.PI * 0.5) * 0.65;
-      // Fade out towards the end
       (fl.sprite.material as THREE.SpriteMaterial).opacity = Math.max(0, 1.0 - Math.pow(progress, 1.5));
+    }
+
+    // 4. Update 3D Flying Projectiles & Skill Plungers
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const pj = this.projectiles[i];
+      pj.lifeSec += dtSec;
+
+      if (pj.lifeSec >= pj.maxLifeSec) {
+        this.group.remove(pj.group);
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+
+      if (pj.isStuck && pj.stuckTargetPos) {
+        // Monster stuck vibration
+        pj.group.position.copy(pj.stuckTargetPos);
+        pj.group.rotation.z = Math.sin(pj.lifeSec * 45.0) * 0.14;
+        continue;
+      }
+
+      if (pj.velocity) {
+        // Physics ballistic flight
+        pj.velocity.y -= 12.0 * dtSec; // Gravity
+        pj.group.position.addScaledVector(pj.velocity, dtSec);
+        pj.group.rotation.x += dtSec * 14.0;
+
+        // Floor bounce at y = -1.15
+        if (pj.group.position.y <= -1.15) {
+          pj.group.position.y = -1.15;
+          pj.velocity.y = Math.abs(pj.velocity.y) * 0.42; // Bounce
+          pj.velocity.x *= 0.75;
+          pj.velocity.z *= 0.75;
+        }
+
+        // Check monster sticking hit
+        if (pj.stuckTargetPos && pj.group.position.distanceTo(pj.stuckTargetPos) < 0.6) {
+          pj.isStuck = true;
+        }
+      } else {
+        // Linear direct flight
+        const dist = pj.startPos.distanceTo(pj.targetPos);
+        pj.progress += (pj.speed * dtSec) / Math.max(0.1, dist);
+
+        if (pj.progress >= 1.0) {
+          this.group.remove(pj.group);
+          this.projectiles.splice(i, 1);
+          continue;
+        }
+
+        pj.group.position.lerpVectors(pj.startPos, pj.targetPos, pj.progress);
+        pj.group.lookAt(pj.targetPos);
+      }
+    }
+
+    // 5. Update Skill FX (Boomerang & Foam Wave)
+    for (let i = this.skillEffects.length - 1; i >= 0; i--) {
+      const fx = this.skillEffects[i];
+      fx.lifeSec += dtSec;
+
+      const isDone = fx.updateFn(dtSec, fx.lifeSec) || fx.lifeSec >= fx.maxLifeSec;
+      if (isDone) {
+        this.group.remove(fx.group);
+        this.skillEffects.splice(i, 1);
+      }
     }
   }
 
@@ -374,5 +692,9 @@ export class ParticleEffects3D {
       fl.sprite.material.dispose();
     });
     this.floatingLabels = [];
+    this.projectiles.forEach((pj) => this.group.remove(pj.group));
+    this.projectiles = [];
+    this.skillEffects.forEach((fx) => this.group.remove(fx.group));
+    this.skillEffects = [];
   }
 }

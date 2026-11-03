@@ -8,6 +8,9 @@ import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
   createTargetMesh3D,
   createItemMesh3D,
+  createGoldenCanMesh3D,
+  createProjectileMesh3D,
+  createCardTargetMesh3D,
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
@@ -17,6 +20,7 @@ import { DraftTapGun3D } from '../three/DraftTapGun3D';
 import { ParticleEffects3D } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
+import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
 
 export function computeAimWorldPoint(
@@ -47,6 +51,7 @@ function disposeGroup(group: THREE.Group): void {
 
 export interface GameCanvas3DHandle {
   setAim: (aimX: number, aimY: number, immediate?: boolean) => void;
+  triggerSkillEffect?: (kind: WeaponKind, level?: WeaponLevel) => void;
 }
 
 export interface GameCanvas3DProps {
@@ -57,6 +62,7 @@ export interface GameCanvas3DProps {
   onShoot?: (result: EngineShootResult) => void;
   soundSynth: SoundSynthesizer;
   lastShootResult?: { result: EngineShootResult; key: number };
+  lastSkillTriggered?: { kind: WeaponKind; level?: WeaponLevel; key: number };
 }
 
 export const GameCanvas3D = React.memo(
@@ -68,6 +74,7 @@ export const GameCanvas3D = React.memo(
     onShoot,
     soundSynth,
     lastShootResult,
+    lastSkillTriggered,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
@@ -76,6 +83,12 @@ export const GameCanvas3D = React.memo(
     onAimChangeRef.current = onAimChange;
     const onShootRef = useRef(onShoot);
     onShootRef.current = onShoot;
+
+    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+    const tapGunRef = useRef<DraftTapGun3D | null>(null);
+    const particlesRef = useRef<ParticleEffects3D | null>(null);
+    const stageRigRef = useRef<BreweryStageRig | null>(null);
+    const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
 
     useImperativeHandle(
       ref,
@@ -86,15 +99,28 @@ export const GameCanvas3D = React.memo(
             currentAimRef.current = { aimX: nextX, aimY: nextY };
           }
         },
+        triggerSkillEffect(kind: WeaponKind, level?: WeaponLevel) {
+          if (!particlesRef.current) return;
+          const monsterPositions = engine.activeTargets
+            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind)
+            .map((t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z));
+          const actualLevel = level ?? engine.weaponSystem.getState().weaponLevel;
+          particlesRef.current.spawnSkillEffect(kind, actualLevel, monsterPositions);
+          soundSynth.playSkillActivation(kind);
+        },
       }),
-      []
+      [engine, soundSynth]
     );
 
-    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-    const tapGunRef = useRef<DraftTapGun3D | null>(null);
-    const particlesRef = useRef<ParticleEffects3D | null>(null);
-    const stageRigRef = useRef<BreweryStageRig | null>(null);
-    const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
+    useEffect(() => {
+      if (!lastSkillTriggered || !particlesRef.current) return;
+      const monsterPositions = engine.activeTargets
+        .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind)
+        .map((t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z));
+      const level = lastSkillTriggered.level ?? engine.weaponSystem.getState().weaponLevel;
+      particlesRef.current.spawnSkillEffect(lastSkillTriggered.kind, level, monsterPositions);
+      soundSynth.playSkillActivation(lastSkillTriggered.kind);
+    }, [lastSkillTriggered, engine, soundSynth]);
 
     // Trigger 3D visual FX (tracer beam, recoil, hit flash, particles) for ANY shot
     useEffect(() => {
@@ -124,6 +150,8 @@ export const GameCanvas3D = React.memo(
         const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
         const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
 
+        const weaponState = engine.weaponSystem.getState();
+
         if (result.grade !== 'MISS' && result.target) {
           const mesh = targetMeshMapRef.current.get(result.target.id);
           if (mesh) {
@@ -132,7 +160,7 @@ export const GameCanvas3D = React.memo(
 
             const hitColor = result.target.isItem && result.target.itemKind
               ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
-              : TARGET_SPECS[result.target.kind].brandColorHex;
+              : TARGET_SPECS[result.target.kind]?.brandColorHex || '#fbbf24';
 
             if (result.killed) {
               if (result.target.kind === 'bottle') {
@@ -161,7 +189,9 @@ export const GameCanvas3D = React.memo(
           targetPos = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, 16);
         }
 
-        particlesRef.current.spawnTracerBeam(muzzlePos, targetPos, beamColor, isFeverOrPower);
+        // Spawn 3D Flying Projectile according to weapon archetype
+        particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel);
+        soundSynth.playWeaponShoot(weaponState.weaponKind, isFever);
       }
     }, [lastShootResult, engine, soundSynth]);
 
@@ -328,11 +358,19 @@ export const GameCanvas3D = React.memo(
           }
         });
 
-        // Add & update active target meshes (supports both monsters and items)
+        // Add & update active target meshes (monsters, items, golden cans, projectiles, cards)
         engine.activeTargets.forEach((target) => {
           let mesh = targetMeshMap.get(target.id);
           if (!mesh) {
-            if (target.isItem && target.itemKind) {
+            if (target.isGoldenCan) {
+              mesh = createGoldenCanMesh3D();
+            } else if (target.isProjectile) {
+              mesh = createProjectileMesh3D();
+            } else if (target.weaponSelectKind) {
+              mesh = createCardTargetMesh3D('WEAPON', target.weaponSelectKind.toUpperCase(), '#fbbf24');
+            } else if (target.rewardCardKind) {
+              mesh = createCardTargetMesh3D('REWARD', target.rewardCardKind.toUpperCase(), '#38bdf8');
+            } else if (target.isItem && target.itemKind) {
               mesh = createItemMesh3D(target.itemKind);
             } else {
               mesh = createTargetMesh3D(target.kind);
@@ -346,17 +384,40 @@ export const GameCanvas3D = React.memo(
 
           if (target.isItem && target.itemKind) {
             updateItemAnimation3D(mesh, target.itemKind, time / 1000);
+          } else if (target.isGoldenCan) {
+            mesh.rotation.y += dtSec * 3.5;
+            mesh.position.y = baseY + Math.sin(time / 200) * 0.12;
+          } else if (target.isProjectile) {
+            mesh.rotation.x += dtSec * 10;
+            mesh.rotation.y += dtSec * 14;
+          } else if (target.weaponSelectKind || target.rewardCardKind) {
+            mesh.rotation.y = Math.atan2(-target.x, -target.z) + Math.sin(time / 300) * 0.12;
+            mesh.position.y = baseY + Math.sin(time / 250) * 0.08;
           } else {
             // Face player yaw
             mesh.rotation.y = Math.atan2(-target.x, -target.z);
             const isIceFreeze = engine.isBuffActive('ice_freeze', time);
             const isWideScope = engine.isBuffActive('wide_scope', time);
+            const isStunned = Boolean(target.stunUntilMs && target.stunUntilMs > time);
+            const isSlowed = Boolean(target.slowUntilMs && target.slowUntilMs > time);
             updateTargetAnimation3D(mesh, target.kind, time / 1000, target.hp / target.maxHp, {
               isIceFreeze,
               isWideScope,
+              isStunned,
+              isSlowed,
+              stuckPlungerCount: target.stuckPlungerCount ?? 0,
             });
           }
         });
+
+        // Sync weapon 3D model archetype and level
+        const currentWeaponState = engine.weaponSystem.getState();
+        if (
+          tapGun.currentWeaponKind !== currentWeaponState.weaponKind ||
+          tapGun.currentWeaponLevel !== currentWeaponState.weaponLevel
+        ) {
+          tapGun.setWeaponAppearance(currentWeaponState.weaponKind, currentWeaponState.weaponLevel);
+        }
 
         // Update gun recoil, aim, and buff modes
         tapGun.setPowerMode(engine.isBuffActive('power_shot', time));

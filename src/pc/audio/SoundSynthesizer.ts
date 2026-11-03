@@ -1,4 +1,4 @@
-import { JudgmentGrade } from '../../shared/types';
+import { JudgmentGrade, WeaponKind } from '../../shared/types';
 
 export class SoundSynthesizer {
   private ctx: AudioContext | null = null;
@@ -57,6 +57,125 @@ export class SoundSynthesizer {
 
     osc.start(now);
     osc.stop(now + 0.09);
+  }
+
+  public playWeaponShoot(kind: WeaponKind, isFever = false): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    if (kind === 'shotgun') {
+      // Sawtooth heavy pump + rubber pop
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(isFever ? 180 : 130, now);
+      osc1.frequency.exponentialRampToValueAtTime(42, now + 0.12);
+      gain1.gain.setValueAtTime(isFever ? 0.38 : 0.28, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.13);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(320, now);
+      osc2.frequency.exponentialRampToValueAtTime(620, now + 0.08);
+      gain2.gain.setValueAtTime(0.2, now);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.09);
+    } else if (kind === 'revolver') {
+      // Metal opener clink + magnum blast
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(1800, now);
+      gain1.gain.setValueAtTime(0.25, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.06);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = isFever ? 'sawtooth' : 'triangle';
+      osc2.frequency.setValueAtTime(isFever ? 320 : 220, now);
+      osc2.frequency.exponentialRampToValueAtTime(55, now + 0.15);
+      gain2.gain.setValueAtTime(isFever ? 0.4 : 0.3, now);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.16);
+    } else {
+      // gatling: carbonation bubble pop
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.05);
+      gain.gain.setValueAtTime(isFever ? 0.28 : 0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    }
+  }
+
+  public playSkillActivation(kind: WeaponKind): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    if (kind === 'shotgun') {
+      // Plunger Storm: multiple pop sweeps
+      for (let i = 0; i < 3; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(280 + i * 120, now + i * 0.06);
+        osc.frequency.exponentialRampToValueAtTime(680 + i * 150, now + i * 0.06 + 0.09);
+        gain.gain.setValueAtTime(0.24, now + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.06);
+        osc.stop(now + i * 0.06 + 0.1);
+      }
+    } else if (kind === 'revolver') {
+      // Bullet Time warp & golden slash
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(620, now + 0.28);
+      gain.gain.setValueAtTime(0.32, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } else {
+      // Foam Tsunami: roaring wave sweep
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(95, now + 0.35);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.38);
+    }
   }
 
   public playCocking(): void {
