@@ -194,6 +194,7 @@ export class BeerCrusherEngine {
   // Roguelike card & gimmick flags
   public isWeaponSelectPending = false;
   public isRewardCardPending = false;
+  public rewardCardsSpawnTimeMs = 0;
   private goldenCanSpawnedInWave = false;
   private lastProjectileSpawnTimeMs = 0;
 
@@ -279,15 +280,16 @@ export class BeerCrusherEngine {
     this.isRewardCardPending = false;
   }
 
-  public spawnWeaponSelectTargets(): void {
+  public spawnWeaponSelectTargets(nowMs = 0): void {
     this.isWeaponSelectPending = true;
+    this.rewardCardsSpawnTimeMs = nowMs;
     const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
-    const xPositions = [-2.0, 0, 2.0];
+    const xPositions = [-2.4, 0, 2.4];
 
     weaponKinds.forEach((kind, idx) => {
       this.targetCounter += 1;
       const x = xPositions[idx];
-      const z = -6.0;
+      const z = -5.0;
       const theta = Math.atan2(x, -z);
       const radius = Math.hypot(x, z);
 
@@ -301,7 +303,7 @@ export class BeerCrusherEngine {
         x,
         z,
         speedMps: 0,
-        hitRadiusM: 1.15,
+        hitRadiusM: 1.75,
         killBonusScore: 50,
         breached: false,
         customBaseY: 1.15,
@@ -312,17 +314,18 @@ export class BeerCrusherEngine {
 
   public spawnWaveRewardCards(nowMs: number): void {
     this.isRewardCardPending = true;
+    this.rewardCardsSpawnTimeMs = nowMs;
     const candidateCards: RewardCardKind[] = [
       'weapon_level_up',
       'rapid_reload',
       this.lives < STAGE_CONSTANTS.PLAYER_MAX_LIVES ? 'bar_repair' : 'fever_boost',
     ];
-    const xPositions = [-2.0, 0, 2.0];
+    const xPositions = [-2.4, 0, 2.4];
 
     candidateCards.forEach((cardKind, idx) => {
       this.targetCounter += 1;
       const x = xPositions[idx];
-      const z = -6.0;
+      const z = -5.0;
       const theta = Math.atan2(x, -z);
       const radius = Math.hypot(x, z);
 
@@ -336,7 +339,7 @@ export class BeerCrusherEngine {
         x,
         z,
         speedMps: 0,
-        hitRadiusM: 1.15,
+        hitRadiusM: 1.75,
         killBonusScore: 100,
         breached: false,
         customBaseY: 1.15,
@@ -630,9 +633,17 @@ export class BeerCrusherEngine {
     this.weaponSystem.setInfiniteAmmo(enabled);
   }
 
+  public activateFever(nowMs: number): boolean {
+    const activated = this.scoreManager.activateFever(nowMs);
+    if (activated) {
+      this.weaponSystem.refillAmmoOnFever();
+    }
+    return activated;
+  }
+
   public triggerSandboxFever(nowMs: number): boolean {
     this.scoreManager.forceSetFeverGauge(100);
-    return this.scoreManager.activateFever(nowMs);
+    return this.activateFever(nowMs);
   }
 
   public activateItemBuff(kind: ItemBuffKind, nowMs: number): void {
@@ -1014,6 +1025,14 @@ export class BeerCrusherEngine {
     const weaponLevel = weaponState.weaponLevel;
     const levelSpec = this.weaponSystem.getCurrentLevelSpec();
 
+    // Weapon-specific hit tolerance multiplier
+    const weaponHitToleranceMult =
+      weaponKind === 'shotgun' ? 1.55 :
+      weaponKind === 'gatling' ? 1.25 :
+      0.95; // revolver
+
+    const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
+
     // Find best target intersecting aim point
     let bestHit:
       | { target: ActiveTargetEntity; result: HitJudgmentResult; index: number }
@@ -1026,11 +1045,12 @@ export class BeerCrusherEngine {
       const dx = aimX - proj.targetNormX;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
-        : (aimY - proj.targetNormY) * 0.85;
+        : (aimY - proj.targetNormY) * verticalScale;
       const dist = Math.hypot(dx, dy);
+      const effectiveHitRadius = proj.apparentHitRadius * weaponHitToleranceMult;
 
-      if (dist <= proj.apparentHitRadius) {
-        const judgment = evaluateHitJudgment(dist, proj.apparentHitRadius, {
+      if (dist <= effectiveHitRadius) {
+        const judgment = evaluateHitJudgment(dist, effectiveHitRadius, {
           isFeverActive: isFever,
           isPowerShotActive: isPowerShot,
           isWideScopeActive: isWideScope,
@@ -1052,6 +1072,9 @@ export class BeerCrusherEngine {
 
       // 1. Shoot-to-Select Weapon Target
       if (target.weaponSelectKind) {
+        if (this.rewardCardsSpawnTimeMs > 0 && nowMs - this.rewardCardsSpawnTimeMs < 800) {
+          return { fired: true, grade: 'MISS' };
+        }
         selectedWeapon = target.weaponSelectKind;
         this.weaponSystem.selectWeapon(selectedWeapon, 1);
         this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind);
@@ -1069,6 +1092,9 @@ export class BeerCrusherEngine {
 
       // 2. Shoot-to-Select Reward Card Target
       if (target.rewardCardKind) {
+        if (this.rewardCardsSpawnTimeMs > 0 && nowMs - this.rewardCardsSpawnTimeMs < 800) {
+          return { fired: true, grade: 'MISS' };
+        }
         selectedCard = target.rewardCardKind;
         this.applyRewardCard(selectedCard, nowMs);
         this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);

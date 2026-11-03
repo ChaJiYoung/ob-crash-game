@@ -653,7 +653,14 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     const lvlUpCard = engine.activeTargets.find((t) => t.rewardCardKind === 'weapon_level_up')!;
     const projCard = engine.computeTargetAimCoords(lvlUpCard);
-    const cardShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2100);
+    // Within 800ms grace period (2100 - 2000 = 100ms): shot should be ignored to prevent spam misclicks
+    const earlyShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2100);
+    expect(earlyShot.fired).toBe(true);
+    expect(earlyShot.selectedCard).toBeUndefined();
+    expect(engine.isRewardCardPending).toBe(true);
+
+    // After 800ms grace period (2900 - 2000 = 900ms): card is successfully selected!
+    const cardShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2900);
     expect(cardShot.fired).toBe(true);
     expect(cardShot.selectedCard).toBe('weapon_level_up');
     expect(engine.weaponSystem.getState().weaponLevel).toBe(2); // Upgraded!

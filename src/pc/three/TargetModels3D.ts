@@ -954,43 +954,43 @@ export function createCardTargetMesh3D(
       ctx.shadowBlur = 0;
 
       // Header Glow Icon
-      ctx.font = '76px sans-serif';
+      ctx.font = '96px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(icon, 256, 130);
+      ctx.fillText(icon, 256, 140);
 
       // Title
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(title, 256, 210);
+      ctx.font = 'bold 44px sans-serif';
+      ctx.fillText(title, 256, 225);
 
       // Divider Line
       ctx.strokeStyle = colorHex;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(80, 240);
-      ctx.lineTo(432, 240);
+      ctx.moveTo(50, 255);
+      ctx.lineTo(462, 255);
       ctx.stroke();
 
       // Subtitle / Description
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '500 24px sans-serif';
+      ctx.font = '500 28px sans-serif';
       const subLines = subtitle.split('\n');
       subLines.forEach((line, idx) => {
-        ctx.fillText(line, 256, 290 + idx * 36);
+        ctx.fillText(line, 256, 315 + idx * 42);
       });
 
       // Shoot to Select Button Badge
-      const btnGrad = ctx.createLinearGradient(0, 520, 0, 610);
+      const btnGrad = ctx.createLinearGradient(0, 500, 0, 600);
       btnGrad.addColorStop(0, colorHex);
       btnGrad.addColorStop(1, '#0284c7');
       ctx.fillStyle = btnGrad;
       ctx.beginPath();
-      ctx.roundRect(64, 520, 384, 80, 20);
+      ctx.roundRect(48, 500, 416, 96, 24);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 28px sans-serif';
-      ctx.fillText('🎯 SHOOT TO SELECT', 256, 572);
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText('🎯 SHOOT TO SELECT', 256, 560);
     }
 
     canvasTexture = new THREE.CanvasTexture(canvas);
@@ -1004,12 +1004,12 @@ export function createCardTargetMesh3D(
     metalness: 0.8,
     roughness: 0.2,
   });
-  const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.25, 1.65, 0.08), cardMat);
+  const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.80, 2.40, 0.08), cardMat);
   inner.add(cardFrame);
 
   // Card Front Face
   const frontPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.2, 1.6),
+    new THREE.PlaneGeometry(1.74, 2.34),
     new THREE.MeshBasicMaterial({
       map: canvasTexture,
       transparent: true,
@@ -1021,7 +1021,7 @@ export function createCardTargetMesh3D(
   inner.add(frontPlane);
 
   const borderRing = new THREE.Mesh(
-    new THREE.TorusGeometry(0.85, 0.025, 8, 24),
+    new THREE.TorusGeometry(1.15, 0.035, 8, 32),
     new THREE.MeshBasicMaterial({ color: new THREE.Color(colorHex) })
   );
   borderRing.position.z = 0.05;
@@ -1031,7 +1031,7 @@ export function createCardTargetMesh3D(
     isCard: true,
     inner,
     baseScale: 1.0,
-    hitRadiusM: 1.25,
+    hitRadiusM: 1.75,
   };
 
   return root;

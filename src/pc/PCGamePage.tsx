@@ -334,7 +334,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
 
             if (p.feverTriggered) {
-              const activated = engine.scoreManager.activateFever(performance.now());
+              const activated = engine.activateFever(performance.now());
               if (activated) {
                 soundSynth.playFeverStart();
                 if (engine.isTutorialMode && engine.tutorialStep === 3) {

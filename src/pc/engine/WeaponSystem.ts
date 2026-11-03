@@ -111,6 +111,12 @@ export class WeaponSystem {
     this.skillCooldownRemainingMs = 0;
   }
 
+  public refillAmmoOnFever(): void {
+    this.ammo = this.getMaxAmmo();
+    this.isReloading = false;
+    this.reloadEndTimeMs = 0;
+  }
+
   public setInfiniteAmmo(enabled: boolean): void {
     this.infiniteAmmo = enabled;
   }

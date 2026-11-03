@@ -317,7 +317,7 @@ export const GameCanvas3D = React.memo(
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.code === 'Space') {
-          const activated = engine.scoreManager.activateFever(performance.now());
+          const activated = engine.activateFever(performance.now());
           if (activated) {
             soundSynth.playFeverStart();
             if (engine.isTutorialMode && engine.tutorialStep === 3) {
