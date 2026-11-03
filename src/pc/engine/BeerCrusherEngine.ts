@@ -1101,17 +1101,21 @@ export class BeerCrusherEngine {
           target.slowRatio = 0.3;
         }
       } else if (weaponKind === 'revolver') {
-        // Revolver: Pierce through targets behind
+        // Revolver: Pierce through targets behind (sorted by distance ascending)
         damage = Number((levelSpec.damagePerHit * powerMult).toFixed(3));
         if (levelSpec.pierceCount > 0) {
-          const rearTargets = this.activeTargets.filter(
-            (t, idx) =>
-              idx !== index &&
-              !t.isItem &&
-              !t.isProjectile &&
-              t.radiusM > target.radiusM &&
-              Math.abs(t.thetaRad - target.thetaRad) <= 0.16
-          );
+          const rearTargets = this.activeTargets
+            .filter(
+              (t, idx) =>
+                idx !== index &&
+                !t.isItem &&
+                !t.isProjectile &&
+                !t.isGoldenCan &&
+                t.radiusM > target.radiusM &&
+                Math.abs(t.thetaRad - target.thetaRad) <= 0.16
+            )
+            .sort((a, b) => a.radiusM - b.radiusM);
+
           rearTargets.slice(0, levelSpec.pierceCount).forEach((rear) => {
             const pierceDmg = Number((damage * levelSpec.pierceDamageRatio).toFixed(3));
             rear.hp = Number(Math.max(0, rear.hp - pierceDmg).toFixed(3));
@@ -1121,6 +1125,7 @@ export class BeerCrusherEngine {
               if (rearIdx >= 0) {
                 this.activeTargets.splice(rearIdx, 1);
                 this.killedInWave += 1;
+                this.scoreManager.registerHit('PERFECT', rear.killBonusScore);
               }
             }
           });
@@ -1215,7 +1220,7 @@ export class BeerCrusherEngine {
 
     const affectedTargets: ActiveTargetEntity[] = [];
     const activeMonsters = this.activeTargets.filter(
-      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind
+      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isProjectile && !t.isGoldenCan
     );
 
     if (weaponKind === 'shotgun') {
