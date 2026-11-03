@@ -10,4 +10,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 모바일 탭 조작 개편, 튜토리얼/도감 동기화, 피버/웨이브 밸런스 및 몬스터 3D 특성 분화 | [P01](../phases/2026-11-03-difficulty-controls-and-monsters/P01-controls-difficulty-and-monsters/phase.md) |
+| P01 | `done ✅` | 모바일 탭 조작 개편, 튜토리얼/도감 동기화, 피버/웨이브 밸런스 및 몬스터 3D 특성 분화 | [P01](../phases/2026-11-03-difficulty-controls-and-monsters/P01-controls-difficulty-and-monsters/phase.md) |
