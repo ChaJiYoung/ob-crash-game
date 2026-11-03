@@ -117,6 +117,16 @@ export type ClientToServerMessage =
   | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string }
   | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean }
+  | {
+      type: 'SKILL_STATE_SYNC';
+      roomId: string;
+      weaponKind: WeaponKind;
+      weaponLevel: WeaponLevel;
+      skillStock: number;
+      maxSkillStock: number;
+      skillCooldownRemainingMs: number;
+      skillCooldownTotalMs: number;
+    }
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number };
 
 export type ServerToClientMessage =
@@ -131,6 +141,7 @@ export type ServerToClientMessage =
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }
   | {
       type: 'SKILL_STATE_SYNC';
+      roomId?: string;
       weaponKind: WeaponKind;
       weaponLevel: WeaponLevel;
       skillStock: number;

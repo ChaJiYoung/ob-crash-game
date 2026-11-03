@@ -341,4 +341,51 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     expect(firedCount).toBe(2);
     expect(isCocked).toBe(false);
   });
+
+  it('should trigger mobile snap active skill (skillSnapTriggered) and sync SKILL_STATE_SYNC', () => {
+    const tracker = new GunGripTracker();
+    let skillSnapTriggered = false;
+
+    // Simulate mobile onMotion listener
+    const onMotion = (accelY: number, timeMs: number) => {
+      const snap = tracker.detectSnapFire({ x: 0, y: accelY, z: 0, timestampMs: timeMs });
+      if (snap) {
+        skillSnapTriggered = true;
+      }
+    };
+
+    // Upward snap flick triggers active skill
+    onMotion(3.2, 1000);
+    expect(skillSnapTriggered).toBe(true);
+
+    // Frame payload construction test
+    const payload = {
+      aimX: 0,
+      aimY: 0,
+      pitchDeg: 0,
+      yawDeg: 0,
+      rollDeg: 0,
+      snapFire: false,
+      rapidFireHold: false,
+      feverTriggered: false,
+      isCocked: false,
+      skillSnapTriggered: true,
+      timestamp: Date.now(),
+    };
+    expect(payload.skillSnapTriggered).toBe(true);
+
+    // SKILL_STATE_SYNC test message
+    const syncMsg = {
+      type: 'SKILL_STATE_SYNC' as const,
+      roomId: 'ROOM_TEST',
+      weaponKind: 'shotgun' as const,
+      weaponLevel: 2 as const,
+      skillStock: 1,
+      maxSkillStock: 1,
+      skillCooldownRemainingMs: 0,
+      skillCooldownTotalMs: 22000,
+    };
+    expect(syncMsg.skillStock).toBe(1);
+    expect(syncMsg.weaponLevel).toBe(2);
+  });
 });

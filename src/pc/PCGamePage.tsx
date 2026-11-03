@@ -439,6 +439,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             })
           );
         }
+
+        // Sync skill state to mobile controller
+        wsRef.current.send(
+          JSON.stringify({
+            type: 'SKILL_STATE_SYNC',
+            roomId,
+            weaponKind: weaponState.weaponKind,
+            weaponLevel: weaponState.weaponLevel,
+            skillStock: weaponState.skillStock,
+            maxSkillStock: weaponState.maxSkillStock,
+            skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
+            skillCooldownTotalMs: weaponState.skillCooldownTotalMs,
+          })
+        );
       }
 
       // Synchronize game over / victory

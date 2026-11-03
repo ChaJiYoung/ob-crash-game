@@ -5,7 +5,7 @@ import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
 import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
-import { PlayerProfile, ServerToClientMessage } from '../shared/types';
+import { PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 
 export const MobileControllerPage: React.FC = () => {
   const deviceId = useMemo(() => getOrCreateDeviceId(), []);
@@ -23,12 +23,29 @@ export const MobileControllerPage: React.FC = () => {
   const [isGameWaiting, setIsGameWaiting] = useState<boolean>(true);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const [isCockedState, setIsCockedState] = useState<boolean>(false);
+  const [skillState, setSkillState] = useState<{
+    weaponKind: WeaponKind;
+    weaponLevel: WeaponLevel;
+    skillStock: number;
+    maxSkillStock: number;
+    skillCooldownRemainingMs: number;
+    skillCooldownTotalMs: number;
+  }>({
+    weaponKind: 'shotgun',
+    weaponLevel: 1,
+    skillStock: 1,
+    maxSkillStock: 1,
+    skillCooldownRemainingMs: 0,
+    skillCooldownTotalMs: 25000,
+  });
 
   const wsRef = useRef<WebSocket | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const startCountdownRef = useRef<(sec?: number) => void>(() => {});
   const latestOrientationRef = useRef<EulerOrientation>({ alpha: 0, beta: 0, gamma: 0 });
   const snapFireRef = useRef<boolean>(false);
+  const skillSnapTriggeredRef = useRef<boolean>(false);
+  const prevSkillStockRef = useRef<number>(1);
   const rapidFireHoldRef = useRef<boolean>(false);
   const feverTriggeredRef = useRef<boolean>(false);
   const isCockedRef = useRef<boolean>(false);
@@ -86,6 +103,21 @@ export const MobileControllerPage: React.FC = () => {
             }
             break;
 
+          case 'SKILL_STATE_SYNC':
+            setSkillState({
+              weaponKind: msg.weaponKind,
+              weaponLevel: msg.weaponLevel,
+              skillStock: msg.skillStock,
+              maxSkillStock: msg.maxSkillStock,
+              skillCooldownRemainingMs: msg.skillCooldownRemainingMs,
+              skillCooldownTotalMs: msg.skillCooldownTotalMs,
+            });
+            if (prevSkillStockRef.current === 0 && msg.skillStock > 0) {
+              triggerHaptic([60, 40, 90]);
+            }
+            prevSkillStockRef.current = msg.skillStock;
+            break;
+
           case 'GAME_COUNTDOWN_START':
             startCountdownRef.current(msg.sec || 3);
             break;
@@ -132,6 +164,9 @@ export const MobileControllerPage: React.FC = () => {
     const snapFire = snapFireRef.current;
     snapFireRef.current = false;
 
+    const skillSnapTriggered = skillSnapTriggeredRef.current;
+    skillSnapTriggeredRef.current = false;
+
     const feverTriggered = feverTriggeredRef.current;
     feverTriggeredRef.current = false;
 
@@ -150,6 +185,7 @@ export const MobileControllerPage: React.FC = () => {
           rapidFireHold: rapidFireHoldRef.current,
           feverTriggered,
           isCocked: isCockedRef.current,
+          skillSnapTriggered,
           timestamp: Date.now(),
         },
       })
@@ -176,15 +212,17 @@ export const MobileControllerPage: React.FC = () => {
           z: e.acceleration.z || 0,
           timestampMs: performance.now(),
         });
-        if (snap && isCockedRef.current) {
-          snapFireRef.current = true;
-          // [단발 안전장치] 격발 즉시 코킹 잠금 해제 (손을 뗄 때까지 2차 오발 원천 차단)
-          isCockedRef.current = false;
-          setIsCockedState(false);
-          // Send frame with snapFire and aim coordinates
+        if (snap) {
+          skillSnapTriggeredRef.current = true;
+          if (isCockedRef.current) {
+            snapFireRef.current = true;
+            // [단발 안전장치] 격발 즉시 코킹 잠금 해제 (손을 뗄 때까지 2차 오발 원천 차단)
+            isCockedRef.current = false;
+            setIsCockedState(false);
+            tracker.unlockAim();
+          }
+          // Send frame with skillSnapTriggered and aim coordinates
           flushSensorFrame();
-
-          tracker.unlockAim();
         }
       }
     };
@@ -354,6 +392,7 @@ export const MobileControllerPage: React.FC = () => {
             flushSensorFrame();
           }}
           isFeverReady={isFeverReady}
+          skillState={skillState}
         />
       )}
 

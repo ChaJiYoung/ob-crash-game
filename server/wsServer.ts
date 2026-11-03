@@ -266,6 +266,23 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'SKILL_STATE_SYNC': {
+            const session = roomManager.getRoom(msg.roomId);
+            if (session && session.controllerSocket) {
+              sendJson(session.controllerSocket, {
+                type: 'SKILL_STATE_SYNC',
+                roomId: msg.roomId,
+                weaponKind: msg.weaponKind,
+                weaponLevel: msg.weaponLevel,
+                skillStock: msg.skillStock,
+                maxSkillStock: msg.maxSkillStock,
+                skillCooldownRemainingMs: msg.skillCooldownRemainingMs,
+                skillCooldownTotalMs: msg.skillCooldownTotalMs,
+              });
+            }
+            break;
+          }
+
           case 'GAME_SCORE_SUBMIT': {
             const { deviceId, score, roomId } = msg;
             if (!deviceId || typeof score !== 'number' || isNaN(score) || !roomId) {

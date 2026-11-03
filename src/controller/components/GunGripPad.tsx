@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { UnifiedTouchPadController } from '../sensors/UnifiedTouchPad';
 import { triggerHaptic } from '../sensors/HapticFeedback';
+import { WeaponKind, WeaponLevel } from '../../shared/types';
+import { WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
+
+export interface GunGripSkillInfo {
+  weaponKind: WeaponKind;
+  weaponLevel: WeaponLevel;
+  skillStock: number;
+  maxSkillStock: number;
+  skillCooldownRemainingMs: number;
+  skillCooldownTotalMs: number;
+}
 
 export interface GunGripPadProps {
   onRecalibrateZero: () => void;
@@ -9,6 +20,7 @@ export interface GunGripPadProps {
   onCockingChange?: (cocked: boolean) => void;
   isFeverReady?: boolean;
   isCocked?: boolean;
+  skillState?: GunGripSkillInfo;
 }
 
 export const GunGripPad: React.FC<GunGripPadProps> = ({
@@ -18,10 +30,16 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onCockingChange,
   isFeverReady = false,
   isCocked: isCockedProp,
+  skillState,
 }) => {
   const [internalCocked, setInternalCocked] = useState(false);
   const isCocked = isCockedProp !== undefined ? isCockedProp : internalCocked;
   const touchPadRef = useRef<UnifiedTouchPadController | null>(null);
+
+  const weaponSpec = skillState ? WEAPON_ARCHETYPE_SPECS[skillState.weaponKind] : undefined;
+  const isSkillReady = skillState ? skillState.skillStock > 0 : true;
+  const currentLevelSpec = weaponSpec && skillState ? weaponSpec.levels[skillState.weaponLevel] : undefined;
+  const skillName = currentLevelSpec ? currentLevelSpec.skillNameKo : '특수 액티브 스킬';
 
   const onFeverTriggerRef = useRef(onFeverTrigger);
   onFeverTriggerRef.current = onFeverTrigger;
@@ -153,6 +171,48 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           transition: 'border 0.15s, box-shadow 0.15s',
         }}
       >
+        {/* Weapon & Active Skill Badge */}
+        {weaponSpec && skillState && (
+          <div
+            style={{
+              marginBottom: '16px',
+              padding: '8px 16px',
+              borderRadius: '12px',
+              background: isSkillReady
+                ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.2), rgba(6, 182, 212, 0.2))'
+                : 'rgba(255, 255, 255, 0.05)',
+              border: `1.5px solid ${isSkillReady ? '#fbbf24' : 'rgba(255, 255, 255, 0.15)'}`,
+              boxShadow: isSkillReady ? '0 0 16px rgba(251, 191, 36, 0.35)' : 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              maxWidth: '340px',
+              width: '100%',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>{weaponSpec.badgeIcon}</span>
+              <span style={{ fontSize: '14px', fontWeight: 800, color: '#f8fafc' }}>
+                {weaponSpec.nameKo} {skillState.weaponLevel >= 4 ? 'Lv.MAX' : `Lv.${skillState.weaponLevel}`}
+              </span>
+            </div>
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 900,
+                color: isSkillReady ? '#fbbf24' : '#94a3b8',
+                letterSpacing: '0.3px',
+                textAlign: 'center',
+              }}
+            >
+              {isSkillReady
+                ? `⚡ ${skillName} READY! 총구를 위로 '휙!' 젖히기`
+                : `스킬 재충전 중... ${(skillState.skillCooldownRemainingMs / 1000).toFixed(1)}s`}
+            </div>
+          </div>
+        )}
+
         <div style={{ fontSize: '56px', marginBottom: '16px' }}>
           {isFeverReady ? '🔥' : isCocked ? '🔒' : '👆'}
         </div>
