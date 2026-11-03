@@ -5,12 +5,15 @@ import { buildBreweryStage3D } from '../src/pc/three/BreweryStage3D';
 import {
   createTargetMesh3D,
   createItemMesh3D,
+  createGoldenCanMesh3D,
+  createProjectileMesh3D,
+  createCardTargetMesh3D,
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
   getTargetBaseY,
 } from '../src/pc/three/TargetModels3D';
-import { DraftTapGun3D } from '../src/pc/three/DraftTapGun3D';
+import { DraftTapGun3D, createRealisticPlungerMesh } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
 import { computeAimWorldPoint } from '../src/pc/components/GameCanvas3D';
@@ -245,5 +248,74 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       synth.playAutoReload();
       synth.playFeverStart();
     }).not.toThrow();
+  });
+
+  it('should create procedural realistic plunger and handle 3-weapon Lv.1~MAX evolutions in DraftTapGun3D', () => {
+    // 1. Realistic Plunger Mesh
+    const plunger = createRealisticPlungerMesh(1.0);
+    expect(plunger).toBeInstanceOf(THREE.Group);
+    expect(plunger.name).toBe('RealisticPlunger');
+    expect(plunger.children.length).toBeGreaterThanOrEqual(3); // handle, cap, cupGroup
+
+    // 2. DraftTapGun3D Weapon Evolutions
+    const gun = new DraftTapGun3D();
+
+    // Shotgun Lv.1 ~ Lv.4
+    gun.setWeaponAppearance('shotgun', 1);
+    expect(gun.currentWeaponKind).toBe('shotgun');
+    expect(gun.currentWeaponLevel).toBe(1);
+
+    gun.setWeaponAppearance('shotgun', 4);
+    expect(gun.currentWeaponLevel).toBe(4);
+
+    // Revolver Lv.1 ~ Lv.4
+    gun.setWeaponAppearance('revolver', 1);
+    expect(gun.currentWeaponKind).toBe('revolver');
+
+    gun.setWeaponAppearance('revolver', 4);
+    expect(gun.currentWeaponLevel).toBe(4);
+
+    // Gatling Lv.1 ~ Lv.4 & Spin animation
+    gun.setWeaponAppearance('gatling', 1);
+    expect(gun.currentWeaponKind).toBe('gatling');
+
+    gun.setWeaponAppearance('gatling', 4);
+    expect(gun.currentWeaponLevel).toBe(4);
+
+    // Test recoil kick & gatling spin
+    gun.triggerRecoil(false);
+    gun.updateAimAndRecoil(0, 0, 0.05, false);
+  });
+
+  it('should create procedural 3D Golden Can, Monster Projectile, and Shoot-to-Select Card targets', () => {
+    // 1. Golden Can Mesh
+    const goldenCan = createGoldenCanMesh3D();
+    expect(goldenCan).toBeInstanceOf(THREE.Group);
+    expect(goldenCan.userData.isGoldenCan).toBe(true);
+    expect(goldenCan.userData.auraRing).toBeInstanceOf(THREE.Mesh);
+
+    // 2. Monster Projectile Mesh
+    const proj = createProjectileMesh3D();
+    expect(proj).toBeInstanceOf(THREE.Group);
+    expect(proj.userData.isProjectile).toBe(true);
+
+    // 3. Card Target Mesh
+    const card = createCardTargetMesh3D('LEVEL UP', '무기 레벨업', '#fbbf24');
+    expect(card).toBeInstanceOf(THREE.Group);
+    expect(card.userData.isCard).toBe(true);
+
+    // 4. Stunned Plunger Status on Target Models
+    const monster = createTargetMesh3D('bottle');
+    expect(monster.userData.plungerStuckGroup).toBeDefined();
+    const stuckGroup = monster.userData.plungerStuckGroup as THREE.Group;
+    expect(stuckGroup.visible).toBe(false);
+
+    // Activate stun
+    updateTargetAnimation3D(monster, 'bottle', 1.0, 1.0, { isStunned: true });
+    expect(stuckGroup.visible).toBe(true);
+
+    // Deactivate stun
+    updateTargetAnimation3D(monster, 'bottle', 2.0, 1.0, { isStunned: false });
+    expect(stuckGroup.visible).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ItemBuffKind, TargetKind } from '../../shared/types';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
+import { createRealisticPlungerMesh } from './DraftTapGun3D';
 
 const labelTextureCache = new Map<string, THREE.Texture>();
 let officialCassTexture: THREE.Texture | null = null;
@@ -498,6 +499,24 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     }
   });
 
+  // Plunger Stuck Status Group (Visible during Stun)
+  const plungerStuckGroup = new THREE.Group();
+  plungerStuckGroup.name = 'plungerStuckGroup';
+  plungerStuckGroup.visible = false;
+
+  const p1 = createRealisticPlungerMesh(0.38);
+  p1.position.set(-0.14, 0.12, 0.32);
+  p1.rotation.y = -Math.PI / 2;
+  plungerStuckGroup.add(p1);
+
+  const p2 = createRealisticPlungerMesh(0.34);
+  p2.position.set(0.16, -0.05, 0.30);
+  p2.rotation.y = -Math.PI / 2;
+  p2.rotation.z = 0.35;
+  plungerStuckGroup.add(p2);
+
+  inner.add(plungerStuckGroup);
+
   root.userData = {
     kind,
     hitRadiusM: spec.hitRadiusM,
@@ -506,6 +525,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     shadowMesh,
     lockOnMarker,
     frostRing,
+    plungerStuckGroup,
     bodyMaterials,
     baseScale,
     hitFlashUntilSec: 0,
@@ -662,6 +682,9 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
 export interface TargetAnimationOptions {
   isIceFreeze?: boolean;
   isWideScope?: boolean;
+  isStunned?: boolean;
+  isSlowed?: boolean;
+  stuckPlungerCount?: number;
 }
 
 export function updateTargetAnimation3D(
@@ -679,8 +702,19 @@ export function updateTargetAnimation3D(
     shadowMesh.position.y = -root.position.y + 0.02;
   }
 
-  const isIceFreeze = Boolean(options?.isIceFreeze);
+  const isIceFreeze = Boolean(options?.isIceFreeze || options?.isSlowed);
   const isWideScope = Boolean(options?.isWideScope);
+  const isStunned = Boolean(options?.isStunned);
+
+  // Stunned Plunger Status
+  const plungerStuckGroup = root.userData.plungerStuckGroup as THREE.Group | undefined;
+  if (plungerStuckGroup) {
+    plungerStuckGroup.visible = isStunned;
+    if (isStunned) {
+      // Wiggling vibration animation
+      plungerStuckGroup.rotation.z = Math.sin(elapsedSec * 45) * 0.12;
+    }
+  }
 
   // 1. Ice freeze ground ring
   const frostRing = root.userData.frostRing as THREE.Mesh | undefined;
@@ -795,4 +829,125 @@ export function applyTargetHitFlash3D(root: THREE.Group, nowSec: number): void {
     inner.scale.set(base * 1.18, base * 0.88, base * 1.18); // Squish impact
     root.userData.hitFlashUntilSec = nowSec + 0.15;
   }
+}
+
+/**
+ * 🌟 Procedural 3D Golden Can Bonus Mesh
+ */
+export function createGoldenCanMesh3D(): THREE.Group {
+  const root = new THREE.Group();
+  root.name = 'GoldenCan_Bonus';
+
+  const inner = new THREE.Group();
+  root.add(inner);
+
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xfbbf24,
+    emissive: 0xd97706,
+    emissiveIntensity: 0.6,
+    metalness: 0.95,
+    roughness: 0.15,
+  });
+
+  const can = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 1.15, 20), goldMat);
+  inner.add(can);
+
+  const auraRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.55, 0.035, 12, 28),
+    new THREE.MeshBasicMaterial({ color: 0xfef08a })
+  );
+  auraRing.rotation.x = Math.PI / 2;
+  inner.add(auraRing);
+
+  const shadowMesh = createFloorShadowMesh(0.65);
+  shadowMesh.position.y = -1.15 + 0.01;
+  root.add(shadowMesh);
+
+  root.userData = {
+    isGoldenCan: true,
+    inner,
+    auraRing,
+    shadowMesh,
+    baseScale: 1.85,
+    hitRadiusM: 1.15,
+  };
+
+  return root;
+}
+
+/**
+ * 🫧 Procedural 3D Monster Projectile Mesh
+ */
+export function createProjectileMesh3D(): THREE.Group {
+  const root = new THREE.Group();
+  root.name = 'Monster_Projectile';
+
+  const inner = new THREE.Group();
+  root.add(inner);
+
+  const orbMat = new THREE.MeshStandardMaterial({
+    color: 0xf43f5e,
+    emissive: 0xe11d48,
+    emissiveIntensity: 0.8,
+    roughness: 0.2,
+  });
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), orbMat);
+  inner.add(orb);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(0.32, 0.04, 10, 20),
+    new THREE.MeshBasicMaterial({ color: 0xfef08a })
+  );
+  rim.rotation.x = Math.PI / 2;
+  inner.add(rim);
+
+  root.userData = {
+    isProjectile: true,
+    inner,
+    baseScale: 1.0,
+    hitRadiusM: 0.95,
+  };
+
+  return root;
+}
+
+/**
+ * 🃏 Procedural 3D Holographic Shoot-to-Select Card Target Mesh
+ */
+export function createCardTargetMesh3D(
+  title: string,
+  subtitle: string,
+  colorHex: string
+): THREE.Group {
+  const root = new THREE.Group();
+  root.name = `Card_${title}`;
+
+  const inner = new THREE.Group();
+  root.add(inner);
+
+  const cardMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(colorHex),
+    emissive: new THREE.Color(colorHex),
+    emissiveIntensity: 0.35,
+    metalness: 0.7,
+    roughness: 0.2,
+  });
+  const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.45, 0.08), cardMat);
+  inner.add(cardFrame);
+
+  const borderRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.72, 0.025, 8, 24),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+  );
+  borderRing.position.z = 0.05;
+  inner.add(borderRing);
+
+  root.userData = {
+    isCard: true,
+    inner,
+    baseScale: 1.0,
+    hitRadiusM: 1.15,
+  };
+
+  return root;
 }
