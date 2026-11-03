@@ -24,6 +24,8 @@ export interface ActiveTargetEntity {
   itemKind?: ItemBuffKind;
   customNormY?: number;
   customBaseY?: number;
+  initialThetaRad?: number;
+  isEnraged?: boolean;
 }
 
 export interface TargetAimProjection {
@@ -58,6 +60,8 @@ export interface SandboxSpawnOptions {
   radiusM?: number;
   customNormY?: number;
   customBaseY?: number;
+  initialThetaRad?: number;
+  isEnraged?: boolean;
 }
 
 export interface WaveProgressInfo {
@@ -534,7 +538,19 @@ export class BeerCrusherEngine {
     // 1. Advance active targets radially
     for (let i = this.activeTargets.length - 1; i >= 0; i--) {
       const target = this.activeTargets[i];
-      const effectiveSpeed = isIceFreeze && !target.isItem ? target.speedMps * 0.5 : target.speedMps;
+      let effectiveSpeed = isIceFreeze && !target.isItem ? target.speedMps * 0.5 : target.speedMps;
+      if (target.kind === 'hanmac' && target.isEnraged) {
+        effectiveSpeed *= 1.3;
+      }
+
+      // S-curve flight trajectory for airborne targets
+      if (!target.isItem && (target.kind === 'pilgood' || target.kind === 'caslight') && target.initialThetaRad !== undefined) {
+        if (target.kind === 'pilgood') {
+          target.thetaRad = target.initialThetaRad + Math.sin(nowMs * 0.003 + target.radiusM * 0.4) * 0.08;
+        } else if (target.kind === 'caslight') {
+          target.thetaRad = target.initialThetaRad + Math.sin(nowMs * 0.006 + target.radiusM * 0.7) * 0.06;
+        }
+      }
 
       const next = advanceRadialTarget(
         { radiusM: target.radiusM, thetaRad: target.thetaRad },
@@ -685,6 +701,7 @@ export class BeerCrusherEngine {
       maxHp: spec.maxHp,
       radiusM: pt.radiusM,
       thetaRad: pt.thetaRad,
+      initialThetaRad: pt.thetaRad,
       x: pt.x,
       z: pt.z,
       speedMps: spec.speedMps,
@@ -816,6 +833,10 @@ export class BeerCrusherEngine {
       target.hp = Math.max(0, target.hp - result.damage);
       const killed = target.hp <= 0;
       let activatedItem: ItemBuffKind | undefined;
+
+      if (!killed && target.kind === 'hanmac') {
+        target.isEnraged = true;
+      }
 
       if (killed && target.isItem && target.itemKind) {
         this.activateItemBuff(target.itemKind, nowMs);

@@ -729,11 +729,11 @@ export function updateTargetAnimation3D(
       inner.position.y = bounce;
       inner.rotation.y = Math.sin(elapsedSec * 1.5) * 0.12;
     } else if (kind === 'bottle') {
-      // Authentic PNG billboard bottle: lively bounce + slight tilt sway (stays facing camera)
-      const bounce = Math.abs(Math.sin(elapsedSec * 5.0 + (root.id ? root.id * 0.2 : 0))) * 0.14;
+      // Authentic PNG billboard bottle: 2.45x scale heavy bouncy tanker with lively side-to-side roll
+      const bounce = Math.abs(Math.sin(elapsedSec * 6.0 + (root.id ? root.id * 0.2 : 0))) * 0.28;
       inner.position.y = bounce;
-      inner.rotation.y = Math.sin(elapsedSec * 2.0) * 0.04; // Very subtle 2-degree swivel
-      inner.rotation.z = Math.sin(elapsedSec * 3.5) * 0.04; // Playful tilt
+      inner.rotation.y = Math.sin(elapsedSec * 2.0) * 0.05; // Subtle swivel
+      inner.rotation.z = Math.sin(elapsedSec * 3.0) * 0.12; // Playful side-to-side rolling tilt
     } else {
       const bounce = Math.abs(Math.sin(elapsedSec * 5.0 + (root.id ? root.id * 0.2 : 0))) * 0.14;
       inner.position.y = bounce;
@@ -741,8 +741,8 @@ export function updateTargetAnimation3D(
     }
   } else {
     // Airborne monsters smooth floating flight & tilt
-    inner.position.y = Math.sin(elapsedSec * 4.0 + (root.id ? root.id * 0.3 : 0)) * 0.12;
-    inner.rotation.z = Math.sin(elapsedSec * 3.2 + (root.id ? root.id * 0.3 : 0)) * 0.09;
+    inner.position.y = Math.sin(elapsedSec * 4.0 + (root.id ? root.id * 0.3 : 0)) * 0.18;
+    inner.rotation.z = Math.sin(elapsedSec * 3.2 + (root.id ? root.id * 0.3 : 0)) * 0.14;
   }
 
   // Flap wings for caslight
