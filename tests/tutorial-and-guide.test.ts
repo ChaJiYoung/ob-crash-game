@@ -32,7 +32,7 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     expect(engine.activeTargets.length).toBe(1);
     const bottleTarget = engine.activeTargets[0];
     expect(bottleTarget.kind).toBe('bottle');
-    expect(bottleTarget.hp).toBe(3);
+    expect(bottleTarget.hp).toBe(4); // Rebalanced from 3 -> 4
     expect(bottleTarget.speedMps).toBeGreaterThan(0);
   });
 
@@ -149,7 +149,7 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     engine.setInfiniteAmmo(true);
     expect(engine.infiniteAmmo).toBe(true);
     for (let i = 0; i < 15; i++) {
-      const res = engine.shootAt(0, 0, 1500 + i * 150);
+      const res = engine.shootAt(0, 0, 1500 + i * 350);
       expect(res.fired).toBe(true);
     }
     expect(engine.weaponSystem.getState().isReloading).toBe(false);

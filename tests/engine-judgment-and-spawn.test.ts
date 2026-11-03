@@ -112,12 +112,12 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(activated).toBe(true);
     expect(manager.getState().isFeverActive).toBe(true);
 
-    // Gauge decays over 10000ms
-    manager.updateFeverTimer(6000); // 5000ms left out of 10000ms -> 50%
+    // Gauge decays over 4000ms (D04)
+    manager.updateFeverTimer(3000); // 2000ms left out of 4000ms -> 50%
     expect(manager.getState().feverGauge).toBeGreaterThan(45);
     expect(manager.getState().feverGauge).toBeLessThan(55);
 
-    manager.updateFeverTimer(11500); // expired (> 11000ms)
+    manager.updateFeverTimer(5500); // expired (> 5000ms)
     expect(manager.getState().isFeverActive).toBe(false);
     expect(manager.getState().feverGauge).toBe(0);
   });
@@ -154,7 +154,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(penalty2.combo).toBe(12);
 
     // 6. Once fever expires, MISS penalty resets combo to 0
-    manager.updateFeverTimer(11500); // fever expired (> 11000ms)
+    manager.updateFeverTimer(5500); // fever expired (> 5000ms)
     expect(manager.getState().isFeverActive).toBe(false);
 
     const normalPenalty = manager.applyMissPenalty();
@@ -179,19 +179,20 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(manager.getState().feverBaseCombo).toBe(10);
   });
 
-  it('should auto reload 10 rounds after 1.2s delay without manual action', () => {
-    const weapon = new WeaponSystem();
-    expect(weapon.getState().ammo).toBe(10);
+  it('should auto reload magazine rounds after auto reload delay without manual action', () => {
+    const weapon = new WeaponSystem('shotgun', 1);
+    const maxAmmo = weapon.getMaxAmmo();
+    expect(weapon.getState().ammo).toBe(maxAmmo);
 
     let now = 1000;
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < maxAmmo - 1; i++) {
       const res = weapon.consumeShot(now, false);
       expect(res.fired).toBe(true);
-      now += 120;
+      now += 350;
     }
     expect(weapon.getState().ammo).toBe(1);
 
-    // 10th shot depletes magazine
+    // Last shot depletes magazine
     const lastShot = weapon.consumeShot(now, false);
     expect(lastShot.fired).toBe(true);
     expect(lastShot.ammo).toBe(0);
@@ -201,11 +202,11 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     now += 500;
     expect(weapon.canFire(now, false)).toBe(false);
 
-    // After 1200ms, automatic reload completes
-    now += 750; // Total 1250ms since reload start
+    // After reload duration (1400ms for Lv.1 shotgun), automatic reload completes
+    now += 1000; // Total 1500ms since reload start > 1400ms
     const updateRes = weapon.update(now, false);
     expect(updateRes.reloadedJustNow).toBe(true);
-    expect(weapon.getState().ammo).toBe(10);
+    expect(weapon.getState().ammo).toBe(maxAmmo);
     expect(weapon.getState().isReloading).toBe(false);
   });
 
@@ -340,8 +341,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const groundTarget = {
       id: 'ground_1',
       kind: 'bottle' as const,
-      hp: 3,
-      maxHp: 3,
+      hp: 4,
+      maxHp: 4,
       radiusM: 8.0,
       thetaRad: 0,
       x: 0,
@@ -361,7 +362,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(airShot.grade).toBe('PERFECT');
 
     engine.activeTargets = [groundTarget];
-    const groundShot = engine.shootAt(0, groundProj.targetNormY, 2200);
+    const groundShot = engine.shootAt(0, groundProj.targetNormY, 2400);
     expect(groundShot.fired).toBe(true);
     expect(groundShot.grade).toBe('PERFECT');
 
@@ -387,8 +388,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const angledTarget = {
       id: 'angled_1',
       kind: 'bottle' as const,
-      hp: 3,
-      maxHp: 3,
+      hp: 4,
+      maxHp: 4,
       radiusM: 14.0,
       thetaRad: 0.30,
       x: 14.0 * Math.sin(0.30),
@@ -400,7 +401,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     };
     const angledProj = engine.computeTargetAimCoords(angledTarget);
     engine.activeTargets = [angledTarget];
-    const exactShot = engine.shootAt(angledProj.targetNormX, angledProj.targetNormY, 2500);
+    const exactShot = engine.shootAt(angledProj.targetNormX, angledProj.targetNormY, 2800);
     expect(exactShot.fired).toBe(true);
     expect(exactShot.grade).toBe('PERFECT');
     expect(exactShot.errorRatio).toBeLessThan(0.05);
@@ -452,28 +453,230 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.setPaused(false, 10000);
     expect(engine.isPaused).toBe(false);
 
-    // Fever had 8000ms remaining when paused (10000 - 2000 = 8000).
-    // After unpausing at 10000, feverEndTimeMs should be 10000 + 8000 = 18000!
-    // At now = 12000 (2s after unpause), fever must STILL be active!
+    // Fever had 3000ms remaining when paused (5000 - 2000 = 3000).
+    // After unpausing at 10000, feverEndTimeMs should be 5000 + 8000 = 13000!
+    // At now = 12000 (2s after unpause), fever and wide_scope must STILL be active!
     engine.update(12000, 2.0);
     expect(engine.scoreManager.getState().isFeverActive).toBe(true);
     expect(engine.isBuffActive('wide_scope', 12000)).toBe(true);
     // Target moved another 2.0s * 2.0m/s = 4.0m -> radius is 4.0m
     expect(target.radiusM).toBe(4.0);
 
-    // Wide scope (8000ms duration, shifted by 8000ms pause) ends at 16000.
-    // At now = 15000, wide_scope is still active
-    engine.update(15000, 3.0);
-    expect(engine.isBuffActive('wide_scope', 15000)).toBe(true);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
-
-    // At now = 17000, wide_scope is expired (ended at 16000), but fever (ends at 18000) is still active
-    engine.update(17000, 2.0);
-    expect(engine.isBuffActive('wide_scope', 17000)).toBe(false);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
-
-    // At now = 19000, fever is also expired (> 18000)
-    engine.update(19000, 2.0);
+    // At now = 14000: fever is expired (> 13000), but wide_scope (ends at 17000) is still active!
+    engine.update(14000, 2.0);
     expect(engine.scoreManager.getState().isFeverActive).toBe(false);
+    expect(engine.isBuffActive('wide_scope', 14000)).toBe(true);
+
+    // At now = 18000, wide_scope is also expired (> 17000)
+    engine.update(18000, 4.0);
+    expect(engine.isBuffActive('wide_scope', 18000)).toBe(false);
+  });
+
+  it('should support 3-weapon ballistics (shotgun pellets/knockback, revolver pierce, gatling rapid)', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+
+    // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 DMG + 0.3m knockback
+    engine.weaponSystem.selectWeapon('shotgun', 2);
+    const sgTarget = {
+      id: 'sg_dummy',
+      kind: 'bottle' as const,
+      hp: 4.0,
+      maxHp: 4.0,
+      radiusM: 8.0,
+      thetaRad: 0,
+      x: 0,
+      z: -8.0,
+      speedMps: 1.5,
+      hitRadiusM: 1.15,
+      killBonusScore: 160,
+      breached: false,
+    };
+    engine.activeTargets = [sgTarget];
+    const projSg = engine.computeTargetAimCoords(sgTarget);
+
+    const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
+    expect(shot1.fired).toBe(true);
+    expect(shot1.grade).toBe('PERFECT');
+    expect(sgTarget.hp).toBe(2.4); // 4.0 - 1.6 = 2.4
+    expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
+
+    // 2. Revolver Lv.1: 0.75 DMG + pierces 1 rear target at 0.35 DMG
+    engine.weaponSystem.selectWeapon('revolver', 1);
+    const revFront = {
+      id: 'rev_front',
+      kind: 'bottle' as const,
+      hp: 4.0,
+      maxHp: 4.0,
+      radiusM: 6.0,
+      thetaRad: 0,
+      x: 0,
+      z: -6.0,
+      speedMps: 1.5,
+      hitRadiusM: 1.15,
+      killBonusScore: 160,
+      breached: false,
+    };
+    const revRear = {
+      id: 'rev_rear',
+      kind: 'hanmac' as const,
+      hp: 3.0,
+      maxHp: 3.0,
+      radiusM: 9.0, // Behind revFront
+      thetaRad: 0,
+      x: 0,
+      z: -9.0,
+      speedMps: 2.0,
+      hitRadiusM: 0.95,
+      killBonusScore: 90,
+      breached: false,
+    };
+    engine.activeTargets = [revFront, revRear];
+    const projRev = engine.computeTargetAimCoords(revFront);
+
+    const shot2 = engine.shootAt(projRev.targetNormX, projRev.targetNormY, 2000);
+    expect(shot2.fired).toBe(true);
+    expect(shot2.hitTargets?.length).toBe(2);
+    expect(revFront.hp).toBe(3.25); // 4.0 - 0.75 = 3.25
+    expect(revRear.hp).toBe(2.65); // 3.0 - (0.75 * 0.467 = 0.35) = 2.65
+
+    // 3. Gatling Lv.1: 0.15 DMG rapid fire
+    engine.weaponSystem.selectWeapon('gatling', 1);
+    const gatTarget = {
+      id: 'gat_dummy',
+      kind: 'obi' as const,
+      hp: 2.0,
+      maxHp: 2.0,
+      radiusM: 7.0,
+      thetaRad: 0,
+      x: 0,
+      z: -7.0,
+      speedMps: 1.9,
+      hitRadiusM: 0.95,
+      killBonusScore: 70,
+      breached: false,
+    };
+    engine.activeTargets = [gatTarget];
+    const projGat = engine.computeTargetAimCoords(gatTarget);
+
+    const shot3 = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 3000);
+    expect(shot3.fired).toBe(true);
+    expect(gatTarget.hp).toBe(1.85); // 2.0 - 0.15 = 1.85
+  });
+
+  it('should execute 3 distinct active skills (Plunger Storm stun, Opener slow, Foam Tsunami knockback)', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+
+    const m1 = {
+      id: 'm1',
+      kind: 'bottle' as const,
+      hp: 4.0,
+      maxHp: 4.0,
+      radiusM: 7.0,
+      thetaRad: 0,
+      x: 0,
+      z: -7.0,
+      speedMps: 1.5,
+      hitRadiusM: 1.15,
+      killBonusScore: 160,
+      breached: false,
+    };
+    const m2 = {
+      id: 'm2',
+      kind: 'hanmac' as const,
+      hp: 3.0,
+      maxHp: 3.0,
+      radiusM: 8.0,
+      thetaRad: 0.2,
+      x: Math.sin(0.2) * 8.0,
+      z: -Math.cos(0.2) * 8.0,
+      speedMps: 2.0,
+      hitRadiusM: 0.95,
+      killBonusScore: 90,
+      breached: false,
+    };
+    engine.activeTargets = [m1, m2];
+
+    // 1. Shotgun skill: 사방 뚫어뻥 폭풍 (AoE 0.5 DMG + 1000ms Stun)
+    engine.weaponSystem.selectWeapon('shotgun', 1);
+    const sgSkill = engine.triggerWeaponSkill(1000);
+    expect(sgSkill.activated).toBe(true);
+    expect(sgSkill.weaponKind).toBe('shotgun');
+    expect(m1.hp).toBe(3.5); // 4.0 - 0.5
+    expect(m1.stunUntilMs).toBe(2000); // 1000 + 1000ms stun
+    expect(m1.stuckPlungerCount).toBe(2);
+
+    // Stunned target has 0 movement speed during update
+    engine.update(1500, 0.5);
+    expect(m1.radiusM).toBe(7.0); // No movement!
+
+    // 2. Revolver skill: 오프너 불릿 타임 & 참격 (AoE 0.6 DMG + 3500ms 40% Slow)
+    engine.weaponSystem.selectWeapon('revolver', 1);
+    const revSkill = engine.triggerWeaponSkill(3000);
+    expect(revSkill.activated).toBe(true);
+    expect(m2.slowUntilMs).toBe(6500); // 3000 + 3500ms slow
+    expect(m2.slowRatio).toBe(0.40);
+
+    // 3. Gatling skill: 거품 해일 160도 오버히트 (AoE 0.4 DMG + 1.0m Knockback)
+    engine.weaponSystem.selectWeapon('gatling', 1);
+    const initialRadius = m1.radiusM;
+    const gatSkill = engine.triggerWeaponSkill(5000);
+    expect(gatSkill.activated).toBe(true);
+    expect(m1.radiusM).toBe(initialRadius + 1.0); // 1.0m knockback!
+  });
+
+  it('should handle Shoot-to-Select Weapon & Reward Cards, Golden Can and Projectile Interception', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+
+    // 1. Weapon selection targets
+    engine.spawnWeaponSelectTargets();
+    expect(engine.isWeaponSelectPending).toBe(true);
+    expect(engine.activeTargets.length).toBe(3);
+
+    const gatTarget = engine.activeTargets.find((t) => t.weaponSelectKind === 'gatling')!;
+    expect(gatTarget).toBeDefined();
+
+    const projGat = engine.computeTargetAimCoords(gatTarget);
+    const selectShot = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 1000);
+    expect(selectShot.fired).toBe(true);
+    expect(selectShot.selectedWeapon).toBe('gatling');
+    expect(engine.weaponSystem.getState().weaponKind).toBe('gatling');
+    expect(engine.isWeaponSelectPending).toBe(false);
+    expect(engine.activeTargets.length).toBe(0);
+
+    // 2. Reward Card selection targets
+    engine.spawnWaveRewardCards(2000);
+    expect(engine.isRewardCardPending).toBe(true);
+    expect(engine.activeTargets.length).toBe(3);
+
+    const lvlUpCard = engine.activeTargets.find((t) => t.rewardCardKind === 'weapon_level_up')!;
+    const projCard = engine.computeTargetAimCoords(lvlUpCard);
+    const cardShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2100);
+    expect(cardShot.fired).toBe(true);
+    expect(cardShot.selectedCard).toBe('weapon_level_up');
+    expect(engine.weaponSystem.getState().weaponLevel).toBe(2); // Upgraded!
+    expect(engine.isRewardCardPending).toBe(false);
+    expect(engine.currentWave).toBe(2); // Advanced to wave 2!
+
+    // 3. Golden Can Bonus
+    const goldenCan = engine.spawnGoldenCanTarget(3000);
+    expect(goldenCan.isGoldenCan).toBe(true);
+    const projGold = engine.computeTargetAimCoords(goldenCan);
+    const goldShot = engine.shootAt(projGold.targetNormX, projGold.targetNormY, 3100);
+    expect(goldShot.fired).toBe(true);
+    expect(goldShot.goldenCanKilled).toBe(true);
+    expect(engine.scoreManager.getState().isFeverReady).toBe(true); // Full fever!
+    expect(engine.weaponSystem.getState().skillStock).toBe(engine.weaponSystem.getMaxSkillStock()); // Full skill!
+
+    // 4. Projectile Interception
+    const proj = engine.spawnMonsterProjectile(4000, 'hanmac');
+    expect(proj.isProjectile).toBe(true);
+    const projAim = engine.computeTargetAimCoords(proj);
+    const interceptShot = engine.shootAt(projAim.targetNormX, projAim.targetNormY, 4100);
+    expect(interceptShot.fired).toBe(true);
+    expect(interceptShot.interceptedProjectile).toBe(true);
+    expect(interceptShot.killed).toBe(true);
   });
 });

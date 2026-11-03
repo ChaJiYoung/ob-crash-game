@@ -1,6 +1,22 @@
 import * as THREE from 'three';
-import { ActiveBuffState, GamePhase, ItemBuffKind, JudgmentGrade, TargetKind, TutorialStep } from '../../shared/types';
-import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, TARGET_SPECS } from '../../shared/constants';
+import {
+  ActiveBuffState,
+  GamePhase,
+  ItemBuffKind,
+  JudgmentGrade,
+  RewardCardKind,
+  TargetKind,
+  TutorialStep,
+  WeaponKind,
+  WeaponLevel,
+} from '../../shared/types';
+import {
+  ITEM_BUFF_SPECS,
+  REWARD_CARD_SPECS,
+  STAGE_CONSTANTS,
+  TARGET_SPECS,
+  WEAPON_ARCHETYPE_SPECS,
+} from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
@@ -26,6 +42,15 @@ export interface ActiveTargetEntity {
   customBaseY?: number;
   initialThetaRad?: number;
   isEnraged?: boolean;
+  // Roguelike & Gimmick extensions
+  stunUntilMs?: number;
+  slowUntilMs?: number;
+  slowRatio?: number;
+  stuckPlungerCount?: number;
+  isGoldenCan?: boolean;
+  isProjectile?: boolean;
+  weaponSelectKind?: WeaponKind;
+  rewardCardKind?: RewardCardKind;
 }
 
 export interface TargetAimProjection {
@@ -42,6 +67,22 @@ export interface EngineShootResult {
   earnedScore?: number;
   errorRatio?: number;
   activatedItem?: ItemBuffKind;
+  weaponKind?: WeaponKind;
+  weaponLevel?: WeaponLevel;
+  hitTargets?: ActiveTargetEntity[];
+  selectedWeapon?: WeaponKind;
+  selectedCard?: RewardCardKind;
+  interceptedProjectile?: boolean;
+  goldenCanKilled?: boolean;
+}
+
+export interface SkillExecuteResult {
+  activated: boolean;
+  weaponKind: WeaponKind;
+  weaponLevel: WeaponLevel;
+  affectedTargets: ActiveTargetEntity[];
+  plungerCount?: number;
+  arcDeg?: number;
 }
 
 export interface WaveDefinition {
@@ -70,7 +111,7 @@ export interface WaveProgressInfo {
   killedInWave: number;
   totalSpawns: number;
   remainingInWave: number;
-  progressPercent: number; // 0 to 100
+  progressPercent: number;
 }
 
 export class BeerCrusherEngine {
@@ -94,6 +135,7 @@ export class BeerCrusherEngine {
 
   private activeBuffUntilMs: Map<ItemBuffKind, number> = new Map();
 
+  // Wave definitions
   private waveDefinitions: Record<number, WaveDefinition> = {
     1: {
       waveIndex: 1,
@@ -101,7 +143,7 @@ export class BeerCrusherEngine {
       maxSimultaneous: 4,
       spawnIntervalMs: 950,
       kinds: ['pilgood', 'caslight'],
-      allowedItems: ['wide_scope'],
+      allowedItems: [],
       includesBoss: false,
     },
     2: {
@@ -110,7 +152,7 @@ export class BeerCrusherEngine {
       maxSimultaneous: 5,
       spawnIntervalMs: 850,
       kinds: ['obi', 'hanmac', 'pilgood'],
-      allowedItems: ['power_shot', 'bar_repair'],
+      allowedItems: [],
       includesBoss: false,
     },
     3: {
@@ -119,7 +161,7 @@ export class BeerCrusherEngine {
       maxSimultaneous: 6,
       spawnIntervalMs: 800,
       kinds: ['bottle', 'caslight', 'obi', 'hanmac'],
-      allowedItems: ['wide_scope', 'ice_freeze', 'bar_repair'],
+      allowedItems: [],
       includesBoss: false,
     },
     4: {
@@ -128,7 +170,7 @@ export class BeerCrusherEngine {
       maxSimultaneous: 7,
       spawnIntervalMs: 700,
       kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'],
-      allowedItems: ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'],
+      allowedItems: [],
       includesBoss: false,
     },
     5: {
@@ -137,7 +179,7 @@ export class BeerCrusherEngine {
       maxSimultaneous: 6,
       spawnIntervalMs: 800,
       kinds: ['hanmac', 'bottle', 'pilgood', 'caslight'],
-      allowedItems: ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'],
+      allowedItems: [],
       includesBoss: true,
     },
   };
@@ -148,6 +190,12 @@ export class BeerCrusherEngine {
   private bossSpawned = false;
   private lastSpawnTimeMs = 0;
   private targetCounter = 0;
+
+  // Roguelike card & gimmick flags
+  public isWeaponSelectPending = false;
+  public isRewardCardPending = false;
+  private goldenCanSpawnedInWave = false;
+  private lastProjectileSpawnTimeMs = 0;
 
   public aspect = 16 / 9;
   public vFovDeg = STAGE_CONSTANTS.CAMERA_FOV_DEG;
@@ -196,62 +244,206 @@ export class BeerCrusherEngine {
     }
   }
 
-  public startGame(): void {
+  public startGame(options?: { withWeaponSelect?: boolean }): void {
     this.gamePhase = 'PLAYING';
-    this.isTutorialMode = false;
-    this.isPaused = false;
-    this.pausedAtMs = null;
     this.currentWave = 1;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
-    this.activeBuffUntilMs.clear();
     this.spawnedInWave = 0;
     this.itemsSpawnedInWave = 0;
     this.killedInWave = 0;
     this.bossSpawned = false;
+    this.lastSpawnTimeMs = 0;
+    this.goldenCanSpawnedInWave = false;
+    this.lastProjectileSpawnTimeMs = 0;
+    this.isTutorialMode = false;
+    this.isSandboxMode = false;
     this.scoreManager.reset();
     this.weaponSystem.reset();
+    this.activeBuffUntilMs.clear();
+
+    if (options?.withWeaponSelect) {
+      this.spawnWeaponSelectTargets();
+    }
+  }
+
+  public startWave(waveIndex: number): void {
+    this.currentWave = Math.max(1, Math.min(STAGE_CONSTANTS.TOTAL_WAVES, waveIndex));
+    this.spawnedInWave = 0;
+    this.itemsSpawnedInWave = 0;
+    this.killedInWave = 0;
+    this.bossSpawned = false;
+    this.lastSpawnTimeMs = 0;
+    this.goldenCanSpawnedInWave = false;
+    this.lastProjectileSpawnTimeMs = 0;
+    this.isRewardCardPending = false;
+  }
+
+  public spawnWeaponSelectTargets(): void {
+    this.isWeaponSelectPending = true;
+    const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
+    const xPositions = [-2.2, 0, 2.2];
+
+    weaponKinds.forEach((kind, idx) => {
+      this.targetCounter += 1;
+      const x = xPositions[idx];
+      const z = -7.5;
+      const theta = Math.atan2(x, -z);
+      const radius = Math.hypot(x, z);
+
+      this.activeTargets.push({
+        id: `weapon_select_${kind}`,
+        kind: 'obi',
+        hp: 1,
+        maxHp: 1,
+        radiusM: radius,
+        thetaRad: theta,
+        x,
+        z,
+        speedMps: 0,
+        hitRadiusM: 1.15,
+        killBonusScore: 50,
+        breached: false,
+        customNormY: 0.05,
+        weaponSelectKind: kind,
+      });
+    });
+  }
+
+  public spawnWaveRewardCards(nowMs: number): void {
+    this.isRewardCardPending = true;
+    const candidateCards: RewardCardKind[] = [
+      'weapon_level_up',
+      'rapid_reload',
+      this.lives < STAGE_CONSTANTS.PLAYER_MAX_LIVES ? 'bar_repair' : 'fever_boost',
+    ];
+    const xPositions = [-2.2, 0, 2.2];
+
+    candidateCards.forEach((cardKind, idx) => {
+      this.targetCounter += 1;
+      const x = xPositions[idx];
+      const z = -7.5;
+      const theta = Math.atan2(x, -z);
+      const radius = Math.hypot(x, z);
+
+      this.activeTargets.push({
+        id: `reward_card_${this.targetCounter}_${cardKind}`,
+        kind: 'obi',
+        hp: 1,
+        maxHp: 1,
+        radiusM: radius,
+        thetaRad: theta,
+        x,
+        z,
+        speedMps: 0,
+        hitRadiusM: 1.15,
+        killBonusScore: 100,
+        breached: false,
+        customNormY: 0.05,
+        rewardCardKind: cardKind,
+      });
+    });
+  }
+
+  public applyRewardCard(cardKind: RewardCardKind, nowMs: number): void {
+    switch (cardKind) {
+      case 'weapon_level_up':
+        this.weaponSystem.upgradeWeaponLevel();
+        break;
+      case 'rapid_reload':
+        this.weaponSystem.applyRapidReloadBuff();
+        break;
+      case 'bar_repair':
+        this.lives = Math.min(STAGE_CONSTANTS.PLAYER_MAX_LIVES + 1, this.lives + 1);
+        break;
+      case 'fever_boost':
+        this.scoreManager.addFeverGauge(50);
+        break;
+    }
+  }
+
+  public spawnGoldenCanTarget(nowMs: number): ActiveTargetEntity {
+    this.goldenCanSpawnedInWave = true;
+    this.targetCounter += 1;
+    const entity: ActiveTargetEntity = {
+      id: `golden_can_${this.targetCounter}`,
+      kind: 'caslight',
+      hp: 1,
+      maxHp: 1,
+      radiusM: 10.5,
+      thetaRad: -0.38,
+      initialThetaRad: -0.38,
+      x: Math.sin(-0.38) * 10.5,
+      z: -Math.cos(-0.38) * 10.5,
+      speedMps: 4.5,
+      hitRadiusM: 1.15,
+      killBonusScore: 500,
+      breached: false,
+      isGoldenCan: true,
+      customNormY: 0.15,
+    };
+    this.activeTargets.push(entity);
+    return entity;
+  }
+
+  public spawnMonsterProjectile(nowMs: number, sourceKind: 'hanmac' | 'boss'): ActiveTargetEntity {
+    this.lastProjectileSpawnTimeMs = nowMs;
+    this.targetCounter += 1;
+    const existingAngles = this.activeTargets.map((t) => t.thetaRad);
+    const pt = sampleFanSpawnPoint({
+      vFovDeg: this.vFovDeg,
+      aspect: this.aspect,
+      existingAnglesRad: existingAngles,
+    });
+
+    const entity: ActiveTargetEntity = {
+      id: `proj_${this.targetCounter}_${sourceKind}`,
+      kind: 'pilgood',
+      hp: 1,
+      maxHp: 1,
+      radiusM: Math.min(14.0, pt.radiusM),
+      thetaRad: pt.thetaRad,
+      initialThetaRad: pt.thetaRad,
+      x: pt.x,
+      z: pt.z,
+      speedMps: 3.2,
+      hitRadiusM: 0.95,
+      killBonusScore: 80,
+      breached: false,
+      isProjectile: true,
+      customNormY: 0.1,
+    };
+    this.activeTargets.push(entity);
+    return entity;
   }
 
   public startTutorialMode(): void {
     this.gamePhase = 'TUTORIAL';
     this.isTutorialMode = true;
-    this.isPaused = false;
-    this.pausedAtMs = null;
     this.tutorialStep = 1;
     this.tutorialCompleted = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
-    this.activeBuffUntilMs.clear();
     this.scoreManager.reset();
     this.weaponSystem.reset();
+    this.activeBuffUntilMs.clear();
 
-    // Step 1: 3 static 1HP can targets
-    this.spawnTutorialStep1Targets();
-  }
-
-  public spawnTutorialStep1Targets(): void {
-    this.activeTargets = [];
-    const positions = [
-      { x: -2.8, z: -8.0, thetaRad: -0.35, kind: 'pilgood' as TargetKind },
-      { x: 0.0, z: -8.0, thetaRad: 0.0, kind: 'caslight' as TargetKind },
-      { x: 2.8, z: -8.0, thetaRad: 0.35, kind: 'obi' as TargetKind },
-    ];
-    positions.forEach((pos, idx) => {
+    const angles = [-0.22, 0.0, 0.22];
+    angles.forEach((theta, idx) => {
       this.targetCounter += 1;
-      const spec = TARGET_SPECS[pos.kind];
+      const radius = 10.0;
       this.activeTargets.push({
-        id: `tutorial_step1_${idx + 1}`,
-        kind: pos.kind,
+        id: `tutorial_can_${idx + 1}`,
+        kind: 'pilgood',
         hp: 1,
         maxHp: 1,
-        radiusM: 8.0,
-        thetaRad: pos.thetaRad,
-        x: pos.x,
-        z: pos.z,
+        radiusM: radius,
+        thetaRad: theta,
+        x: Math.sin(theta) * radius,
+        z: -Math.cos(theta) * radius,
         speedMps: 0,
-        hitRadiusM: spec.hitRadiusM,
-        killBonusScore: spec.killBonusScore,
+        hitRadiusM: 1.1,
+        killBonusScore: 50,
         breached: false,
       });
     });
@@ -259,52 +451,54 @@ export class BeerCrusherEngine {
 
   public advanceTutorialStep(nextStep: TutorialStep): void {
     this.tutorialStep = nextStep;
-    this.activeTargets = [];
-
     if (nextStep === 2) {
-      // Step 2: 1 approaching Cass bottle (3HP, speed = 1.1m/s synchronized with 35% rebalance)
       this.targetCounter += 1;
-      const spec = TARGET_SPECS.bottle;
-      this.activeTargets.push({
-        id: `tutorial_step2_bottle`,
-        kind: 'bottle',
-        hp: 3,
-        maxHp: 3,
-        radiusM: 14.0,
-        thetaRad: 0.0,
-        x: 0,
-        z: -14.0,
-        speedMps: 1.1,
-        hitRadiusM: spec.hitRadiusM,
-        killBonusScore: spec.killBonusScore,
-        breached: false,
-      });
+      const bottleSpec = TARGET_SPECS.bottle;
+      this.activeTargets = [
+        {
+          id: `tutorial_bottle_${this.targetCounter}`,
+          kind: 'bottle',
+          hp: bottleSpec.maxHp,
+          maxHp: bottleSpec.maxHp,
+          radiusM: 14.0,
+          thetaRad: 0,
+          x: 0,
+          z: -14.0,
+          speedMps: 1.4,
+          hitRadiusM: bottleSpec.hitRadiusM,
+          killBonusScore: bottleSpec.killBonusScore,
+          breached: false,
+        },
+      ];
     } else if (nextStep === 3) {
-      // Step 3: Fill fever gauge to 100%
       this.scoreManager.forceSetFeverGauge(100);
+      this.activeTargets = [];
     } else if (nextStep === 'COMPLETED') {
       this.tutorialCompleted = true;
+      this.activeTargets = [];
     }
   }
 
   public spawnTutorialStep3Enemies(): void {
     this.activeTargets = [];
-    const angles = [-0.45, -0.25, -0.08, 0.08, 0.25, 0.45];
-    angles.forEach((angle, idx) => {
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'caslight'];
+    const angles = [-0.35, -0.20, -0.07, 0.07, 0.20, 0.35];
+
+    kinds.forEach((kind, i) => {
       this.targetCounter += 1;
-      const kind: TargetKind = idx % 2 === 0 ? 'pilgood' : 'caslight';
       const spec = TARGET_SPECS[kind];
-      const dist = 10.0 + (idx % 3) * 1.5;
+      const radius = 12.0 + (i % 2) * 2.0;
+      const theta = angles[i];
       this.activeTargets.push({
-        id: `tutorial_step3_${idx + 1}`,
+        id: `tutorial_fever_${this.targetCounter}_${kind}`,
         kind,
-        hp: 1,
-        maxHp: 1,
-        radiusM: dist,
-        thetaRad: angle,
-        x: Math.sin(angle) * dist,
-        z: -Math.cos(angle) * dist,
-        speedMps: 1.8,
+        hp: spec.maxHp,
+        maxHp: spec.maxHp,
+        radiusM: radius,
+        thetaRad: theta,
+        x: Math.sin(theta) * radius,
+        z: -Math.cos(theta) * radius,
+        speedMps: 1.6,
         hitRadiusM: spec.hitRadiusM,
         killBonusScore: spec.killBonusScore,
         breached: false,
@@ -315,40 +509,80 @@ export class BeerCrusherEngine {
   public exitTutorialMode(): void {
     this.isTutorialMode = false;
     this.tutorialStep = 1;
-    this.tutorialCompleted = false;
-    this.isPaused = false;
-    this.pausedAtMs = null;
     this.activeTargets = [];
     this.gamePhase = 'PAIRING';
-    this.scoreManager.reset();
-    this.weaponSystem.reset();
   }
 
   public startSandboxMode(): void {
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;
-    this.isTutorialMode = false;
-    this.isPaused = false;
-    this.pausedAtMs = null;
-    this.currentWave = 1;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
-    this.activeBuffUntilMs.clear();
     this.scoreManager.reset();
     this.weaponSystem.reset();
-    this.spawnCalibrationFiveTargets();
+    this.activeBuffUntilMs.clear();
+    this.infiniteAmmo = true;
+    this.weaponSystem.setInfiniteAmmo(true);
+
+    const calibPoints = [
+      { id: 'calib_center', theta: 0, normY: 0 },
+      { id: 'calib_left', theta: -0.36, normY: 0 },
+      { id: 'calib_right', theta: 0.36, normY: 0 },
+      { id: 'calib_top', theta: 0, normY: 0.55 },
+      { id: 'calib_bottom', theta: 0, normY: -0.55 },
+    ];
+
+    calibPoints.forEach((p) => {
+      const radius = 10.0;
+      this.activeTargets.push({
+        id: p.id,
+        kind: 'obi',
+        hp: 1,
+        maxHp: 1,
+        radiusM: radius,
+        thetaRad: p.theta,
+        x: Math.sin(p.theta) * radius,
+        z: -Math.cos(p.theta) * radius,
+        speedMps: 0,
+        hitRadiusM: 1.1,
+        killBonusScore: 100,
+        breached: false,
+        customNormY: p.normY,
+      });
+    });
   }
 
-  public exitSandboxMode(): void {
-    this.isSandboxMode = false;
-    this.infiniteAmmo = false;
-    this.weaponSystem.setInfiniteAmmo(false);
-    this.isPaused = false;
-    this.pausedAtMs = null;
+  public spawnSandboxTarget(kind: TargetKind, options: SandboxSpawnOptions = {}): ActiveTargetEntity {
+    this.targetCounter += 1;
+    const spec = TARGET_SPECS[kind];
+    const radius = options.radiusM ?? 16.0;
+    const theta = options.thetaRad ?? 0;
+    const speed = options.stationary ? 0 : spec.speedMps;
+
+    const entity: ActiveTargetEntity = {
+      id: `sandbox_${this.targetCounter}_${kind}`,
+      kind,
+      hp: spec.maxHp,
+      maxHp: spec.maxHp,
+      radiusM: radius,
+      thetaRad: theta,
+      initialThetaRad: options.initialThetaRad ?? theta,
+      x: Math.sin(theta) * radius,
+      z: -Math.cos(theta) * radius,
+      speedMps: speed,
+      hitRadiusM: spec.hitRadiusM,
+      killBonusScore: spec.killBonusScore,
+      breached: false,
+      customNormY: options.customNormY,
+      customBaseY: options.customBaseY,
+      isEnraged: options.isEnraged,
+    };
+    this.activeTargets.push(entity);
+    return entity;
+  }
+
+  public clearSandboxTargets(): void {
     this.activeTargets = [];
-    this.gamePhase = 'PAIRING';
-    this.scoreManager.reset();
-    this.weaponSystem.reset();
   }
 
   public setInfiniteAmmo(enabled: boolean): void {
@@ -356,94 +590,17 @@ export class BeerCrusherEngine {
     this.weaponSystem.setInfiniteAmmo(enabled);
   }
 
-  public triggerSandboxFever(nowMs: number = performance.now()): boolean {
+  public triggerSandboxFever(nowMs: number): boolean {
     this.scoreManager.forceSetFeverGauge(100);
     return this.scoreManager.activateFever(nowMs);
   }
 
-  public clearSandboxTargets(): void {
-    this.activeTargets = [];
-  }
-
-  public spawnCalibrationFiveTargets(): ActiveTargetEntity[] {
-    this.activeTargets = [];
-    const points: {
-      id: string;
-      kind: TargetKind;
-      thetaRad: number;
-      radiusM: number;
-      customNormY: number;
-      customBaseY: number;
-    }[] = [
-      { id: 'calib_center', kind: 'pilgood', thetaRad: 0, radiusM: 9.0, customNormY: 0, customBaseY: 1.18 },
-      { id: 'calib_left', kind: 'caslight', thetaRad: -0.42, radiusM: 9.0, customNormY: 0, customBaseY: 1.18 },
-      { id: 'calib_right', kind: 'obi', thetaRad: 0.42, radiusM: 9.0, customNormY: 0, customBaseY: 1.18 },
-      { id: 'calib_top', kind: 'hanmac', thetaRad: 0, radiusM: 9.0, customNormY: 0.55, customBaseY: 2.35 },
-      { id: 'calib_bottom', kind: 'bottle', thetaRad: 0, radiusM: 9.0, customNormY: -0.55, customBaseY: 0.35 },
-    ];
-
-    points.forEach((pt) => {
-      this.targetCounter += 1;
-      const spec = TARGET_SPECS[pt.kind];
-      this.activeTargets.push({
-        id: pt.id,
-        kind: pt.kind,
-        hp: 1,
-        maxHp: 1,
-        radiusM: pt.radiusM,
-        thetaRad: pt.thetaRad,
-        x: Math.sin(pt.thetaRad) * pt.radiusM,
-        z: -Math.cos(pt.thetaRad) * pt.radiusM,
-        speedMps: 0,
-        hitRadiusM: spec.hitRadiusM,
-        killBonusScore: spec.killBonusScore,
-        breached: false,
-        customNormY: pt.customNormY,
-        customBaseY: pt.customBaseY,
-      });
-    });
-
-    return [...this.activeTargets];
-  }
-
-  public spawnSandboxTarget(kind: TargetKind, options?: SandboxSpawnOptions): ActiveTargetEntity {
-    this.targetCounter += 1;
-    const spec = TARGET_SPECS[kind];
-    const isStationary = options?.stationary ?? false;
-    const radiusM = options?.radiusM ?? (isStationary ? 9.5 : 16.0);
-    const thetaRad = options?.thetaRad ?? (Math.random() * 0.7 - 0.35);
-
-    const target: ActiveTargetEntity = {
-      id: `sandbox_${this.targetCounter}_${kind}`,
-      kind,
-      hp: spec.maxHp,
-      maxHp: spec.maxHp,
-      radiusM,
-      thetaRad,
-      x: Math.sin(thetaRad) * radiusM,
-      z: -Math.cos(thetaRad) * radiusM,
-      speedMps: isStationary ? 0 : spec.speedMps,
-      hitRadiusM: spec.hitRadiusM,
-      killBonusScore: spec.killBonusScore,
-      breached: false,
-      customNormY: options?.customNormY,
-      customBaseY: options?.customBaseY,
-    };
-
-    this.activeTargets.push(target);
-    return target;
-  }
-
-  public getBossEntity(): ActiveTargetEntity | undefined {
-    return this.activeTargets.find((t) => t.kind === 'boss');
-  }
-
   public activateItemBuff(kind: ItemBuffKind, nowMs: number): void {
+    const spec = ITEM_BUFF_SPECS[kind];
     if (kind === 'bar_repair') {
       this.lives = Math.min(STAGE_CONSTANTS.PLAYER_MAX_LIVES, this.lives + 1);
       return;
     }
-    const spec = ITEM_BUFF_SPECS[kind];
     this.activeBuffUntilMs.set(kind, nowMs + spec.durationMs);
   }
 
@@ -482,7 +639,7 @@ export class BeerCrusherEngine {
     this.targetCounter += 1;
     const itemEntity: ActiveTargetEntity = {
       id: `item_${this.targetCounter}_${itemKind}`,
-      kind: 'pilgood', // default fallback kind for schema
+      kind: 'pilgood',
       hp: 1,
       maxHp: 1,
       radiusM: pt.radiusM,
@@ -522,10 +679,9 @@ export class BeerCrusherEngine {
     }
 
     const feverState = this.scoreManager.getState();
-    const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive);
+    const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
     this.scoreManager.updateFeverTimer(nowMs);
 
-    // If tutorial Step 3 fever finished and was active, complete tutorial
     if (this.isTutorialMode && this.tutorialStep === 3) {
       if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
         this.advanceTutorialStep('COMPLETED');
@@ -538,18 +694,43 @@ export class BeerCrusherEngine {
     // 1. Advance active targets radially
     for (let i = this.activeTargets.length - 1; i >= 0; i--) {
       const target = this.activeTargets[i];
-      let effectiveSpeed = isIceFreeze && !target.isItem ? target.speedMps * 0.5 : target.speedMps;
-      if (target.kind === 'hanmac' && target.isEnraged) {
-        effectiveSpeed *= 1.3;
+
+      // Check stun status
+      const isStunned = target.stunUntilMs !== undefined && target.stunUntilMs > nowMs;
+      if (!isStunned && target.stuckPlungerCount) {
+        target.stuckPlungerCount = 0;
+      }
+
+      // Check slow status
+      const isSlowed = target.slowUntilMs !== undefined && target.slowUntilMs > nowMs;
+      let effectiveSpeed = target.speedMps;
+
+      if (isStunned) {
+        effectiveSpeed = 0;
+      } else {
+        if (isIceFreeze && !target.isItem) {
+          effectiveSpeed *= 0.5;
+        }
+        if (isSlowed) {
+          effectiveSpeed *= (1 - (target.slowRatio ?? 0.4));
+        }
+        if (target.kind === 'hanmac' && target.isEnraged) {
+          effectiveSpeed *= 1.3;
+        }
       }
 
       // S-curve flight trajectory for airborne targets
-      if (!target.isItem && (target.kind === 'pilgood' || target.kind === 'caslight') && target.initialThetaRad !== undefined) {
+      if (!target.isItem && !target.isGoldenCan && (target.kind === 'pilgood' || target.kind === 'caslight') && target.initialThetaRad !== undefined) {
         if (target.kind === 'pilgood') {
           target.thetaRad = target.initialThetaRad + Math.sin(nowMs * 0.003 + target.radiusM * 0.4) * 0.08;
         } else if (target.kind === 'caslight') {
           target.thetaRad = target.initialThetaRad + Math.sin(nowMs * 0.006 + target.radiusM * 0.7) * 0.06;
         }
+      }
+
+      // Fast horizontal crossing for Golden Can
+      if (target.isGoldenCan) {
+        target.thetaRad += dtSec * 0.28;
       }
 
       const next = advanceRadialTarget(
@@ -565,7 +746,6 @@ export class BeerCrusherEngine {
 
       if (target.breached) {
         if (this.isSandboxMode) {
-          // Sandbox mode: respawn target at 16.0m without life reduction
           target.radiusM = 16.0;
           target.x = Math.sin(target.thetaRad) * 16.0;
           target.z = -Math.cos(target.thetaRad) * 16.0;
@@ -574,9 +754,7 @@ export class BeerCrusherEngine {
         }
 
         if (this.isTutorialMode) {
-          // Tutorial invulnerability: No life loss
           if (this.tutorialStep === 2) {
-            // Respawn Cass bottle for continued rapid fire practice
             target.radiusM = 14.0;
             target.x = 0;
             target.z = -14.0;
@@ -595,13 +773,12 @@ export class BeerCrusherEngine {
 
         this.activeTargets.splice(i, 1);
 
-        // Item targets advancing past defense line are simply removed without penalty
-        if (target.isItem) {
+        if (target.isItem || target.isGoldenCan || target.weaponSelectKind || target.rewardCardKind) {
           continue;
         }
 
         breaches.push(target);
-        const damage = target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
+        const damage = target.isProjectile ? 1 : target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
         this.lives = Math.max(0, this.lives - damage);
 
         if (this.lives <= 0) {
@@ -611,13 +788,18 @@ export class BeerCrusherEngine {
       }
     }
 
-    // Skip normal wave spawning in tutorial or sandbox mode
     if (this.isTutorialMode || this.isSandboxMode) {
       return { breaches, phaseChanged: false, reloadedJustNow };
     }
 
-    // 2. Spawn targets if wave has remaining
+    // Don't spawn while cards/weapon choices are pending
+    if (this.isWeaponSelectPending || this.isRewardCardPending) {
+      return { breaches, phaseChanged: false, reloadedJustNow };
+    }
+
     const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
+
+    // 2. Periodic enemy spawn
     const canSpawn =
       this.activeTargets.length < waveDef.maxSimultaneous &&
       this.spawnedInWave < waveDef.totalSpawns &&
@@ -626,36 +808,31 @@ export class BeerCrusherEngine {
     if (canSpawn) {
       this.spawnNextTarget(waveDef, nowMs);
 
-      // Periodically spawn an item target if none currently active on screen
-      const maxWaveItems = this.currentWave === 1 ? 1 : 2;
-      const hasItemOnScreen = this.activeTargets.some((t) => t.isItem);
-      if (
-        !hasItemOnScreen &&
-        this.itemsSpawnedInWave < maxWaveItems &&
-        this.spawnedInWave > 0 &&
-        this.spawnedInWave % 14 === 0 &&
-        waveDef.allowedItems.length > 0 &&
-        this.activeTargets.length < waveDef.maxSimultaneous
-      ) {
-        const itemKind =
-          waveDef.allowedItems[Math.floor(Math.random() * waveDef.allowedItems.length)];
-        this.spawnItemTarget(itemKind, nowMs);
-        this.itemsSpawnedInWave += 1;
+      // Golden Can once per wave at 50% spawn progress
+      if (!this.goldenCanSpawnedInWave && this.spawnedInWave >= waveDef.totalSpawns * 0.5) {
+        this.spawnGoldenCanTarget(nowMs);
       }
     }
 
-    // 3. Spawn Boss in Wave 5 once normal wave spawns are done or halfway
+    // Periodic projectile spawn if Hanmac or Boss on field
+    const hasShooter = this.activeTargets.some((t) => t.kind === 'hanmac' || t.kind === 'boss');
+    if (hasShooter && nowMs - this.lastProjectileSpawnTimeMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
+      const shooter = this.activeTargets.find((t) => t.kind === 'boss') ? 'boss' : 'hanmac';
+      this.spawnMonsterProjectile(nowMs, shooter);
+    }
+
+    // 3. Spawn Boss in Wave 5
     if (
       this.currentWave === 5 &&
       waveDef.includesBoss &&
       !this.bossSpawned &&
-      (this.spawnedInWave >= 15 || this.activeTargets.filter((t) => !t.isItem).length <= 1)
+      (this.spawnedInWave >= 15 || this.activeTargets.filter((t) => !t.isItem && !t.isProjectile).length <= 1)
     ) {
       this.spawnBoss(nowMs);
     }
 
     // 4. Check wave completion
-    const monsterTargets = this.activeTargets.filter((t) => !t.isItem);
+    const monsterTargets = this.activeTargets.filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind);
     const bossIsAlive = monsterTargets.some((t) => t.kind === 'boss');
     const waveComplete =
       this.spawnedInWave >= waveDef.totalSpawns &&
@@ -663,19 +840,15 @@ export class BeerCrusherEngine {
       (!waveDef.includesBoss || !bossIsAlive);
 
     if (waveComplete) {
-      // Clear any leftover item targets between waves
       this.activeTargets = [];
 
       if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
         this.gamePhase = 'VICTORY';
         return { breaches, phaseChanged: true, reloadedJustNow };
       }
-      this.currentWave += 1;
-      this.spawnedInWave = 0;
-      this.itemsSpawnedInWave = 0;
-      this.killedInWave = 0;
-      this.bossSpawned = false;
-      this.lastSpawnTimeMs = nowMs + 1000; // Brief respite between waves
+
+      // Between waves: Spawn Shoot-to-Select Reward Cards
+      this.spawnWaveRewardCards(nowMs);
       return { breaches, phaseChanged: true, reloadedJustNow };
     }
 
@@ -719,11 +892,10 @@ export class BeerCrusherEngine {
     this.bossSpawned = true;
     const spec = TARGET_SPECS.boss;
 
-    // Boss spawns directly forward in center (theta = 0)
     const pt = sampleFanSpawnPoint({
       vFovDeg: this.vFovDeg,
       aspect: this.aspect,
-      rng: () => 0.5, // Center
+      rng: () => 0.5,
     });
 
     this.targetCounter += 1;
@@ -762,13 +934,10 @@ export class BeerCrusherEngine {
       targetNormY = target.customNormY;
     } else {
       const baseY = target.customBaseY ?? getTargetBaseY(target.kind, target.isItem);
-      // Mesh visual center is around baseY + 0.35
       const worldPos = new THREE.Vector3(target.x, baseY + 0.35, target.z);
       camDist = this.projCamera.position.distanceTo(worldPos);
 
-      // Project worldPos into camera NDC [-1, 1]
       const proj = worldPos.clone().project(this.projCamera);
-      // Map camera NDC to crosshair aim coordinates [-1, 1] (CrosshairOverlay ndc factor: X: 0.94, Y: 0.84)
       targetNormX = Math.max(-1, Math.min(1, proj.x / 0.94));
       targetNormY = Math.max(-1, Math.min(1, proj.y / 0.84));
     }
@@ -800,6 +969,11 @@ export class BeerCrusherEngine {
     const isWideScope = this.isBuffActive('wide_scope', nowMs);
     const wideScopeMult = isWideScope ? 1.6 : 1.0;
 
+    const weaponState = this.weaponSystem.getState();
+    const weaponKind = weaponState.weaponKind;
+    const weaponLevel = weaponState.weaponLevel;
+    const levelSpec = this.weaponSystem.getCurrentLevelSpec();
+
     // Find best target intersecting aim point
     let bestHit:
       | { target: ActiveTargetEntity; result: HitJudgmentResult; index: number }
@@ -830,7 +1004,133 @@ export class BeerCrusherEngine {
 
     if (bestHit) {
       const { target, result, index } = bestHit;
-      target.hp = Math.max(0, target.hp - result.damage);
+      const hitTargets: ActiveTargetEntity[] = [target];
+      let selectedWeapon: WeaponKind | undefined;
+      let selectedCard: RewardCardKind | undefined;
+      let interceptedProjectile = false;
+      let goldenCanKilled = false;
+
+      // 1. Shoot-to-Select Weapon Target
+      if (target.weaponSelectKind) {
+        selectedWeapon = target.weaponSelectKind;
+        this.weaponSystem.selectWeapon(selectedWeapon, 1);
+        this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind);
+        this.isWeaponSelectPending = false;
+        return {
+          fired: true,
+          grade: result.grade,
+          target,
+          killed: true,
+          selectedWeapon,
+          weaponKind: this.weaponSystem.getState().weaponKind,
+          weaponLevel: this.weaponSystem.getState().weaponLevel,
+        };
+      }
+
+      // 2. Shoot-to-Select Reward Card Target
+      if (target.rewardCardKind) {
+        selectedCard = target.rewardCardKind;
+        this.applyRewardCard(selectedCard, nowMs);
+        this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
+        this.isRewardCardPending = false;
+        this.startWave(this.currentWave + 1);
+        return {
+          fired: true,
+          grade: result.grade,
+          target,
+          killed: true,
+          selectedCard,
+          weaponKind: this.weaponSystem.getState().weaponKind,
+          weaponLevel: this.weaponSystem.getState().weaponLevel,
+        };
+      }
+
+      // 3. Projectile Interception
+      if (target.isProjectile) {
+        interceptedProjectile = true;
+        this.activeTargets.splice(index, 1);
+        this.scoreManager.registerHit('PERFECT', target.killBonusScore);
+        return {
+          fired: true,
+          grade: 'PERFECT',
+          target,
+          killed: true,
+          interceptedProjectile: true,
+          earnedScore: target.killBonusScore,
+          weaponKind,
+          weaponLevel,
+        };
+      }
+
+      // 4. Golden Can Bonus
+      if (target.isGoldenCan) {
+        goldenCanKilled = true;
+        this.activeTargets.splice(index, 1);
+        this.weaponSystem.refillSkillInstant();
+        this.scoreManager.chargeFeverToMax();
+        const hitInfo = this.scoreManager.registerHit('PERFECT', target.killBonusScore);
+        return {
+          fired: true,
+          grade: 'PERFECT',
+          target,
+          killed: true,
+          goldenCanKilled: true,
+          earnedScore: hitInfo.earnedScore,
+          weaponKind,
+          weaponLevel,
+        };
+      }
+
+      // 5. Standard Monster Damage & Weapon Ballistics
+      const powerMult = isPowerShot ? 2.0 : 1.0;
+      let damage = levelSpec.damagePerHit * powerMult;
+
+      if (weaponKind === 'shotgun') {
+        // Shotgun: pellet count based on center accuracy
+        const pelletCount = levelSpec.pelletCount;
+        const hitPellets = result.grade === 'PERFECT' ? pelletCount : Math.max(1, Math.round(pelletCount * 0.7));
+        damage = Number((hitPellets * levelSpec.damagePerHit * powerMult).toFixed(3));
+
+        // Knockback on Lv.2+
+        if (levelSpec.knockbackM > 0) {
+          target.radiusM = Math.min(16.0, target.radiusM + levelSpec.knockbackM);
+        }
+        // Lv.4 MAX slow
+        if (levelSpec.slowDurationMs > 0) {
+          target.slowUntilMs = nowMs + levelSpec.slowDurationMs;
+          target.slowRatio = 0.3;
+        }
+      } else if (weaponKind === 'revolver') {
+        // Revolver: Pierce through targets behind
+        damage = Number((levelSpec.damagePerHit * powerMult).toFixed(3));
+        if (levelSpec.pierceCount > 0) {
+          const rearTargets = this.activeTargets.filter(
+            (t, idx) =>
+              idx !== index &&
+              !t.isItem &&
+              !t.isProjectile &&
+              t.radiusM > target.radiusM &&
+              Math.abs(t.thetaRad - target.thetaRad) <= 0.16
+          );
+          rearTargets.slice(0, levelSpec.pierceCount).forEach((rear) => {
+            const pierceDmg = Number((damage * levelSpec.pierceDamageRatio).toFixed(3));
+            rear.hp = Number(Math.max(0, rear.hp - pierceDmg).toFixed(3));
+            hitTargets.push(rear);
+            if (rear.hp <= 0) {
+              const rearIdx = this.activeTargets.indexOf(rear);
+              if (rearIdx >= 0) {
+                this.activeTargets.splice(rearIdx, 1);
+                this.killedInWave += 1;
+              }
+            }
+          });
+        }
+      } else if (weaponKind === 'gatling') {
+        damage = Number((levelSpec.damagePerHit * powerMult).toFixed(3));
+      }
+
+      // Apply damage to primary target
+      target.hp = Number(Math.max(0, target.hp - damage).toFixed(3));
       const killed = target.hp <= 0;
       let activatedItem: ItemBuffKind | undefined;
 
@@ -849,12 +1149,14 @@ export class BeerCrusherEngine {
       );
 
       if (killed) {
-        this.activeTargets.splice(index, 1);
+        const curIdx = this.activeTargets.indexOf(target);
+        if (curIdx >= 0) {
+          this.activeTargets.splice(curIdx, 1);
+        }
         if (!target.isItem) {
           this.killedInWave += 1;
         }
 
-        // Tutorial progress triggers
         if (this.isTutorialMode) {
           if (this.tutorialStep === 1) {
             if (this.activeTargets.length === 0) {
@@ -876,10 +1178,13 @@ export class BeerCrusherEngine {
         fired: true,
         grade: result.grade,
         target,
+        hitTargets,
         killed,
         earnedScore: hitInfo.earnedScore,
         errorRatio: result.errorRatio,
         activatedItem,
+        weaponKind,
+        weaponLevel,
       };
     }
 
@@ -888,6 +1193,112 @@ export class BeerCrusherEngine {
     return {
       fired: true,
       grade: 'MISS',
+      weaponKind,
+      weaponLevel,
     };
+  }
+
+  public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
+    const weaponState = this.weaponSystem.getState();
+    const weaponKind = weaponState.weaponKind;
+    const weaponLevel = weaponState.weaponLevel;
+    const levelSpec = this.weaponSystem.getCurrentLevelSpec();
+
+    if (!this.weaponSystem.consumeSkill(nowMs)) {
+      return {
+        activated: false,
+        weaponKind,
+        weaponLevel,
+        affectedTargets: [],
+      };
+    }
+
+    const affectedTargets: ActiveTargetEntity[] = [];
+    const activeMonsters = this.activeTargets.filter(
+      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind
+    );
+
+    if (weaponKind === 'shotgun') {
+      // 1. 사방 뚫어뻥 폭풍: All active monsters take skill damage and get stunned
+      for (let i = activeMonsters.length - 1; i >= 0; i--) {
+        const monster = activeMonsters[i];
+        const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
+        monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
+        monster.stunUntilMs = nowMs + levelSpec.skillStunMs;
+        monster.stuckPlungerCount = 2;
+        affectedTargets.push(monster);
+
+        if (monster.hp <= 0) {
+          const idx = this.activeTargets.indexOf(monster);
+          if (idx >= 0) {
+            this.activeTargets.splice(idx, 1);
+            this.killedInWave += 1;
+            this.scoreManager.registerHit('PERFECT', monster.killBonusScore);
+          }
+        }
+      }
+      return {
+        activated: true,
+        weaponKind,
+        weaponLevel,
+        affectedTargets,
+        plungerCount: levelSpec.skillPlungerCount,
+      };
+    } else if (weaponKind === 'revolver') {
+      // 2. 오프너 불릿 타임 & 참격: All monsters get slowed & slashed
+      for (let i = activeMonsters.length - 1; i >= 0; i--) {
+        const monster = activeMonsters[i];
+        const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
+        monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
+        monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
+        monster.slowRatio = levelSpec.skillSlowRatio;
+        affectedTargets.push(monster);
+
+        if (monster.hp <= 0) {
+          const idx = this.activeTargets.indexOf(monster);
+          if (idx >= 0) {
+            this.activeTargets.splice(idx, 1);
+            this.killedInWave += 1;
+            this.scoreManager.registerHit('PERFECT', monster.killBonusScore);
+          }
+        }
+      }
+      return {
+        activated: true,
+        weaponKind,
+        weaponLevel,
+        affectedTargets,
+      };
+    } else {
+      // 3. gatling: 거품 해일 160도 오버히트: Arc knockback & slow
+      const halfArcRad = ((levelSpec.skillArcDeg / 2) * Math.PI) / 180;
+      for (let i = activeMonsters.length - 1; i >= 0; i--) {
+        const monster = activeMonsters[i];
+        if (Math.abs(monster.thetaRad) <= halfArcRad) {
+          const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
+          monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
+          monster.radiusM = Math.min(16.0, monster.radiusM + levelSpec.skillKnockbackM);
+          monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
+          monster.slowRatio = levelSpec.skillSlowRatio;
+          affectedTargets.push(monster);
+
+          if (monster.hp <= 0) {
+            const idx = this.activeTargets.indexOf(monster);
+            if (idx >= 0) {
+              this.activeTargets.splice(idx, 1);
+              this.killedInWave += 1;
+              this.scoreManager.registerHit('PERFECT', monster.killBonusScore);
+            }
+          }
+        }
+      }
+      return {
+        activated: true,
+        weaponKind,
+        weaponLevel,
+        affectedTargets,
+        arcDeg: levelSpec.skillArcDeg,
+      };
+    }
   }
 }

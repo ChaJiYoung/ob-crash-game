@@ -143,6 +143,14 @@ export class ScoreAndFeverManager {
     }
   }
 
+  public addFeverGauge(delta: number): void {
+    this.forceSetFeverGauge(this.feverGauge + delta);
+  }
+
+  public chargeFeverToMax(): void {
+    this.forceSetFeverGauge(FEVER_CONSTANTS.MAX_GAUGE);
+  }
+
   public getState() {
     return {
       totalScore: this.totalScore,
