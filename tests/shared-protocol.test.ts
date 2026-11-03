@@ -30,28 +30,28 @@ describe('Shared Protocol & Constants', () => {
     expect(TARGET_SPECS.bottle.speedMps).toBe(1.5);
     expect(TARGET_SPECS.bottle.killBonusScore).toBe(160);
     expect(TARGET_SPECS.bottle.isAirborne).toBe(false);
-    expect(TARGET_SPECS.boss.maxHp).toBe(40);
+    expect(TARGET_SPECS.boss.maxHp).toBe(50);
     expect(TARGET_SPECS.boss.killBonusScore).toBe(1500);
   });
 
   it('should define 3-tier judgment thresholds and scores', () => {
     expect(JUDGMENT_SPECS.PERFECT.maxErrorRatio).toBe(0.25);
     expect(JUDGMENT_SPECS.PERFECT.baseScore).toBe(150);
-    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(30);
+    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(10);
 
     expect(JUDGMENT_SPECS.GREAT.maxErrorRatio).toBe(0.55);
     expect(JUDGMENT_SPECS.GREAT.baseScore).toBe(100);
-    expect(JUDGMENT_SPECS.GREAT.feverDelta).toBe(20);
+    expect(JUDGMENT_SPECS.GREAT.feverDelta).toBe(6);
 
     expect(JUDGMENT_SPECS.GOOD.maxErrorRatio).toBe(1.00);
     expect(JUDGMENT_SPECS.GOOD.baseScore).toBe(50);
-    expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(10);
+    expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(3);
   });
 
   it('should enforce fever rules and weapon specs', () => {
     expect(FEVER_CONSTANTS.MAX_GAUGE).toBe(100);
     expect(FEVER_CONSTANTS.MISS_PENALTY).toBe(5);
-    expect(FEVER_CONSTANTS.DURATION_MS).toBe(6000);
+    expect(FEVER_CONSTANTS.DURATION_MS).toBe(10000);
     expect(FEVER_CONSTANTS.LOCK_WHEN_FULL).toBe(true);
 
     expect(WEAPON_CONSTANTS.MAX_AMMO).toBe(10);

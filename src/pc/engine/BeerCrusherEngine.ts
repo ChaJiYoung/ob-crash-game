@@ -93,7 +93,7 @@ export class BeerCrusherEngine {
   private waveDefinitions: Record<number, WaveDefinition> = {
     1: {
       waveIndex: 1,
-      totalSpawns: 16,
+      totalSpawns: 24,
       maxSimultaneous: 4,
       spawnIntervalMs: 950,
       kinds: ['pilgood', 'caslight'],
@@ -102,7 +102,7 @@ export class BeerCrusherEngine {
     },
     2: {
       waveIndex: 2,
-      totalSpawns: 22,
+      totalSpawns: 32,
       maxSimultaneous: 5,
       spawnIntervalMs: 850,
       kinds: ['obi', 'hanmac', 'pilgood'],
@@ -111,7 +111,7 @@ export class BeerCrusherEngine {
     },
     3: {
       waveIndex: 3,
-      totalSpawns: 26,
+      totalSpawns: 40,
       maxSimultaneous: 6,
       spawnIntervalMs: 800,
       kinds: ['bottle', 'caslight', 'obi', 'hanmac'],
@@ -120,7 +120,7 @@ export class BeerCrusherEngine {
     },
     4: {
       waveIndex: 4,
-      totalSpawns: 32,
+      totalSpawns: 48,
       maxSimultaneous: 7,
       spawnIntervalMs: 700,
       kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'],
@@ -129,9 +129,9 @@ export class BeerCrusherEngine {
     },
     5: {
       waveIndex: 5,
-      totalSpawns: 18,
-      maxSimultaneous: 5,
-      spawnIntervalMs: 850,
+      totalSpawns: 35,
+      maxSimultaneous: 6,
+      spawnIntervalMs: 800,
       kinds: ['hanmac', 'bottle', 'pilgood', 'caslight'],
       allowedItems: ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'],
       includesBoss: true,
@@ -139,6 +139,7 @@ export class BeerCrusherEngine {
   };
 
   private spawnedInWave = 0;
+  private itemsSpawnedInWave = 0;
   private killedInWave = 0;
   private bossSpawned = false;
   private lastSpawnTimeMs = 0;
@@ -201,6 +202,7 @@ export class BeerCrusherEngine {
     this.activeTargets = [];
     this.activeBuffUntilMs.clear();
     this.spawnedInWave = 0;
+    this.itemsSpawnedInWave = 0;
     this.killedInWave = 0;
     this.bossSpawned = false;
     this.scoreManager.reset();
@@ -609,16 +611,20 @@ export class BeerCrusherEngine {
       this.spawnNextTarget(waveDef, nowMs);
 
       // Periodically spawn an item target if none currently active on screen
+      const maxWaveItems = this.currentWave === 1 ? 1 : 2;
       const hasItemOnScreen = this.activeTargets.some((t) => t.isItem);
       if (
         !hasItemOnScreen &&
-        this.spawnedInWave % 5 === 0 &&
+        this.itemsSpawnedInWave < maxWaveItems &&
+        this.spawnedInWave > 0 &&
+        this.spawnedInWave % 14 === 0 &&
         waveDef.allowedItems.length > 0 &&
         this.activeTargets.length < waveDef.maxSimultaneous
       ) {
         const itemKind =
           waveDef.allowedItems[Math.floor(Math.random() * waveDef.allowedItems.length)];
         this.spawnItemTarget(itemKind, nowMs);
+        this.itemsSpawnedInWave += 1;
       }
     }
 
@@ -627,7 +633,7 @@ export class BeerCrusherEngine {
       this.currentWave === 5 &&
       waveDef.includesBoss &&
       !this.bossSpawned &&
-      (this.spawnedInWave >= 6 || this.activeTargets.filter((t) => !t.isItem).length <= 1)
+      (this.spawnedInWave >= 15 || this.activeTargets.filter((t) => !t.isItem).length <= 1)
     ) {
       this.spawnBoss(nowMs);
     }
@@ -650,6 +656,7 @@ export class BeerCrusherEngine {
       }
       this.currentWave += 1;
       this.spawnedInWave = 0;
+      this.itemsSpawnedInWave = 0;
       this.killedInWave = 0;
       this.bossSpawned = false;
       this.lastSpawnTimeMs = nowMs + 1000; // Brief respite between waves

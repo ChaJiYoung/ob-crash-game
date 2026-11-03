@@ -44,12 +44,12 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const perfect = evaluateHitJudgment(0.12, 1.0);
     expect(perfect.grade).toBe('PERFECT');
     expect(perfect.baseScore).toBe(150);
-    expect(perfect.feverDelta).toBe(30);
+    expect(perfect.feverDelta).toBe(10);
 
     const great = evaluateHitJudgment(0.35, 1.0);
     expect(great.grade).toBe('GREAT');
     expect(great.baseScore).toBe(100);
-    expect(great.feverDelta).toBe(20);
+    expect(great.feverDelta).toBe(6);
 
     // Rebalanced D03: relaxed PERFECT tolerance (up to 0.25)
     const relaxedPerfect = evaluateHitJudgment(0.22, 1.0);
@@ -62,7 +62,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const good = evaluateHitJudgment(0.85, 1.0);
     expect(good.grade).toBe('GOOD');
     expect(good.baseScore).toBe(50);
-    expect(good.feverDelta).toBe(10);
+    expect(good.feverDelta).toBe(3);
 
     const miss = evaluateHitJudgment(1.15, 1.0);
     expect(miss.grade).toBe('MISS');
@@ -87,17 +87,16 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const manager = new ScoreAndFeverManager();
 
     // 1. Partial gauge can be penalized
-    manager.registerHit('GOOD'); // +10 -> gauge 10
-    expect(manager.getState().feverGauge).toBe(10);
+    manager.registerHit('GOOD'); // +3 -> gauge 3
+    expect(manager.getState().feverGauge).toBe(3);
 
-    manager.applyMissPenalty(); // -5 -> gauge 5
-    expect(manager.getState().feverGauge).toBe(5);
+    manager.applyMissPenalty(); // -5 -> gauge clamped at 0
+    expect(manager.getState().feverGauge).toBe(0);
 
-    // 2. Build up to 100%
-    manager.registerHit('PERFECT'); // +30 -> 35
-    manager.registerHit('PERFECT'); // +30 -> 65
-    manager.registerHit('PERFECT'); // +30 -> 95
-    manager.registerHit('PERFECT'); // +30 -> clamped at 100
+    // 2. Build up to 100% with 10 PERFECT hits (+10 each)
+    for (let i = 0; i < 10; i++) {
+      manager.registerHit('PERFECT');
+    }
     expect(manager.getState().feverGauge).toBe(100);
     expect(manager.getState().isFeverReady).toBe(true);
 
@@ -113,12 +112,12 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(activated).toBe(true);
     expect(manager.getState().isFeverActive).toBe(true);
 
-    // Gauge decays over 6000ms
-    manager.updateFeverTimer(4000); // 3000ms left out of 6000ms -> ~50%
+    // Gauge decays over 10000ms
+    manager.updateFeverTimer(6000); // 5000ms left out of 10000ms -> 50%
     expect(manager.getState().feverGauge).toBeGreaterThan(45);
     expect(manager.getState().feverGauge).toBeLessThan(55);
 
-    manager.updateFeverTimer(7000); // expired
+    manager.updateFeverTimer(11500); // expired (> 11000ms)
     expect(manager.getState().isFeverActive).toBe(false);
     expect(manager.getState().feverGauge).toBe(0);
   });
@@ -155,7 +154,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(penalty2.combo).toBe(12);
 
     // 6. Once fever expires, MISS penalty resets combo to 0
-    manager.updateFeverTimer(8000); // fever expired
+    manager.updateFeverTimer(11500); // fever expired (> 11000ms)
     expect(manager.getState().isFeverActive).toBe(false);
 
     const normalPenalty = manager.applyMissPenalty();
@@ -453,8 +452,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.setPaused(false, 10000);
     expect(engine.isPaused).toBe(false);
 
-    // Fever had 4000ms remaining when paused (6000 - 2000 = 4000).
-    // After unpausing at 10000, feverEndTimeMs should be 10000 + 4000 = 14000!
+    // Fever had 8000ms remaining when paused (10000 - 2000 = 8000).
+    // After unpausing at 10000, feverEndTimeMs should be 10000 + 8000 = 18000!
     // At now = 12000 (2s after unpause), fever must STILL be active!
     engine.update(12000, 2.0);
     expect(engine.scoreManager.getState().isFeverActive).toBe(true);
@@ -462,13 +461,19 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     // Target moved another 2.0s * 2.0m/s = 4.0m -> radius is 4.0m
     expect(target.radiusM).toBe(4.0);
 
-    // At now = 15000, fever is expired (ends at 14000), but wide_scope (8000ms duration, ends at 1000 + 8000 + 8000 = 17000) is still active
+    // Wide scope (8000ms duration, shifted by 8000ms pause) ends at 16000.
+    // At now = 15000, wide_scope is still active
     engine.update(15000, 3.0);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(false);
     expect(engine.isBuffActive('wide_scope', 15000)).toBe(true);
+    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
 
-    // At now = 18000, wide_scope is also expired
-    engine.update(18000, 3.0);
-    expect(engine.isBuffActive('wide_scope', 18000)).toBe(false);
+    // At now = 17000, wide_scope is expired (ended at 16000), but fever (ends at 18000) is still active
+    engine.update(17000, 2.0);
+    expect(engine.isBuffActive('wide_scope', 17000)).toBe(false);
+    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+
+    // At now = 19000, fever is also expired (> 18000)
+    engine.update(19000, 2.0);
+    expect(engine.scoreManager.getState().isFeverActive).toBe(false);
   });
 });

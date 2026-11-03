@@ -64,7 +64,7 @@ export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
   boss: {
     kind: 'boss',
     displayName: '업소용 생맥주 냉각기 보스',
-    maxHp: 40,
+    maxHp: 50,
     speedMps: 0.85,
     hitRadiusM: 2.10,
     killBonusScore: 1500,
@@ -125,19 +125,19 @@ export const JUDGMENT_SPECS: Record<Exclude<JudgmentGrade, 'MISS'>, JudgmentSpec
   PERFECT: {
     maxErrorRatio: 0.25,
     baseScore: 150,
-    feverDelta: 30,
+    feverDelta: 10,
     colorHex: '#fbbf24',
   },
   GREAT: {
     maxErrorRatio: 0.55,
     baseScore: 100,
-    feverDelta: 20,
+    feverDelta: 6,
     colorHex: '#38bdf8',
   },
   GOOD: {
     maxErrorRatio: 1.00,
     baseScore: 50,
-    feverDelta: 10,
+    feverDelta: 3,
     colorHex: '#4ade80',
   },
 };
@@ -145,7 +145,7 @@ export const JUDGMENT_SPECS: Record<Exclude<JudgmentGrade, 'MISS'>, JudgmentSpec
 export const FEVER_CONSTANTS = {
   MAX_GAUGE: 100,
   MISS_PENALTY: 5,
-  DURATION_MS: 6000,
+  DURATION_MS: 10000,
   LOCK_WHEN_FULL: true,
 } as const;
 
