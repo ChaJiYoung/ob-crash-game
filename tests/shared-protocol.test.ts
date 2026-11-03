@@ -6,11 +6,14 @@ import {
   WEAPON_CONSTANTS,
   STAGE_CONSTANTS,
   ITEM_BUFF_SPECS,
+  WEAPON_ARCHETYPE_SPECS,
+  REWARD_CARD_SPECS,
 } from '../src/shared/constants';
-import { ItemBuffKind, TargetKind } from '../src/shared/types';
+import { ItemBuffKind, RewardCardKind, TargetKind, WeaponKind, WeaponLevel } from '../src/shared/types';
+import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
 
-describe('Shared Protocol & Constants', () => {
-  it('should define all 6 target specs with correct attributes', () => {
+describe('Shared Protocol, Constants & WeaponSystem', () => {
+  it('should define all 6 target specs with rebalanced HP', () => {
     const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss'];
     kinds.forEach((k) => {
       expect(TARGET_SPECS[k]).toBeDefined();
@@ -21,16 +24,16 @@ describe('Shared Protocol & Constants', () => {
       expect(TARGET_SPECS[k].killBonusScore).toBeGreaterThan(0);
     });
 
-    // Check specific target specs
+    // Check specific rebalanced target specs (D03)
     expect(TARGET_SPECS.pilgood.maxHp).toBe(1);
     expect(TARGET_SPECS.caslight.maxHp).toBe(1);
     expect(TARGET_SPECS.obi.maxHp).toBe(2);
-    expect(TARGET_SPECS.hanmac.maxHp).toBe(2);
-    expect(TARGET_SPECS.bottle.maxHp).toBe(3);
+    expect(TARGET_SPECS.hanmac.maxHp).toBe(3); // Rebalanced from 2 -> 3
+    expect(TARGET_SPECS.bottle.maxHp).toBe(4); // Rebalanced from 3 -> 4
     expect(TARGET_SPECS.bottle.speedMps).toBe(1.5);
     expect(TARGET_SPECS.bottle.killBonusScore).toBe(160);
     expect(TARGET_SPECS.bottle.isAirborne).toBe(false);
-    expect(TARGET_SPECS.boss.maxHp).toBe(50);
+    expect(TARGET_SPECS.boss.maxHp).toBe(60); // Rebalanced from 50 -> 60
     expect(TARGET_SPECS.boss.killBonusScore).toBe(1500);
   });
 
@@ -48,10 +51,10 @@ describe('Shared Protocol & Constants', () => {
     expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(3);
   });
 
-  it('should enforce fever rules and weapon specs', () => {
+  it('should enforce 4s fever burst rules and weapon constants (D04)', () => {
     expect(FEVER_CONSTANTS.MAX_GAUGE).toBe(100);
     expect(FEVER_CONSTANTS.MISS_PENALTY).toBe(5);
-    expect(FEVER_CONSTANTS.DURATION_MS).toBe(10000);
+    expect(FEVER_CONSTANTS.DURATION_MS).toBe(4000); // 4s ultra burst
     expect(FEVER_CONSTANTS.LOCK_WHEN_FULL).toBe(true);
 
     expect(WEAPON_CONSTANTS.MAX_AMMO).toBe(10);
@@ -59,7 +62,7 @@ describe('Shared Protocol & Constants', () => {
     expect(WEAPON_CONSTANTS.RAPID_FIRE_HOLD_MS).toBe(250);
     expect(WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS).toBe(300);
     expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(2.2);
-    expect(WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS).toBe(95);
+    expect(WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS).toBe(80); // 0.08s rapid fire
 
     expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(24.0);
     expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);
@@ -68,18 +71,129 @@ describe('Shared Protocol & Constants', () => {
     expect(STAGE_CONSTANTS.TOTAL_WAVES).toBe(5);
   });
 
-  it('should define 4 item buff specs with 8s durations or instant life heal', () => {
-    const itemKinds: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
-    itemKinds.forEach((k) => {
-      expect(ITEM_BUFF_SPECS[k]).toBeDefined();
-      expect(ITEM_BUFF_SPECS[k].kind).toBe(k);
-      expect(ITEM_BUFF_SPECS[k].displayName.length).toBeGreaterThan(0);
-      expect(ITEM_BUFF_SPECS[k].auraColorHex).toMatch(/^#[0-9a-fA-F]{6}$/);
+  it('should define 3 weapon archetypes across Lv.1~MAX with nerfed balance specs (D07, D08, D09, D11)', () => {
+    const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
+    const levels: WeaponLevel[] = [1, 2, 3, 4];
+
+    weaponKinds.forEach((kind) => {
+      const archetype = WEAPON_ARCHETYPE_SPECS[kind];
+      expect(archetype).toBeDefined();
+      expect(archetype.kind).toBe(kind);
+      expect(archetype.nameKo.length).toBeGreaterThan(0);
+      expect(archetype.badgeIcon.length).toBeGreaterThan(0);
+      expect(archetype.accentColorHex).toMatch(/^#[0-9a-fA-F]{6}$/);
+
+      levels.forEach((lvl) => {
+        const spec = archetype.levels[lvl];
+        expect(spec).toBeDefined();
+        expect(spec.level).toBe(lvl);
+        expect(spec.damagePerHit).toBeGreaterThan(0);
+        expect(spec.maxAmmo).toBeGreaterThan(0);
+        expect(spec.reloadDurationMs).toBeGreaterThan(0);
+        expect(spec.fireIntervalMs).toBeGreaterThan(0);
+        expect(spec.skillCooldownMs).toBeGreaterThan(0);
+        if (lvl === 4) {
+          expect(spec.maxSkillStock).toBe(2);
+        } else {
+          expect(spec.maxSkillStock).toBe(1);
+        }
+      });
     });
 
-    expect(ITEM_BUFF_SPECS.power_shot.durationMs).toBe(8000);
-    expect(ITEM_BUFF_SPECS.wide_scope.durationMs).toBe(8000);
-    expect(ITEM_BUFF_SPECS.ice_freeze.durationMs).toBe(8000);
-    expect(ITEM_BUFF_SPECS.bar_repair.durationMs).toBe(0);
+    // Check Shotgun specifics
+    const sg = WEAPON_ARCHETYPE_SPECS.shotgun;
+    expect(sg.levels[1].pelletCount).toBe(3);
+    expect(sg.levels[1].damagePerHit).toBe(0.35); // 1.05 total hit
+    expect(sg.levels[2].knockbackM).toBe(0.3);
+    expect(sg.levels[4].pelletCount).toBe(6);
+    expect(sg.levels[4].slowDurationMs).toBe(1000);
+    expect(sg.levels[4].skillPlungerCount).toBe(22);
+
+    // Check Revolver specifics
+    const rev = WEAPON_ARCHETYPE_SPECS.revolver;
+    expect(rev.levels[1].damagePerHit).toBe(0.75);
+    expect(rev.levels[1].pierceCount).toBe(1);
+    expect(rev.levels[3].pierceCount).toBe(2);
+    expect(rev.levels[4].damagePerHit).toBe(1.75);
+    expect(rev.levels[4].pierceDamageRatio).toBe(1.0);
+
+    // Check Gatling specifics
+    const gat = WEAPON_ARCHETYPE_SPECS.gatling;
+    expect(gat.levels[1].damagePerHit).toBe(0.15);
+    expect(gat.levels[1].maxAmmo).toBe(18);
+    expect(gat.levels[4].damagePerHit).toBe(0.35);
+    expect(gat.levels[4].maxAmmo).toBe(35);
+    expect(gat.levels[4].fireIntervalMs).toBe(83);
+    expect(gat.levels[4].skillArcDeg).toBe(160);
+  });
+
+  it('should define 4 shoot-to-select reward card specs (D01, D06)', () => {
+    const cardKinds: RewardCardKind[] = ['weapon_level_up', 'rapid_reload', 'bar_repair', 'fever_boost'];
+    cardKinds.forEach((k) => {
+      expect(REWARD_CARD_SPECS[k]).toBeDefined();
+      expect(REWARD_CARD_SPECS[k].kind).toBe(k);
+      expect(REWARD_CARD_SPECS[k].nameKo.length).toBeGreaterThan(0);
+      expect(REWARD_CARD_SPECS[k].badgeText.length).toBeGreaterThan(0);
+      expect(REWARD_CARD_SPECS[k].colorHex).toMatch(/^#[0-9a-fA-F]{6}$/);
+    });
+  });
+
+  it('should manage weapon archetype, level progression, and skill cooldown in WeaponSystem', () => {
+    const ws = new WeaponSystem('shotgun', 1);
+    const initial = ws.getState();
+
+    expect(initial.weaponKind).toBe('shotgun');
+    expect(initial.weaponLevel).toBe(1);
+    expect(initial.maxAmmo).toBe(5);
+    expect(initial.ammo).toBe(5);
+    expect(initial.skillStock).toBe(1);
+    expect(initial.maxSkillStock).toBe(1);
+    expect(initial.skillCooldownRemainingMs).toBe(0);
+
+    // 1. Consume active skill
+    const skillUsed = ws.consumeSkill(1000);
+    expect(skillUsed).toBe(true);
+    expect(ws.getState().skillStock).toBe(0);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(25000); // Lv.1 cooldown
+
+    // Trying to use skill again without stock fails
+    expect(ws.consumeSkill(1050)).toBe(false);
+
+    // 2. Advance time by 10s -> 15s remaining
+    ws.update(11000, false, 10000);
+    expect(ws.getState().skillStock).toBe(0);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(15000);
+
+    // Advance remaining 15s -> Skill recharges!
+    ws.update(26000, false, 15000);
+    expect(ws.getState().skillStock).toBe(1);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(0);
+
+    // 3. Upgrade weapon level up to MAX (Lv.4)
+    ws.upgradeWeaponLevel(); // Lv.2
+    expect(ws.getState().weaponLevel).toBe(2);
+    expect(ws.getState().maxAmmo).toBe(5);
+
+    ws.upgradeWeaponLevel(); // Lv.3
+    expect(ws.getState().weaponLevel).toBe(3);
+    expect(ws.getState().maxAmmo).toBe(6);
+
+    ws.upgradeWeaponLevel(); // Lv.4 MAX
+    expect(ws.getState().weaponLevel).toBe(4);
+    expect(ws.getState().maxAmmo).toBe(7);
+    expect(ws.getState().maxSkillStock).toBe(2);
+    expect(ws.getState().skillStock).toBe(2); // 2 stocks granted at MAX!
+
+    // 4. Test Rapid Reload Card Buff
+    ws.applyRapidReloadBuff();
+    expect(ws.getState().hasRapidReloadBuff).toBe(true);
+    expect(ws.getState().maxAmmo).toBe(9); // 7 + 2 = 9
+    expect(ws.getReloadDurationMs()).toBe(880); // 1100 * 0.8 = 880
+
+    // 5. Select Gatling archetype
+    ws.selectWeapon('gatling', 1);
+    expect(ws.getState().weaponKind).toBe('gatling');
+    expect(ws.getState().maxAmmo).toBe(20); // 18 + 2 (buff active) = 20
+    expect(ws.getState().skillStock).toBe(1);
   });
 });

@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beer Crusher - 3D 무기 & 뚫어뻥 스킬 실시간 인터랙티브 쇼룸 (리밸런스 완료)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>Chart.defaults.animation = false;</script>
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { interpolate-size: allow-keywords; }
+
+    /* ===== THEMES ===== */
+    html.theme-dark {
+      --bg: #0A0D14;
+      --surface: #121826;
+      --surface-hover: #1A2337;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --accent: #38BDF8;
+      --accent-secondary: #F59E0B;
+      --positive: #10B981;
+      --negative: #F43F5E;
+      --warning: #FBBF24;
+    }
+    html.theme-light {
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --surface-hover: #F1F5F9;
+      --border: rgba(0, 0, 0, 0.08);
+      --text: #0F172A;
+      --text-secondary: #64748B;
+      --accent: #0284C7;
+      --accent-secondary: #D97706;
+      --positive: #059669;
+      --negative: #E11D48;
+      --warning: #B45309;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em;
+      transition: background 0.3s, color 0.3s;
+      scrollbar-gutter: stable;
+    }
+
+    @media (max-width: 375px) {
+      body { overflow-x: hidden; }
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+    h1 { font-size: 2.5rem; font-weight: 800; }
+    h2 { font-size: 2.0rem; font-weight: 700; }
+    h3 { font-size: 1.5rem; font-weight: 600; }
+    body, p, li, td, th, span, label { font-size: 1rem; font-weight: 400; }
+    .text-secondary { color: var(--text-secondary); }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+    section {
+      margin-bottom: 56px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      transition: box-shadow 0.25s ease;
+    }
+    .card:hover {
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .viewport-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1b263b 0%, #060911 100%);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    #three-canvas-container {
+      width: 100%;
+      height: 620px;
+      cursor: crosshair;
+      display: block;
+      position: relative;
+    }
+
+    .viewport-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .overlay-controls {
+      pointer-events: auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: rgba(10, 13, 20, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .btn-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-action.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+    }
+    .btn-skill {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #ffffff;
+      border: 1px solid #f87171;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
+      animation: pulse 2s infinite;
+    }
+    .btn-skill:hover {
+      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+      transform: scale(1.03);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 24px rgba(239, 68, 68, 0.85); }
+    }
+
+    .hud-guide {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.84rem;
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+      z-index: 10;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+      background: rgba(56, 189, 248, 0.12); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .badge-gold {
+      background: rgba(245, 158, 11, 0.12); color: var(--accent-secondary); border-color: rgba(245, 158, 11, 0.25);
+    }
+    .badge-rose {
+      background: rgba(244, 63, 94, 0.12); color: var(--negative); border-color: rgba(244, 63, 94, 0.25);
+    }
+
+    .hp-dot-bar {
+      display: inline-flex; gap: 4px; align-items: center;
+    }
+    .hp-dot {
+      width: 14px; height: 8px; border-radius: 2px;
+      background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+    }
+    .hp-dot.empty { background: rgba(255,255,255,0.15); box-shadow: none; }
+
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); transition: all 0.2s;
+    }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown {
+      position: absolute; top: 52px; right: 0; min-width: 200px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 8px;
+      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: all 0.2s; backdrop-filter: blur(16px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button {
+      width: 100%; padding: 10px 14px; border: none; border-radius: 8px;
+      background: transparent; color: var(--text); font-size: 14px;
+      font-family: inherit; cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+    }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+
+    .skip-to-content {
+      position: absolute; top: -40px; left: 16px; background: var(--accent);
+      color: white; padding: 8px 14px; text-decoration: none;
+      border-radius: 6px; opacity: 0; pointer-events: none;
+      transition: all 0.2s; z-index: 10000; font-weight: 500;
+    }
+    .skip-to-content:focus { top: 16px; opacity: 1; pointer-events: auto; }
+
+    .chart-box {
+      position: relative; width: 100%; height: 320px; margin-top: 16px;
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .viz-menu { display: none; }
+      .card { break-inside: avoid; border: 1px solid #cbd5e1; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">본문 바로가기</a>
+
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="메뉴 열기">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button onclick="cycleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Dark 모드</span></button>
+      <button onclick="downloadImage()"><span>📥</span><span>PNG 이미지 저장</span></button>
+      <button onclick="window.print()"><span>🖨️</span><span>인쇄 / PDF 저장</span></button>
+    </div>
+  </div>
+
+  <main id="main-content" class="container" role="main">
+    
+    <section aria-labelledby="header-title">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+        <span class="badge badge-rose">초반 밸런스 너프 완료 (긴장감 200%)</span>
+        <span class="badge badge-gold">무기별 전용 스킬 분리</span>
+        <span class="badge">4단계 3D 외형 극적 진화</span>
+      </div>
+      <h1 id="header-title">Beer Crusher 3D 무기 & 뚫어뻥 스킬 실시간 쇼룸</h1>
+      <p class="text-secondary" style="font-size: 1.1rem; margin-top: 8px;">
+        "Lv.1은 진짜 약해서 몬스터를 여러 발 때려야 하고, 레벨업을 거듭해야 몬스터를 밀어낼 수 있는 진짜 건슈팅의 맛!"
+      </p>
+    </section>
+
+    <!-- REALTIME 3D VIEWPORT -->
+    <section aria-labelledby="viewport-title">
+      <div class="viewport-card">
+        
+        <div class="viewport-overlay">
+          <div class="overlay-controls">
+            <span style="font-size: 0.82rem; color: var(--text-secondary); align-self: center; margin-right: 4px;">무기 선택:</span>
+            <button class="btn-action active" id="btn-wp-shotgun" onclick="selectWeapon('shotgun')">🪠 뚫어뻥 샷건</button>
+            <button class="btn-action" id="btn-wp-revolver" onclick="selectWeapon('revolver')">🍾 황금 리볼버</button>
+            <button class="btn-action" id="btn-wp-gatling" onclick="selectWeapon('gatling')">🍺 탄산 개틀링</button>
+          </div>
+
+          <div class="overlay-controls">
+            <span style="font-size: 0.82rem; color: var(--text-secondary); align-self: center; margin-right: 4px;">외형 레벨:</span>
+            <button class="btn-action active" id="btn-lv-1" onclick="selectLevel(1)">Lv.1</button>
+            <button class="btn-action" id="btn-lv-2" onclick="selectLevel(2)">Lv.2</button>
+            <button class="btn-action" id="btn-lv-3" onclick="selectLevel(3)">Lv.3</button>
+            <button class="btn-action" id="btn-lv-4" onclick="selectLevel(4)">MAX</button>
+            
+            <button class="btn-action btn-skill" id="btn-active-skill" onclick="triggerActiveWeaponSkill()">
+              <span id="skill-btn-icon">🪠</span><span id="skill-btn-label">휙! 뚫어뻥 폭풍 발동!</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="three-canvas-container" title="화면을 클릭하면 탄환 발사!"></div>
+
+        <div class="hud-guide" id="hud-interaction-guide">
+          🎯 <strong>화면 클릭</strong>: 뚫어뻥 탄환 3발 발사 ("뽁! 뽁! 뽁!") | 🪠 <strong>[스킬 발동]</strong>: 사방 뚫어뻥 폭풍 투사
+        </div>
+      </div>
+    </section>
+
+    <!-- STATUS -->
+    <section aria-labelledby="status-title">
+      <div class="grid-3">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span class="badge" id="live-weapon-badge">🪠 뚫어뻥 샷건</span>
+            <span style="font-size: 0.9rem; font-weight: 700; color: var(--accent);" id="live-weapon-level">Lv.1 기본</span>
+          </div>
+          <h3 id="live-weapon-name" style="font-size: 1.3rem;">맥주관 뚫어뻥 샷건</h3>
+          <p class="text-secondary" id="live-weapon-desc" style="font-size: 0.92rem; margin-top: 6px;">
+            원목 손잡이와 주름 고무 벨이 달린 리얼 뚫어뻥 노즐.
+          </p>
+          <div style="margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.25); border-radius: 8px; font-size: 0.88rem;">
+            <div>💥 <strong>발사 탄환</strong>: <span id="live-stat-fire">미니 뚫어뻥 3발 산탄 (발당 0.35 DMG)</span></div>
+            <div>🔋 <strong>탄창 용량</strong>: <span id="live-stat-ammo">5발 (장전 1.4초)</span></div>
+            <div>⚡ <strong>전용 스킬</strong>: <span id="live-stat-skill">사방 뚫어뻥 12개 (0.5 DMG + 1.0s 스턴)</span></div>
+            <div>✨ <strong>외형 진화</strong>: <span id="live-stat-visual">단일 배럴 + 표준 뚫어뻥</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size: 1.25rem; margin-bottom: 12px;">전방 3D 몬스터 체력 현황</h3>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #60a5fa;">카스 병맥주 (탱커)</strong>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);" id="monster-hp-text-bottle">체력: 4 / 4</div>
+              </div>
+              <div class="hp-dot-bar" id="monster-hp-dots-bottle">
+                <span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #34d399;">한맥 캔 (버서커)</strong>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);" id="monster-hp-text-hanmac">체력: 3 / 3</div>
+              </div>
+              <div class="hp-dot-bar" id="monster-hp-dots-hanmac">
+                <span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #fbbf24;">오비 라거 (보병)</strong>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);" id="monster-hp-text-obi">체력: 2 / 2</div>
+              </div>
+              <div class="hp-dot-bar" id="monster-hp-dots-obi">
+                <span class="hp-dot"></span><span class="hp-dot"></span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-action" style="width: 100%; margin-top: 14px; justify-content: center;" onclick="resetMonsterHp()">
+            🔄 몬스터 체력 전체 리셋
+          </button>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 1.6rem;" id="skill-info-icon">🪠</span>
+            <h3 style="font-size: 1.25rem;" id="skill-info-title">사방 뚫어뻥 폭풍</h3>
+          </div>
+          <p class="text-secondary" id="skill-info-desc" style="font-size: 0.9rem;">
+            스마트폰을 '휙!' 흔들면 화면 8방향 외곽에서 18개의 리얼 3D 뚫어뻥들이 포물선을 그리며 전방 몬스터들을 향해 날아옵니다.
+          </p>
+          <ul id="skill-info-steps" style="margin: 14px 0 0 20px; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8;">
+            <li><strong style="color: var(--text);">1단계 (비행)</strong>: 8방향에서 뚫어뻥 회전 투사</li>
+            <li><strong style="color: var(--text);">2단계 (흡착)</strong>: 몬스터 얼굴에 찰싹! ("뽁! 뽁!")</li>
+            <li><strong style="color: var(--text);">3단계 (스턴)</strong>: 뚫어뻥을 단 채 1.0~2.0초간 경직</li>
+            <li><strong style="color: var(--text);">4단계 (폭발)</strong>: "펑-!" 거품 폭발 <strong>(0.5~1.2 데미지)</strong></li>
+            <li><strong style="color: #38bdf8;">5단계 (사격 연계)</strong>: 남은 체력을 직접 쏴서 격파!</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Web Audio Synthesizer
+    var audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playShotSound(type) {
+      try {
+        var ctx = getAudioContext();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        var now = ctx.currentTime;
+
+        if (type === 'shotgun') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(360, now);
+          osc.frequency.exponentialRampToValueAtTime(75, now + 0.14);
+          gain.gain.setValueAtTime(0.5, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+          osc.start(now);
+          osc.stop(now + 0.17);
+        } else if (type === 'revolver') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(620, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.22);
+          gain.gain.setValueAtTime(0.55, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(780, now);
+          osc.frequency.exponentialRampToValueAtTime(240, now + 0.07);
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function playPlungerStickSound() {
+      try {
+        var ctx = getAudioContext();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        var now = ctx.currentTime;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.09);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.11);
+      } catch (e) { console.error(e); }
+    }
+
+    function playExplosionSound() {
+      try {
+        var ctx = getAudioContext();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        var now = ctx.currentTime;
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(28, now + 0.38);
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.42);
+      } catch (e) { console.error(e); }
+    }
+
+    // Three.js Engine
+    var scene, camera, renderer, container;
+    var currentWeaponType = 'shotgun';
+    var currentLevel = 1;
+    var weaponGroup = new THREE.Group();
+    var targetsGroup = new THREE.Group();
+    var activeBullets = [];
+    var flyingPlungers = [];
+    var activeEffects = [];
+    var foamParticles = [];
+    var aimX = 0, aimY = 0;
+    var recoilZ = 0, recoilPitch = 0;
+
+    var monsterHps = {
+      bottle: { max: 4, cur: 4, mesh: null },
+      hanmac: { max: 3, cur: 3, mesh: null },
+      obi: { max: 2, cur: 2, mesh: null }
+    };
+
+    function init3DShowroom() {
+      container = document.getElementById('three-canvas-container');
+      if (!container) return;
+
+      var width = container.clientWidth;
+      var height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0f1d);
+      scene.fog = new THREE.FogExp2(0x0a0f1d, 0.04);
+
+      camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+      camera.position.set(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+
+      var ambient = new THREE.AmbientLight(0xffffff, 0.9);
+      scene.add(ambient);
+
+      var dirLight1 = new THREE.DirectionalLight(0xffffff, 1.8);
+      dirLight1.position.set(5, 8, 4);
+      scene.add(dirLight1);
+
+      var dirLight2 = new THREE.DirectionalLight(0x38bdf8, 1.4);
+      dirLight2.position.set(-5, 3, -4);
+      scene.add(dirLight2);
+
+      var floorGeo = new THREE.PlaneGeometry(36, 36);
+      var floorMat = new THREE.MeshStandardMaterial({
+        color: 0x111827, roughness: 0.65, metalness: 0.25
+      });
+      var floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -1.2;
+      scene.add(floor);
+
+      buildMonsterTargets();
+      scene.add(targetsGroup);
+
+      weaponGroup.position.set(0, -0.42, -0.85);
+      scene.add(weaponGroup);
+      rebuildWeaponModel();
+
+      container.addEventListener('mousemove', function(e) {
+        var rect = container.getBoundingClientRect();
+        aimX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        aimY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      });
+
+      container.addEventListener('pointerdown', function() {
+        fireActiveWeapon();
+      });
+
+      window.addEventListener('resize', onWindowResize);
+      animateLoop();
+    }
+
+    function onWindowResize() {
+      if (!container || !renderer || !camera) return;
+      var width = container.clientWidth;
+      var height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    function createRealisticPlungerMesh(scale) {
+      scale = scale || 1.0;
+      var plungerGroup = new THREE.Group();
+
+      var woodMat = new THREE.MeshStandardMaterial({
+        color: 0xc89666, roughness: 0.7, metalness: 0.05
+      });
+      var rubberRedMat = new THREE.MeshStandardMaterial({
+        color: 0xdc2626, roughness: 0.55, metalness: 0.1
+      });
+      var rubberDarkRimMat = new THREE.MeshStandardMaterial({
+        color: 0xb91c1c, roughness: 0.6, metalness: 0.15
+      });
+
+      var handleLength = 0.55 * scale;
+      var handleRadius = 0.02 * scale;
+      var handle = new THREE.Mesh(new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 12), woodMat);
+      handle.rotation.x = Math.PI / 2;
+      handle.position.z = handleLength / 2;
+      plungerGroup.add(handle);
+
+      var handleCap = new THREE.Mesh(new THREE.SphereGeometry(handleRadius * 1.15, 10, 8), woodMat);
+      handleCap.position.z = handleLength;
+      plungerGroup.add(handleCap);
+
+      var cupGroup = new THREE.Group();
+      var neck = new THREE.Mesh(new THREE.CylinderGeometry(0.035 * scale, 0.045 * scale, 0.08 * scale, 16), rubberRedMat);
+      neck.rotation.x = Math.PI / 2;
+      neck.position.z = 0.04 * scale;
+      cupGroup.add(neck);
+
+      var bell = new THREE.Mesh(new THREE.CylinderGeometry(0.045 * scale, 0.14 * scale, 0.14 * scale, 18, 1, true), rubberRedMat);
+      bell.rotation.x = Math.PI / 2;
+      bell.position.z = -0.05 * scale;
+      cupGroup.add(bell);
+
+      var rim = new THREE.Mesh(new THREE.TorusGeometry(0.14 * scale, 0.022 * scale, 10, 24), rubberDarkRimMat);
+      rim.position.z = -0.12 * scale;
+      cupGroup.add(rim);
+
+      plungerGroup.add(cupGroup);
+      return plungerGroup;
+    }
+
+    function buildMonsterTargets() {
+      while (targetsGroup.children.length > 0) {
+        targetsGroup.remove(targetsGroup.children[0]);
+      }
+
+      var bottleGroup = new THREE.Group();
+      bottleGroup.position.set(0, 0.2, -6.5);
+      
+      var glassMat = new THREE.MeshStandardMaterial({
+        color: 0x8b5a2b, roughness: 0.15, metalness: 0.4, transparent: true, opacity: 0.9
+      });
+      var bodyMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 1.35, 18), glassMat);
+      bottleGroup.add(bodyMesh);
+
+      var neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.42, 0.85, 18), glassMat);
+      neckMesh.position.y = 1.0;
+      bottleGroup.add(neckMesh);
+
+      var labelMat = new THREE.MeshStandardMaterial({ color: 0x004b91, roughness: 0.3 });
+      var label = new THREE.Mesh(new THREE.CylinderGeometry(0.445, 0.445, 0.7, 18), labelMat);
+      bottleGroup.add(label);
+
+      monsterHps.bottle.mesh = bottleGroup;
+      targetsGroup.add(bottleGroup);
+
+      var hanmacGroup = new THREE.Group();
+      hanmacGroup.position.set(-2.2, 0, -5.5);
+      var greenMat = new THREE.MeshStandardMaterial({ color: 0x047857, metalness: 0.75, roughness: 0.25 });
+      var hanmacCan = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 1.1, 18), greenMat);
+      hanmacGroup.add(hanmacCan);
+
+      monsterHps.hanmac.mesh = hanmacGroup;
+      targetsGroup.add(hanmacGroup);
+
+      var obiGroup = new THREE.Group();
+      obiGroup.position.set(2.2, 0, -5.5);
+      var yellowMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.28 });
+      var obiCan = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 1.1, 18), yellowMat);
+      obiGroup.add(obiCan);
+
+      monsterHps.obi.mesh = obiGroup;
+      targetsGroup.add(obiGroup);
+    }
+
+    function rebuildWeaponModel() {
+      while (weaponGroup.children.length > 0) {
+        weaponGroup.remove(weaponGroup.children[0]);
+      }
+
+      var brassMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.2 });
+      var chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.12 });
+      var darkGripMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 });
+      var goldMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xb45309, emissiveIntensity: 0.6, metalness: 0.95, roughness: 0.15 });
+
+      var grip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.24, 0.1), darkGripMat);
+      grip.position.set(0, -0.14, 0.06);
+      grip.rotation.x = 0.35;
+      weaponGroup.add(grip);
+
+      if (currentWeaponType === 'shotgun') {
+        var receiver = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.26), brassMat);
+        weaponGroup.add(receiver);
+
+        var leverHeight = 0.22 + currentLevel * 0.04;
+        var lever = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.02, leverHeight, 10), brassMat);
+        lever.position.set(0, leverHeight / 2 + 0.08, 0.02);
+        lever.rotation.x = -0.2;
+        weaponGroup.add(lever);
+
+        var knob = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 10), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+        knob.position.set(0, leverHeight + 0.08, -0.01);
+        weaponGroup.add(knob);
+
+        var barrelCount = currentLevel === 1 ? 1 : (currentLevel === 2 ? 2 : (currentLevel === 3 ? 3 : 4));
+        var barrelLen = 0.45 + currentLevel * 0.06;
+        for (var bIdx = 0; bIdx < barrelCount; bIdx++) {
+          var barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.045, barrelLen, 14), chromeMat);
+          barrel.rotation.x = Math.PI / 2;
+          var ox = (bIdx - (barrelCount - 1) / 2) * 0.085;
+          barrel.position.set(ox, 0.02, -barrelLen / 2 - 0.1);
+          weaponGroup.add(barrel);
+        }
+
+        var plungerScale = 0.75 + currentLevel * 0.18;
+        var tipPlunger = createRealisticPlungerMesh(plungerScale);
+        tipPlunger.position.set(0, 0.02, -barrelLen - 0.12);
+        weaponGroup.add(tipPlunger);
+
+        if (currentLevel >= 2) {
+          var pGauge = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.03, 16), goldMat);
+          pGauge.rotation.z = Math.PI / 2;
+          pGauge.position.set(0.09, 0.05, -0.05);
+          weaponGroup.add(pGauge);
+        }
+
+        if (currentLevel >= 3) {
+          var tubeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.85, emissive: 0xd97706, emissiveIntensity: 0.5 });
+          var tube = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, barrelLen, 10), tubeMat);
+          tube.rotation.x = Math.PI / 2;
+          tube.position.set(0, 0.11, -barrelLen / 2 - 0.1);
+          weaponGroup.add(tube);
+        }
+
+        if (currentLevel >= 4) {
+          var auraRing = new THREE.Mesh(
+            new THREE.TorusGeometry(0.2, 0.015, 8, 20),
+            new THREE.MeshBasicMaterial({ color: 0xef4444 })
+          );
+          auraRing.position.set(0, 0.02, -barrelLen - 0.08);
+          weaponGroup.add(auraRing);
+        }
+
+      } else if (currentWeaponType === 'revolver') {
+        var rFrame = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.3), goldMat);
+        weaponGroup.add(rFrame);
+
+        var cylRadius = currentLevel >= 4 ? 0.095 : 0.078;
+        var rCyl = new THREE.Mesh(new THREE.CylinderGeometry(cylRadius, cylRadius, 0.15, 16), brassMat);
+        rCyl.rotation.x = Math.PI / 2;
+        rCyl.position.set(0, 0.02, -0.02);
+        weaponGroup.add(rCyl);
+
+        var rBarrelLen = 0.5 + currentLevel * 0.1;
+        var rLongBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.04, rBarrelLen, 8), chromeMat);
+        rLongBarrel.rotation.x = Math.PI / 2;
+        rLongBarrel.position.set(0, 0.03, -rBarrelLen / 2 - 0.15);
+        weaponGroup.add(rLongBarrel);
+
+        var hook = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.014, 8, 16, Math.PI * 1.5), goldMat);
+        hook.rotation.y = Math.PI / 2;
+        hook.position.set(0, 0.12, 0.12);
+        weaponGroup.add(hook);
+
+        if (currentLevel >= 2) {
+          var muzzleTip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.08), goldMat);
+          muzzleTip.position.set(0, 0.03, -rBarrelLen - 0.15);
+          weaponGroup.add(muzzleTip);
+        }
+
+        if (currentLevel >= 3) {
+          var lScope = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.38, 12), chromeMat);
+          lScope.rotation.x = Math.PI / 2;
+          lScope.position.set(0, 0.11, -0.35);
+          weaponGroup.add(lScope);
+
+          var beam = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.005, 0.005, 12, 6),
+            new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 })
+          );
+          beam.rotation.x = Math.PI / 2;
+          beam.position.set(0, 0.11, -6.35);
+          weaponGroup.add(beam);
+        }
+
+      } else {
+        var gDrum1 = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 0.22, 18),
+          new THREE.MeshStandardMaterial({ color: 0x004b91, metalness: 0.8, roughness: 0.25 })
+        );
+        gDrum1.position.set(currentLevel >= 3 ? -0.16 : 0, -0.04, 0.02);
+        weaponGroup.add(gDrum1);
+
+        if (currentLevel >= 3) {
+          var gDrum2 = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.12, 0.12, 0.22, 18),
+            new THREE.MeshStandardMaterial({ color: 0x004b91, metalness: 0.8, roughness: 0.25 })
+          );
+          gDrum2.position.set(0.16, -0.04, 0.02);
+          weaponGroup.add(gDrum2);
+        }
+
+        var gatlingCluster = new THREE.Group();
+        gatlingCluster.name = 'gatlingCluster';
+        var gBarrels = currentLevel === 1 ? 6 : (currentLevel === 2 ? 8 : (currentLevel === 3 ? 10 : 12));
+        var gLen = 0.55 + currentLevel * 0.06;
+        var gRad = 0.065 + currentLevel * 0.015;
+
+        for (var k = 0; k < gBarrels; k++) {
+          var ang = (k / gBarrels) * Math.PI * 2;
+          var gb = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, gLen, 10), brassMat);
+          gb.rotation.x = Math.PI / 2;
+          gb.position.set(Math.cos(ang) * gRad, Math.sin(ang) * gRad, -gLen / 2 - 0.12);
+          gatlingCluster.add(gb);
+        }
+        weaponGroup.add(gatlingCluster);
+
+        var cTube = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.014, 0.014, gLen * 0.85, 8),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+        );
+        cTube.rotation.x = Math.PI / 2;
+        cTube.position.set(gRad + 0.03, gRad + 0.02, -gLen / 2 - 0.1);
+        weaponGroup.add(cTube);
+      }
+    }
+
+    // Visible Shooting Bullet Projectiles (NERFED REBALANCED DAMAGE)
+    function fireActiveWeapon() {
+      playShotSound(currentWeaponType);
+      recoilZ = 0.08;
+      recoilPitch = 0.09;
+
+      var muzzlePos = new THREE.Vector3(0, -0.4, -1.35);
+
+      if (currentWeaponType === 'shotgun') {
+        var pellets = [3, 4, 5, 6][currentLevel - 1];
+        var sDmg = [0.35, 0.4, 0.5, 0.6][currentLevel - 1]; // Nerfed
+        for (var i = 0; i < pellets; i++) {
+          var miniPlunger = createRealisticPlungerMesh(0.26);
+          miniPlunger.position.copy(muzzlePos);
+          var spreadX = (Math.random() - 0.5) * 0.35 + aimX * 0.7;
+          var spreadY = (Math.random() - 0.5) * 0.35 + aimY * 0.7;
+          
+          miniPlunger.userData = {
+            vx: spreadX * 4.5,
+            vy: spreadY * 4.5,
+            vz: -18.0,
+            life: 0.6,
+            dmg: sDmg,
+            isPlunger: true
+          };
+          scene.add(miniPlunger);
+          activeBullets.push(miniPlunger);
+        }
+
+      } else if (currentWeaponType === 'revolver') {
+        var boltGeo = new THREE.CylinderGeometry(0.038, 0.038, 1.2, 8);
+        boltGeo.rotateX(Math.PI / 2);
+        var boltMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+        var bolt = new THREE.Mesh(boltGeo, boltMat);
+        bolt.position.copy(muzzlePos);
+
+        var rDmg = [0.75, 1.0, 1.35, 1.75][currentLevel - 1]; // Nerfed
+        bolt.userData = {
+          vx: aimX * 5.0,
+          vy: aimY * 5.0,
+          vz: -35.0,
+          life: 0.5,
+          dmg: rDmg,
+          isBolt: true
+        };
+        scene.add(bolt);
+        activeBullets.push(bolt);
+
+      } else {
+        var gDmg = [0.15, 0.2, 0.25, 0.35][currentLevel - 1]; // Nerfed
+        for (var b = 0; b < 2; b++) {
+          var bubGeo = new THREE.SphereGeometry(0.065, 8, 8);
+          var bubMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+          var bubbleBullet = new THREE.Mesh(bubGeo, bubMat);
+          bubbleBullet.position.copy(muzzlePos);
+          bubbleBullet.position.x += (Math.random() - 0.5) * 0.1;
+          bubbleBullet.position.y += (Math.random() - 0.5) * 0.1;
+
+          bubbleBullet.userData = {
+            vx: aimX * 4.0 + (Math.random() - 0.5) * 0.2,
+            vy: aimY * 4.0 + (Math.random() - 0.5) * 0.2,
+            vz: -22.0,
+            life: 0.55,
+            dmg: gDmg,
+            isBubble: true
+          };
+          scene.add(bubbleBullet);
+          activeBullets.push(bubbleBullet);
+        }
+      }
+
+      createMuzzleFoam();
+    }
+
+    function createMuzzleFoam() {
+      for (var i = 0; i < 6; i++) {
+        var geo = new THREE.SphereGeometry(0.03 + Math.random() * 0.03, 6, 6);
+        var mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+        var p = new THREE.Mesh(geo, mat);
+        p.position.set((Math.random() - 0.5) * 0.12, -0.38, -1.3);
+        p.userData = {
+          vx: (Math.random() - 0.5) * 0.8 + aimX * 0.5,
+          vy: (Math.random() - 0.5) * 0.8 + aimY * 0.5,
+          vz: -3.5 - Math.random() * 2.0,
+          life: 0.25
+        };
+        scene.add(p);
+        foamParticles.push(p);
+      }
+    }
+
+    function applyDamageToTarget(kind, dmg) {
+      var state = monsterHps[kind];
+      if (!state) return;
+      state.cur = Math.max(0, state.cur - dmg);
+
+      if (state.mesh) {
+        state.mesh.position.z -= 0.18;
+      }
+      updateMonsterHpUI();
+    }
+
+    function resetMonsterHp() {
+      monsterHps.bottle.cur = monsterHps.bottle.max;
+      monsterHps.hanmac.cur = monsterHps.hanmac.max;
+      monsterHps.obi.cur = monsterHps.obi.max;
+      updateMonsterHpUI();
+    }
+
+    function updateMonsterHpUI() {
+      ['bottle', 'hanmac', 'obi'].forEach(function(k) {
+        var s = monsterHps[k];
+        var textEl = document.getElementById('monster-hp-text-' + k);
+        var dotsEl = document.getElementById('monster-hp-dots-' + k);
+        if (textEl) {
+          textEl.textContent = '체력: ' + s.cur.toFixed(1) + ' / ' + s.max;
+        }
+        if (dotsEl) {
+          var html = '';
+          for (var i = 0; i < s.max; i++) {
+            var isFilled = s.cur >= (i + 0.6);
+            html += '<span class="hp-dot ' + (isFilled ? '' : 'empty') + '"></span>';
+          }
+          dotsEl.innerHTML = html;
+        }
+      });
+    }
+
+    // WEAPON-SPECIFIC ACTIVE SKILLS (NERFED DAMAGE)
+    function triggerActiveWeaponSkill() {
+      if (currentWeaponType === 'shotgun') {
+        runPlungerStormSkill();
+      } else if (currentWeaponType === 'revolver') {
+        runOpenerBulletTimeSkill();
+      } else {
+        runFoamTsunamiSkill();
+      }
+    }
+
+    function runPlungerStormSkill() {
+      var count = [12, 15, 18, 22][currentLevel - 1];
+      for (var i = 0; i < count; i++) {
+        var plunger = createRealisticPlungerMesh(0.52);
+
+        var angle = (i / count) * Math.PI * 2;
+        var startDist = 6.5;
+        plunger.position.set(Math.cos(angle) * startDist, Math.sin(angle) * startDist * 0.75, -1.8);
+
+        // 70% chance to target a monster, 30% chance to scatter into background floor/wall
+        var isHit = Math.random() < 0.7;
+        var targetPos;
+        if (isHit) {
+          var targetMesh = (i % 3 === 0) ? monsterHps.bottle.mesh : ((i % 3 === 1) ? monsterHps.hanmac.mesh : monsterHps.obi.mesh);
+          targetPos = targetMesh ? targetMesh.position.clone() : new THREE.Vector3(0, 0, -6);
+          targetPos.x += (Math.random() - 0.5) * 0.45;
+          targetPos.y += (Math.random() - 0.5) * 0.45;
+        } else {
+          // Missed plungers hit the far pub floor/wall!
+          targetPos = new THREE.Vector3((Math.random() - 0.5) * 7.0, -1.15, -7.0 - Math.random() * 2.0);
+        }
+
+        plunger.userData = {
+          startPos: plunger.position.clone(),
+          targetPos: targetPos,
+          progress: 0,
+          speed: 1.5 + Math.random() * 0.35,
+          stuck: false,
+          stuckTimer: 0,
+          isFloorHit: !isHit
+        };
+
+        scene.add(plunger);
+        flyingPlungers.push(plunger);
+      }
+
+      setTimeout(function() {
+        playExplosionSound();
+        var skillDmg = [0.5, 0.7, 0.9, 1.2][currentLevel - 1]; // Nerfed stun damage
+        applyDamageToTarget('bottle', skillDmg);
+        applyDamageToTarget('hanmac', skillDmg);
+        applyDamageToTarget('obi', skillDmg);
+
+        for (var k = 0; k < 45; k++) {
+          var geo = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 8);
+          var mat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
+          var bubble = new THREE.Mesh(geo, mat);
+          bubble.position.set((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 2, -6.0);
+          bubble.userData = {
+            vx: (Math.random() - 0.5) * 4.5,
+            vy: (Math.random() - 0.5) * 3.5,
+            vz: (Math.random() - 0.5) * 3.5,
+            life: 0.65
+          };
+          scene.add(bubble);
+          foamParticles.push(bubble);
+        }
+      }, 1500);
+    }
+
+    function runOpenerBulletTimeSkill() {
+      var giantOpener = new THREE.Group();
+      var goldMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b, emissive: 0xb45309, emissiveIntensity: 0.8, metalness: 0.95, roughness: 0.15
+      });
+      var ring = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.12, 12, 24), goldMat);
+      giantOpener.add(ring);
+      var hook = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.8, 0.12), goldMat);
+      hook.position.y = -0.55;
+      giantOpener.add(hook);
+
+      giantOpener.position.set(-4.5, 0.2, -6.0);
+      giantOpener.userData = {
+        vx: 12.0,
+        life: 0.85
+      };
+      scene.add(giantOpener);
+      activeEffects.push(giantOpener);
+
+      playShotSound('revolver');
+      var rDmg = [0.6, 0.8, 1.1, 1.4][currentLevel - 1]; // Nerfed
+      setTimeout(function() {
+        applyDamageToTarget('hanmac', rDmg);
+        applyDamageToTarget('bottle', rDmg);
+        applyDamageToTarget('obi', rDmg);
+        playExplosionSound();
+      }, 350);
+    }
+
+    function runFoamTsunamiSkill() {
+      playShotSound('gatling');
+      for (var f = 0; f < 50; f++) {
+        var geo = new THREE.SphereGeometry(0.18 + Math.random() * 0.18, 8, 8);
+        var mat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.8 });
+        var foamWave = new THREE.Mesh(geo, mat);
+        foamWave.position.set(0, -0.4, -1.4);
+
+        var ang = ((f / 50) - 0.5) * Math.PI * 0.9;
+        foamWave.userData = {
+          vx: Math.sin(ang) * 6.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          vz: -Math.cos(ang) * 9.0,
+          life: 0.75
+        };
+        scene.add(foamWave);
+        activeEffects.push(foamWave);
+      }
+
+      var gDmg = [0.4, 0.6, 0.8, 1.0][currentLevel - 1]; // Nerfed
+      setTimeout(function() {
+        applyDamageToTarget('bottle', gDmg);
+        applyDamageToTarget('hanmac', gDmg);
+        applyDamageToTarget('obi', gDmg);
+        playExplosionSound();
+      }, 450);
+    }
+
+    // Loop
+    var lastTime = performance.now();
+    function animateLoop() {
+      requestAnimationFrame(animateLoop);
+      var now = performance.now();
+      var dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      var targetRotX = aimY * 0.3 + recoilPitch;
+      var targetRotY = -aimX * 0.45;
+      weaponGroup.rotation.x += (targetRotX - weaponGroup.rotation.x) * dt * 16;
+      weaponGroup.rotation.y += (targetRotY - weaponGroup.rotation.y) * dt * 16;
+      weaponGroup.position.z += (-0.85 + recoilZ - weaponGroup.position.z) * dt * 20;
+
+      recoilZ *= Math.exp(-dt * 14);
+      recoilPitch *= Math.exp(-dt * 14);
+
+      var gatCluster = weaponGroup.getObjectByName('gatlingCluster');
+      if (gatCluster) {
+        gatCluster.rotation.z += dt * 8.5;
+      }
+
+      ['bottle', 'hanmac', 'obi'].forEach(function(k) {
+        var m = monsterHps[k].mesh;
+        if (m) {
+          var targetZ = (k === 'bottle') ? -6.5 : -5.5;
+          m.position.z += (targetZ - m.position.z) * dt * 6;
+        }
+      });
+
+      for (var bIdx = activeBullets.length - 1; bIdx >= 0; bIdx--) {
+        var b = activeBullets[bIdx];
+        var bd = b.userData;
+        bd.life -= dt;
+        b.position.x += bd.vx * dt;
+        b.position.y += bd.vy * dt;
+        b.position.z += bd.vz * dt;
+
+        if (bd.isPlunger) {
+          b.rotation.x += dt * 8;
+        }
+
+        if (b.position.z <= -5.5) {
+          var targetKind = 'bottle';
+          if (b.position.x < -1.0) targetKind = 'hanmac';
+          else if (b.position.x > 1.0) targetKind = 'obi';
+
+          applyDamageToTarget(targetKind, bd.dmg);
+          playPlungerStickSound();
+          scene.remove(b);
+          activeBullets.splice(bIdx, 1);
+          continue;
+        }
+
+        if (bd.life <= 0) {
+          scene.remove(b);
+          activeBullets.splice(bIdx, 1);
+        }
+      }
+
+      for (var i = flyingPlungers.length - 1; i >= 0; i--) {
+        var p = flyingPlungers[i];
+        var d = p.userData;
+
+        if (!d.stuck) {
+          d.progress += dt * d.speed;
+          if (d.progress >= 1.0) {
+            d.progress = 1.0;
+            d.stuck = true;
+            d.stuckTimer = d.isFloorHit ? 0.8 : 1.5;
+            playPlungerStickSound();
+          }
+          p.position.lerpVectors(d.startPos, d.targetPos, d.progress);
+          p.lookAt(d.targetPos);
+          p.rotation.z += dt * 6;
+        } else {
+          d.stuckTimer -= dt;
+          if (!d.isFloorHit) {
+            p.rotation.z += Math.sin(now * 0.04) * 0.08;
+          }
+          if (d.stuckTimer <= 0) {
+            scene.remove(p);
+            flyingPlungers.splice(i, 1);
+          }
+        }
+      }
+
+      for (var eIdx = activeEffects.length - 1; eIdx >= 0; eIdx--) {
+        var eff = activeEffects[eIdx];
+        eff.userData.life -= dt;
+        if (eff.userData.vx) eff.position.x += eff.userData.vx * dt;
+        if (eff.userData.vy) eff.position.y += eff.userData.vy * dt;
+        if (eff.userData.vz) eff.position.z += eff.userData.vz * dt;
+        eff.rotation.z += dt * 15;
+
+        if (eff.userData.life <= 0) {
+          scene.remove(eff);
+          activeEffects.splice(eIdx, 1);
+        }
+      }
+
+      for (var j = foamParticles.length - 1; j >= 0; j--) {
+        var fp = foamParticles[j];
+        fp.userData.life -= dt;
+        fp.position.x += fp.userData.vx * dt;
+        fp.position.y += fp.userData.vy * dt;
+        fp.position.z += fp.userData.vz * dt;
+        fp.scale.multiplyScalar(0.96);
+
+        if (fp.userData.life <= 0) {
+          scene.remove(fp);
+          foamParticles.splice(j, 1);
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function selectWeapon(type) {
+      currentWeaponType = type;
+      document.querySelectorAll('#btn-wp-shotgun, #btn-wp-revolver, #btn-wp-gatling').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      document.getElementById('btn-wp-' + type).classList.add('active');
+      rebuildWeaponModel();
+      updateWeaponDetailsUI();
+    }
+
+    function selectLevel(lv) {
+      currentLevel = lv;
+      document.querySelectorAll('#btn-lv-1, #btn-lv-2, #btn-lv-3, #btn-lv-4').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      document.getElementById('btn-lv-' + lv).classList.add('active');
+      rebuildWeaponModel();
+      updateWeaponDetailsUI();
+    }
+
+    function updateWeaponDetailsUI() {
+      var badge = document.getElementById('live-weapon-badge');
+      var name = document.getElementById('live-weapon-name');
+      var desc = document.getElementById('live-weapon-desc');
+      var lvText = document.getElementById('live-weapon-level');
+      var fireStat = document.getElementById('live-stat-fire');
+      var ammoStat = document.getElementById('live-stat-ammo');
+      var skillStat = document.getElementById('live-stat-skill');
+      var visualStat = document.getElementById('live-stat-visual');
+
+      var skillBtnIcon = document.getElementById('skill-btn-icon');
+      var skillBtnLabel = document.getElementById('skill-btn-label');
+      var hudGuide = document.getElementById('hud-interaction-guide');
+
+      var skillInfoIcon = document.getElementById('skill-info-icon');
+      var skillInfoTitle = document.getElementById('skill-info-title');
+      var skillInfoDesc = document.getElementById('skill-info-desc');
+
+      lvText.textContent = (currentLevel === 4 ? 'MAX 최종 각성' : ('Lv.' + currentLevel));
+
+      if (currentWeaponType === 'shotgun') {
+        badge.textContent = '🪠 뚫어뻥 샷건';
+        name.textContent = '맥주관 뚫어뻥 샷건 (Plunger Shotgun)';
+        desc.textContent = '원목 손잡이와 주름 고무 벨이 달린 리얼 뚫어뻥 노즐. 사격 시 미니 뚫어뻥 탄환 3~6발이 포물선으로 날아가 몬스터에 꽂힙니다!';
+        var pellets = [3, 4, 5, 6][currentLevel - 1];
+        var sDmg = [0.35, 0.4, 0.5, 0.6][currentLevel - 1]; // Nerfed
+        fireStat.textContent = '미니 뚫어뻥 ' + pellets + '발 산탄 (발당 ' + sDmg + ' / 풀히트 ' + (pellets * sDmg).toFixed(2) + ' DMG)';
+        ammoStat.textContent = [5, 5, 6, 7][currentLevel - 1] + '발 (장전 1.4초)';
+        skillStat.textContent = '사방 뚫어뻥 ' + [12, 15, 18, 22][currentLevel - 1] + '개 (' + [0.5, 0.7, 0.9, 1.2][currentLevel - 1] + ' DMG + 스턴)';
+        visualStat.textContent = ['단일 배럴 + 표준 뚫어뻥', '더블 배럴 + 황동 압력 게이지', '트리플 배럴 + 상단 맥주 튜브관', '4연장 쿼드 배럴 + 거대 뚫어뻥 + 네온 오라'][currentLevel - 1];
+
+        skillBtnIcon.textContent = '🪠';
+        skillBtnLabel.textContent = '휙! 뚫어뻥 스톰 발동!';
+        hudGuide.innerHTML = '🎯 <strong>화면 클릭</strong>: 미니 뚫어뻥 산탄 발사 ("뽁! 뽁!") | 🪠 <strong>[스킬 발동]</strong>: 사방 뚫어뻥 폭풍 투사';
+
+        skillInfoIcon.textContent = '🪠';
+        skillInfoTitle.textContent = '사방 뚫어뻥 폭풍 (Plunger Storm)';
+        skillInfoDesc.textContent = '스마트폰을 휙 흔들면 8방향에서 18개의 리얼 뚫어뻥이 회전하며 날아와 몬스터 얼굴에 찰싹! 흡착 후 거품 폭발을 일으킵니다.';
+
+      } else if (currentWeaponType === 'revolver') {
+        badge.textContent = '🍾 황금 리볼버';
+        name.textContent = '황금 병따개 리볼버 (Golden Revolver)';
+        desc.textContent = '황금 병따개 해머와 6각 뚜껑 실린더. 클릭 시 황금빛 레이저 관통 볼트가 적들을 꿰뚫고 지나갑니다!';
+        var rDmg = [0.75, 1.0, 1.35, 1.75][currentLevel - 1]; // Nerfed
+        fireStat.textContent = '황금 레이저 관통탄 (단발 ' + rDmg + ' DMG / 2기 관통)';
+        ammoStat.textContent = [5, 6, 6, 7][currentLevel - 1] + '발 (장전 1.4초)';
+        skillStat.textContent = '불릿 타임 & 오프너 참격 (' + [0.6, 0.8, 1.1, 1.4][currentLevel - 1] + ' DMG)';
+        visualStat.textContent = ['기본 6각 실린더', '크롬 롱배럴 연장 + 황금 머즐팁', '상단 블루 레이저 스코프 빔', '대형 컴펜세이터 + 8발 실린더 + 황금 발광'][currentLevel - 1];
+
+        skillBtnIcon.textContent = '🍾';
+        skillBtnLabel.textContent = '휙! 오프너 불릿 타임 발동!';
+        hudGuide.innerHTML = '🎯 <strong>화면 클릭</strong>: 황금 레이저 관통탄 발사 ("탕-!") | 🍾 <strong>[스킬 발동]</strong>: 회전 오프너 전방 참격';
+
+        skillInfoIcon.textContent = '🍾';
+        skillInfoTitle.textContent = '오프너 불릿 타임 & 참격 (Bullet Slicer)';
+        skillInfoDesc.textContent = '거대한 3D 황금 병따개가 팽이처럼 회전하며 전방 일직선상의 모든 몬스터를 베고 지나갑니다 (관통 참격).';
+
+      } else {
+        badge.textContent = '🍺 탄산 개틀링';
+        name.textContent = '탄산 탭 개틀링 (Draft Carbon Gatling)';
+        desc.textContent = '카스 캔 드럼 탄창과 회전 배럴. 클릭 시 파란 탄산 거품 탄환들이 연속으로 드르륵 쏟아져 나갑니다!';
+        var gDmg = [0.15, 0.2, 0.25, 0.35][currentLevel - 1]; // Nerfed
+        fireStat.textContent = '탄산 거품 탄환 연사 (발당 ' + gDmg + ' DMG / 초당 ' + [6.6, 8, 10, 12][currentLevel - 1] + '발)';
+        ammoStat.textContent = [18, 22, 28, 35][currentLevel - 1] + '발 (장전 1.4초)';
+        skillStat.textContent = '거품 해일 160도 오버히트 (' + [0.4, 0.6, 0.8, 1.0][currentLevel - 1] + ' DMG + 50% 감속)';
+        visualStat.textContent = ['6연장 황동 탭 배럴', '8연장 배럴 + 대형 회전 기어', '양옆 듀얼 카스 캔 탄창 + 네온관', '12연장 더블 개틀링 + 네온 스파크'][currentLevel - 1];
+
+        skillBtnIcon.textContent = '🍺';
+        skillBtnLabel.textContent = '휙! 거품 해일 오버히트 발동!';
+        hudGuide.innerHTML = '🎯 <strong>화면 클릭</strong>: 초고속 탄산 거품 난사 ("드르륵!") | 🍺 <strong>[스킬 발동]</strong>: 전방 160도 거대 거품 해일 방출';
+
+        skillInfoIcon.textContent = '🍺';
+        skillInfoTitle.textContent = '거품 해일 오버히트 (Foam Tsunami)';
+        skillInfoDesc.textContent = '총구에서 50여 개의 거대한 거품 파도가 전방 160도 부채꼴로 솨아아- 밀려나가 적들을 뒤로 밀어내고 3초간 감속시킵니다.';
+      }
+    }
+
+    function toggleMenu() { 
+      var dropdown = document.getElementById('vizMenuDropdown');
+      if (dropdown) dropdown.classList.toggle('open'); 
+    }
+    document.addEventListener('click', function(e) { 
+      if (!e.target.closest('.viz-menu')) {
+        var dropdown = document.getElementById('vizMenuDropdown');
+        if (dropdown) dropdown.classList.remove('open');
+      }
+    });
+
+    var currentTheme = 'dark';
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      document.getElementById('themeIcon').textContent = t === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeLabel').textContent = t === 'dark' ? 'Dark 모드' : 'Light 모드';
+      currentTheme = t;
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+
+    async function downloadImage() {
+      var menu = document.querySelector('.viz-menu');
+      menu.style.display = 'none';
+      try {
+        var url = await htmlToImage.toPng(document.body, { quality: 1, pixelRatio: 2 });
+        var a = document.createElement('a'); a.href = url;
+        a.download = 'beer-crusher-3d-weapon-showroom-nerfed.png'; a.click();
+      } catch(e) { console.error(e); }
+      menu.style.display = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      init3DShowroom();
+      updateWeaponDetailsUI();
+      updateMonsterHpUI();
+    });
+  </script>
+</body>
+</html>

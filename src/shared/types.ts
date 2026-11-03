@@ -3,6 +3,52 @@ export type ItemBuffKind = 'power_shot' | 'wide_scope' | 'ice_freeze' | 'bar_rep
 export type JudgmentGrade = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
 export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'SANDBOX' | 'GAMEOVER' | 'VICTORY';
 
+export type WeaponKind = 'shotgun' | 'revolver' | 'gatling';
+export type WeaponLevel = 1 | 2 | 3 | 4;
+export type RewardCardKind = 'weapon_level_up' | 'rapid_reload' | 'bar_repair' | 'fever_boost';
+
+export interface WeaponLevelSpec {
+  level: WeaponLevel;
+  damagePerHit: number;
+  pelletCount: number;
+  spreadRad: number;
+  pierceCount: number;
+  pierceDamageRatio: number;
+  knockbackM: number;
+  slowDurationMs: number;
+  maxAmmo: number;
+  reloadDurationMs: number;
+  fireIntervalMs: number;
+  skillNameKo: string;
+  skillDamage: number;
+  skillBossDamage: number;
+  skillStunMs: number;
+  skillSlowRatio: number;
+  skillSlowMs: number;
+  skillKnockbackM: number;
+  skillArcDeg: number;
+  skillPlungerCount: number;
+  skillCooldownMs: number;
+  maxSkillStock: number;
+}
+
+export interface WeaponArchetypeSpec {
+  kind: WeaponKind;
+  nameKo: string;
+  badgeIcon: string;
+  accentColorHex: string;
+  descriptionKo: string;
+  levels: Record<WeaponLevel, WeaponLevelSpec>;
+}
+
+export interface RewardCardSpec {
+  kind: RewardCardKind;
+  nameKo: string;
+  badgeText: string;
+  colorHex: string;
+  descriptionKo: string;
+}
+
 export type TutorialStep = 1 | 2 | 3 | 'COMPLETED';
 
 export interface TutorialState {
@@ -59,6 +105,7 @@ export interface SensorFramePayload {
   rapidFireHold: boolean; // 85% 통합 패드 0.25s 홀드 연사 상태
   feverTriggered: boolean; // 85% 통합 패드 0.3s 더블탭 피버 발동 트리거
   isCocked: boolean; // 화면 터치 홀드로 코킹(장전) 및 조준 고정 상태 여부
+  skillSnapTriggered?: boolean; // 상단 '휙!(Snap)' 가속도 제스처 액티브 스킬 트리거
   timestamp: number;
 }
 
@@ -82,5 +129,14 @@ export type ServerToClientMessage =
   | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string }
   | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload }
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }
+  | {
+      type: 'SKILL_STATE_SYNC';
+      weaponKind: WeaponKind;
+      weaponLevel: WeaponLevel;
+      skillStock: number;
+      maxSkillStock: number;
+      skillCooldownRemainingMs: number;
+      skillCooldownTotalMs: number;
+    }
   | { type: 'RANKING_UPDATED'; rankings: PlayerProfile[]; updatedPlayer?: PlayerProfile }
   | { type: 'ERROR'; code: string; message: string };

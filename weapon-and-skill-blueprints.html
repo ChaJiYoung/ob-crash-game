@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beer Crusher - 3종 무기 아키타입 & 사방 뚫어뻥 스킬 상세 시안</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>Chart.defaults.animation = false;</script>
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { interpolate-size: allow-keywords; }
+
+    /* ===== THEMES (class-based ONLY) ===== */
+    html.theme-dark {
+      --bg: #0A0D14;
+      --surface: #131926;
+      --surface-hover: #1E2638;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --accent: #38BDF8;
+      --accent-secondary: #F59E0B;
+      --positive: #10B981;
+      --negative: #F43F5E;
+      --warning: #FBBF24;
+    }
+    html.theme-light {
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --surface-hover: #F1F5F9;
+      --border: rgba(0, 0, 0, 0.08);
+      --text: #0F172A;
+      --text-secondary: #64748B;
+      --accent: #0284C7;
+      --accent-secondary: #D97706;
+      --positive: #059669;
+      --negative: #E11D48;
+      --warning: #B45309;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em;
+      transition: background 0.3s, color 0.3s;
+      scrollbar-gutter: stable;
+    }
+
+    @media (max-width: 375px) {
+      body { overflow-x: hidden; }
+    }
+
+    /* FONT HIERARCHY */
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      text-wrap: balance;
+    }
+    h1 { font-size: 2.75rem; font-weight: 800; }
+    h2 { font-size: 2.1rem; font-weight: 700; }
+    h3 { font-size: 1.55rem; font-weight: 600; }
+    body, p, li, td, th, span, label { font-size: 1rem; font-weight: 400; }
+    .text-secondary { color: var(--text-secondary); }
+
+    /* LAYOUT & SPACING */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    section {
+      margin-bottom: 64px;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      transition: box-shadow 0.25s ease, transform 0.2s ease;
+    }
+    .card:hover {
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    /* GRID SYSTEMS */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate { animation: fadeInUp 0.6s ease-out both; }
+    .animate.delay-1 { animation-delay: 0.1s; }
+    .animate.delay-2 { animation-delay: 0.2s; }
+    .animate.delay-3 { animation-delay: 0.3s; }
+    .animate.delay-4 { animation-delay: 0.4s; }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    /* MENU */
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(12px); transition: all 0.2s;
+    }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown {
+      position: absolute; top: 52px; right: 0; min-width: 200px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 8px;
+      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: all 0.2s; backdrop-filter: blur(16px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button {
+      width: 100%; padding: 10px 14px; border: none; border-radius: 8px;
+      background: transparent; color: var(--text); font-size: 14px;
+      font-family: inherit; cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+    }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+
+    /* SKIP LINK */
+    .skip-to-content {
+      position: absolute; top: -40px; left: 16px; background: var(--accent);
+      color: white; padding: 8px 14px; text-decoration: none;
+      border-radius: 6px; opacity: 0; pointer-events: none;
+      transition: all 0.2s; z-index: 10000; font-weight: 500;
+    }
+    .skip-to-content:focus { top: 16px; opacity: 1; pointer-events: auto; }
+
+    /* BADGES & PILLS */
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+      background: rgba(56, 189, 248, 0.12); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .badge-gold {
+      background: rgba(245, 158, 11, 0.12); color: var(--accent-secondary); border-color: rgba(245, 158, 11, 0.25);
+    }
+    .badge-rose {
+      background: rgba(244, 63, 94, 0.12); color: var(--negative); border-color: rgba(244, 63, 94, 0.25);
+    }
+
+    /* WEAPON HERO CARD */
+    .weapon-card {
+      position: relative; overflow: hidden;
+      border-top: 4px solid var(--accent);
+    }
+    .weapon-card.shotgun { border-top-color: #ef4444; }
+    .weapon-card.revolver { border-top-color: #f59e0b; }
+    .weapon-card.gatling { border-top-color: #38bdf8; }
+
+    .weapon-visual-box {
+      width: 100%; height: 180px; border-radius: 10px;
+      background: rgba(0,0,0,0.25); margin: 16px 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 1px dashed var(--border); position: relative;
+    }
+
+    /* HP BARS MINI PREVIEW */
+    .hp-dot-bar {
+      display: inline-flex; gap: 4px; align-items: center;
+    }
+    .hp-dot {
+      width: 14px; height: 8px; border-radius: 2px;
+      background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+    }
+    .hp-dot.empty { background: rgba(255,255,255,0.15); box-shadow: none; }
+
+    /* TABLE STYLES */
+    .specs-table {
+      width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.92rem;
+    }
+    .specs-table th, .specs-table td {
+      padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left;
+    }
+    .specs-table th { color: var(--text-secondary); font-weight: 500; font-size: 0.85rem; }
+    .specs-table tr:last-child td { border-bottom: none; }
+
+    /* CHART CONTAINER */
+    .chart-box {
+      position: relative; width: 100%; height: 360px; min-height: 340px; margin-top: 16px;
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .viz-menu { display: none; }
+      .card { break-inside: avoid; border: 1px solid #cbd5e1; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">본문 바로가기</a>
+
+  <!-- MENU -->
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="메뉴 열기">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button onclick="cycleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Dark 모드</span></button>
+      <button onclick="downloadImage()"><span>📥</span><span>PNG 이미지 저장</span></button>
+      <button onclick="window.print()"><span>🖨️</span><span>인쇄 / PDF 저장</span></button>
+    </div>
+  </div>
+
+  <main id="main-content" class="container" role="main">
+    
+    <!-- 1. HEADER SECTION -->
+    <section class="animate" aria-labelledby="header-title">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <span class="badge">아케이드 건슈팅 2.0</span>
+        <span class="badge badge-gold">로그라이크 아키타입</span>
+        <span class="badge badge-rose">B급 슬랩스틱 펍 테마</span>
+      </div>
+      <h1 id="header-title">Beer Crusher 3종 무기 & 사방 뚫어뻥 스킬 상세 시안</h1>
+      <p class="text-secondary" style="font-size: 1.15rem; margin-top: 10px; max-width: 880px;">
+        "즉사는 너무 세다! 몬스터 체력바를 보며 2~4방 직접 사격해 마무리하는 손맛!"<br>
+        무기 레벨업 시 전용 '휙!' 액티브 스킬도 함께 성장(Lv.1 ➔ MAX)하며, Three.js 절차적 3D 파츠가 런타임에 결합되는 완전한 비주얼 명세서입니다.
+      </p>
+    </section>
+
+    <!-- 2. CORE PHILOSOPHY & SUMMARY -->
+    <section class="animate delay-1" aria-labelledby="summary-title">
+      <div class="grid-3">
+        <div class="card">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">🪠</div>
+          <h3 style="font-size: 1.25rem;">사방 뚫어뻥 스킬 (Plunger Storm)</h3>
+          <p class="text-secondary" style="font-size: 0.95rem; margin-top: 8px;">
+            폰을 '휙!' 흔들면 8방향에서 뚫어뻥 18개가 날아와 몬스터 얼굴에 찰싹 흡착("뽁!"). 1초 스턴 후 <strong>광역 1.6 데미지</strong> 폭발로 2HP 이상 몬스터를 멈춰두고 직접 마무리 사격 유도.
+          </p>
+        </div>
+        <div class="card">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">📊</div>
+          <h3 style="font-size: 1.25rem;">몬스터 체력 상향 & 3D 네온 HP 바</h3>
+          <p class="text-secondary" style="font-size: 0.95rem; margin-top: 8px;">
+            카스 병맥주 4HP, 한맥 3HP, 오비 2HP. 몬스터 머리 위에 슬림한 분할 네온 도트 바(<span class="hp-dot-bar"><span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot empty"></span></span>)가 표시되어 타격감과 잔여 체력 직관성 부여.
+          </p>
+        </div>
+        <div class="card">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">🎯</div>
+          <h3 style="font-size: 1.25rem;">조준 사격형 카드 선택</h3>
+          <p class="text-secondary" style="font-size: 0.95rem; margin-top: 8px;">
+            웨이브 종료 시 PC 화면에 3장의 카드 과녁이 공중에 떠오르며, 모바일 조준선으로 원하는 카드를 탕! 쏴서 무기 레벨업 및 전용 스킬을 강화하는 오락실 건슈팅 일체감.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. WEAPON ARCHETYPES DETAILED CARDS -->
+    <section class="animate delay-2" aria-labelledby="weapons-title">
+      <h2 id="weapons-title" style="margin-bottom: 24px;">3종 무기 아키타입 & 4단계 동시 진화 시안</h2>
+      
+      <div class="grid-3">
+        
+        <!-- WEAPON 1: PLUNGER SHOTGUN -->
+        <article class="card weapon-card shotgun">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span class="badge badge-rose" style="margin-bottom: 6px;">근접 광역 산탄 / 넉백</span>
+              <h3 style="font-size: 1.45rem;">🪠 뚫어뻥 샷건</h3>
+              <p class="text-secondary" style="font-size: 0.9rem;">Plunger Draft Shotgun</p>
+            </div>
+            <span style="font-size: 2rem;">🪠</span>
+          </div>
+
+          <!-- 3D Model Schematic Representation -->
+          <div class="weapon-visual-box">
+            <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Receiver -->
+              <rect x="25" y="42" width="60" height="26" rx="4" fill="#d4af37" stroke="#b45309" stroke-width="2"/>
+              <!-- Tap Lever -->
+              <line x1="38" y1="42" x2="38" y2="18" stroke="#d4af37" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="38" cy="14" r="7" fill="#ef4444"/>
+              <!-- Grip -->
+              <rect x="18" y="66" width="20" height="34" rx="3" transform="rotate(-15 18 66)" fill="#1f2937"/>
+              <!-- Double Barrel -->
+              <rect x="85" y="45" width="65" height="9" fill="#e2e8f0"/>
+              <rect x="85" y="56" width="65" height="9" fill="#e2e8f0"/>
+              <!-- Plunger Head (Nozzle) -->
+              <path d="M150 35 L175 42 L175 68 L150 75 Z" fill="#ef4444"/>
+              <ellipse cx="175" cy="55" rx="7" ry="17" fill="#dc2626"/>
+              <!-- Plunger Stick Connector -->
+              <rect x="140" y="51" width="14" height="8" fill="#d4af37"/>
+            </svg>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">
+              [3D 절차적 결합] 황동 리시버 + 더블 배럴 + 빨간 고무 뚫어뻥 컵
+            </div>
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.08); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 14px;">
+            <div style="font-weight: 600; font-size: 0.95rem; color: #f87171;">전용 휙! 스킬: 사방 뚫어뻥 폭풍</div>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 4px;">
+              사방 8방향 뚫어뻥 18개 비행 ➔ 몬스터 흡착 1.5s 스턴 ➔ 거품 폭발 (1.6 데미지). 2HP 이상 적을 묶어두고 직접 샷건 사격!
+            </div>
+          </div>
+
+          <table class="specs-table">
+            <thead>
+              <tr><th>레벨</th><th>사격 특성</th><th>스킬 강화</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Lv.1</strong></td>
+                <td>3발 산탄 (발당 0.6) | 탄창 6발</td>
+                <td>12개 비행 | 1.0 DMG + 1s 스턴</td>
+              </tr>
+              <tr>
+                <td><strong>Lv.2</strong></td>
+                <td>4발 산탄 (발당 0.6) | 넉백 0.5m</td>
+                <td>15개 비행 | 1.2 DMG + 1.2s 스턴</td>
+              </tr>
+              <tr>
+                <td><strong>Lv.3</strong></td>
+                <td>5발 산탄 (발당 0.65) | 탄창 7발</td>
+                <td>18개 비행 | 1.4 DMG + 1.5s 스턴</td>
+              </tr>
+              <tr>
+                <td><strong style="color: #f87171;">MAX</strong></td>
+                <td>6발 산탄 (발당 0.7) | 적 30% 감속</td>
+                <td>22개 폭풍 | 1.6 DMG + <strong>2스톡 충전</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <!-- WEAPON 2: REVOLVER -->
+        <article class="card weapon-card revolver">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span class="badge badge-gold" style="margin-bottom: 6px;">정밀 저격 / 일직선 관통</span>
+              <h3 style="font-size: 1.45rem;">🍾 황금 병따개 리볼버</h3>
+              <p class="text-secondary" style="font-size: 0.9rem;">Golden Opener Revolver</p>
+            </div>
+            <span style="font-size: 2rem;">🍾</span>
+          </div>
+
+          <!-- 3D Model Schematic Representation -->
+          <div class="weapon-visual-box">
+            <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Long Slim Barrel -->
+              <rect x="88" y="46" width="95" height="14" rx="2" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+              <rect x="175" y="43" width="8" height="20" rx="1" fill="#f59e0b"/>
+              <!-- Bottle Cap Cylinder -->
+              <circle cx="70" cy="53" r="19" fill="#f59e0b" stroke="#b45309" stroke-width="2"/>
+              <circle cx="70" cy="53" r="13" fill="#1e293b"/>
+              <circle cx="70" cy="44" r="3" fill="#e2e8f0"/>
+              <circle cx="78" cy="53" r="3" fill="#e2e8f0"/>
+              <circle cx="70" cy="62" r="3" fill="#e2e8f0"/>
+              <circle cx="62" cy="53" r="3" fill="#e2e8f0"/>
+              <!-- Hammer shaped like Opener Hook -->
+              <path d="M48 40 C44 32, 54 24, 60 28 C56 32, 56 38, 52 42 Z" fill="#d97706"/>
+              <!-- Grip -->
+              <rect x="36" y="56" width="22" height="38" rx="4" transform="rotate(-20 36 56)" fill="#78350f"/>
+            </svg>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">
+              [3D 절차적 결합] 슬림 크롬 총열 + 6각 병뚜껑 실린더 + 병따개 해머
+            </div>
+          </div>
+
+          <div style="background: rgba(245, 158, 11, 0.08); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.2); margin-bottom: 14px;">
+            <div style="font-weight: 600; font-size: 0.95rem; color: #fbbf24;">전용 휙! 스킬: 오프너 불릿 타임</div>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 4px;">
+              5초간 전장 60% 슬로우모션 + 회전 오프너 관통 (1.8 데미지). 느려진 적들의 체력바를 확인하며 단발 탕! 탕! 저격.
+            </div>
+          </div>
+
+          <table class="specs-table">
+            <thead>
+              <tr><th>레벨</th><th>사격 특성</th><th>스킬 강화</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Lv.1</strong></td>
+                <td>단발 1.2 DMG (1관통 0.6) | 6발</td>
+                <td>3.5s 슬로우 40% | 1.2 DMG</td>
+              </tr>
+              <tr>
+                <td><strong>Lv.2</strong></td>
+                <td>단발 1.4 DMG (1관통 0.8) | 장전 1s</td>
+                <td>4.0s 슬로우 45% | 1.4 DMG</td>
+              </tr>
+              <tr>
+                <td><strong>Lv.3</strong></td>
+                <td>단발 1.7 DMG (2관통 50%) | 7발</td>
+                <td>4.5s 슬로우 50% | 1.6 DMG</td>
+              </tr>
+              <tr>
+                <td><strong style="color: #fbbf24;">MAX</strong></td>
+                <td>단발 2.0 DMG (2기 완전 관통) | 8발</td>
+                <td>5.0s 슬로우 60% | 1.8 DMG + <strong>2스톡</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <!-- WEAPON 3: GATLING -->
+        <article class="card weapon-card gatling">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span class="badge" style="margin-bottom: 6px;">초고속 연사 / 탄막 제압</span>
+              <h3 style="font-size: 1.45rem;">🍺 탄산 탭 개틀링</h3>
+              <p class="text-secondary" style="font-size: 0.9rem;">Draft Carbon Gatling</p>
+            </div>
+            <span style="font-size: 2rem;">🍺</span>
+          </div>
+
+          <!-- 3D Model Schematic Representation -->
+          <div class="weapon-visual-box">
+            <svg width="220" height="110" viewBox="0 0 220 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Drum Magazine (Beer Can style) -->
+              <rect x="45" y="52" width="36" height="32" rx="5" fill="#004b91" stroke="#38bdf8" stroke-width="1.5"/>
+              <text x="63" y="72" font-size="9" fill="#ffffff" font-weight="bold" text-anchor="middle">CASS</text>
+              <!-- Center Receiver Block -->
+              <rect x="75" y="40" width="35" height="30" rx="3" fill="#d4af37"/>
+              <!-- Revolving 6-barrel cluster -->
+              <rect x="110" y="42" width="68" height="5" fill="#94a3b8"/>
+              <rect x="110" y="49" width="72" height="5" fill="#cbd5e1"/>
+              <rect x="110" y="56" width="70" height="5" fill="#94a3b8"/>
+              <rect x="110" y="63" width="66" height="5" fill="#64748b"/>
+              <!-- Front Barrel Ring -->
+              <circle cx="178" cy="55" r="14" fill="none" stroke="#d4af37" stroke-width="3"/>
+              <!-- Cooling Pipe with Cyan Neon Glow -->
+              <line x1="80" y1="36" x2="160" y2="36" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4 2"/>
+              <!-- Grip -->
+              <rect x="30" y="48" width="18" height="36" rx="3" transform="rotate(-15 30 48)" fill="#1e293b"/>
+            </svg>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">
+              [3D 절차적 결합] 6연장 황동 회전 배럴 + 카스 캔 드럼 탄창 + 네온 냉각관
+            </div>
+          </div>
+
+          <div style="background: rgba(56, 189, 248, 0.08); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 14px;">
+            <div style="font-weight: 600; font-size: 0.95rem; color: #38bdf8;">전용 휙! 스킬: 거품 해일 오버히트</div>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); margin-top: 4px;">
+              전방 160도 거대 거품 해일 방출 ➔ 3초간 50% 감속 + 1.4 데미지. 묶여있는 몬스터들을 40발 연사로 갈아버리는 쾌감!
+            </div>
+          </div>
+
+          <table class="specs-table">
+            <thead>
+              <tr><th>레벨</th><th>사격 특성</th><th>스킬 강화</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Lv.1</strong></td>
+                <td>발당 0.3 DMG (초당 7발) | 탄창 20발</td>
+                <td>전방 90도 | 0.8 DMG + 2s 감속 30%</td>
+              </tr>
+              <tr>
+                <td><strong>Lv.2</strong></td>
+                <td>발당 0.35 DMG (초당 8발) | 탄창 25발</td>
+                <td>전방 110도 | 1.0 DMG + 2s 감속 35%</td>
+              </tr>
+              <tr>
+                <td><strong>Lv.3</strong></td>
+                <td>발당 0.4 DMG (초당 10발) | 탄창 30발</td>
+                <td>전방 130도 | 1.2 DMG + 2.5s 감속 40%</td>
+              </tr>
+              <tr>
+                <td><strong style="color: #38bdf8;">MAX</strong></td>
+                <td>발당 0.45 DMG (초당 12발) | 탄창 40발</td>
+                <td>전방 160도 | 1.4 DMG + <strong>2스톡 충전</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 4. COMPARISON CHARTS SECTION -->
+    <section class="animate delay-3" aria-labelledby="charts-title">
+      <h2 id="charts-title" style="margin-bottom: 24px;">무기별 밸런스 지표 & 레벨별 DPS 비교</h2>
+      
+      <div class="grid-2">
+        <!-- Radar Chart: Archetype Playstyle -->
+        <div class="card">
+          <h3 style="font-size: 1.25rem;">무기별 전투 프로필 레이더 (Playstyle Matrix)</h3>
+          <p class="text-secondary" style="font-size: 0.88rem; margin-top: 4px;">
+            각 무기의 광역(AoE), 단발 저격력, 연사 속도, 군중 제어(스턴), 탄약 효율성을 한눈에 비교합니다.
+          </p>
+          <div class="chart-box">
+            <canvas id="weaponRadarChart" role="img" aria-label="무기 3종의 전투 프로필 비교 방사형 차트"></canvas>
+          </div>
+        </div>
+
+        <!-- Bar Chart: Level Progression Damage Output -->
+        <div class="card">
+          <h3 style="font-size: 1.25rem;">레벨별 사격 총 화력 스케일업 (Full Shot Damage)</h3>
+          <p class="text-secondary" style="font-size: 0.88rem; margin-top: 4px;">
+            1회 사격 시 전탄 명중 기준 총 데미지(샷건 펠릿합, 리볼버 관통합, 개틀링 0.5초 화력).
+          </p>
+          <div class="chart-box">
+            <canvas id="weaponProgressionChart" role="img" aria-label="무기 3종의 레벨별 데미지 스케일업 막대 차트"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. INTERACTION FLOW & HP BAR VISUALIZATION -->
+    <section class="animate delay-4" aria-labelledby="flow-title">
+      <h2 id="flow-title" style="margin-bottom: 24px;">인게임 3D HUD & 조준 사격 카드 선택 인터랙션</h2>
+
+      <div class="grid-2">
+        <!-- 3D Tracking Mini HP Bar Schema -->
+        <div class="card">
+          <h3 style="font-size: 1.25rem; margin-bottom: 12px;">몬스터 머리 위 3D 네온 HP 바 디자인</h3>
+          <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 18px;">
+            몬스터 3D 좌표 상단 +0.45m 위치에 오버레이되며, 타격 시 빨간 깜빡임 효과가 발생합니다.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #60a5fa;">카스 병맥주 (대형 탱커)</strong>
+                <div style="font-size: 0.82rem; color: var(--text-secondary);">최대 4HP | 묵직한 통통 바운스</div>
+              </div>
+              <div class="hp-dot-bar">
+                <span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #34d399;">한맥 (버서커 보병)</strong>
+                <div style="font-size: 0.82rem; color: var(--text-secondary);">최대 3HP | 1타 피격 시 30% 가속</div>
+              </div>
+              <div class="hp-dot-bar">
+                <span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot empty"></span>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #fbbf24;">오비 라거 (표준 보병)</strong>
+                <div style="font-size: 0.82rem; color: var(--text-secondary);">최대 2HP | 안정적 지상 진격</div>
+              </div>
+              <div class="hp-dot-bar">
+                <span class="hp-dot"></span><span class="hp-dot"></span><span class="hp-dot empty"></span><span class="hp-dot empty"></span>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              <div>
+                <strong style="color: #94a3b8;">필굿 / 카스라이트 (비행 잡몹)</strong>
+                <div style="font-size: 0.82rem; color: var(--text-secondary);">1HP 즉사 | 화면 시야 확보 위해 HP 바 숨김</div>
+              </div>
+              <span style="font-size: 0.85rem; color: var(--text-secondary);">[숨김 처리]</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shoot-to-Choose Card Interaction -->
+        <div class="card">
+          <h3 style="font-size: 1.25rem; margin-bottom: 12px;">오락실 조준 사격 카드 선택 (Shoot-to-Select)</h3>
+          <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 16px;">
+            웨이브 클리어 시 PC 화면에 3장의 카드 과녁이 떠오르며 스마트폰으로 조준 사격하여 선택합니다.
+          </p>
+
+          <div style="display: flex; gap: 12px; margin-top: 10px;">
+            <div style="flex: 1; border: 2px dashed #ef4444; border-radius: 8px; padding: 16px 10px; text-align: center; background: rgba(239, 68, 68, 0.05);">
+              <div style="font-size: 1.5rem;">🌟</div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-top: 6px; color: #f87171;">무기 레벨업</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Lv.1 ➔ Lv.2<br>스킬 동시 강화</div>
+              <div style="margin-top: 8px; font-size: 0.75rem; color: #f87171; border: 1px solid #ef4444; border-radius: 4px; padding: 2px;">조준 사격 🎯</div>
+            </div>
+
+            <div style="flex: 1; border: 2px dashed #f59e0b; border-radius: 8px; padding: 16px 10px; text-align: center; background: rgba(245, 158, 11, 0.05);">
+              <div style="font-size: 1.5rem;">⚡</div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-top: 6px; color: #fbbf24;">신속 재장전</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">장전 딜레이<br>30% 단축</div>
+              <div style="margin-top: 8px; font-size: 0.75rem; color: #fbbf24; border: 1px solid #f59e0b; border-radius: 4px; padding: 2px;">조준 사격 🎯</div>
+            </div>
+
+            <div style="flex: 1; border: 2px dashed #10b981; border-radius: 8px; padding: 16px 10px; text-align: center; background: rgba(16, 185, 129, 0.05);">
+              <div style="font-size: 1.5rem;">🛡️</div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-top: 6px; color: #34d399;">바 긴급 수리</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">방어선 체력<br>+2 즉시 회복</div>
+              <div style="margin-top: 8px; font-size: 0.75rem; color: #34d399; border: 1px solid #10b981; border-radius: 4px; padding: 2px;">조준 사격 🎯</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.85rem; color: var(--text-secondary);">
+            💡 <strong>오락실 건슈팅 일체감</strong>: 터치 버튼을 찾아 손을 뗄 필요 없이, 평소 사격하듯 표적 카드를 탕! 쏴서 바로 다음 웨이브로 직행합니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // === Menu ===
+    function toggleMenu() { 
+      var dropdown = document.getElementById('vizMenuDropdown') || document.getElementById('vizMenu');
+      if (dropdown) dropdown.classList.toggle('open'); 
+    }
+    document.addEventListener('click', function(e) { 
+      if (!e.target.closest('.viz-menu')) {
+        var dropdown = document.getElementById('vizMenuDropdown') || document.getElementById('vizMenu');
+        if (dropdown) dropdown.classList.remove('open');
+      }
+    });
+    document.addEventListener('keydown', function(e) { 
+      if (e.key === 'Escape') {
+        var dropdown = document.getElementById('vizMenuDropdown') || document.getElementById('vizMenu');
+        if (dropdown) dropdown.classList.remove('open');
+      }
+    });
+
+    // === Theme (class-based, OS detection) ===
+    var savedTheme = localStorage.getItem('viz-theme');
+    var currentTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      document.getElementById('themeIcon').textContent = t === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeLabel').textContent = t === 'dark' ? 'Dark 모드' : 'Light 모드';
+      localStorage.setItem('viz-theme', t);
+      currentTheme = t;
+      if (typeof onThemeChange === 'function') onThemeChange();
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+    applyTheme(currentTheme);
+
+    // === Scroll Reveal ===
+    document.querySelectorAll('[data-reveal]').forEach(function(el) { el.classList.add('reveal'); });
+    var revealObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(function(el) { revealObserver.observe(el); });
+
+    // === Download PNG ===
+    async function downloadImage() {
+      var menu = document.querySelector('.viz-menu');
+      menu.style.display = 'none';
+      try {
+        var url = await htmlToImage.toPng(document.body, { quality: 1, pixelRatio: 2, filter: function(n) { return !n.classList || !n.classList.contains('viz-menu'); } });
+        var a = document.createElement('a'); a.href = url;
+        a.download = 'beer-crusher-weapon-and-skill-blueprints.png'; a.click();
+      } catch(e) { console.error('Download failed:', e); }
+      menu.style.display = '';
+    }
+
+    // === CHART MANAGER PATTERN ===
+    var ChartManager = {
+      charts: new Map(),
+      safeInit: function(canvasId, config) {
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js library not loaded');
+          return null;
+        }
+        try {
+          if (this.charts.has(canvasId)) {
+            this.charts.get(canvasId).destroy();
+            this.charts.delete(canvasId);
+          }
+          var ctx = document.getElementById(canvasId);
+          if (!ctx) {
+            console.error('Canvas element not found: ' + canvasId);
+            return null;
+          }
+          if (ctx.chart) {
+            ctx.chart.destroy();
+            delete ctx.chart;
+          }
+          ctx.setAttribute('role', 'img');
+          if (!ctx.getAttribute('aria-label')) {
+            ctx.setAttribute('aria-label', 'Chart visualization');
+          }
+          var chart = new Chart(ctx, config);
+          this.charts.set(canvasId, chart);
+          return chart;
+        } catch (error) {
+          console.error('Chart init failed for ' + canvasId + ':', error);
+          return null;
+        }
+      },
+      destroyAll: function() {
+        this.charts.forEach(function(chart) {
+          try { chart.destroy(); } catch (e) { console.error(e); }
+        });
+        this.charts.clear();
+      }
+    };
+
+    function buildCharts() {
+      if (typeof Chart === 'undefined') return;
+      var isDark = document.documentElement.classList.contains('theme-dark');
+      var textColor = isDark ? '#F1F5F9' : '#0F172A';
+      var textSecondary = isDark ? '#94A3B8' : '#64748B';
+      var gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+      // 1. Radar Chart: Weapon Playstyle Matrix
+      ChartManager.safeInit('weaponRadarChart', {
+        type: 'radar',
+        data: {
+          labels: ['광역 제압 (AoE)', '단발 저격력', '연사 속도', '군중 제어 (스턴)', '탄약 지속력'],
+          datasets: [
+            {
+              label: '🪠 뚫어뻥 샷건',
+              data: [95, 60, 45, 90, 55],
+              backgroundColor: 'rgba(239, 68, 68, 0.25)',
+              borderColor: '#ef4444',
+              borderWidth: 2,
+              pointBackgroundColor: '#ef4444',
+            },
+            {
+              label: '🍾 황금 리볼버',
+              data: [40, 95, 40, 75, 65],
+              backgroundColor: 'rgba(245, 158, 11, 0.25)',
+              borderColor: '#f59e0b',
+              borderWidth: 2,
+              pointBackgroundColor: '#f59e0b',
+            },
+            {
+              label: '🍺 탄산 개틀링',
+              data: [75, 40, 98, 60, 92],
+              backgroundColor: 'rgba(56, 189, 248, 0.25)',
+              borderColor: '#38bdf8',
+              borderWidth: 2,
+              pointBackgroundColor: '#38bdf8',
+            }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: { color: textColor, font: { family: 'Noto Sans KR', size: 12 } }
+            },
+            tooltip: { enabled: true }
+          },
+          scales: {
+            r: {
+              angleLines: { color: gridColor },
+              grid: { color: gridColor },
+              pointLabels: { color: textSecondary, font: { family: 'Noto Sans KR', size: 11, weight: '500' } },
+              ticks: { display: false, maxTicksLimit: 5, backdropColor: 'transparent' },
+              suggestedMin: 0,
+              suggestedMax: 100
+            }
+          }
+        }
+      });
+
+      // 2. Bar Chart: Level Damage Progression
+      ChartManager.safeInit('weaponProgressionChart', {
+        type: 'bar',
+        data: {
+          labels: ['Lv.1 기본', 'Lv.2 강화', 'Lv.3 각성', 'MAX 최종'],
+          datasets: [
+            {
+              label: '🪠 샷건 (전탄 명중합)',
+              data: [1.8, 2.4, 3.25, 4.2],
+              backgroundColor: '#ef4444',
+              borderRadius: 6
+            },
+            {
+              label: '🍾 리볼버 (단발 직격)',
+              data: [1.2, 1.4, 1.7, 2.0],
+              backgroundColor: '#f59e0b',
+              borderRadius: 6
+            },
+            {
+              label: '🍺 개틀링 (0.5s 소사 화력)',
+              data: [1.05, 1.4, 2.0, 2.7],
+              backgroundColor: '#38bdf8',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: { color: textColor, font: { family: 'Noto Sans KR', size: 12 } }
+            },
+            tooltip: { 
+              enabled: true,
+              callbacks: {
+                label: function(ctx) { return ctx.dataset.label + ': ' + ctx.raw + ' 데미지'; }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'transparent' },
+              ticks: { color: textSecondary, font: { family: 'Noto Sans KR', size: 12 } }
+            },
+            y: {
+              grid: { color: gridColor },
+              ticks: { color: textSecondary, stepSize: 1 },
+              title: { display: true, text: '유효 데미지 수치 (즉사 없음)', color: textSecondary, font: { size: 11 } },
+              suggestedMax: 5.0
+            }
+          }
+        }
+      });
+    }
+
+    function onThemeChange() {
+      buildCharts();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      buildCharts();
+    });
+  </script>
+</body>
+</html>
