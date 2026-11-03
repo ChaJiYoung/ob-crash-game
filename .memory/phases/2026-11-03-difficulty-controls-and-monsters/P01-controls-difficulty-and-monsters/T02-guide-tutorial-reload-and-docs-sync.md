@@ -1,6 +1,6 @@
 # Task: T02 컨트롤러 가이드, 인게임 튜토리얼 문구, 리로드 안내 및 도감 동기화
 
-## Status: pending
+## Status: done
 
 ## Goal
 사용자가 결정한 새로운 조작법("화면 탭: 단발 발사 | 더블 탭: 피버 발동")에 맞추어 컨트롤러 UI 가이드, 인게임 튜토리얼 오버레이, 도움말 모달, 그리고 도감 문서의 낡은 '코킹/스냅' 설명을 일관되게 갱신하고 재장전(10발 소진) 안내를 명확화한다.
@@ -57,10 +57,10 @@
   - `tests/tutorial-and-guide.test.ts` — 튜토리얼 단계 전진 및 피버 발동 테스트; modify/verify
 
 ## Acceptance Criteria
-- [ ] 모바일 컨트롤러에 "화면 탭: 단발 발사 | 더블 탭: 피버 발동" 가이드가 노출된다.
-- [ ] 튜토리얼 Step 1~3 및 완료 화면에 '스냅' 문구가 제거되고 '탭/더블탭' 문구로 대체된다.
-- [ ] `docs/튜토리얼_훈련장_가이드.md`와 `docs/몬스터_도감_설명서.md`의 조작 및 몬스터 정보가 최신화된다.
-- [ ] `tests/tutorial-and-guide.test.ts` 테스트가 통과한다.
+- [x] 모바일 컨트롤러에 "화면 탭: 단발 발사 | 더블 탭: 피버 발동" 가이드가 노출된다.
+- [x] 튜토리얼 Step 1~3 및 완료 화면에 '스냅' 문구가 제거되고 '탭/더블탭' 문구로 대체된다.
+- [x] `docs/튜토리얼_훈련장_가이드.md`와 `docs/몬스터_도감_설명서.md`의 조작 및 몬스터 정보가 최신화된다.
+- [x] `tests/tutorial-and-guide.test.ts` 테스트가 통과한다.
 
 ## Validation
 - `npm test tests/tutorial-and-guide.test.ts` — 튜토리얼 테스트 통과 (exit code 0)
@@ -79,6 +79,6 @@ Task: T02-guide-tutorial-reload-and-docs-sync
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

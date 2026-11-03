@@ -161,7 +161,7 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           style={{
             fontSize: '22px',
             fontWeight: 900,
-            color: isFeverReady ? '#fbbf24' : isCocked ? '#34d399' : '#f8fafc',
+            color: isFeverReady ? '#fbbf24' : isCocked ? '#38bdf8' : '#f8fafc',
             marginBottom: '20px',
             textAlign: 'center',
             letterSpacing: '0.5px',
@@ -170,8 +170,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           {isFeverReady
             ? '🔥 따닥 더블탭하여 FEVER 발동!'
             : isCocked
-            ? '🔒 철컥! 조준 고정 중 (위로 휙 채면 발사)'
-            : '화면을 터치하여 코킹 장전'}
+            ? '💥 탕! 1발 사격'
+            : '화면 톡 탭: 단발 사격'}
         </div>
 
         <div
@@ -190,16 +190,16 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#34d399', fontWeight: 900, fontSize: '15px' }}>🔒 화면 터치:</span>
-            <span style={{ color: '#f8fafc', fontWeight: 600 }}>"철컥!" 코킹 장전 & 조준 고정</span>
+            <span style={{ color: '#38bdf8', fontWeight: 900, fontSize: '15px' }}>🎯 화면 톡 탭:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>"탕!" 1발 단발 사격 (홀드 연타 없음)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#38bdf8', fontWeight: 900, fontSize: '15px' }}>⚡ 위로 휙 채기:</span>
-            <span style={{ color: '#f8fafc', fontWeight: 600 }}>"탕!" 1발 단발 사격</span>
+            <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '15px' }}>🔥 따닥 두 번 탭:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>피버 모드 발동 (게이지 100% 시)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '15px' }}>🔥 빠르게 두번 탭:</span>
-            <span style={{ color: '#f8fafc', fontWeight: 600 }}>피버 모드 발동 (자동 10연사)</span>
+            <span style={{ color: '#34d399', fontWeight: 900, fontSize: '15px' }}>🔄 상단 주황 바:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>화면 중앙 영점 재정렬</span>
           </div>
         </div>
 

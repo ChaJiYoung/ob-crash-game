@@ -22,45 +22,45 @@ const MONSTER_DETAILS: Record<
   }
 > = {
   pilgood: {
-    role: '공중 활공형 · 최고속 돌격',
-    speedText: '4.2 m/s',
-    description: '탄산 추진 제트로 18m 원거리에서 가장 빠르게 쇄도하는 고래 캐릭터 알루미늄 캔.',
-    tip: '1HP이므로 진입 초기 스냅샷으로 빠르게 요격하세요.',
+    role: '공중 유영형 · S자 회피 비행',
+    speedText: '2.6 m/s',
+    description: '부드러운 곡선 S자 유영 궤적으로 좌우로 흔들리며 날아오는 고래 캐릭터 알루미늄 캔.',
+    tip: '1HP이므로 곡선 유영 중심을 예측 조준하여 신속하게 요격하세요.',
     imageSrc: '/docs/screens/monster-01-pilgood.png',
   },
   caslight: {
-    role: '공중 비행형 · 날개 펄럭임',
-    speedText: '3.6 m/s',
-    description: '양 측면 반투명 시안 날개를 펄럭이며 좌우 틸트 궤적으로 날아오는 라이트 캔.',
-    tip: '지상 표적보다 조준선을 약간 높여 공중 각도로 조준하세요.',
+    role: '공중 비행형 · 날개 펄럭임 & 고속 회피',
+    speedText: '2.4 m/s',
+    description: '양 측면 반투명 시안 날개를 펄럭이며 날렵한 곡선 지그재그 궤적으로 날아오는 라이트 캔.',
+    tip: '지상 표적보다 조준선을 약간 높여 공중 회피 각도로 조준하세요.',
     imageSrc: '/docs/screens/monster-02-caslight.png',
   },
   obi: {
-    role: '지상 바운스 · 랄라베어 탱커',
-    speedText: '3.0 m/s',
-    description: '왕관을 쓴 오비 랄라베어 마스코트가 그려진 앰버 골드 캔. 바닥을 통통 튀며 접근합니다.',
-    tip: '2HP이므로 더블탭 2연타 사격 또는 파워 샷(💥) 원샷으로 격파하세요.',
+    role: '지상 바운스 · 랄라베어 정통 보병',
+    speedText: '1.9 m/s',
+    description: '왕관을 쓴 오비 랄라베어 마스코트가 그려진 앰버 골드 캔. 바닥을 안정적으로 전진합니다.',
+    tip: '2HP이므로 2연타 사격 또는 파워 샷(💥) 원샷으로 격파하세요.',
     imageSrc: '/docs/screens/monster-03-obi.png',
   },
   hanmac: {
-    role: '지상 엘리트 · 국산 쌀 라거',
-    speedText: '3.2 m/s',
+    role: '지상 돌진형 · 버서커 가속',
+    speedText: '2.0 m/s',
     description: '100% 국산 쌀 벼 이삭 크레스트가 새겨진 딥 에메랄드 캔 맥주 타겟.',
-    tip: '처치 시 +90점의 높은 스코어를 지급하므로 우선 타겟팅을 추천합니다.',
+    tip: '1타 피격 시 분노하여 이동 속도가 30% 빨라지므로 연속 격발로 빠르게 처치하세요.',
     imageSrc: '/docs/screens/monster-04-hanmac.png',
   },
   bottle: {
-    role: '지상 중장갑 · 카스 500ml 투명병',
-    speedText: '2.3 m/s',
-    description: '맑은 투명 유리목과 V-컷 블루 라벨의 올 뉴 카스 실사 병맥주. 단단한 3HP 내구도.',
-    tip: '3타 격파 시 "뻥!" 소리와 함께 은색 뚜껑이 솟구치고 유리 파편과 맥주 분수가 뿜어집니다.',
+    role: '지상 대형 탱커 · 카스 500ml 투명병',
+    speedText: '1.5 m/s',
+    description: '2.45배 대형화된 압도적 크기와 좌우로 활기차게 통통 튀며 바운스 전진하는 3HP 탱커.',
+    tip: '크기가 크고 피격 판정이 넓어 맞추기 쉽지만, 3발을 침착하게 명중시켜야 합니다.',
     imageSrc: '/docs/screens/monster-05-cass-bottle.png',
   },
   boss: {
     role: '최종 레이드 보스 · 업소용 냉각기',
-    speedText: '1.1 m/s',
+    speedText: '0.85 m/s',
     description: '스테인리스 헤어라인 패널, 듀얼 골드 탭, 디지털 온도계를 장착한 거대 캐비닛 보스.',
-    tip: '체력 40! 방어선에 도달하면 즉시 게임오버되므로 피버 모드로 집중 난사하세요!',
+    tip: '체력 50! 방어선에 도달하면 즉시 게임오버되므로 피버 모드로 집중 난사하세요!',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
 };
@@ -340,19 +340,16 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                       <strong>자이로 조준</strong>: 폰을 권총처럼 쥐고 모니터를 향해 겨누어 조준
                     </li>
                     <li>
-                      <strong>코킹 장전 (Aim Lock)</strong>: 화면을 엄지로 터치하면 "철컥!" 소리와 함께 조준선 고정 (총알 발사 없음)
+                      <strong>단발 탭 사격</strong>: 화면을 가볍게 탭하면 즉시 "탕!" 1발 격발 (0ms 딜레이)
                     </li>
                     <li>
-                      <strong>스냅 단발 사격</strong>: 터치 상태에서 손목을 위로 휙 채 올리면 "탕!" 1발 격발
+                      <strong>피버 모드 발동</strong>: 100% 충전 시 화면을 빠르게 따닥 더블탭 (10초간 무제한 자동 난사)
                     </li>
                     <li>
                       <strong>게임 시작 (Start)</strong>: 대기 화면에서 모니터 중앙의 [SHOOT TO START] 과녁을 조준 사격
                     </li>
                     <li>
-                      <strong>피버 모드 발동</strong>: 100% 충전 시 화면을 빠르게 따닥 더블탭 (초당 10발 자동 난사)
-                    </li>
-                    <li>
-                      <strong>영점 조절</strong>: 조준이 빗나갈 때 화면 상단 [영점 맞추기] 탭
+                      <strong>영점 조절</strong>: 조준이 빗나갈 때 화면 상단 주황색 [영점 맞추기] 바 탭
                     </li>
                   </ul>
                 </div>
