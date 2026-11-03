@@ -40,20 +40,24 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
   it('should define 3-tier judgment thresholds and scores', () => {
     expect(JUDGMENT_SPECS.PERFECT.maxErrorRatio).toBe(0.25);
     expect(JUDGMENT_SPECS.PERFECT.baseScore).toBe(150);
-    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(10);
+    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(8);
+    expect(JUDGMENT_SPECS.PERFECT.damageMultiplier).toBe(1.5);
 
     expect(JUDGMENT_SPECS.GREAT.maxErrorRatio).toBe(0.55);
     expect(JUDGMENT_SPECS.GREAT.baseScore).toBe(100);
-    expect(JUDGMENT_SPECS.GREAT.feverDelta).toBe(6);
+    expect(JUDGMENT_SPECS.GREAT.feverDelta).toBe(0);
+    expect(JUDGMENT_SPECS.GREAT.damageMultiplier).toBe(1.0);
 
     expect(JUDGMENT_SPECS.GOOD.maxErrorRatio).toBe(1.00);
     expect(JUDGMENT_SPECS.GOOD.baseScore).toBe(50);
-    expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(3);
+    expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(0);
+    expect(JUDGMENT_SPECS.GOOD.damageMultiplier).toBe(0.8);
   });
 
   it('should enforce 4s fever burst rules and weapon constants (D04)', () => {
     expect(FEVER_CONSTANTS.MAX_GAUGE).toBe(100);
-    expect(FEVER_CONSTANTS.MISS_PENALTY).toBe(5);
+    expect(FEVER_CONSTANTS.MISS_PENALTY).toBe(0);
+    expect(FEVER_CONSTANTS.KILL_FEVER_DELTA).toBe(12);
     expect(FEVER_CONSTANTS.DURATION_MS).toBe(4000); // 4s ultra burst
     expect(FEVER_CONSTANTS.LOCK_WHEN_FULL).toBe(true);
 
@@ -111,24 +115,24 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     // Check Revolver specifics
     const rev = WEAPON_ARCHETYPE_SPECS.revolver;
-    expect(rev.levels[1].damagePerHit).toBe(0.75);
+    expect(rev.levels[1].damagePerHit).toBe(1.00);
     expect(rev.levels[1].pierceCount).toBe(1);
     expect(rev.levels[3].pierceCount).toBe(2);
-    expect(rev.levels[4].damagePerHit).toBe(1.75);
+    expect(rev.levels[4].damagePerHit).toBe(2.20);
     expect(rev.levels[4].pierceDamageRatio).toBe(1.0);
 
     // Check Gatling specifics
     const gat = WEAPON_ARCHETYPE_SPECS.gatling;
-    expect(gat.levels[1].damagePerHit).toBe(0.15);
+    expect(gat.levels[1].damagePerHit).toBe(0.25);
     expect(gat.levels[1].maxAmmo).toBe(18);
-    expect(gat.levels[4].damagePerHit).toBe(0.35);
+    expect(gat.levels[4].damagePerHit).toBe(0.50);
     expect(gat.levels[4].maxAmmo).toBe(35);
     expect(gat.levels[4].fireIntervalMs).toBe(83);
     expect(gat.levels[4].skillArcDeg).toBe(160);
   });
 
-  it('should define 4 shoot-to-select reward card specs (D01, D06)', () => {
-    const cardKinds: RewardCardKind[] = ['weapon_level_up', 'rapid_reload', 'bar_repair', 'fever_boost'];
+  it('should define 5 shoot-to-select reward card specs (D01, D06)', () => {
+    const cardKinds: RewardCardKind[] = ['weapon_level_up', 'rapid_reload', 'bar_repair', 'fever_boost', 'lucky_drop'];
     cardKinds.forEach((k) => {
       expect(REWARD_CARD_SPECS[k]).toBeDefined();
       expect(REWARD_CARD_SPECS[k].kind).toBe(k);

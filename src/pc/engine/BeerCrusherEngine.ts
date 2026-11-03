@@ -112,12 +112,16 @@ export interface WaveProgressInfo {
   totalSpawns: number;
   remainingInWave: number;
   progressPercent: number;
+  cardKillCount: number;
+  cardKillTarget: number;
+  luckyDropMultiplier: number;
 }
 
 export class BeerCrusherEngine {
   public gamePhase: GamePhase = 'PAIRING';
   public currentWave = 1;
   public lives: number = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
+  public maxLives: number = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
   public activeTargets: ActiveTargetEntity[] = [];
 
   public isTutorialMode = false;
@@ -134,6 +138,18 @@ export class BeerCrusherEngine {
   public readonly weaponSystem = new WeaponSystem();
 
   private activeBuffUntilMs: Map<ItemBuffKind, number> = new Map();
+
+  // Roguelike card & item drop state
+  public luckyDropStacks = 0;
+  public cardKillCount = 0;
+  public pendingWaveAdvance = false;
+  private waveCardKillTargets: Record<number, number> = { 1: 10, 2: 14, 3: 18, 4: 20, 5: 15 };
+  public dropRng: () => number = () => Math.random();
+
+  // Boss summon state
+  public bossSummonActionUntilMs = 0;
+  public lastBossSummonTimeMs = 0;
+  public lastBossSummonHpThreshold = 45;
 
   // Wave definitions
   private waveDefinitions: Record<number, WaveDefinition> = {
@@ -211,6 +227,22 @@ export class BeerCrusherEngine {
     this.projCamera.updateMatrixWorld(true);
   }
 
+  public getCardKillTarget(waveIndex: number = this.currentWave): number {
+    return this.waveCardKillTargets[waveIndex] ?? 15;
+  }
+
+  public getLuckyDropMultiplier(): number {
+    return 1 + this.luckyDropStacks;
+  }
+
+  public getNextLuckyDropMultiplier(): number {
+    return Math.min(4, 1 + this.luckyDropStacks + 1);
+  }
+
+  public isBossSummoning(nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now()): boolean {
+    return nowMs < this.bossSummonActionUntilMs;
+  }
+
   public getWaveProgress(): WaveProgressInfo {
     const currentDef = this.waveDefinitions[this.currentWave];
     const totalSpawns = currentDef ? currentDef.totalSpawns : 1;
@@ -225,6 +257,9 @@ export class BeerCrusherEngine {
       totalSpawns,
       remainingInWave: remaining,
       progressPercent,
+      cardKillCount: this.cardKillCount,
+      cardKillTarget: this.getCardKillTarget(),
+      luckyDropMultiplier: this.getLuckyDropMultiplier(),
     };
   }
 
@@ -248,7 +283,8 @@ export class BeerCrusherEngine {
   public startGame(options?: { withWeaponSelect?: boolean }): void {
     this.gamePhase = 'PLAYING';
     this.currentWave = 1;
-    this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
+    this.maxLives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
+    this.lives = this.maxLives;
     this.activeTargets = [];
     this.spawnedInWave = 0;
     this.itemsSpawnedInWave = 0;
@@ -259,6 +295,12 @@ export class BeerCrusherEngine {
     this.lastProjectileSpawnTimeMs = 0;
     this.isTutorialMode = false;
     this.isSandboxMode = false;
+    this.luckyDropStacks = 0;
+    this.cardKillCount = 0;
+    this.pendingWaveAdvance = false;
+    this.bossSummonActionUntilMs = 0;
+    this.lastBossSummonTimeMs = 0;
+    this.lastBossSummonHpThreshold = 45;
     this.scoreManager.reset();
     this.weaponSystem.reset();
     this.activeBuffUntilMs.clear();
@@ -278,6 +320,11 @@ export class BeerCrusherEngine {
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
     this.isRewardCardPending = false;
+    this.pendingWaveAdvance = false;
+    this.cardKillCount = 0;
+    this.bossSummonActionUntilMs = 0;
+    this.lastBossSummonTimeMs = 0;
+    this.lastBossSummonHpThreshold = 45;
   }
 
   public spawnWeaponSelectTargets(nowMs = 0): void {
@@ -306,20 +353,30 @@ export class BeerCrusherEngine {
         hitRadiusM: 1.75,
         killBonusScore: 50,
         breached: false,
-        customBaseY: 1.15,
+        customBaseY: 1.48,
         weaponSelectKind: kind,
       });
     });
   }
 
-  public spawnWaveRewardCards(nowMs: number): void {
+  public spawnWaveRewardCards(nowMs: number, isWaveClear = true): void {
     this.isRewardCardPending = true;
     this.rewardCardsSpawnTimeMs = nowMs;
-    const candidateCards: RewardCardKind[] = [
-      'weapon_level_up',
-      'rapid_reload',
-      this.lives < STAGE_CONSTANTS.PLAYER_MAX_LIVES ? 'bar_repair' : 'fever_boost',
-    ];
+    this.pendingWaveAdvance = isWaveClear;
+
+    // Clean existing reward card targets if any
+    this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
+
+    const slot1: RewardCardKind = 'weapon_level_up';
+    const slot2: RewardCardKind = this.luckyDropStacks < 3 ? 'lucky_drop' : 'rapid_reload';
+    const slot3: RewardCardKind =
+      this.lives < this.maxLives
+        ? 'bar_repair'
+        : this.luckyDropStacks < 3
+        ? 'rapid_reload'
+        : 'fever_boost';
+
+    const candidateCards: RewardCardKind[] = [slot1, slot2, slot3];
     const xPositions = [-2.4, 0, 2.4];
 
     candidateCards.forEach((cardKind, idx) => {
@@ -342,7 +399,7 @@ export class BeerCrusherEngine {
         hitRadiusM: 1.75,
         killBonusScore: 100,
         breached: false,
-        customBaseY: 1.15,
+        customBaseY: 1.48,
         rewardCardKind: cardKind,
       });
     });
@@ -357,10 +414,14 @@ export class BeerCrusherEngine {
         this.weaponSystem.applyRapidReloadBuff();
         break;
       case 'bar_repair':
-        this.lives = Math.min(STAGE_CONSTANTS.PLAYER_MAX_LIVES + 1, this.lives + 1);
+        this.maxLives += 1;
+        this.lives = this.maxLives;
+        break;
+      case 'lucky_drop':
+        this.luckyDropStacks = Math.min(3, this.luckyDropStacks + 1);
         break;
       case 'fever_boost':
-        this.scoreManager.addFeverGauge(50);
+        this.scoreManager.chargeFeverToMax();
         break;
     }
   }
@@ -649,7 +710,7 @@ export class BeerCrusherEngine {
   public activateItemBuff(kind: ItemBuffKind, nowMs: number): void {
     const spec = ITEM_BUFF_SPECS[kind];
     if (kind === 'bar_repair') {
-      this.lives = Math.min(STAGE_CONSTANTS.PLAYER_MAX_LIVES, this.lives + 1);
+      this.lives = Math.min(this.maxLives, this.lives + 1);
       return;
     }
     this.activeBuffUntilMs.set(kind, nowMs + spec.durationMs);
@@ -709,6 +770,72 @@ export class BeerCrusherEngine {
     return itemEntity;
   }
 
+  public spawnItemTargetAt(
+    nowMs: number,
+    thetaRad: number,
+    radiusM: number,
+    forcedItemKind?: ItemBuffKind
+  ): ActiveTargetEntity {
+    const itemKinds: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
+    const kind = forcedItemKind ?? itemKinds[Math.floor(this.dropRng() * itemKinds.length)];
+
+    this.targetCounter += 1;
+    const clampedRadius = Math.max(6.5, Math.min(16.0, radiusM));
+    const itemEntity: ActiveTargetEntity = {
+      id: `item_${this.targetCounter}_${kind}`,
+      kind: 'pilgood',
+      hp: 1,
+      maxHp: 1,
+      radiusM: clampedRadius,
+      thetaRad,
+      x: Math.sin(thetaRad) * clampedRadius,
+      z: -Math.cos(thetaRad) * clampedRadius,
+      speedMps: 2.2,
+      hitRadiusM: 1.05,
+      killBonusScore: 100,
+      breached: false,
+      isItem: true,
+      itemKind: kind,
+    };
+
+    this.activeTargets.push(itemEntity);
+    return itemEntity;
+  }
+
+  public spawnBossMinionWave(nowMs: number, count = 4): ActiveTargetEntity[] {
+    this.lastBossSummonTimeMs = nowMs;
+    this.bossSummonActionUntilMs = nowMs + 1800;
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'];
+    const spawned: ActiveTargetEntity[] = [];
+
+    for (let i = 0; i < count; i++) {
+      this.targetCounter += 1;
+      const kind = kinds[Math.floor(this.dropRng() * kinds.length)];
+      const spec = TARGET_SPECS[kind];
+      const theta = -0.42 + this.dropRng() * 0.84;
+      const radius = 11.5 + this.dropRng() * 3.0;
+
+      const entity: ActiveTargetEntity = {
+        id: `boss_minion_${this.targetCounter}_${kind}`,
+        kind,
+        hp: spec.maxHp,
+        maxHp: spec.maxHp,
+        radiusM: radius,
+        thetaRad: theta,
+        initialThetaRad: theta,
+        x: Math.sin(theta) * radius,
+        z: -Math.cos(theta) * radius,
+        speedMps: spec.speedMps,
+        hitRadiusM: spec.hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+      };
+      this.activeTargets.push(entity);
+      spawned.push(entity);
+    }
+    return spawned;
+  }
+
   public update(nowMs: number, dtSec: number): {
     breaches: ActiveTargetEntity[];
     phaseChanged: boolean;
@@ -737,6 +864,11 @@ export class BeerCrusherEngine {
       if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
         this.advanceTutorialStep('COMPLETED');
       }
+    }
+
+    // Freeze active monsters and projectiles while card/weapon selection is pending
+    if (!this.isTutorialMode && !this.isSandboxMode && (this.isWeaponSelectPending || this.isRewardCardPending)) {
+      return { breaches: [], phaseChanged: false, reloadedJustNow };
     }
 
     const breaches: ActiveTargetEntity[] = [];
@@ -790,10 +922,24 @@ export class BeerCrusherEngine {
         dtSec
       );
 
-      target.radiusM = next.radiusM;
-      target.x = next.x;
-      target.z = next.z;
-      target.breached = next.breached;
+      if (target.kind === 'boss') {
+        if (next.radiusM <= 10.0) {
+          target.radiusM = 10.0;
+          target.x = Math.sin(target.thetaRad) * 10.0;
+          target.z = -Math.cos(target.thetaRad) * 10.0;
+          target.breached = false;
+        } else {
+          target.radiusM = next.radiusM;
+          target.x = next.x;
+          target.z = next.z;
+          target.breached = false;
+        }
+      } else {
+        target.radiusM = next.radiusM;
+        target.x = next.x;
+        target.z = next.z;
+        target.breached = next.breached;
+      }
 
       if (target.breached) {
         if (this.isSandboxMode) {
@@ -882,6 +1028,34 @@ export class BeerCrusherEngine {
       this.spawnBoss(nowMs);
     }
 
+    // Boss Summon Action in Wave 5
+    if (this.currentWave === 5 && this.bossSpawned) {
+      const boss = this.getBossEntity();
+      if (boss && boss.hp > 0 && boss.radiusM <= 12.5) {
+        const timeTrigger = this.lastBossSummonTimeMs === 0 || nowMs - this.lastBossSummonTimeMs >= 9000;
+        const hpTrigger = this.lastBossSummonHpThreshold > 0 && boss.hp <= this.lastBossSummonHpThreshold;
+
+        if (timeTrigger || hpTrigger) {
+          if (hpTrigger) {
+            this.lastBossSummonHpThreshold -= 15;
+          }
+          const activeMinions = this.activeTargets.filter(
+            (t) =>
+              !t.isItem &&
+              !t.isProjectile &&
+              !t.isGoldenCan &&
+              !t.weaponSelectKind &&
+              !t.rewardCardKind &&
+              t.kind !== 'boss'
+          ).length;
+
+          if (activeMinions < 7) {
+            this.spawnBossMinionWave(nowMs, 4);
+          }
+        }
+      }
+    }
+
     // 4. Check wave completion
     const monsterTargets = this.activeTargets.filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind);
     const bossIsAlive = monsterTargets.some((t) => t.kind === 'boss');
@@ -899,7 +1073,7 @@ export class BeerCrusherEngine {
       }
 
       // Between waves: Spawn Shoot-to-Select Reward Cards
-      this.spawnWaveRewardCards(nowMs);
+      this.spawnWaveRewardCards(nowMs, true);
       return { breaches, phaseChanged: true, reloadedJustNow };
     }
 
@@ -1001,6 +1175,37 @@ export class BeerCrusherEngine {
     return { targetNormX, targetNormY, apparentHitRadius };
   }
 
+  private handleMonsterKilled(target: ActiveTargetEntity, nowMs: number): void {
+    if (target.kind === 'boss') {
+      this.activeTargets = [];
+      this.isRewardCardPending = false;
+      this.gamePhase = 'VICTORY';
+      return;
+    }
+
+    if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
+      if (!this.isTutorialMode && !this.isSandboxMode) {
+        // 1. 적 처치 랜덤 아이템 드롭 (필드 위 아이템 2개 미만 시)
+        const currentItemCount = this.activeTargets.filter((t) => t.isItem).length;
+        if (currentItemCount < 2) {
+          const dropProb = 0.04 * this.getLuckyDropMultiplier();
+          if (this.dropRng() < dropProb) {
+            this.spawnItemTargetAt(nowMs, target.thetaRad, target.radiusM);
+          }
+        }
+
+        // 2. 킬 게이지 누적 및 중도 카드 스폰
+        this.cardKillCount += 1;
+        if (this.cardKillCount >= this.getCardKillTarget()) {
+          this.cardKillCount = 0;
+          if (!this.isRewardCardPending) {
+            this.spawnWaveRewardCards(nowMs, false);
+          }
+        }
+      }
+    }
+  }
+
   public shootAt(aimX: number, aimY: number, nowMs: number): EngineShootResult {
     if (this.isPaused) {
       return { fired: false, grade: 'MISS' };
@@ -1099,7 +1304,22 @@ export class BeerCrusherEngine {
         this.applyRewardCard(selectedCard, nowMs);
         this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
         this.isRewardCardPending = false;
-        this.startWave(this.currentWave + 1);
+
+        const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
+        const monsterTargets = this.activeTargets.filter(
+          (t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind
+        );
+        const remainingMonsters = monsterTargets.length;
+        const remainingSpawns = Math.max(0, waveDef.totalSpawns - this.spawnedInWave);
+
+        if (this.pendingWaveAdvance || (remainingSpawns === 0 && remainingMonsters === 0)) {
+          if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
+            this.gamePhase = 'VICTORY';
+          } else {
+            this.startWave(this.currentWave + 1);
+          }
+        }
+
         return {
           fired: true,
           grade: result.grade,
@@ -1195,6 +1415,7 @@ export class BeerCrusherEngine {
                 this.activeTargets.splice(rearIdx, 1);
                 this.killedInWave += 1;
                 this.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
+                this.handleMonsterKilled(rear, nowMs);
               }
             }
           });
@@ -1247,6 +1468,8 @@ export class BeerCrusherEngine {
             }
           }
         }
+
+        this.handleMonsterKilled(target, nowMs);
       }
 
       return {
@@ -1308,7 +1531,9 @@ export class BeerCrusherEngine {
           if (idx >= 0) {
             this.activeTargets.splice(idx, 1);
             this.killedInWave += 1;
-            this.scoreManager.registerHit('PERFECT', monster.killBonusScore);
+            this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
+            this.handleMonsterKilled(monster, nowMs);
+            if (this.gamePhase === 'VICTORY') break;
           }
         }
       }
@@ -1334,7 +1559,9 @@ export class BeerCrusherEngine {
           if (idx >= 0) {
             this.activeTargets.splice(idx, 1);
             this.killedInWave += 1;
-            this.scoreManager.registerHit('PERFECT', monster.killBonusScore);
+            this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
+            this.handleMonsterKilled(monster, nowMs);
+            if (this.gamePhase === 'VICTORY') break;
           }
         }
       }
@@ -1362,7 +1589,9 @@ export class BeerCrusherEngine {
             if (idx >= 0) {
               this.activeTargets.splice(idx, 1);
               this.killedInWave += 1;
-              this.scoreManager.registerHit('PERFECT', monster.killBonusScore);
+              this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
+              this.handleMonsterKilled(monster, nowMs);
+              if (this.gamePhase === 'VICTORY') break;
             }
           }
         }

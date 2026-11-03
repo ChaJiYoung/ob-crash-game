@@ -91,4 +91,219 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(tracker.isAimLocked()).toBe(false);
     });
   });
+
+  describe('T02: Kill-Gauge Reward Cards, Field Freeze & Roguelike Passives', () => {
+    it('should spawn 3D cards at 10 kills in Wave 1 and freeze monsters on field', () => {
+      engine.startGame({ withWeaponSelect: false });
+      engine.activeTargets = [];
+      engine.weaponSystem.selectWeapon('revolver', 1);
+      engine.weaponSystem.setInfiniteAmmo(true);
+
+      // Spawn 10 normal monsters and 1 extra monster that stays on field (placed at thetaRad = 0.35 outside revolver pierce cone)
+      const extraMonster = engine.spawnSandboxTarget('bottle', { radiusM: 14.0, thetaRad: 0.35 });
+      extraMonster.id = 'monster_survivor';
+      engine.gamePhase = 'PLAYING';
+      engine.isSandboxMode = false;
+      engine.activeTargets = [extraMonster];
+
+      // Simulate killing 10 monsters (Wave 1 target is 10)
+      for (let i = 0; i < 10; i++) {
+        const dummy = {
+          id: `target_kill_${i}`,
+          kind: 'pilgood' as const,
+          hp: 1,
+          maxHp: 1,
+          radiusM: 8.0,
+          thetaRad: 0,
+          x: 0,
+          z: -8.0,
+          speedMps: 1.0,
+          hitRadiusM: 1.0,
+          killBonusScore: 50,
+          breached: false,
+        };
+        engine.activeTargets.push(dummy);
+        const proj = engine.computeTargetAimCoords(dummy);
+        const res = engine.shootAt(proj.targetNormX, proj.targetNormY, 1000 + i * 500);
+        expect(res.fired).toBe(true);
+        expect(res.killed).toBe(true);
+      }
+
+      // Check that 10 kills triggered reward cards
+      expect(engine.isRewardCardPending).toBe(true);
+      expect(engine.pendingWaveAdvance).toBe(false);
+
+      // The field should contain the 3 cards + the 1 surviving monster
+      const cards = engine.activeTargets.filter((t) => t.rewardCardKind);
+      expect(cards.length).toBe(3);
+      expect(engine.activeTargets.some((t) => t.id === 'monster_survivor')).toBe(true);
+
+      const survivorRadiusBefore = extraMonster.radiusM;
+      // Advance engine by 5 seconds while cards are pending
+      engine.update(10000, 5.0);
+
+      // Field must be frozen: survivor has moved 0 meters
+      expect(extraMonster.radiusM).toBe(survivorRadiusBefore);
+
+      // Now select a card after 800ms cooldown (spawned at ~5500ms)
+      const chosenCard = cards.find((c) => c.rewardCardKind === 'weapon_level_up')!;
+      const cardProj = engine.computeTargetAimCoords(chosenCard);
+      const cardShot = engine.shootAt(cardProj.targetNormX, cardProj.targetNormY, 12000);
+
+      expect(cardShot.fired).toBe(true);
+      expect(cardShot.selectedCard).toBe('weapon_level_up');
+      expect(engine.isRewardCardPending).toBe(false);
+
+      // The surviving monster must still be present on field and wave 1 continues
+      expect(engine.activeTargets.some((t) => t.id === 'monster_survivor')).toBe(true);
+      expect(engine.currentWave).toBe(1);
+
+      // Next update should resume monster movement
+      engine.update(13000, 1.0);
+      expect(extraMonster.radiusM).toBeLessThan(survivorRadiusBefore);
+    });
+
+    it('should upgrade bar_repair reward card to +1 maxLives and 100% full heal', () => {
+      engine.startGame({ withWeaponSelect: false });
+      engine.lives = 2; // Damaged
+      expect(engine.maxLives).toBe(5);
+
+      engine.applyRewardCard('bar_repair', 1000);
+      expect(engine.maxLives).toBe(6);
+      expect(engine.lives).toBe(6);
+
+      // Normal item bar_repair only heals 1 HP up to maxLives
+      engine.lives = 4;
+      engine.activateItemBuff('bar_repair', 2000);
+      expect(engine.lives).toBe(5);
+    });
+
+    it('should stack lucky_drop multiplier up to 4x and drop items on monster kill', () => {
+      engine.startGame({ withWeaponSelect: false });
+      expect(engine.getLuckyDropMultiplier()).toBe(1);
+
+      engine.applyRewardCard('lucky_drop', 1000);
+      expect(engine.getLuckyDropMultiplier()).toBe(2);
+
+      engine.applyRewardCard('lucky_drop', 2000);
+      expect(engine.getLuckyDropMultiplier()).toBe(3);
+
+      engine.applyRewardCard('lucky_drop', 3000);
+      expect(engine.getLuckyDropMultiplier()).toBe(4);
+
+      // Cannot exceed 4x
+      engine.applyRewardCard('lucky_drop', 4000);
+      expect(engine.getLuckyDropMultiplier()).toBe(4);
+
+      // Test drop probability with deterministic RNG
+      // At 4x multiplier: dropProb = 0.04 * 4 = 0.16
+      // Inject RNG returning 0.10 (< 0.16 -> drop item!)
+      engine.dropRng = () => 0.10;
+      const target = {
+        id: 'test_drop_target',
+        kind: 'pilgood' as const,
+        hp: 1,
+        maxHp: 1,
+        radiusM: 10.0,
+        thetaRad: 0.1,
+        x: Math.sin(0.1) * 10,
+        z: -Math.cos(0.1) * 10,
+        speedMps: 1.0,
+        hitRadiusM: 1.0,
+        killBonusScore: 50,
+        breached: false,
+      };
+      engine.activeTargets = [target];
+      const proj = engine.computeTargetAimCoords(target);
+      engine.shootAt(proj.targetNormX, proj.targetNormY, 5000);
+
+      const items = engine.activeTargets.filter((t) => t.isItem);
+      expect(items.length).toBe(1);
+      expect(items[0].thetaRad).toBeCloseTo(0.1, 2);
+    });
+  });
+
+  describe('T02: Wave 5 Cooler Boss 10m Stop, Minion Summons & Instant Victory', () => {
+    it('should clamp cooler boss at 10.0m and summon minion wave on tap lever action', () => {
+      engine.startGame({ withWeaponSelect: false });
+      engine.startWave(5);
+      engine.activeTargets = [];
+
+      // Spawn boss at 11.0m
+      const boss = {
+        id: 'boss_unit',
+        kind: 'boss' as const,
+        hp: 50,
+        maxHp: 50,
+        radiusM: 11.0,
+        thetaRad: 0,
+        x: 0,
+        z: -11.0,
+        speedMps: 2.0,
+        hitRadiusM: 2.5,
+        killBonusScore: 5000,
+        breached: false,
+      };
+      // Mark bossSpawned true
+      // @ts-expect-error accessing private property for test setup
+      engine.bossSpawned = true;
+      engine.activeTargets = [boss];
+
+      // Update by 2 seconds: speed is 2.0m/s so it would reach 7.0m, but clamped to 10.0m!
+      engine.update(1000, 2.0);
+      expect(boss.radiusM).toBe(10.0);
+      expect(boss.breached).toBe(false);
+      expect(engine.lives).toBe(5); // Defense line unharmed!
+
+      // Boss summon action should have triggered since boss.radiusM <= 12.5 and lastBossSummonTimeMs was 0
+      expect(engine.isBossSummoning(1500)).toBe(true);
+      const minions = engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_'));
+      expect(minions.length).toBe(4);
+    });
+
+    it('should trigger instant victory and clear all entities when boss is killed', () => {
+      engine.startGame({ withWeaponSelect: false });
+      engine.startWave(5);
+      engine.weaponSystem.selectWeapon('revolver', 1);
+
+      const boss = {
+        id: 'boss_unit',
+        kind: 'boss' as const,
+        hp: 1, // 1 HP left
+        maxHp: 50,
+        radiusM: 10.0,
+        thetaRad: 0,
+        x: 0,
+        z: -10.0,
+        speedMps: 0,
+        hitRadiusM: 2.5,
+        killBonusScore: 5000,
+        breached: false,
+      };
+      const minion = {
+        id: 'minion_remaining',
+        kind: 'caslight' as const,
+        hp: 10,
+        maxHp: 10,
+        radiusM: 8.0,
+        thetaRad: 0.2,
+        x: 1,
+        z: -8,
+        speedMps: 1.0,
+        hitRadiusM: 1.0,
+        killBonusScore: 50,
+        breached: false,
+      };
+      engine.activeTargets = [boss, minion];
+
+      const proj = engine.computeTargetAimCoords(boss);
+      const killShot = engine.shootAt(proj.targetNormX, proj.targetNormY, 5000);
+
+      expect(killShot.fired).toBe(true);
+      expect(killShot.killed).toBe(true);
+      expect(engine.gamePhase).toBe('VICTORY');
+      // All remaining minions and projectiles cleared
+      expect(engine.activeTargets.length).toBe(0);
+    });
+  });
 });
