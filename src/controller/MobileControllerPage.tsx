@@ -337,6 +337,10 @@ export const MobileControllerPage: React.FC = () => {
         <GunGripPad
           isCocked={isCockedState}
           onRecalibrateZero={handleCalibrateZero}
+          onSingleTapFire={() => {
+            snapFireRef.current = true;
+            flushSensorFrame();
+          }}
           onFeverTrigger={() => {
             feverTriggeredRef.current = true;
             isCockedRef.current = false;
@@ -347,11 +351,6 @@ export const MobileControllerPage: React.FC = () => {
           onCockingChange={(cocked) => {
             isCockedRef.current = cocked;
             setIsCockedState(cocked);
-            if (cocked) {
-              tracker.lockAim(latestOrientationRef.current);
-            } else {
-              tracker.unlockAim();
-            }
             flushSensorFrame();
           }}
           isFeverReady={isFeverReady}

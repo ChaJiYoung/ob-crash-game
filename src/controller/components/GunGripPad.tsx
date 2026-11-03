@@ -5,6 +5,7 @@ import { triggerHaptic } from '../sensors/HapticFeedback';
 export interface GunGripPadProps {
   onRecalibrateZero: () => void;
   onFeverTrigger: () => void;
+  onSingleTapFire?: () => void;
   onCockingChange?: (cocked: boolean) => void;
   isFeverReady?: boolean;
   isCocked?: boolean;
@@ -13,6 +14,7 @@ export interface GunGripPadProps {
 export const GunGripPad: React.FC<GunGripPadProps> = ({
   onRecalibrateZero,
   onFeverTrigger,
+  onSingleTapFire,
   onCockingChange,
   isFeverReady = false,
   isCocked: isCockedProp,
@@ -23,11 +25,17 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
 
   const onFeverTriggerRef = useRef(onFeverTrigger);
   onFeverTriggerRef.current = onFeverTrigger;
+  const onSingleTapFireRef = useRef(onSingleTapFire);
+  onSingleTapFireRef.current = onSingleTapFire;
   const onCockingChangeRef = useRef(onCockingChange);
   onCockingChangeRef.current = onCockingChange;
 
   useEffect(() => {
     const pad = new UnifiedTouchPadController({
+      onSingleTapFire: () => {
+        triggerHaptic(25);
+        onSingleTapFireRef.current?.();
+      },
       onFeverTrigger: () => {
         triggerHaptic([50, 50, 100]);
         onFeverTriggerRef.current();
@@ -43,8 +51,6 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     setInternalCocked(true);
-    // 25ms 숏 햅틱 피드백으로 경쾌한 재코킹 촉각 전달
-    triggerHaptic(25);
     onCockingChangeRef.current?.(true);
     touchPadRef.current?.handlePointerDown();
   };
