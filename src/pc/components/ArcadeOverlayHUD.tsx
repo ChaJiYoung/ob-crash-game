@@ -1,7 +1,77 @@
 import React from 'react';
-import { ActiveBuffState, PlayerProfile } from '../../shared/types';
-import { ITEM_BUFF_SPECS, STAGE_CONSTANTS } from '../../shared/constants';
+import { ActiveBuffState, PlayerProfile, TargetKind, WeaponKind, WeaponLevel } from '../../shared/types';
+import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
 import { ActiveTargetEntity, WaveProgressInfo } from '../engine/BeerCrusherEngine';
+
+export interface MonsterHudProjection {
+  id: string;
+  kind: TargetKind;
+  hp: number;
+  maxHp: number;
+  leftPercent: number;
+  topPercent: number;
+  isStunned?: boolean;
+  isSlowed?: boolean;
+  isBoss?: boolean;
+  cardTitle?: string;
+  isItem?: boolean;
+  isProjectile?: boolean;
+}
+
+/**
+ * D03 Specification:
+ * - 1HP air cans ('pilgood', 'caslight') and items/projectiles return false to reduce HUD clutter
+ * - Multi-hit monsters with maxHp >= 2 ('obi: 2', 'hanmac: 3', 'bottle: 4', 'boss: 60') return true
+ */
+export function shouldRenderMonsterHpBar(
+  maxHp: number,
+  isItem?: boolean,
+  isProjectile?: boolean
+): boolean {
+  if (isItem || isProjectile) return false;
+  return maxHp >= 2;
+}
+
+export function formatWeaponSkillBadge(
+  weaponKind: WeaponKind,
+  weaponLevel: WeaponLevel,
+  skillStock: number,
+  maxSkillStock: number,
+  cooldownRemainingMs: number
+): {
+  weaponTitle: string;
+  levelBadge: string;
+  skillStatusText: string;
+  isReady: boolean;
+  accentColor: string;
+} {
+  const spec = WEAPON_ARCHETYPE_SPECS[weaponKind];
+  const weaponTitle = spec ? spec.nameKo : weaponKind;
+  const levelBadge = weaponLevel >= 4 ? 'Lv.MAX' : `Lv.${weaponLevel}`;
+  const isReady = skillStock > 0;
+  const accentColor =
+    weaponKind === 'shotgun'
+      ? '#ef4444'
+      : weaponKind === 'revolver'
+      ? '#fbbf24'
+      : '#06b6d4';
+
+  let skillStatusText = '';
+  if (isReady) {
+    const stockBadge = maxSkillStock > 1 ? ` [★${skillStock}/${maxSkillStock}]` : '';
+    skillStatusText = `⚡ SKILL READY!${stockBadge} [위로 휙! / R키]`;
+  } else {
+    skillStatusText = `쿨다운 ${(Math.max(0, cooldownRemainingMs) / 1000).toFixed(1)}s`;
+  }
+
+  return {
+    weaponTitle,
+    levelBadge,
+    skillStatusText,
+    isReady,
+    accentColor,
+  };
+}
 
 export function formatAmmoStatusText(
   ammo: number,
@@ -88,6 +158,12 @@ export interface ArcadeOverlayHUDProps {
   bossEntity?: ActiveTargetEntity;
   activeBuffs?: ActiveBuffState[];
   waveProgress?: WaveProgressInfo;
+  monsterProjections?: MonsterHudProjection[];
+  weaponKind?: WeaponKind;
+  weaponLevel?: WeaponLevel;
+  skillStock?: number;
+  maxSkillStock?: number;
+  skillCooldownRemainingMs?: number;
   onOpenGuide?: () => void;
 }
 
@@ -109,10 +185,23 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   bossEntity,
   activeBuffs = [],
   waveProgress,
+  monsterProjections = [],
+  weaponKind = 'shotgun',
+  weaponLevel = 1,
+  skillStock = 1,
+  maxSkillStock = 1,
+  skillCooldownRemainingMs = 0,
   onOpenGuide,
 }) => {
   const ammoText = formatAmmoStatusText(ammo, maxAmmo, isReloading, isFeverActive);
   const feverBadge = formatFeverStatusBadge(feverGauge, isFeverReady, isFeverActive);
+  const skillBadge = formatWeaponSkillBadge(
+    weaponKind,
+    weaponLevel,
+    skillStock,
+    maxSkillStock,
+    skillCooldownRemainingMs
+  );
 
   return (
     <div
@@ -129,6 +218,100 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         userSelect: 'none',
       }}
     >
+      {/* 3D TRACKING MONSTER NEON DOT HP BARS */}
+      {monsterProjections.map((proj) => {
+        if (!shouldRenderMonsterHpBar(proj.maxHp, proj.isItem, proj.isProjectile)) return null;
+        if (proj.leftPercent < -5 || proj.leftPercent > 105 || proj.topPercent < -5 || proj.topPercent > 105) return null;
+
+        const hpRatio = Math.max(0, Math.min(1, proj.hp / proj.maxHp));
+        const color = hpRatio > 0.5 ? '#10b981' : hpRatio > 0.25 ? '#f59e0b' : '#ef4444';
+        const segments = Math.min(10, Math.ceil(proj.maxHp));
+        const currentSegments = Math.round(hpRatio * segments);
+
+        return (
+          <div
+            key={proj.id}
+            style={{
+              position: 'absolute',
+              left: `${proj.leftPercent}%`,
+              top: `${proj.topPercent}%`,
+              transform: 'translate(-50%, -100%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              pointerEvents: 'none',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))',
+              zIndex: 10,
+            }}
+          >
+            {/* Status tags */}
+            {(proj.isStunned || proj.isSlowed) && (
+              <div style={{ display: 'flex', gap: '3px', marginBottom: '1px' }}>
+                {proj.isStunned && (
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: 900,
+                      color: '#111827',
+                      background: '#fbbf24',
+                      padding: '1px 4px',
+                      borderRadius: '4px',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    ⚡STUN
+                  </span>
+                )}
+                {proj.isSlowed && (
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: 900,
+                      color: '#111827',
+                      background: '#67e8f9',
+                      padding: '1px 4px',
+                      borderRadius: '4px',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    ❄️SLOW
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Neon Segments Dot Bar */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '2.5px',
+                background: 'rgba(15, 23, 42, 0.85)',
+                padding: '2px 4px',
+                borderRadius: '5px',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+              }}
+            >
+              {Array.from({ length: segments }).map((_, segIdx) => {
+                const filled = segIdx < currentSegments;
+                return (
+                  <div
+                    key={segIdx}
+                    style={{
+                      width: segments <= 4 ? '10px' : '7px',
+                      height: '5px',
+                      borderRadius: '2px',
+                      background: filled ? color : 'rgba(255, 255, 255, 0.15)',
+                      boxShadow: filled ? `0 0 6px ${color}` : 'none',
+                      transition: 'background 0.1s',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
       {/* TOP BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         {/* TOP-LEFT: Player Badge, Score, Combo, Lives */}
@@ -414,55 +597,125 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
 
       {/* BOTTOM BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        {/* BOTTOM-LEFT: Magazine / Ammo Status */}
+        {/* BOTTOM-LEFT: Weapon Archetype, Dynamic Ammo & Active Skill Badge */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.8)',
+            background: 'rgba(17, 24, 39, 0.88)',
             backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
             borderRadius: '16px',
-            padding: '16px 20px',
-            minWidth: '240px',
+            padding: '14px 20px',
+            minWidth: '290px',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
           }}
         >
-          <div
-            style={{
-              fontSize: '13px',
-              fontWeight: 800,
-              color: isReloading ? '#f87171' : isFeverActive ? '#fbbf24' : '#38bdf8',
-              marginBottom: '8px',
-            }}
-          >
-            {ammoText}
+          {/* Weapon Name & Lv Badge */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  background: skillBadge.accentColor,
+                  color: '#111827',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                }}
+              >
+                {skillBadge.levelBadge}
+              </span>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#f8fafc' }}>
+                {skillBadge.weaponTitle}
+              </span>
+            </div>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                color: isReloading ? '#f87171' : isFeverActive ? '#fbbf24' : '#94a3b8',
+              }}
+            >
+              {ammoText}
+            </span>
           </div>
 
-          {/* 10 Bullets Indicator */}
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {Array.from({ length: maxAmmo }).map((_, idx) => {
-              const filled = isFeverActive || idx < ammo;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    width: '14px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    background: filled
-                      ? isFeverActive
-                        ? '#fbbf24'
-                        : '#38bdf8'
-                      : 'rgba(255, 255, 255, 0.1)',
-                    boxShadow: filled
-                      ? isFeverActive
-                        ? '0 0 8px #fbbf24'
-                        : '0 0 6px #38bdf8'
-                      : 'none',
-                    transition: 'background 0.15s',
-                  }}
-                />
-              );
-            })}
+          {/* Dynamic Magazine (Discrete Bullets <= 12 vs Gauge Bar > 12) */}
+          {maxAmmo <= 12 ? (
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+              {Array.from({ length: maxAmmo }).map((_, idx) => {
+                const filled = isFeverActive || idx < ammo;
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      width: '12px',
+                      height: '20px',
+                      borderRadius: '3px',
+                      background: filled
+                        ? isFeverActive
+                          ? '#fbbf24'
+                          : skillBadge.accentColor
+                        : 'rgba(255, 255, 255, 0.1)',
+                      boxShadow: filled
+                        ? isFeverActive
+                          ? '0 0 8px #fbbf24'
+                          : `0 0 6px ${skillBadge.accentColor}`
+                        : 'none',
+                      transition: 'background 0.15s',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              style={{
+                height: '10px',
+                background: 'rgba(255, 255, 255, 0.12)',
+                borderRadius: '5px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: `${(ammo / maxAmmo) * 100}%`,
+                  background: isFeverActive
+                    ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                    : `linear-gradient(90deg, #0284c7, ${skillBadge.accentColor})`,
+                  boxShadow: `0 0 8px ${skillBadge.accentColor}`,
+                  transition: 'width 0.08s ease-out',
+                }}
+              />
+            </div>
+          )}
+
+          {/* Active Skill Slot */}
+          <div
+            style={{
+              marginTop: '2px',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              background: skillBadge.isReady ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+              border: `1px solid ${skillBadge.isReady ? '#f59e0b' : 'rgba(255, 255, 255, 0.1)'}`,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: skillBadge.isReady ? '#fbbf24' : '#94a3b8',
+                letterSpacing: '0.3px',
+              }}
+            >
+              {skillBadge.skillStatusText}
+            </span>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { BeerCrusherEngine, EngineShootResult, WaveProgressInfo } from './engine/BeerCrusherEngine';
 import { GameCanvas3D, GameCanvas3DHandle } from './components/GameCanvas3D';
-import { ArcadeOverlayHUD } from './components/ArcadeOverlayHUD';
+import { ArcadeOverlayHUD, MonsterHudProjection } from './components/ArcadeOverlayHUD';
 import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
 import { JudgmentBanner } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
@@ -10,7 +10,7 @@ import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
-import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage } from '../shared/types';
+import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 
 export interface PCGamePageProps {
@@ -92,7 +92,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     isWideScopeActive: false,
     isPowerShotActive: false,
     waveProgress: undefined as WaveProgressInfo | undefined,
+    weaponKind: 'shotgun' as WeaponKind,
+    weaponLevel: 1 as WeaponLevel,
+    skillStock: 1,
+    maxSkillStock: 1,
+    skillCooldownRemainingMs: 0,
   });
+
+  const [monsterProjections, setMonsterProjections] = useState<MonsterHudProjection[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
   const rapidFireTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -156,6 +163,35 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       setLastShootResult({ result, key: Date.now() });
     }
   }, [engine, soundSynth]);
+
+  const executeSkill = useCallback(() => {
+    const now = performance.now();
+    const res = engine.triggerWeaponSkill(now);
+    if (res.activated) {
+      soundSynth.playSkillActivation(res.weaponKind);
+      canvasRef.current?.triggerSkillEffect?.(res.weaponKind);
+    }
+  }, [engine, soundSynth]);
+
+  // Keyboard 'R' & Mouse Right-Click Skill triggers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'KeyR') {
+        executeSkill();
+      }
+    };
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      executeSkill();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [executeSkill]);
 
   // 1. WebSocket Setup (Isolated from pairedPlayer re-renders to prevent socket close loop)
   useEffect(() => {
@@ -304,6 +340,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 }
               }
             }
+
+            if (p.skillSnapTriggered) {
+              executeSkill();
+            }
             break;
           }
 
@@ -364,6 +404,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         isWideScopeActive,
         isPowerShotActive,
         waveProgress: engine.getWaveProgress(),
+        weaponKind: weaponState.weaponKind,
+        weaponLevel: weaponState.weaponLevel,
+        skillStock: weaponState.skillStock,
+        maxSkillStock: weaponState.maxSkillStock,
+        skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
       });
 
       // 100% Auto-Rapid-Fire loop during active Fever mode
@@ -563,6 +608,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         onShoot={handleShootEvent}
         soundSynth={soundSynth}
         lastShootResult={lastShootResult}
+        onMonsterProjectionsUpdate={setMonsterProjections}
       />
 
       {/* 2. 4-Corner Arcade Overlay HUD */}
@@ -586,6 +632,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             bossEntity={bossEntity}
             activeBuffs={hudState.activeBuffs}
             waveProgress={hudState.waveProgress}
+            monsterProjections={monsterProjections}
+            weaponKind={hudState.weaponKind}
+            weaponLevel={hudState.weaponLevel}
+            skillStock={hudState.skillStock}
+            maxSkillStock={hudState.maxSkillStock}
+            skillCooldownRemainingMs={hudState.skillCooldownRemainingMs}
             onOpenGuide={handleOpenGuide}
           />
           <CrosshairOverlay

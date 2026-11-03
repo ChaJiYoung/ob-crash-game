@@ -3,6 +3,8 @@ import {
   formatAmmoStatusText,
   formatFeverStatusBadge,
   formatActiveBuffBadge,
+  shouldRenderMonsterHpBar,
+  formatWeaponSkillBadge,
 } from '../src/pc/components/ArcadeOverlayHUD';
 import { getJudgmentBannerSpec } from '../src/pc/components/JudgmentBanner';
 import {
@@ -136,5 +138,47 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
 
     const mouseRightAim = viewportRatioToAim(0.94, 0);
     expect(mouseRightAim.aimX).toBeCloseTo(1.0, 2);
+  });
+
+  it('should filter monster HP bar visibility with shouldRenderMonsterHpBar according to D03 spec', () => {
+    // 1HP Air cans (pilgood, caslight) should NOT show HP bar (reduces clutter)
+    expect(shouldRenderMonsterHpBar(1)).toBe(false);
+
+    // Items and Projectiles should NOT show HP bar
+    expect(shouldRenderMonsterHpBar(1, true, false)).toBe(false);
+    expect(shouldRenderMonsterHpBar(4, true, false)).toBe(false);
+    expect(shouldRenderMonsterHpBar(1, false, true)).toBe(false);
+
+    // Multi-hit monsters (obi: 2, hanmac: 3, bottle: 4, boss: 60) MUST show HP bar
+    expect(shouldRenderMonsterHpBar(2)).toBe(true);
+    expect(shouldRenderMonsterHpBar(3)).toBe(true);
+    expect(shouldRenderMonsterHpBar(4)).toBe(true);
+    expect(shouldRenderMonsterHpBar(60)).toBe(true);
+  });
+
+  it('should format weapon and skill badges across Lv.1~MAX and ready/cooldown states', () => {
+    // 1. Shotgun Lv.1 Ready
+    const sg = formatWeaponSkillBadge('shotgun', 1, 1, 1, 0);
+    expect(sg.weaponTitle).toBe('맥주관 뚫어뻥 샷건');
+    expect(sg.levelBadge).toBe('Lv.1');
+    expect(sg.isReady).toBe(true);
+    expect(sg.skillStatusText).toContain('SKILL READY');
+    expect(sg.accentColor).toBe('#ef4444');
+
+    // 2. Revolver Lv.4 MAX in Cooldown
+    const rev = formatWeaponSkillBadge('revolver', 4, 0, 2, 3500);
+    expect(rev.weaponTitle).toBe('황금 병따개 리볼버');
+    expect(rev.levelBadge).toBe('Lv.MAX');
+    expect(rev.isReady).toBe(false);
+    expect(rev.skillStatusText).toContain('3.5s');
+    expect(rev.accentColor).toBe('#fbbf24');
+
+    // 3. Gatling Lv.2 with 2 Stocks Ready
+    const gat = formatWeaponSkillBadge('gatling', 2, 2, 2, 0);
+    expect(gat.weaponTitle).toBe('탄산 탭 개틀링');
+    expect(gat.levelBadge).toBe('Lv.2');
+    expect(gat.isReady).toBe(true);
+    expect(gat.skillStatusText).toContain('★2/2');
+    expect(gat.accentColor).toBe('#06b6d4');
   });
 });

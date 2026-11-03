@@ -21,6 +21,7 @@ import { ParticleEffects3D } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
+import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
 
 export function computeAimWorldPoint(
@@ -68,6 +69,7 @@ export interface GameCanvas3DProps {
   soundSynth: SoundSynthesizer;
   lastShootResult?: { result: EngineShootResult; key: number };
   lastSkillTriggered?: { kind: WeaponKind; level?: WeaponLevel; key: number };
+  onMonsterProjectionsUpdate?: (projections: MonsterHudProjection[]) => void;
 }
 
 export const GameCanvas3D = React.memo(
@@ -80,6 +82,7 @@ export const GameCanvas3D = React.memo(
     soundSynth,
     lastShootResult,
     lastSkillTriggered,
+    onMonsterProjectionsUpdate,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
@@ -88,6 +91,8 @@ export const GameCanvas3D = React.memo(
     onAimChangeRef.current = onAimChange;
     const onShootRef = useRef(onShoot);
     onShootRef.current = onShoot;
+    const onMonsterProjectionsUpdateRef = useRef(onMonsterProjectionsUpdate);
+    onMonsterProjectionsUpdateRef.current = onMonsterProjectionsUpdate;
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const tapGunRef = useRef<DraftTapGun3D | null>(null);
@@ -330,6 +335,7 @@ export const GameCanvas3D = React.memo(
       let animId = 0;
       let lastTime = performance.now();
       const activeIds = new Set<string>();
+      const projVec = new THREE.Vector3();
 
       const animate = (time: number) => {
         animId = requestAnimationFrame(animate);
@@ -436,6 +442,42 @@ export const GameCanvas3D = React.memo(
         // Update stage lighting & alert
         const hasDanger = engine.activeTargets.some((t) => !t.isItem && t.radiusM < 5.0);
         stageRig.updateStageAnimation(time / 1000, feverState.isFeverActive, hasDanger);
+
+        // Project monster 3D head positions to HUD screen percentage
+        if (onMonsterProjectionsUpdateRef.current && cameraRef.current) {
+          const camera = cameraRef.current;
+          const projections: MonsterHudProjection[] = [];
+
+          engine.activeTargets.forEach((target) => {
+            if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile)) return;
+            const mesh = targetMeshMap.get(target.id);
+            if (!mesh) return;
+
+            const headY = mesh.position.y + (target.hitRadiusM || 0.8) * 0.9 + 0.35;
+            projVec.set(mesh.position.x, headY, mesh.position.z);
+            projVec.project(camera);
+
+            if (projVec.z > 1.0) return;
+
+            const leftPercent = ((projVec.x + 1) / 2) * 100;
+            const topPercent = ((-projVec.y + 1) / 2) * 100;
+
+            projections.push({
+              id: target.id,
+              kind: target.kind,
+              hp: target.hp,
+              maxHp: target.maxHp,
+              leftPercent,
+              topPercent,
+              isStunned: Boolean(target.stunUntilMs && target.stunUntilMs > time),
+              isSlowed: Boolean(target.slowUntilMs && target.slowUntilMs > time),
+              isBoss: target.kind === 'boss',
+              isItem: target.isItem,
+              isProjectile: target.isProjectile,
+            });
+          });
+          onMonsterProjectionsUpdateRef.current(projections);
+        }
 
         // Update particles and tracer beams
         particles.update(dtSec);
