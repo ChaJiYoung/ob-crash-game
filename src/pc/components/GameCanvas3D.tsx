@@ -37,13 +37,18 @@ export function computeAimWorldPoint(
 
 function disposeGroup(group: THREE.Group): void {
   group.traverse((obj) => {
-    if ((obj as THREE.Mesh).isMesh) {
-      const mesh = obj as THREE.Mesh;
+    const mesh = obj as THREE.Mesh;
+    if (mesh.isMesh) {
       if (mesh.geometry) mesh.geometry.dispose();
       if (Array.isArray(mesh.material)) {
         mesh.material.forEach((m) => m.dispose());
       } else if (mesh.material) {
         mesh.material.dispose();
+      }
+    } else if ((obj as any).isSprite) {
+      const sprite = obj as THREE.Sprite;
+      if (sprite.material) {
+        sprite.material.dispose();
       }
     }
   });
@@ -324,6 +329,7 @@ export const GameCanvas3D = React.memo(
       // 6. Animation loop
       let animId = 0;
       let lastTime = performance.now();
+      const activeIds = new Set<string>();
 
       const animate = (time: number) => {
         animId = requestAnimationFrame(animate);
@@ -347,7 +353,10 @@ export const GameCanvas3D = React.memo(
         }
 
         // Sync 3D Target Meshes
-        const activeIds = new Set(engine.activeTargets.map((t) => t.id));
+        activeIds.clear();
+        for (let i = 0; i < engine.activeTargets.length; i++) {
+          activeIds.add(engine.activeTargets[i].id);
+        }
 
         // Remove dead target meshes with memory disposal
         targetMeshMap.forEach((mesh, id) => {

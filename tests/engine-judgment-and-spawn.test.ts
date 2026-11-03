@@ -7,7 +7,7 @@ import {
 import { evaluateHitJudgment } from '../src/pc/engine/HitJudgment';
 import { ScoreAndFeverManager } from '../src/pc/engine/ScoreAndFeverManager';
 import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
-import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
+import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
 import { STAGE_CONSTANTS } from '../src/shared/constants';
 
 describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload', () => {
@@ -568,7 +568,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const engine = new BeerCrusherEngine();
     engine.startGame();
 
-    const m1 = {
+    const m1: ActiveTargetEntity = {
       id: 'm1',
       kind: 'bottle' as const,
       hp: 4.0,
@@ -582,7 +582,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
       killBonusScore: 160,
       breached: false,
     };
-    const m2 = {
+    const m2: ActiveTargetEntity = {
       id: 'm2',
       kind: 'hanmac' as const,
       hp: 3.0,

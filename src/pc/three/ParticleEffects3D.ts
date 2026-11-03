@@ -47,6 +47,22 @@ export interface SkillEffectItem {
   updateFn: (dt: number, life: number) => boolean; // returns true when finished
 }
 
+function disposeObject3D(root: THREE.Object3D): void {
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh;
+    if (mesh.geometry) {
+      mesh.geometry.dispose();
+    }
+    if (mesh.material) {
+      if (Array.isArray(mesh.material)) {
+        mesh.material.forEach((m) => m.dispose());
+      } else {
+        mesh.material.dispose();
+      }
+    }
+  });
+}
+
 export class ParticleEffects3D {
   public readonly group: THREE.Group;
   private particles: ParticleItem[] = [];
@@ -587,6 +603,10 @@ export class ParticleEffects3D {
       if (tb.lifeSec >= tb.maxLifeSec) {
         this.group.remove(tb.beamMesh);
         this.group.remove(tb.flashMesh);
+        tb.beamMesh.geometry.dispose();
+        (tb.beamMesh.material as THREE.Material).dispose();
+        tb.flashMesh.geometry.dispose();
+        (tb.flashMesh.material as THREE.Material).dispose();
         this.tracerBeams.splice(i, 1);
         continue;
       }
@@ -621,6 +641,7 @@ export class ParticleEffects3D {
 
       if (pj.lifeSec >= pj.maxLifeSec) {
         this.group.remove(pj.group);
+        disposeObject3D(pj.group);
         this.projectiles.splice(i, 1);
         continue;
       }
@@ -657,6 +678,7 @@ export class ParticleEffects3D {
 
         if (pj.progress >= 1.0) {
           this.group.remove(pj.group);
+          disposeObject3D(pj.group);
           this.projectiles.splice(i, 1);
           continue;
         }
@@ -674,6 +696,7 @@ export class ParticleEffects3D {
       const isDone = fx.updateFn(dtSec, fx.lifeSec) || fx.lifeSec >= fx.maxLifeSec;
       if (isDone) {
         this.group.remove(fx.group);
+        disposeObject3D(fx.group);
         this.skillEffects.splice(i, 1);
       }
     }
@@ -685,6 +708,10 @@ export class ParticleEffects3D {
     this.tracerBeams.forEach((tb) => {
       this.group.remove(tb.beamMesh);
       this.group.remove(tb.flashMesh);
+      tb.beamMesh.geometry.dispose();
+      (tb.beamMesh.material as THREE.Material).dispose();
+      tb.flashMesh.geometry.dispose();
+      (tb.flashMesh.material as THREE.Material).dispose();
     });
     this.tracerBeams = [];
     this.floatingLabels.forEach((fl) => {
@@ -692,9 +719,15 @@ export class ParticleEffects3D {
       fl.sprite.material.dispose();
     });
     this.floatingLabels = [];
-    this.projectiles.forEach((pj) => this.group.remove(pj.group));
+    this.projectiles.forEach((pj) => {
+      this.group.remove(pj.group);
+      disposeObject3D(pj.group);
+    });
     this.projectiles = [];
-    this.skillEffects.forEach((fx) => this.group.remove(fx.group));
+    this.skillEffects.forEach((fx) => {
+      this.group.remove(fx.group);
+      disposeObject3D(fx.group);
+    });
     this.skillEffects = [];
   }
 }

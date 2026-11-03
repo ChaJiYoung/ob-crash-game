@@ -687,6 +687,8 @@ export interface TargetAnimationOptions {
   stuckPlungerCount?: number;
 }
 
+const FROST_TINT_COLOR = new THREE.Color(0x93c5fd);
+
 export function updateTargetAnimation3D(
   root: THREE.Group,
   kind: TargetKind,
@@ -744,10 +746,9 @@ export function updateTargetAnimation3D(
     | { mat: THREE.MeshStandardMaterial; origColor: THREE.Color }[]
     | undefined;
   if (bodyMaterials) {
-    const frostColor = new THREE.Color(0x93c5fd);
     bodyMaterials.forEach(({ mat, origColor }) => {
       if (isIceFreeze) {
-        mat.color.copy(origColor).lerp(frostColor, 0.65);
+        mat.color.copy(origColor).lerp(FROST_TINT_COLOR, 0.65);
       } else {
         mat.color.copy(origColor);
       }

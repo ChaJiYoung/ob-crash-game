@@ -513,6 +513,46 @@ export class BeerCrusherEngine {
     this.gamePhase = 'PAIRING';
   }
 
+  public getBossEntity(): ActiveTargetEntity | undefined {
+    return this.activeTargets.find((t) => t.kind === 'boss');
+  }
+
+  public exitSandboxMode(): void {
+    this.isSandboxMode = false;
+    this.activeTargets = [];
+    this.gamePhase = 'PAIRING';
+  }
+
+  public spawnCalibrationFiveTargets(): void {
+    this.activeTargets = [];
+    const calibPoints = [
+      { id: 'calib_center', theta: 0, normY: 0 },
+      { id: 'calib_left', theta: -0.36, normY: 0 },
+      { id: 'calib_right', theta: 0.36, normY: 0 },
+      { id: 'calib_top', theta: 0, normY: 0.55 },
+      { id: 'calib_bottom', theta: 0, normY: -0.55 },
+    ];
+
+    calibPoints.forEach((p) => {
+      const radius = 10.0;
+      this.activeTargets.push({
+        id: p.id,
+        kind: 'obi',
+        hp: 1,
+        maxHp: 1,
+        radiusM: radius,
+        thetaRad: p.theta,
+        x: Math.sin(p.theta) * radius,
+        z: -Math.cos(p.theta) * radius,
+        speedMps: 0,
+        hitRadiusM: 1.1,
+        killBonusScore: 100,
+        breached: false,
+        customNormY: p.normY,
+      });
+    });
+  }
+
   public startSandboxMode(): void {
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;

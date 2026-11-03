@@ -23,7 +23,7 @@ export class SoundSynthesizer {
   }
 
   private ensureContext(): AudioContext | null {
-    if (!this.ctx) {
+    if (!this.ctx || this.ctx.state === 'closed') {
       this.initAudioContext();
     }
     if (this.ctx && this.ctx.state === 'suspended') {

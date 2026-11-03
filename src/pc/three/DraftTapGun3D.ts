@@ -436,6 +436,14 @@ export class DraftTapGun3D {
     }
   }
 
+  public getMuzzleWorldPosition(camera?: THREE.Camera): THREE.Vector3 {
+    const worldPos = new THREE.Vector3();
+    this.group.getWorldPosition(worldPos);
+    const forward = new THREE.Vector3(0, 0.02, -0.65).applyQuaternion(this.group.quaternion);
+    worldPos.add(forward);
+    return worldPos;
+  }
+
   public get isPower(): boolean {
     return this.isPowerMode;
   }
