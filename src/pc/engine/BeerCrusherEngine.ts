@@ -1115,7 +1115,7 @@ export class BeerCrusherEngine {
       if (target.isProjectile) {
         interceptedProjectile = true;
         this.activeTargets.splice(index, 1);
-        this.scoreManager.registerHit('PERFECT', target.killBonusScore);
+        this.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
         return {
           fired: true,
           grade: 'PERFECT',
@@ -1134,7 +1134,7 @@ export class BeerCrusherEngine {
         this.activeTargets.splice(index, 1);
         this.weaponSystem.refillSkillInstant();
         this.scoreManager.chargeFeverToMax();
-        const hitInfo = this.scoreManager.registerHit('PERFECT', target.killBonusScore);
+        const hitInfo = this.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
         return {
           fired: true,
           grade: 'PERFECT',
@@ -1149,13 +1149,16 @@ export class BeerCrusherEngine {
 
       // 5. Standard Monster Damage & Weapon Ballistics
       const powerMult = isPowerShot ? 2.0 : 1.0;
-      let damage = levelSpec.damagePerHit * powerMult;
+      const feverMult = isFever ? 2.0 : 1.0;
+      const judgmentMult = result.damageMultiplier;
+      const weaponBonusMult = this.weaponSystem.getDamageBonusMultiplier();
+      const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult;
+      let damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
 
       if (weaponKind === 'shotgun') {
-        // Shotgun: pellet count based on center accuracy
-        const pelletCount = levelSpec.pelletCount;
-        const hitPellets = result.grade === 'PERFECT' ? pelletCount : Math.max(1, Math.round(pelletCount * 0.7));
-        damage = Number((hitPellets * levelSpec.damagePerHit * powerMult).toFixed(3));
+        // Shotgun: Lv.1 GREAT = 3 * 0.35 * 1.0 = 1.05 (1HP 캔 원샷), GOOD = 1.05 * 0.8 = 0.84
+        const baseDamage = levelSpec.pelletCount * levelSpec.damagePerHit;
+        damage = Number((baseDamage * totalMult).toFixed(3));
 
         // Knockback on Lv.2+
         if (levelSpec.knockbackM > 0) {
@@ -1168,7 +1171,7 @@ export class BeerCrusherEngine {
         }
       } else if (weaponKind === 'revolver') {
         // Revolver: Pierce through targets behind (sorted by distance ascending)
-        damage = Number((levelSpec.damagePerHit * powerMult).toFixed(3));
+        damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
         if (levelSpec.pierceCount > 0) {
           const rearTargets = this.activeTargets
             .filter(
@@ -1191,13 +1194,13 @@ export class BeerCrusherEngine {
               if (rearIdx >= 0) {
                 this.activeTargets.splice(rearIdx, 1);
                 this.killedInWave += 1;
-                this.scoreManager.registerHit('PERFECT', rear.killBonusScore);
+                this.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
               }
             }
           });
         }
       } else if (weaponKind === 'gatling') {
-        damage = Number((levelSpec.damagePerHit * powerMult).toFixed(3));
+        damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
       }
 
       // Apply damage to primary target
@@ -1216,7 +1219,8 @@ export class BeerCrusherEngine {
 
       const hitInfo = this.scoreManager.registerHit(
         result.grade as Exclude<JudgmentGrade, 'MISS'>,
-        killed ? target.killBonusScore : 0
+        killed ? target.killBonusScore : 0,
+        killed
       );
 
       if (killed) {

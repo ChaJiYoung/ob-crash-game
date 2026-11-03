@@ -44,34 +44,41 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const perfect = evaluateHitJudgment(0.12, 1.0);
     expect(perfect.grade).toBe('PERFECT');
     expect(perfect.baseScore).toBe(150);
-    expect(perfect.feverDelta).toBe(10);
+    expect(perfect.feverDelta).toBe(8);
+    expect(perfect.damageMultiplier).toBe(1.5);
 
     const great = evaluateHitJudgment(0.35, 1.0);
     expect(great.grade).toBe('GREAT');
     expect(great.baseScore).toBe(100);
-    expect(great.feverDelta).toBe(6);
+    expect(great.feverDelta).toBe(0);
+    expect(great.damageMultiplier).toBe(1.0);
 
     // Rebalanced D03: relaxed PERFECT tolerance (up to 0.25)
     const relaxedPerfect = evaluateHitJudgment(0.22, 1.0);
     expect(relaxedPerfect.grade).toBe('PERFECT');
+    expect(relaxedPerfect.damageMultiplier).toBe(1.5);
 
     // Rebalanced D03: relaxed GREAT tolerance (up to 0.55)
     const relaxedGreat = evaluateHitJudgment(0.50, 1.0);
     expect(relaxedGreat.grade).toBe('GREAT');
+    expect(relaxedGreat.damageMultiplier).toBe(1.0);
 
     const good = evaluateHitJudgment(0.85, 1.0);
     expect(good.grade).toBe('GOOD');
     expect(good.baseScore).toBe(50);
-    expect(good.feverDelta).toBe(3);
+    expect(good.feverDelta).toBe(0);
+    expect(good.damageMultiplier).toBe(0.8);
 
     const miss = evaluateHitJudgment(1.15, 1.0);
     expect(miss.grade).toBe('MISS');
-    expect(miss.feverDelta).toBe(-5);
+    expect(miss.feverDelta).toBe(0);
+    expect(miss.damageMultiplier).toBe(0);
 
-    // During Fever, normal hits are upgraded to PERFECT with damage 2
+    // During Fever, normal hits are upgraded to PERFECT with damage 2 and multiplier 1.5
     const feverHit = evaluateHitJudgment(0.75, 1.0, true);
     expect(feverHit.grade).toBe('PERFECT');
     expect(feverHit.damage).toBe(2);
+    expect(feverHit.damageMultiplier).toBe(1.5);
 
     // Power shot buff grants damage 2 even outside fever
     const powerHit = evaluateHitJudgment(0.12, 1.0, { isPowerShotActive: true });
@@ -86,15 +93,19 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
   it('should enforce Fever 100% Lock on missed shots (D06 Anti-Regression)', () => {
     const manager = new ScoreAndFeverManager();
 
-    // 1. Partial gauge can be penalized
-    manager.registerHit('GOOD'); // +3 -> gauge 3
-    expect(manager.getState().feverGauge).toBe(3);
+    // 1. PERFECT adds +8 fever gauge, MISS penalty is 0 (D01 & D02)
+    manager.registerHit('PERFECT'); // +8 -> gauge 8
+    expect(manager.getState().feverGauge).toBe(8);
 
-    manager.applyMissPenalty(); // -5 -> gauge clamped at 0
-    expect(manager.getState().feverGauge).toBe(0);
+    manager.applyMissPenalty(); // MISS_PENALTY is 0 -> gauge stays 8
+    expect(manager.getState().feverGauge).toBe(8);
 
-    // 2. Build up to 100% with 10 PERFECT hits (+10 each)
-    for (let i = 0; i < 10; i++) {
+    // Monster kill adds +12 bonus (+20 total on PERFECT kill)
+    manager.registerHit('PERFECT', 50, true); // +20 -> gauge 28
+    expect(manager.getState().feverGauge).toBe(28);
+
+    // 2. Build up to 100%
+    for (let i = 0; i < 9; i++) {
       manager.registerHit('PERFECT');
     }
     expect(manager.getState().feverGauge).toBe(100);
@@ -126,57 +137,56 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const manager = new ScoreAndFeverManager();
 
     // 1. Build up combo to 10 and fill fever gauge to 100
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 13; i++) {
       manager.registerHit('PERFECT');
     }
-    expect(manager.getState().combo).toBe(10);
+    expect(manager.getState().combo).toBe(13);
     expect(manager.getState().isFeverReady).toBe(true);
 
-    // 2. Activate Fever -> feverBaseCombo is snapshotted to 10
+    // 2. Activate Fever -> feverBaseCombo is snapshotted to 13
     const activated = manager.activateFever(1000);
     expect(activated).toBe(true);
     expect(manager.getState().isFeverActive).toBe(true);
-    expect(manager.getState().feverBaseCombo).toBe(10);
+    expect(manager.getState().feverBaseCombo).toBe(13);
 
     // 3. During fever, player fires into empty air (MISS)
-    // Combo must NOT drop to 0; it must stay at or above the feverBaseCombo floor (10)
     const penalty1 = manager.applyMissPenalty();
-    expect(penalty1.combo).toBe(10);
-    expect(manager.getState().combo).toBe(10);
+    expect(penalty1.combo).toBe(13);
+    expect(manager.getState().combo).toBe(13);
 
-    // 4. Hit additional targets during fever -> combo increases to 12
+    // 4. Hit additional targets during fever -> combo increases to 15
     manager.registerHit('PERFECT');
     manager.registerHit('PERFECT');
-    expect(manager.getState().combo).toBe(12);
+    expect(manager.getState().combo).toBe(15);
 
-    // 5. Another MISS during fever -> drops back to current or stays at floor (here 12 >= 10)
+    // 5. Another MISS during fever
     const penalty2 = manager.applyMissPenalty();
-    expect(penalty2.combo).toBe(12);
+    expect(penalty2.combo).toBe(15);
 
-    // 6. Once fever expires, MISS penalty resets combo to 0
-    manager.updateFeverTimer(5500); // fever expired (> 5000ms)
+    // 6. Once fever expires, MISS penalty does NOT reduce combo because MISS_PENALTY = 0
+    manager.updateFeverTimer(5500); // fever expired
     expect(manager.getState().isFeverActive).toBe(false);
 
     const normalPenalty = manager.applyMissPenalty();
-    expect(normalPenalty.combo).toBe(0);
-    expect(manager.getState().combo).toBe(0);
+    expect(normalPenalty.combo).toBe(15);
+    expect(manager.getState().combo).toBe(15);
   });
 
   it('should protect combo when fever gauge is 100% full (feverReady) even before activation', () => {
     const manager = new ScoreAndFeverManager();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 13; i++) {
       manager.registerHit('PERFECT');
     }
-    expect(manager.getState().combo).toBe(10);
+    expect(manager.getState().combo).toBe(13);
     expect(manager.getState().isFeverReady).toBe(true);
 
     // Missed shot right before double-tap fever activation must NOT reset combo!
     manager.applyMissPenalty();
-    expect(manager.getState().combo).toBe(10);
+    expect(manager.getState().combo).toBe(13);
 
     const activated = manager.activateFever(1000);
     expect(activated).toBe(true);
-    expect(manager.getState().feverBaseCombo).toBe(10);
+    expect(manager.getState().feverBaseCombo).toBe(13);
   });
 
   it('should auto reload magazine rounds after auto reload delay without manual action', () => {
@@ -476,7 +486,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const engine = new BeerCrusherEngine();
     engine.startGame();
 
-    // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 DMG + 0.3m knockback
+    // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 base DMG. With PERFECT (1.5x) -> 2.40 DMG + 0.3m knockback
     engine.weaponSystem.selectWeapon('shotgun', 2);
     const sgTarget = {
       id: 'sg_dummy',
@@ -498,10 +508,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
     expect(shot1.fired).toBe(true);
     expect(shot1.grade).toBe('PERFECT');
-    expect(sgTarget.hp).toBe(2.4); // 4.0 - 1.6 = 2.4
+    expect(sgTarget.hp).toBe(1.6); // 4.0 - 2.4 = 1.6
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
-    // 2. Revolver Lv.1: 0.75 DMG + pierces 1 rear target at 0.35 DMG
+    // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (1.5x) -> 1.50 DMG + pierces 1 rear target at 1.50 * 0.467 = 0.70 DMG
     engine.weaponSystem.selectWeapon('revolver', 1);
     const revFront = {
       id: 'rev_front',
@@ -537,10 +547,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot2 = engine.shootAt(projRev.targetNormX, projRev.targetNormY, 2000);
     expect(shot2.fired).toBe(true);
     expect(shot2.hitTargets?.length).toBe(2);
-    expect(revFront.hp).toBe(3.25); // 4.0 - 0.75 = 3.25
-    expect(revRear.hp).toBe(2.65); // 3.0 - (0.75 * 0.467 = 0.35) = 2.65
+    expect(revFront.hp).toBe(2.50); // 4.0 - 1.50 = 2.50
+    expect(revRear.hp).toBeCloseTo(2.30, 2); // 3.0 - (1.50 * 0.467 = 0.701) = 2.299
 
-    // 3. Gatling Lv.1: 0.15 DMG rapid fire
+    // 3. Gatling Lv.1: 0.25 base DMG. With PERFECT (1.5x) -> 0.375 DMG rapid fire
     engine.weaponSystem.selectWeapon('gatling', 1);
     const gatTarget = {
       id: 'gat_dummy',
@@ -561,7 +571,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     const shot3 = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 3000);
     expect(shot3.fired).toBe(true);
-    expect(gatTarget.hp).toBe(1.85); // 2.0 - 0.15 = 1.85
+    expect(gatTarget.hp).toBe(1.625); // 2.0 - 0.375 = 1.625
   });
 
   it('should execute 3 distinct active skills (Plunger Storm stun, Opener slow, Foam Tsunami knockback)', () => {
@@ -685,5 +695,130 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(interceptShot.fired).toBe(true);
     expect(interceptShot.interceptedProjectile).toBe(true);
     expect(interceptShot.killed).toBe(true);
+  });
+
+  it('should verify 1-hit kill on GREAT/PERFECT for 1HP can and remaining HP on GOOD (D01)', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame();
+
+    // 1. Revolver Lv.1 vs 1HP Can (pilgood)
+    engine.weaponSystem.selectWeapon('revolver', 1);
+
+    // PERFECT shot (1.5x) -> 1.0 * 1.5 = 1.5 -> one-shot kill!
+    const canPerfect = {
+      id: 'can_perfect',
+      kind: 'pilgood' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 6.0,
+      thetaRad: 0,
+      x: 0,
+      z: -6.0,
+      speedMps: 0,
+      hitRadiusM: 1.0,
+      killBonusScore: 30,
+      breached: false,
+    };
+    engine.activeTargets = [canPerfect];
+    const proj1 = engine.computeTargetAimCoords(canPerfect);
+    const shotPerfect = engine.shootAt(proj1.targetNormX, proj1.targetNormY, 1000);
+    expect(shotPerfect.fired).toBe(true);
+    expect(shotPerfect.grade).toBe('PERFECT');
+    expect(shotPerfect.killed).toBe(true);
+    expect(canPerfect.hp).toBe(0);
+
+    // GREAT shot (1.0x) -> 1.0 * 1.0 = 1.0 -> one-shot kill!
+    const canGreat = {
+      id: 'can_great',
+      kind: 'pilgood' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 6.0,
+      thetaRad: 0,
+      x: 0,
+      z: -6.0,
+      speedMps: 0,
+      hitRadiusM: 1.0,
+      killBonusScore: 30,
+      breached: false,
+    };
+    engine.activeTargets = [canGreat];
+    const proj2 = engine.computeTargetAimCoords(canGreat);
+    // Offset aim to get GREAT (error ratio ~ 0.45)
+    const shotGreat = engine.shootAt(proj2.targetNormX + proj2.apparentHitRadius * 0.42, proj2.targetNormY, 2000);
+    expect(shotGreat.fired).toBe(true);
+    expect(shotGreat.grade).toBe('GREAT');
+    expect(shotGreat.killed).toBe(true);
+    expect(canGreat.hp).toBe(0);
+
+    // GOOD shot (0.8x) -> 1.0 * 0.8 = 0.8 -> 0.2 HP remains!
+    const canGood = {
+      id: 'can_good',
+      kind: 'pilgood' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 6.0,
+      thetaRad: 0,
+      x: 0,
+      z: -6.0,
+      speedMps: 0,
+      hitRadiusM: 1.0,
+      killBonusScore: 30,
+      breached: false,
+    };
+    engine.activeTargets = [canGood];
+    const proj3 = engine.computeTargetAimCoords(canGood);
+    // Offset aim to get GOOD (error ratio ~ 0.80)
+    const shotGood = engine.shootAt(proj3.targetNormX + proj3.apparentHitRadius * 0.75, proj3.targetNormY, 3000);
+    expect(shotGood.fired).toBe(true);
+    expect(shotGood.grade).toBe('GOOD');
+    expect(shotGood.killed).toBe(false);
+    expect(canGood.hp).toBeCloseTo(0.2, 2);
+
+    // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.8x) -> 0.84 DMG (0.16 HP remains)
+    engine.weaponSystem.selectWeapon('shotgun', 1);
+    const canSgGreat = {
+      id: 'can_sg_great',
+      kind: 'caslight' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 6.0,
+      thetaRad: 0,
+      x: 0,
+      z: -6.0,
+      speedMps: 0,
+      hitRadiusM: 1.0,
+      killBonusScore: 40,
+      breached: false,
+    };
+    engine.activeTargets = [canSgGreat];
+    const proj4 = engine.computeTargetAimCoords(canSgGreat);
+    const sgGreat = engine.shootAt(proj4.targetNormX + proj4.apparentHitRadius * 0.42, proj4.targetNormY, 4000);
+    expect(sgGreat.fired).toBe(true);
+    expect(sgGreat.grade).toBe('GREAT');
+    expect(sgGreat.killed).toBe(true);
+    expect(canSgGreat.hp).toBe(0);
+
+    const canSgGood = {
+      id: 'can_sg_good',
+      kind: 'caslight' as const,
+      hp: 1,
+      maxHp: 1,
+      radiusM: 6.0,
+      thetaRad: 0,
+      x: 0,
+      z: -6.0,
+      speedMps: 0,
+      hitRadiusM: 1.0,
+      killBonusScore: 40,
+      breached: false,
+    };
+    engine.activeTargets = [canSgGood];
+    const proj5 = engine.computeTargetAimCoords(canSgGood);
+    const sgGood = engine.shootAt(proj5.targetNormX + proj5.apparentHitRadius * 0.90, proj5.targetNormY, 5000);
+    expect(sgGood.fired).toBe(true);
+    expect(sgGood.grade).toBe('GOOD');
+    expect(sgGood.killed).toBe(false);
+    expect(canSgGood.hp).toBeCloseTo(0.16, 2);
   });
 });

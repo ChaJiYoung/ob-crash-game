@@ -5,7 +5,7 @@ export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'SANDBO
 
 export type WeaponKind = 'shotgun' | 'revolver' | 'gatling';
 export type WeaponLevel = 1 | 2 | 3 | 4;
-export type RewardCardKind = 'weapon_level_up' | 'rapid_reload' | 'bar_repair' | 'fever_boost';
+export type RewardCardKind = 'weapon_level_up' | 'rapid_reload' | 'bar_repair' | 'fever_boost' | 'lucky_drop';
 
 export interface WeaponLevelSpec {
   level: WeaponLevel;

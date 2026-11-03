@@ -7,6 +7,7 @@ export interface HitJudgmentResult {
   baseScore: number;
   feverDelta: number;
   damage: number;
+  damageMultiplier: number;
 }
 
 export interface HitJudgmentOptions {
@@ -31,8 +32,9 @@ export function evaluateHitJudgment(
       grade: 'MISS',
       errorRatio: 999,
       baseScore: 0,
-      feverDelta: -5,
+      feverDelta: 0,
       damage: 0,
+      damageMultiplier: 0,
     };
   }
 
@@ -48,6 +50,7 @@ export function evaluateHitJudgment(
         baseScore: JUDGMENT_SPECS.PERFECT.baseScore * 1.5,
         feverDelta: 0, // Fever is already active
         damage: 2, // Double damage during fever
+        damageMultiplier: 1.5,
       };
     }
     return {
@@ -56,6 +59,7 @@ export function evaluateHitJudgment(
       baseScore: 0,
       feverDelta: 0,
       damage: 0,
+      damageMultiplier: 0,
     };
   }
 
@@ -66,6 +70,7 @@ export function evaluateHitJudgment(
       baseScore: JUDGMENT_SPECS.PERFECT.baseScore,
       feverDelta: JUDGMENT_SPECS.PERFECT.feverDelta,
       damage: baseDamage,
+      damageMultiplier: JUDGMENT_SPECS.PERFECT.damageMultiplier,
     };
   }
 
@@ -76,6 +81,7 @@ export function evaluateHitJudgment(
       baseScore: JUDGMENT_SPECS.GREAT.baseScore,
       feverDelta: JUDGMENT_SPECS.GREAT.feverDelta,
       damage: baseDamage,
+      damageMultiplier: JUDGMENT_SPECS.GREAT.damageMultiplier,
     };
   }
 
@@ -86,6 +92,7 @@ export function evaluateHitJudgment(
       baseScore: JUDGMENT_SPECS.GOOD.baseScore,
       feverDelta: JUDGMENT_SPECS.GOOD.feverDelta,
       damage: baseDamage,
+      damageMultiplier: JUDGMENT_SPECS.GOOD.damageMultiplier,
     };
   }
 
@@ -93,7 +100,8 @@ export function evaluateHitJudgment(
     grade: 'MISS',
     errorRatio,
     baseScore: 0,
-    feverDelta: -5,
+    feverDelta: 0,
     damage: 0,
+    damageMultiplier: 0,
   };
 }

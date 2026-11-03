@@ -13,16 +13,13 @@ export class ScoreAndFeverManager {
   private lastHitCombo = 0;
 
   public getComboMultiplier(): number {
-    if (this.combo >= 30) return 2.5;
-    if (this.combo >= 20) return 2.0;
-    if (this.combo >= 10) return 1.5;
-    if (this.combo >= 5) return 1.2;
     return 1.0;
   }
 
   public registerHit(
     grade: Exclude<JudgmentGrade, 'MISS'>,
-    killBonusScore = 0
+    killBonusScore = 0,
+    killed = false
   ): {
     earnedScore: number;
     totalScore: number;
@@ -44,7 +41,8 @@ export class ScoreAndFeverManager {
     this.totalScore += earnedScore;
 
     if (!this.isFeverActive) {
-      this.feverGauge = Math.min(FEVER_CONSTANTS.MAX_GAUGE, this.feverGauge + spec.feverDelta);
+      const delta = spec.feverDelta + (killed ? FEVER_CONSTANTS.KILL_FEVER_DELTA : 0);
+      this.feverGauge = Math.min(FEVER_CONSTANTS.MAX_GAUGE, this.feverGauge + delta);
       if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE) {
         this.feverGauge = FEVER_CONSTANTS.MAX_GAUGE;
         this.isFeverReady = true;
@@ -67,32 +65,8 @@ export class ScoreAndFeverManager {
     feverGauge: number;
     isFeverReady: boolean;
   } {
-    // Fever Combo Floor Protection (D02):
-    // During active fever, missed shots NEVER reset combo to 0!
-    // Instead, combo is preserved with a hard floor at feverBaseCombo.
-    if (this.isFeverActive) {
-      this.combo = Math.max(this.feverBaseCombo, this.combo);
-      return {
-        combo: this.combo,
-        maxCombo: this.maxCombo,
-        feverGauge: this.feverGauge,
-        isFeverReady: this.isFeverReady,
-      };
-    }
-
-    // Fever Ready Protection (D02):
-    // When fever gauge is 100% full (or fever ready), missed shots NEVER reset combo or decrease gauge!
-    if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE || this.isFeverReady) {
-      return {
-        combo: this.combo,
-        maxCombo: this.maxCombo,
-        feverGauge: this.feverGauge,
-        isFeverReady: this.isFeverReady,
-      };
-    }
-
-    this.combo = 0;
-    this.feverGauge = Math.max(0, this.feverGauge - FEVER_CONSTANTS.MISS_PENALTY);
+    // Under D01 & D02, MISS penalty is removed (FEVER_CONSTANTS.MISS_PENALTY = 0).
+    // Combo and fever gauge are not penalized on miss.
     return {
       combo: this.combo,
       maxCombo: this.maxCombo,

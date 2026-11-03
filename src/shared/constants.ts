@@ -128,6 +128,7 @@ export interface JudgmentSpec {
   maxErrorRatio: number;
   baseScore: number;
   feverDelta: number;
+  damageMultiplier: number;
   colorHex: string;
 }
 
@@ -135,26 +136,30 @@ export const JUDGMENT_SPECS: Record<Exclude<JudgmentGrade, 'MISS'>, JudgmentSpec
   PERFECT: {
     maxErrorRatio: 0.25,
     baseScore: 150,
-    feverDelta: 10,
+    feverDelta: 8,
+    damageMultiplier: 1.5,
     colorHex: '#fbbf24',
   },
   GREAT: {
     maxErrorRatio: 0.55,
     baseScore: 100,
-    feverDelta: 6,
+    feverDelta: 0,
+    damageMultiplier: 1.0,
     colorHex: '#38bdf8',
   },
   GOOD: {
     maxErrorRatio: 1.00,
     baseScore: 50,
-    feverDelta: 3,
+    feverDelta: 0,
+    damageMultiplier: 0.8,
     colorHex: '#4ade80',
   },
 };
 
 export const FEVER_CONSTANTS = {
   MAX_GAUGE: 100,
-  MISS_PENALTY: 5,
+  MISS_PENALTY: 0,
+  KILL_FEVER_DELTA: 12,
   DURATION_MS: 4000,
   LOCK_WHEN_FULL: true,
 } as const;
@@ -294,7 +299,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
     levels: {
       1: {
         level: 1,
-        damagePerHit: 0.75,
+        damagePerHit: 1.00,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 1,
@@ -318,7 +323,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
       },
       2: {
         level: 2,
-        damagePerHit: 1.00,
+        damagePerHit: 1.35,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 1,
@@ -342,7 +347,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
       },
       3: {
         level: 3,
-        damagePerHit: 1.35,
+        damagePerHit: 1.75,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 2,
@@ -366,7 +371,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
       },
       4: {
         level: 4,
-        damagePerHit: 1.75,
+        damagePerHit: 2.20,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 2,
@@ -399,7 +404,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
     levels: {
       1: {
         level: 1,
-        damagePerHit: 0.15,
+        damagePerHit: 0.25,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 0,
@@ -423,7 +428,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
       },
       2: {
         level: 2,
-        damagePerHit: 0.20,
+        damagePerHit: 0.32,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 0,
@@ -447,7 +452,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
       },
       3: {
         level: 3,
-        damagePerHit: 0.25,
+        damagePerHit: 0.40,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 0,
@@ -471,7 +476,7 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
       },
       4: {
         level: 4,
-        damagePerHit: 0.35,
+        damagePerHit: 0.50,
         pelletCount: 1,
         spreadRad: 0,
         pierceCount: 0,
@@ -514,10 +519,10 @@ export const REWARD_CARD_SPECS: Record<RewardCardKind, RewardCardSpec> = {
   },
   bar_repair: {
     kind: 'bar_repair',
-    nameKo: '바리케이드 보수',
+    nameKo: '바리케이드 완전 복구',
     badgeText: 'BAR REPAIR',
     colorHex: '#10b981',
-    descriptionKo: '바 방어선 체력 즉시 +1 회복 (최대 6)',
+    descriptionKo: '바 방어선 체력 100% 전체 회복 및 최대 체력 +1 영구 확장',
   },
   fever_boost: {
     kind: 'fever_boost',
@@ -525,5 +530,12 @@ export const REWARD_CARD_SPECS: Record<RewardCardKind, RewardCardSpec> = {
     badgeText: 'FEVER BOOST',
     colorHex: '#f59e0b',
     descriptionKo: '피버 게이지 즉시 +50% 급속 충전',
+  },
+  lucky_drop: {
+    kind: 'lucky_drop',
+    nameKo: '행운의 보급품',
+    badgeText: 'LUCKY DROP',
+    colorHex: '#a855f7',
+    descriptionKo: '몬스터 처치 시 아이템 출현 빈도 배율 증가 (중첩 가능)',
   },
 };

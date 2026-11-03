@@ -24,6 +24,8 @@ export class WeaponSystem {
   private lastFireTimeMs = 0;
   public infiniteAmmo = false;
   private hasRapidReloadBuff = false;
+  private rapidReloadStacks = 0;
+  private damageBonusMultiplier = 1.0;
 
   // Active Skill State
   private skillStock = 1;
@@ -40,12 +42,12 @@ export class WeaponSystem {
 
   public getMaxAmmo(): number {
     const base = this.getCurrentLevelSpec().maxAmmo;
-    return base + (this.hasRapidReloadBuff ? 2 : 0);
+    return base + this.rapidReloadStacks * 2;
   }
 
   public getReloadDurationMs(): number {
     const base = this.getCurrentLevelSpec().reloadDurationMs;
-    return Math.round(base * (this.hasRapidReloadBuff ? 0.8 : 1.0));
+    return Math.max(450, Math.round(base * Math.pow(0.8, this.rapidReloadStacks)));
   }
 
   public getFireIntervalMs(): number {
@@ -58,6 +60,10 @@ export class WeaponSystem {
 
   public getSkillCooldownTotalMs(): number {
     return this.getCurrentLevelSpec().skillCooldownMs;
+  }
+
+  public getDamageBonusMultiplier(): number {
+    return this.damageBonusMultiplier;
   }
 
   public selectWeapon(kind: WeaponKind, level: WeaponLevel = 1): void {
@@ -82,13 +88,15 @@ export class WeaponSystem {
         this.skillCooldownRemainingMs = 0;
       }
     } else {
-      // Re-upgrading at MAX refills skill instant
+      // Re-upgrading at MAX refills skill instant and increases base damage by +15%
       this.refillSkillInstant();
+      this.damageBonusMultiplier = Number((this.damageBonusMultiplier + 0.15).toFixed(2));
     }
     return this.weaponLevel;
   }
 
   public applyRapidReloadBuff(): void {
+    this.rapidReloadStacks += 1;
     this.hasRapidReloadBuff = true;
     this.ammo = Math.min(this.getMaxAmmo(), this.ammo + 2);
   }
@@ -233,6 +241,8 @@ export class WeaponSystem {
     this.weaponKind = 'shotgun';
     this.weaponLevel = 1;
     this.hasRapidReloadBuff = false;
+    this.rapidReloadStacks = 0;
+    this.damageBonusMultiplier = 1.0;
     this.ammo = this.getMaxAmmo();
     this.isReloading = false;
     this.reloadEndTimeMs = 0;
