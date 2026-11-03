@@ -49,6 +49,7 @@ export const MobileControllerPage: React.FC = () => {
   const rapidFireHoldRef = useRef<boolean>(false);
   const feverTriggeredRef = useRef<boolean>(false);
   const isCockedRef = useRef<boolean>(false);
+  const snapFreezeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 1. Parse Room ID from URL
   useEffect(() => {
@@ -214,12 +215,21 @@ export const MobileControllerPage: React.FC = () => {
         });
         if (snap) {
           skillSnapTriggeredRef.current = true;
+
+          // [손목 반동 흡수] 스킬 시전 시 에임을 350ms 동안 모니터 정면에 고정하여 천장으로 튀는 현상 방지
+          tracker.lockAim(latestOrientationRef.current);
+          if (snapFreezeTimerRef.current) {
+            clearTimeout(snapFreezeTimerRef.current);
+          }
+          snapFreezeTimerRef.current = setTimeout(() => {
+            tracker.unlockAim();
+          }, 350);
+
           if (isCockedRef.current) {
             snapFireRef.current = true;
             // [단발 안전장치] 격발 즉시 코킹 잠금 해제 (손을 뗄 때까지 2차 오발 원천 차단)
             isCockedRef.current = false;
             setIsCockedState(false);
-            tracker.unlockAim();
           }
           // Send frame with skillSnapTriggered and aim coordinates
           flushSensorFrame();
@@ -231,6 +241,9 @@ export const MobileControllerPage: React.FC = () => {
     window.addEventListener('devicemotion', onMotion);
 
     return () => {
+      if (snapFreezeTimerRef.current) {
+        clearTimeout(snapFreezeTimerRef.current);
+      }
       window.removeEventListener('deviceorientation', onOrientation);
       window.removeEventListener('devicemotion', onMotion);
     };

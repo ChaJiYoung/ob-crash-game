@@ -74,6 +74,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [lastShootResult, setLastShootResult] = useState<
     { result: EngineShootResult; key: number } | undefined
   >();
+  const [isGoldenCanAlertActive, setIsGoldenCanAlertActive] = useState<boolean>(false);
+  const [interceptedBannerKey, setInterceptedBannerKey] = useState<number>(0);
+  const lastGoldenCanActiveRef = useRef<boolean>(false);
 
   // Snapshot for HUD
   const [hudState, setHudState] = useState({
@@ -161,6 +164,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         setLastJudgment({ grade: result.grade, key: Date.now() });
       } else if (!isFever) {
         setLastJudgment({ grade: 'MISS', key: Date.now() });
+      }
+
+      if (result.interceptedProjectile) {
+        soundSynth.playInterceptSound();
+        setInterceptedBannerKey(Date.now());
       }
       setLastShootResult({ result, key: Date.now() });
     }
@@ -413,6 +421,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
       });
 
+      // Golden Can Spawn alert check
+      const hasGoldenCan = engine.activeTargets.some((t) => t.isGoldenCan);
+      if (hasGoldenCan && !lastGoldenCanActiveRef.current) {
+        soundSynth.playGoldenCanChime();
+        setIsGoldenCanAlertActive(true);
+        setTimeout(() => setIsGoldenCanAlertActive(false), 2400);
+      }
+      lastGoldenCanActiveRef.current = hasGoldenCan;
+
       // 100% Auto-Rapid-Fire loop during active Fever mode
       if (feverState.isFeverActive && !engine.isPaused && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
         if (!feverAutoFireTimerRef.current) {
@@ -631,6 +648,75 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         lastShootResult={lastShootResult}
         onMonsterProjectionsUpdate={setMonsterProjections}
       />
+
+      {/* Golden Can Screen Border Flash Indicator */}
+      {isGoldenCanAlertActive && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            boxShadow: 'inset 0 0 50px #fbbf24, inset 0 0 25px #f59e0b',
+            border: '3px solid rgba(251, 191, 36, 0.75)',
+            zIndex: 110,
+            animation: 'pulse 0.6s ease-in-out infinite alternate',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '18px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+              color: '#000',
+              fontWeight: 900,
+              fontSize: '14px',
+              padding: '4px 16px',
+              borderRadius: '20px',
+              letterSpacing: '1.5px',
+              boxShadow: '0 0 20px #fbbf24',
+            }}
+          >
+            🪙 GOLDEN CAN DETECTED!
+          </div>
+        </div>
+      )}
+
+      {/* Projectile Intercepted Arcade Floating Banner */}
+      {interceptedBannerKey > 0 && (
+        <div
+          key={interceptedBannerKey}
+          style={{
+            position: 'absolute',
+            top: '32%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 130,
+            animation: 'fadeUp 1.2s ease-out forwards',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '26px',
+              fontWeight: 900,
+              color: '#10b981',
+              textShadow: '0 0 16px rgba(16, 185, 129, 0.9), 0 2px 4px #000',
+              letterSpacing: '2px',
+              background: 'rgba(0, 0, 0, 0.8)',
+              padding: '8px 24px',
+              borderRadius: '30px',
+              border: '2px solid #10b981',
+            }}
+          >
+            🛡️ INTERCEPTED! +50
+          </div>
+        </div>
+      )}
 
       {/* 2. 4-Corner Arcade Overlay HUD */}
       {gamePhase === 'PLAYING' && (

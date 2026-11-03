@@ -445,4 +445,62 @@ export class SoundSynthesizer {
     osc2.start(now);
     osc2.stop(now + 0.4);
   }
+
+  /**
+   * 🪙 Golden Can Spawn Alert: Bright double coin chime (E6 -> G#6)
+   */
+  public playGoldenCanChime(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const notes = [
+      { freq: 1318.5, delay: 0 },    // E6
+      { freq: 1661.2, delay: 0.08 }, // G#6
+      { freq: 2093.0, delay: 0.16 }, // C7
+    ];
+
+    notes.forEach(({ freq, delay }) => {
+      const startTime = now + delay;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0.35, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + 0.36);
+    });
+  }
+
+  /**
+   * 🛡️ Projectile Interception Sound: High-tech shield deflection zap
+   */
+  public playInterceptSound(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, now);
+    osc.frequency.exponentialRampToValueAtTime(1100, now + 0.14);
+
+    gain.gain.setValueAtTime(0.40, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.16);
+  }
 }
