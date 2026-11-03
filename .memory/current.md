@@ -1,20 +1,15 @@
-# Current Context
+# Active Execution Pointer
 
-## Active Plan
-[Game Difficulty, Controls, and Monster Diversity Rebalance](./plans/2026-11-03-difficulty-controls-and-monsters.md)
-
-## Active Phase
-[P01 Controls, Difficulty, and Monster Rebalance](./phases/2026-11-03-difficulty-controls-and-monsters/P01-controls-difficulty-and-monsters/phase.md) (Completed)
-
-## Active Task
-- All Tasks Completed (T01, T02, T03, T04)
-
-## Status
-- T01 완료 (커밋: ff67a93) - 모바일 1회 탭 단발 발사 & 300ms 더블 탭 피버
-- T02 완료 (커밋: c5e8ad9) - 컨트롤러 가이드, 인게임 튜토리얼 문구, 리로드 안내 및 도감 동기화
-- T03 완료 (커밋: 28db9ee) - 피버 10초 및 충전율 조정, 아이템 주기/상한 제한, 웨이브 1.5~1.8배 확장
-- T04 완료 (커밋: e706258) - 비행 S자 유영, 카스 병맥주 2.45배 대형화+통통 바운스(3HP), 한맥 버서커 가속 구현
-- 전체 Phase P01 계획 완료 🎉
-
-## Next Step (IMPORTANT)
-모든 계획 및 구현 작업이 완료되었습니다. 빌드 및 테스트(54/54 passed) 검증 완료 상태입니다.
+- **Active Plan**: [.memory/plans/2026-11-03-roguelike-skills-snap-fever-and-hp-bars.md](plans/2026-11-03-roguelike-skills-snap-fever-and-hp-bars.md) (Status: ALL PHASES COMPLETE)
+- **Active Phase**: ALL COMPLETED (P01, P02, P03, P04)
+- **Active Task**: NONE (All tasks completed & verified)
+- **Completed Tasks**:
+  - `P01-T01`: Shared Types, Nerfed Weapon Level Balance Constants, Monster HP Rebalance & WeaponSystem Expansion (commit `0337de8`)
+  - `P01-T02`: BeerCrusherEngine Shoot-to-Select Cards, 3-Weapon Ballistics, Active Skills, Golden Can & Projectile Interception (commit `a7cc48d`, Argon review pass `bea9ae8`)
+  - `P02-T01`: Procedural 3D Realistic Plunger, 3-Weapon Lv.1~MAX Evolutions & Special Target Meshes (commit `84870af`)
+  - `P02-T02`: 3D Flying Projectiles, 3 Active Skill Physics FX & Procedural Audio (commit `68502d3`, Argon review pass `975d698`)
+  - `P03-T01`: Monster 3D Tracking Neon Dot HP Bars, Weapon/Skill HUD & PC Input Integration (commit `b4476e8`)
+  - `P03-T02`: Mobile Controller '휙!' Snap Active Skill Trigger, SKILL_STATE_SYNC Relay & Haptic Feedback (commit `8eaa065`, Argon review pass `544c681`)
+  - `P04-T01`: In-Game GuideModal Weapon/Skill Tabs, 4s Fever Burst & Comprehensive Weapon/Asset Documentation in docs/ and README.md (Completed)
+- **Status**:
+  - Full Master Plan execution complete with 100% test pass rate (67/67 Vitest tests passing, TypeScript clean).

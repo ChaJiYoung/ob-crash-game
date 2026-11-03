@@ -1,7 +1,7 @@
 ---
 title: Roguelike 3-Weapon Evolution, '휙!' Snap Active Skills, 4s Fever Burst & 3D HP Bars
 created: 2026-11-03
-status: active
+status: done
 decision_ref: .memory/decisions/2026-11-03-roguelike-skills-snap-fever-and-hp-bars.md
 ---
 

@@ -92,9 +92,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 2 && (
               <>
-                다가오는 단단한 <strong>카스 병맥주 (체력 3HP)</strong>를 <strong>화면 탭 3회</strong>로 침착하게 격파하세요!
+                다가오는 단단한 <strong>카스 병맥주 (체력 4HP)</strong>를 <strong>화면 탭 4회</strong>로 침착하게 격파하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 10발 소진 시 1.2초간 자동으로 재장전됩니다. (현재 탄창:{' '}
+                  💡 탄약 소진 시 자동으로 재장전됩니다. (현재 탄창:{' '}
                   <span style={{ color: '#38bdf8', fontWeight: 800 }}>
                     {isReloading ? '⚡ 재장전 중...' : `${ammo}/${maxAmmo}`}
                   </span>
@@ -109,10 +109,10 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
-                      🔥 피버 발동 중! 10초간 무제한 탄창으로 자동 연사되며 콤보가 100% 유지됩니다!
+                      🔥 4초 초고밀도 피버 버스트 발동 중! 0.08초 무한 자동 난사 & 2배 데미지!
                     </span>
                   ) : (
-                    <span>💡 피버 10초 동안 무제한 자동 연사 & 탄환이 빗맞아도 콤보가 100% 보존됩니다!</span>
+                    <span>💡 피버 4초 동안 무제한 초고속 자동 난사 & 탄환이 빗맞아도 콤보가 100% 보존됩니다!</span>
                   )}
                 </div>
               </>
@@ -120,9 +120,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 'COMPLETED' && (
               <>
-                모든 건슈팅 조작법(단발 탭 사격, 더블탭 피버 자동 난사)을 완벽히 마스터하셨습니다!
+                모든 건슈팅 조작법(단발 탭 사격, 더블탭 피버 버스트)을 완벽히 마스터하셨습니다!
                 <div style={{ fontSize: '13px', color: '#10b981', marginTop: '4px' }}>
-                  이제 오비맥주 브루어리를 지키는 실전 배틀(Wave 1~5)에 도전해보세요!
+                  💡 <strong>전용 액티브 스킬 팁:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히면 강력한 필살기가 발동됩니다! (PC는 R키 / 우클릭)
                 </div>
               </>
             )}
