@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import { WeaponKind, WeaponLevel } from '../../shared/types';
 
 export function aimToViewportPercent(
   aimX: number,
@@ -35,6 +36,8 @@ export interface CrosshairVisualSpecOptions {
   isWideScopeActive?: boolean;
   isPowerShotActive?: boolean;
   isAimLocked?: boolean;
+  weaponKind?: WeaponKind;
+  weaponLevel?: WeaponLevel;
 }
 
 export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
@@ -44,17 +47,41 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
   glowColor: string;
   badgeText?: string;
   isLocked?: boolean;
+  weaponKind: WeaponKind;
+  weaponLevel: WeaponLevel;
 } {
   const isWide = Boolean(options.isWideScopeActive);
   const isPower = Boolean(options.isPowerShotActive);
   const isFever = Boolean(options.isFeverActive);
   const isLocked = Boolean(options.isAimLocked);
+  const weaponKind = options.weaponKind ?? 'shotgun';
+  const weaponLevel = options.weaponLevel ?? 1;
 
-  const sizePx = isWide ? 140 : 88;
-  const ringSizePx = isWide ? 112 : 68;
-
+  let sizePx = isWide ? 140 : 88;
+  let ringSizePx = isWide ? 112 : 68;
   let primaryColor = '#38bdf8';
   let glowColor = 'rgba(56, 189, 248, 0.45)';
+
+  if (options.weaponKind === 'shotgun') {
+    // 🪠 Large pellet spread ring (120px base)
+    sizePx = isWide ? 164 : 120;
+    ringSizePx = isWide ? 144 : 104;
+    primaryColor = '#f59e0b'; // Amber Orange
+    glowColor = 'rgba(245, 158, 11, 0.45)';
+  } else if (options.weaponKind === 'revolver') {
+    // 🍾 Precision sniper crosshair (76px base)
+    sizePx = isWide ? 104 : 76;
+    ringSizePx = isWide ? 64 : 48;
+    primaryColor = '#fbbf24'; // Warm Gold
+    glowColor = 'rgba(251, 191, 36, 0.55)';
+  } else if (options.weaponKind === 'gatling') {
+    // 🍺 High-RPM Rotary turbine reticle (88px base)
+    sizePx = isWide ? 120 : 88;
+    ringSizePx = isWide ? 88 : 64;
+    primaryColor = '#38bdf8'; // Electric Cyan
+    glowColor = 'rgba(56, 189, 248, 0.45)';
+  }
+
   let badgeText: string | undefined;
 
   if (isFever) {
@@ -80,6 +107,8 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
     glowColor,
     badgeText,
     isLocked,
+    weaponKind,
+    weaponLevel,
   };
 }
 
@@ -94,6 +123,8 @@ export interface CrosshairOverlayProps {
   isWideScopeActive?: boolean;
   isPowerShotActive?: boolean;
   isAimLocked?: boolean;
+  weaponKind?: WeaponKind;
+  weaponLevel?: WeaponLevel;
   shotTriggerKey?: number;
 }
 
@@ -105,6 +136,8 @@ export const CrosshairOverlay = React.memo(
     isWideScopeActive = false,
     isPowerShotActive = false,
     isAimLocked = false,
+    weaponKind = 'shotgun',
+    weaponLevel = 1,
     shotTriggerKey = 0,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -114,6 +147,8 @@ export const CrosshairOverlay = React.memo(
       isWideScopeActive,
       isPowerShotActive,
       isAimLocked,
+      weaponKind,
+      weaponLevel,
     });
 
     useImperativeHandle(
@@ -140,7 +175,7 @@ export const CrosshairOverlay = React.memo(
       }
     }, [shotTriggerKey]);
 
-    const cornerSize = spec.sizePx * 0.24;
+    const cornerSize = spec.sizePx * 0.22;
 
     return (
       <div
@@ -151,115 +186,238 @@ export const CrosshairOverlay = React.memo(
           top: `${topPercent}%`,
           width: `${spec.sizePx}px`,
           height: `${spec.sizePx}px`,
-          transform: `translate(-50%, -50%) scale(${isKicking ? 1.28 : 1.0})`,
+          transform: `translate(-50%, -50%) scale(${
+            isKicking
+              ? spec.weaponKind === 'shotgun'
+                ? 1.32
+                : spec.weaponKind === 'revolver'
+                ? 0.90
+                : 1.20
+              : 1.0
+          })`,
           pointerEvents: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 40,
-          transition: 'transform 0.08s ease-out',
+          transition: 'transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
         }}
       >
-      {/* 4 Corner Targeting Brackets ┌ ┐ └ ┘ */}
-      {/* Top-Left ┌ */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: `${cornerSize}px`,
-          height: `${cornerSize}px`,
-          borderTop: `3px solid ${spec.primaryColor}`,
-          borderLeft: `3px solid ${spec.primaryColor}`,
-          boxShadow: `0 0 8px ${spec.glowColor}`,
-        }}
-      />
-      {/* Top-Right ┐ */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: `${cornerSize}px`,
-          height: `${cornerSize}px`,
-          borderTop: `3px solid ${spec.primaryColor}`,
-          borderRight: `3px solid ${spec.primaryColor}`,
-          boxShadow: `0 0 8px ${spec.glowColor}`,
-        }}
-      />
-      {/* Bottom-Left └ */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: `${cornerSize}px`,
-          height: `${cornerSize}px`,
-          borderBottom: `3px solid ${spec.primaryColor}`,
-          borderLeft: `3px solid ${spec.primaryColor}`,
-          boxShadow: `0 0 8px ${spec.glowColor}`,
-        }}
-      />
-      {/* Bottom-Right ┘ */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: `${cornerSize}px`,
-          height: `${cornerSize}px`,
-          borderBottom: `3px solid ${spec.primaryColor}`,
-          borderRight: `3px solid ${spec.primaryColor}`,
-          boxShadow: `0 0 8px ${spec.glowColor}`,
-        }}
-      />
+        {/* 1. 🪠 SHOTGUN SPECIFIC HUD: Large Pellet Circle + 8-radial dots + Octagon Brackets */}
+        {spec.weaponKind === 'shotgun' && (
+          <>
+            {/* Pellet Spread Outer Ring */}
+            <div
+              style={{
+                position: 'absolute',
+                width: `${spec.ringSizePx}px`,
+                height: `${spec.ringSizePx}px`,
+                borderRadius: '50%',
+                border: `2px dashed ${spec.primaryColor}`,
+                boxShadow: `0 0 16px ${spec.glowColor}, inset 0 0 10px ${spec.glowColor}`,
+                animation: isFeverActive ? 'spin 2s linear infinite' : undefined,
+              }}
+            />
 
-      {/* Outer Aiming Ring */}
-      <div
-        style={{
-          width: `${spec.ringSizePx}px`,
-          height: `${spec.ringSizePx}px`,
-          borderRadius: '50%',
-          border: `2px dashed ${spec.primaryColor}`,
-          boxShadow: `0 0 14px ${spec.glowColor}`,
-          position: 'relative',
-          opacity: 0.85,
-          animation: isFeverActive ? 'spin 3s linear infinite' : undefined,
-        }}
-      />
+            {/* 8-Direction Pellet Spread Dots */}
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((angleDeg) => {
+              const rad = (angleDeg * Math.PI) / 180;
+              const radius = spec.ringSizePx * 0.44;
+              const dx = Math.cos(rad) * radius;
+              const dy = Math.sin(rad) * radius;
+              return (
+                <div
+                  key={angleDeg}
+                  style={{
+                    position: 'absolute',
+                    transform: `translate(${dx}px, ${dy}px)`,
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: spec.primaryColor,
+                    boxShadow: `0 0 8px ${spec.primaryColor}`,
+                  }}
+                />
+              );
+            })}
 
-      {/* Center Laser Dot */}
-      <div
-        style={{
-          position: 'absolute',
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
-          background: spec.primaryColor,
-          boxShadow: `0 0 10px ${spec.primaryColor}`,
-        }}
-      />
+            {/* Center Burst Pinpoint */}
+            <div
+              style={{
+                position: 'absolute',
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: spec.primaryColor,
+                boxShadow: `0 0 12px ${spec.primaryColor}`,
+              }}
+            />
+          </>
+        )}
 
-      {/* Crosshair Horizontal & Vertical Laser Hairlines */}
-      <div
-        style={{
-          position: 'absolute',
-          width: `${spec.sizePx * 0.9}px`,
-          height: '2px',
-          background: `linear-gradient(90deg, transparent, ${spec.primaryColor}, transparent)`,
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          height: `${spec.sizePx * 0.9}px`,
-          width: '2px',
-          background: `linear-gradient(180deg, transparent, ${spec.primaryColor}, transparent)`,
-        }}
-      />
+        {/* 2. 🍾 REVOLVER SPECIFIC HUD: Precision Crosshair + Center Dot + Vertical Pierce Line */}
+        {spec.weaponKind === 'revolver' && (
+          <>
+            {/* Center Precision Circle */}
+            <div
+              style={{
+                position: 'absolute',
+                width: `${spec.ringSizePx}px`,
+                height: `${spec.ringSizePx}px`,
+                borderRadius: '50%',
+                border: `1.5px solid ${spec.primaryColor}`,
+                boxShadow: `0 0 12px ${spec.glowColor}`,
+              }}
+            />
 
-      {/* Buff Badge Text on top */}
-      {spec.badgeText && (
+            {/* Vertical Pierce Ray Guide (Top/Bottom Extensions) */}
+            <div
+              style={{
+                position: 'absolute',
+                height: `${spec.sizePx * 1.5}px`,
+                width: '2px',
+                background: `linear-gradient(180deg, transparent, ${spec.primaryColor}, transparent)`,
+                boxShadow: `0 0 8px ${spec.glowColor}`,
+              }}
+            />
+            {/* Horizontal Hairline */}
+            <div
+              style={{
+                position: 'absolute',
+                width: `${spec.sizePx * 0.9}px`,
+                height: '1px',
+                background: `linear-gradient(90deg, transparent, ${spec.primaryColor}, transparent)`,
+              }}
+            />
+
+            {/* Center 3px Pinpoint Laser Dot */}
+            <div
+              style={{
+                position: 'absolute',
+                width: '4px',
+                height: '4px',
+                borderRadius: '50%',
+                background: '#ffffff',
+                boxShadow: `0 0 8px ${spec.primaryColor}`,
+              }}
+            />
+          </>
+        )}
+
+        {/* 3. 🍺 GATLING SPECIFIC HUD: Rotary Turbine Reticle + Spread Circle + Tri-Pin */}
+        {spec.weaponKind === 'gatling' && (
+          <>
+            {/* Rotary Turbine Reticle Ring */}
+            <div
+              style={{
+                position: 'absolute',
+                width: `${spec.ringSizePx}px`,
+                height: `${spec.ringSizePx}px`,
+                borderRadius: '50%',
+                border: `2px solid ${spec.primaryColor}`,
+                borderTopColor: 'transparent',
+                borderBottomColor: 'transparent',
+                boxShadow: `0 0 14px ${spec.glowColor}`,
+                animation: isKicking
+                  ? 'spin 0.25s linear infinite'
+                  : isFeverActive
+                  ? 'spin 0.6s linear infinite'
+                  : 'spin 4s linear infinite',
+              }}
+            />
+
+            {/* Central Spread Circle */}
+            <div
+              style={{
+                position: 'absolute',
+                width: `${spec.ringSizePx * 0.55}px`,
+                height: `${spec.ringSizePx * 0.55}px`,
+                borderRadius: '50%',
+                border: `1.5px dashed ${spec.primaryColor}`,
+                opacity: 0.8,
+              }}
+            />
+
+            {/* 3-Point Turbine Pins (120° apart) */}
+            {[0, 120, 240].map((angleDeg) => (
+              <div
+                key={angleDeg}
+                style={{
+                  position: 'absolute',
+                  width: '2px',
+                  height: `${spec.sizePx * 0.45}px`,
+                  background: `linear-gradient(180deg, ${spec.primaryColor}, transparent)`,
+                  transform: `rotate(${angleDeg}deg)`,
+                  transformOrigin: '50% 50%',
+                }}
+              />
+            ))}
+
+            {/* Center Laser Dot */}
+            <div
+              style={{
+                position: 'absolute',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: spec.primaryColor,
+                boxShadow: `0 0 10px ${spec.primaryColor}`,
+              }}
+            />
+          </>
+        )}
+
+        {/* 4 Corner Targeting Brackets ┌ ┐ └ ┘ */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: `${cornerSize}px`,
+            height: `${cornerSize}px`,
+            borderTop: `3px solid ${spec.primaryColor}`,
+            borderLeft: `3px solid ${spec.primaryColor}`,
+            boxShadow: `0 0 8px ${spec.glowColor}`,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: `${cornerSize}px`,
+            height: `${cornerSize}px`,
+            borderTop: `3px solid ${spec.primaryColor}`,
+            borderRight: `3px solid ${spec.primaryColor}`,
+            boxShadow: `0 0 8px ${spec.glowColor}`,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: `${cornerSize}px`,
+            height: `${cornerSize}px`,
+            borderBottom: `3px solid ${spec.primaryColor}`,
+            borderLeft: `3px solid ${spec.primaryColor}`,
+            boxShadow: `0 0 8px ${spec.glowColor}`,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            width: `${cornerSize}px`,
+            height: `${cornerSize}px`,
+            borderBottom: `3px solid ${spec.primaryColor}`,
+            borderRight: `3px solid ${spec.primaryColor}`,
+            boxShadow: `0 0 8px ${spec.glowColor}`,
+          }}
+        />
+
+        {/* Buff or Weapon Level Badge on Top */}
         <div
           style={{
             position: 'absolute',
@@ -276,10 +434,17 @@ export const CrosshairOverlay = React.memo(
             whiteSpace: 'nowrap',
           }}
         >
-          {spec.badgeText}
+          {spec.badgeText
+            ? spec.badgeText
+            : `${
+                spec.weaponKind === 'shotgun'
+                  ? '🪠 SHOTGUN'
+                  : spec.weaponKind === 'revolver'
+                  ? '🍾 REVOLVER'
+                  : '🍺 GATLING'
+              } Lv.${spec.weaponLevel === 4 ? 'MAX' : spec.weaponLevel}`}
         </div>
-      )}
-    </div>
-  );
-}));
-
+      </div>
+    );
+  })
+);

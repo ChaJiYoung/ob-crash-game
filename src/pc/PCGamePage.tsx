@@ -669,6 +669,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isWideScopeActive={hudState.isWideScopeActive}
             isPowerShotActive={hudState.isPowerShotActive}
             isAimLocked={isAimLocked}
+            weaponKind={hudState.weaponKind}
+            weaponLevel={hudState.weaponLevel}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
@@ -697,6 +699,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isWideScopeActive={false}
             isPowerShotActive={false}
             isAimLocked={isAimLocked}
+            weaponKind={hudState.weaponKind}
+            weaponLevel={hudState.weaponLevel}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
@@ -772,6 +776,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isWideScopeActive={hudState.isWideScopeActive}
             isPowerShotActive={hudState.isPowerShotActive}
             isAimLocked={isAimLocked}
+            weaponKind={hudState.weaponKind}
+            weaponLevel={hudState.weaponLevel}
             shotTriggerKey={lastShootResult?.key || 0}
           />
           <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
