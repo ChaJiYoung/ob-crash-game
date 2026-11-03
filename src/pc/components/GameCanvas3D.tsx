@@ -334,6 +334,7 @@ export const GameCanvas3D = React.memo(
       // 6. Animation loop
       let animId = 0;
       let lastTime = performance.now();
+      let lastProjUpdateTime = 0;
       const activeIds = new Set<string>();
       const projVec = new THREE.Vector3();
 
@@ -443,8 +444,13 @@ export const GameCanvas3D = React.memo(
         const hasDanger = engine.activeTargets.some((t) => !t.isItem && t.radiusM < 5.0);
         stageRig.updateStageAnimation(time / 1000, feverState.isFeverActive, hasDanger);
 
-        // Project monster 3D head positions to HUD screen percentage
-        if (onMonsterProjectionsUpdateRef.current && cameraRef.current) {
+        // Project monster 3D head positions to HUD screen percentage (~30fps throttled)
+        if (
+          onMonsterProjectionsUpdateRef.current &&
+          cameraRef.current &&
+          time - lastProjUpdateTime >= 32
+        ) {
+          lastProjUpdateTime = time;
           const camera = cameraRef.current;
           const projections: MonsterHudProjection[] = [];
 

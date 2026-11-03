@@ -109,6 +109,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const latestAimRef = useRef({ aimX: 0, aimY: 0 });
   const lastSentFeverReadyRef = useRef<boolean>(false);
+  const lastSentSkillStockRef = useRef<number>(-1);
+  const lastSkillSyncTimeRef = useRef<number>(0);
   const lastIsCockedRef = useRef<boolean>(false);
   const lastDiagUpdateTimeRef = useRef<number>(0);
 
@@ -440,19 +442,24 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           );
         }
 
-        // Sync skill state to mobile controller
-        wsRef.current.send(
-          JSON.stringify({
-            type: 'SKILL_STATE_SYNC',
-            roomId,
-            weaponKind: weaponState.weaponKind,
-            weaponLevel: weaponState.weaponLevel,
-            skillStock: weaponState.skillStock,
-            maxSkillStock: weaponState.maxSkillStock,
-            skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
-            skillCooldownTotalMs: weaponState.skillCooldownTotalMs,
-          })
-        );
+        // Sync skill state to mobile controller (on state change or throttled 150ms)
+        const stockChanged = lastSentSkillStockRef.current !== weaponState.skillStock;
+        if (stockChanged || now - lastSkillSyncTimeRef.current >= 150) {
+          lastSkillSyncTimeRef.current = now;
+          lastSentSkillStockRef.current = weaponState.skillStock;
+          wsRef.current.send(
+            JSON.stringify({
+              type: 'SKILL_STATE_SYNC',
+              roomId,
+              weaponKind: weaponState.weaponKind,
+              weaponLevel: weaponState.weaponLevel,
+              skillStock: weaponState.skillStock,
+              maxSkillStock: weaponState.maxSkillStock,
+              skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
+              skillCooldownTotalMs: weaponState.skillCooldownTotalMs,
+            })
+          );
+        }
       }
 
       // Synchronize game over / victory
