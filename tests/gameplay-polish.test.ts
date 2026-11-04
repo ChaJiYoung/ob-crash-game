@@ -93,8 +93,9 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
   });
 
   describe('T02: Kill-Gauge Reward Cards, Field Freeze & Roguelike Passives', () => {
-    it('should spawn 3D cards at 10 kills in Wave 1 and freeze monsters on field', () => {
+    it('should spawn 3D cards at 22 kills in Wave 4 and freeze monsters on field', () => {
       engine.startGame({ withWeaponSelect: false });
+      engine.startWave(4);
       engine.activeTargets = [];
       engine.weaponSystem.selectWeapon('revolver', 1);
       engine.weaponSystem.setInfiniteAmmo(true);
@@ -106,8 +107,8 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       engine.isSandboxMode = false;
       engine.activeTargets = [extraMonster];
 
-      // Simulate killing 10 monsters (Wave 1 target is 10)
-      for (let i = 0; i < 10; i++) {
+      // Simulate killing 22 monsters (Wave 4 target is 22)
+      for (let i = 0; i < 22; i++) {
         const dummy = {
           id: `target_kill_${i}`,
           kind: 'pilgood' as const,
@@ -129,7 +130,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
         expect(res.killed).toBe(true);
       }
 
-      // Check that 10 kills triggered reward cards
+      // Check that 22 kills triggered reward cards
       expect(engine.isRewardCardPending).toBe(true);
       expect(engine.pendingWaveAdvance).toBe(false);
 
@@ -145,18 +146,18 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       // Field must be frozen: survivor has moved 0 meters
       expect(extraMonster.radiusM).toBe(survivorRadiusBefore);
 
-      // Now select a card after 800ms cooldown (spawned at ~5500ms)
+      // Now select a card after 800ms cooldown (spawned at ~11500ms)
       const chosenCard = cards[0];
       const cardProj = engine.computeTargetAimCoords(chosenCard);
-      const cardShot = engine.shootAt(cardProj.targetNormX, cardProj.targetNormY, 12000);
+      const cardShot = engine.shootAt(cardProj.targetNormX, cardProj.targetNormY, 13000);
 
       expect(cardShot.fired).toBe(true);
       expect(cardShot.selectedCard).toBe(chosenCard.rewardCardKind);
       expect(engine.isRewardCardPending).toBe(false);
 
-      // The surviving monster must still be present on field and wave 1 continues
+      // The surviving monster must still be present on field and wave 4 continues
       expect(engine.activeTargets.some((t) => t.id === 'monster_survivor')).toBe(true);
-      expect(engine.currentWave).toBe(1);
+      expect(engine.currentWave).toBe(4);
 
       // Next update should resume monster movement
       engine.update(13000, 1.0);
@@ -228,10 +229,10 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
     });
   });
 
-  describe('T02: Wave 5 Cooler Boss 10m Stop, Minion Summons & Instant Victory', () => {
+  describe('T02: Wave 7 Cooler Boss 10m Stop, Minion Summons & Victory after all bosses', () => {
     it('should clamp cooler boss at 10.0m and summon minion wave on tap lever action', () => {
       engine.startGame({ withWeaponSelect: false });
-      engine.startWave(5);
+      engine.startWave(7);
       engine.activeTargets = [];
 
       // Spawn boss at 11.0m
@@ -249,9 +250,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
         killBonusScore: 5000,
         breached: false,
       };
-      // Mark bossSpawned true
-      // @ts-expect-error accessing private property for test setup
-      engine.bossSpawned = true;
+      engine.isBossEncounterActive = true;
       engine.activeTargets = [boss];
 
       // Update by 2 seconds: speed is 2.0m/s so it would reach 7.0m, but clamped to 10.0m!
@@ -268,12 +267,14 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
 
     it('should trigger instant victory and clear all entities when boss is killed', () => {
       engine.startGame({ withWeaponSelect: false });
-      engine.startWave(5);
+      engine.startWave(7);
+      engine.isBossEncounterActive = true;
       engine.weaponSystem.selectWeapon('revolver', 1);
 
       const boss = {
         id: 'boss_unit',
         kind: 'boss' as const,
+        bossRole: 'cooler' as const,
         hp: 1, // 1 HP left
         maxHp: 50,
         radiusM: 10.0,

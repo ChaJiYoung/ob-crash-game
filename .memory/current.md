@@ -7,10 +7,10 @@
 [P04 Waves and Bosses](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/phase.md)
 
 ## Active Task
-[T01 Seven Waves and Boss Encounters](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/T01-seven-waves-and-boss-encounters.md)
+[T02 Monster Movement and Artillery](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/T02-monster-movement-and-artillery.md)
 
 ## Status
-- T03 완료, T01 구현 시작 준비 완료
+- T01 완료, T02 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 구현 시작
+T02 청사진을 읽고 구현 시작

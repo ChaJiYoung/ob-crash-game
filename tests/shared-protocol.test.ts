@@ -73,7 +73,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);
     expect(STAGE_CONSTANTS.FAN_MARGIN_RATIO).toBe(0.80);
     expect(STAGE_CONSTANTS.PLAYER_MAX_LIVES).toBe(5);
-    expect(STAGE_CONSTANTS.TOTAL_WAVES).toBe(5);
+    expect(STAGE_CONSTANTS.TOTAL_WAVES).toBe(7);
   });
 
   it('should define 3 weapon archetypes across Lv.1~MAX with nerfed balance specs (D07, D08, D09, D11)', () => {

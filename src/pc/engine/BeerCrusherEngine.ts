@@ -53,6 +53,9 @@ export interface ActiveTargetEntity {
   isProjectile?: boolean;
   weaponSelectKind?: WeaponKind;
   rewardCardKind?: RewardCardKind;
+  // Boss encounter
+  bossRole?: 'cooler' | 'king';
+  bossBaseThetaRad?: number;
 }
 
 export interface TargetAimProjection {
@@ -96,7 +99,7 @@ export interface WaveDefinition {
   spawnIntervalMs: number;
   kinds: TargetKind[];
   allowedItems: ItemBuffKind[];
-  includesBoss: boolean;
+  boss: { coolerHp: readonly number[]; kingHp: number | null; summonKinds: readonly TargetKind[] } | null;
 }
 
 export interface SandboxSpawnOptions {
@@ -117,7 +120,7 @@ export interface WaveProgressInfo {
   remainingInWave: number;
   progressPercent: number;
   cardKillCount: number;
-  cardKillTarget: number;
+  cardKillTarget: number | null;
   luckyDropMultiplier: number;
 }
 
@@ -147,7 +150,9 @@ export class BeerCrusherEngine {
   public luckyDropStacks = 0;
   public cardKillCount = 0;
   public pendingWaveAdvance = false;
-  private waveCardKillTargets: Record<number, number> = { 1: 10, 2: 14, 3: 18, 4: 20, 5: 15 };
+  private waveCardKillTargets: Record<number, number | null> = Object.fromEntries(
+    GAME_TUNING.waves.map((w) => [w.waveIndex, w.cardKillTarget])
+  );
   public dropRng: () => number = () => Math.random();
 
   // Boss summon state
@@ -156,53 +161,28 @@ export class BeerCrusherEngine {
   public lastBossSummonHpThreshold = 45;
 
   // Wave definitions
-  private waveDefinitions: Record<number, WaveDefinition> = {
-    1: {
-      waveIndex: 1,
-      totalSpawns: 24,
-      maxSimultaneous: 4,
-      spawnIntervalMs: 950,
-      kinds: ['pilgood', 'caslight'],
-      allowedItems: [],
-      includesBoss: false,
-    },
-    2: {
-      waveIndex: 2,
-      totalSpawns: 32,
-      maxSimultaneous: 5,
-      spawnIntervalMs: 850,
-      kinds: ['obi', 'hanmac', 'pilgood'],
-      allowedItems: [],
-      includesBoss: false,
-    },
-    3: {
-      waveIndex: 3,
-      totalSpawns: 40,
-      maxSimultaneous: 6,
-      spawnIntervalMs: 800,
-      kinds: ['bottle', 'caslight', 'obi', 'hanmac'],
-      allowedItems: [],
-      includesBoss: false,
-    },
-    4: {
-      waveIndex: 4,
-      totalSpawns: 48,
-      maxSimultaneous: 7,
-      spawnIntervalMs: 700,
-      kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'],
-      allowedItems: [],
-      includesBoss: false,
-    },
-    5: {
-      waveIndex: 5,
-      totalSpawns: 35,
-      maxSimultaneous: 6,
-      spawnIntervalMs: 800,
-      kinds: ['hanmac', 'bottle', 'pilgood', 'caslight'],
-      allowedItems: [],
-      includesBoss: true,
-    },
-  };
+  private waveDefinitions: Record<number, WaveDefinition> = Object.fromEntries(
+    GAME_TUNING.waves.map((w) => [
+      w.waveIndex,
+      {
+        waveIndex: w.waveIndex,
+        totalSpawns: w.totalSpawns,
+        maxSimultaneous: w.maxSimultaneous,
+        spawnIntervalMs: w.spawnIntervalMs,
+        kinds: [...w.kinds] as TargetKind[],
+        allowedItems: [],
+        boss: w.boss
+          ? {
+              coolerHp: w.boss.coolerHp,
+              kingHp: w.boss.kingHp,
+              summonKinds: w.boss.summonKinds as readonly TargetKind[],
+            }
+          : null,
+      } satisfies WaveDefinition,
+    ])
+  ) as Record<number, WaveDefinition>;
+
+  public isBossEncounterActive = false;
 
   private spawnedInWave = 0;
   private itemsSpawnedInWave = 0;
@@ -242,8 +222,9 @@ export class BeerCrusherEngine {
     this.projCamera.updateMatrixWorld(true);
   }
 
-  public getCardKillTarget(waveIndex: number = this.currentWave): number {
-    return this.waveCardKillTargets[waveIndex] ?? 15;
+  public getCardKillTarget(waveIndex: number = this.currentWave): number | null {
+    const target = this.waveCardKillTargets[waveIndex];
+    return target === undefined ? null : target;
   }
 
   public getLuckyDropMultiplier(): number {
@@ -305,6 +286,7 @@ export class BeerCrusherEngine {
     this.itemsSpawnedInWave = 0;
     this.killedInWave = 0;
     this.bossSpawned = false;
+    this.isBossEncounterActive = false;
     this.lastSpawnTimeMs = 0;
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
@@ -336,6 +318,7 @@ export class BeerCrusherEngine {
     this.itemsSpawnedInWave = 0;
     this.killedInWave = 0;
     this.bossSpawned = false;
+    this.isBossEncounterActive = false;
     this.lastSpawnTimeMs = 0;
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
@@ -659,8 +642,12 @@ export class BeerCrusherEngine {
     this.gamePhase = 'PAIRING';
   }
 
+  public getBossEntities(): ActiveTargetEntity[] {
+    return this.activeTargets.filter((t) => t.kind === 'boss');
+  }
+
   public getBossEntity(): ActiveTargetEntity | undefined {
-    return this.activeTargets.find((t) => t.kind === 'boss');
+    return this.getBossEntities()[0];
   }
 
   public exitSandboxMode(): void {
@@ -891,7 +878,10 @@ export class BeerCrusherEngine {
   public spawnBossMinionWave(nowMs: number, count = 4): ActiveTargetEntity[] {
     this.lastBossSummonTimeMs = nowMs;
     this.bossSummonActionUntilMs = nowMs + 1800;
-    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'];
+    const waveBoss = this.waveDefinitions[this.currentWave]?.boss;
+    const kinds: readonly TargetKind[] = waveBoss
+      ? waveBoss.summonKinds
+      : ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'];
     const spawned: ActiveTargetEntity[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -911,7 +901,7 @@ export class BeerCrusherEngine {
         initialThetaRad: theta,
         x: Math.sin(theta) * radius,
         z: -Math.cos(theta) * radius,
-        speedMps: spec.speedMps,
+        speedMps: spec.speedMps * this.getWaveSpeedMultiplier(),
         hitRadiusM: spec.hitRadiusM,
         killBonusScore: spec.killBonusScore,
         breached: false,
@@ -1032,10 +1022,11 @@ export class BeerCrusherEngine {
       );
 
       if (target.kind === 'boss') {
-        if (next.radiusM <= 10.0) {
-          target.radiusM = 10.0;
-          target.x = Math.sin(target.thetaRad) * 10.0;
-          target.z = -Math.cos(target.thetaRad) * 10.0;
+        const stopRadiusM = GAME_TUNING.boss.stopRadiusM;
+        if (next.radiusM <= stopRadiusM) {
+          target.radiusM = stopRadiusM;
+          target.x = Math.sin(target.thetaRad) * stopRadiusM;
+          target.z = -Math.cos(target.thetaRad) * stopRadiusM;
           target.breached = false;
         } else {
           target.radiusM = next.radiusM;
@@ -1103,7 +1094,7 @@ export class BeerCrusherEngine {
       return { breaches, phaseChanged: false, reloadedJustNow };
     }
 
-    const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
+    const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[STAGE_CONSTANTS.TOTAL_WAVES];
 
     // 2. Periodic enemy spawn
     const canSpawn =
@@ -1127,20 +1118,10 @@ export class BeerCrusherEngine {
       this.spawnMonsterProjectile(nowMs, shooter);
     }
 
-    // 3. Spawn Boss in Wave 5
-    if (
-      this.currentWave === 5 &&
-      waveDef.includesBoss &&
-      !this.bossSpawned &&
-      (this.spawnedInWave >= 15 || this.activeTargets.filter((t) => !t.isItem && !t.isProjectile).length <= 1)
-    ) {
-      this.spawnBoss(nowMs);
-    }
-
-    // Boss Summon Action in Wave 5
-    if (this.currentWave === 5 && this.bossSpawned) {
+    // Boss summon action (rules are reworked in P04-T04)
+    if (this.isBossEncounterActive) {
       const boss = this.getBossEntity();
-      if (boss && boss.hp > 0 && boss.radiusM <= 12.5) {
+      if (boss && boss.hp > 0 && boss.radiusM <= GAME_TUNING.boss.summonRadiusM) {
         const timeTrigger = this.lastBossSummonTimeMs === 0 || nowMs - this.lastBossSummonTimeMs >= 9000;
         const hpTrigger = this.lastBossSummonHpThreshold > 0 && boss.hp <= this.lastBossSummonHpThreshold;
 
@@ -1167,21 +1148,18 @@ export class BeerCrusherEngine {
 
     // 4. Check wave completion
     const monsterTargets = this.activeTargets.filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind);
-    const bossIsAlive = monsterTargets.some((t) => t.kind === 'boss');
-    const waveComplete =
-      this.spawnedInWave >= waveDef.totalSpawns &&
-      monsterTargets.length === 0 &&
-      (!waveDef.includesBoss || !bossIsAlive);
+    const bossAlive = monsterTargets.some((t) => t.kind === 'boss');
+    const miniWaveDone =
+      this.spawnedInWave >= waveDef.totalSpawns && monsterTargets.length === 0 && !bossAlive;
 
-    if (waveComplete) {
-      this.activeTargets = [];
-
-      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
-        this.gamePhase = 'VICTORY';
-        return { breaches, phaseChanged: true, reloadedJustNow };
+    if (miniWaveDone) {
+      if (waveDef.boss && !this.bossSpawned) {
+        this.spawnBossEncounter(nowMs);
+        return { breaches, phaseChanged: false, reloadedJustNow };
       }
 
-      // Between waves: Spawn Shoot-to-Select Reward Cards
+      this.activeTargets = [];
+      // Between waves: Spawn Shoot-to-Select Reward Cards (the last wave always ends with its boss fight)
       this.spawnWaveRewardCards(nowMs, true);
       return { breaches, phaseChanged: true, reloadedJustNow };
     }
@@ -1211,7 +1189,7 @@ export class BeerCrusherEngine {
       initialThetaRad: pt.thetaRad,
       x: pt.x,
       z: pt.z,
-      speedMps: spec.speedMps,
+      speedMps: spec.speedMps * this.getWaveSpeedMultiplier(),
       hitRadiusM: spec.hitRadiusM,
       killBonusScore: spec.killBonusScore,
       breached: false,
@@ -1222,33 +1200,59 @@ export class BeerCrusherEngine {
     this.lastSpawnTimeMs = nowMs;
   }
 
-  private spawnBoss(nowMs: number): void {
+  /** 일반 몬스터 속도 배율: 웨이브마다 +4%. 보스·아이템·금색 캔·투사체에는 쓰지 않는다. */
+  private getWaveSpeedMultiplier(): number {
+    return 1 + GAME_TUNING.speedPerWave * (this.currentWave - 1);
+  }
+
+  /** 미니웨이브가 끝나면 냉각기(들)와 필요하면 대왕을 좌우로 벌려 등장시킨다. */
+  private spawnBossEncounter(nowMs: number): void {
+    const waveDef = this.waveDefinitions[this.currentWave];
+    if (!waveDef?.boss) return;
     this.bossSpawned = true;
+    this.isBossEncounterActive = true;
+    this.lastBossSummonTimeMs = 0;
+    this.lastBossSummonHpThreshold = 0;
+
     const spec = TARGET_SPECS.boss;
+    const { coolerHp, kingHp } = waveDef.boss;
+    const spread = GAME_TUNING.boss.coolerSpreadRad;
+    const thetas =
+      coolerHp.length === 1 ? [0] : coolerHp.map((_, i) => (i === 0 ? -spread : spread));
 
-    const pt = sampleFanSpawnPoint({
-      vFovDeg: this.vFovDeg,
-      aspect: this.aspect,
-      rng: () => 0.5,
-    });
-
-    this.targetCounter += 1;
-    const bossEntity: ActiveTargetEntity = {
-      id: `boss_${this.targetCounter}`,
-      kind: 'boss',
-      hp: spec.maxHp,
-      maxHp: spec.maxHp,
-      radiusM: pt.radiusM,
-      thetaRad: 0,
-      x: 0,
-      z: -pt.radiusM,
-      speedMps: spec.speedMps,
-      hitRadiusM: spec.hitRadiusM,
-      killBonusScore: spec.killBonusScore,
-      breached: false,
+    const make = (
+      role: 'cooler' | 'king',
+      hp: number,
+      theta: number,
+      hitRadiusM: number
+    ): ActiveTargetEntity => {
+      this.targetCounter += 1;
+      const radius = GAME_TUNING.boss.startRadiusM;
+      return {
+        id: `boss_${this.targetCounter}`,
+        kind: 'boss',
+        hp,
+        maxHp: hp,
+        radiusM: radius,
+        thetaRad: theta,
+        initialThetaRad: theta,
+        bossBaseThetaRad: theta,
+        bossRole: role,
+        x: Math.sin(theta) * radius,
+        z: -Math.cos(theta) * radius,
+        speedMps: spec.speedMps,
+        hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+      };
     };
 
-    this.activeTargets.push(bossEntity);
+    coolerHp.forEach((hp, i) => {
+      this.activeTargets.push(make('cooler', hp, thetas[i], spec.hitRadiusM));
+    });
+    if (kingHp !== null) {
+      this.activeTargets.push(make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale));
+    }
     this.lastSpawnTimeMs = nowMs;
   }
 
@@ -1285,7 +1289,8 @@ export class BeerCrusherEngine {
     const zoneScale = isCard
       ? baseZoneScale
       : baseZoneScale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.cardStacks.hit_zone_up);
-    const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale) / 0.84);
+    const bossScale = target.kind === 'boss' && !isCard ? GAME_TUNING.boss.hitZoneScale : 1.0;
+    const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale * bossScale) / 0.84);
 
     return { targetNormX, targetNormY, apparentHitRadius };
   }
@@ -1296,9 +1301,14 @@ export class BeerCrusherEngine {
     }
 
     if (target.kind === 'boss') {
+      if (this.getBossEntities().length > 0) return; // other bosses remain
+      this.isBossEncounterActive = false;
       this.activeTargets = [];
       this.isRewardCardPending = false;
-      this.gamePhase = 'VICTORY';
+      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
+        this.gamePhase = 'VICTORY';
+      }
+      // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
       return;
     }
 
@@ -1314,8 +1324,9 @@ export class BeerCrusherEngine {
         }
 
         // 2. 킬 게이지 누적 및 중도 카드 스폰
+        const cardTarget = this.getCardKillTarget();
         this.cardKillCount += 1;
-        if (this.cardKillCount >= this.getCardKillTarget()) {
+        if (cardTarget !== null && this.cardKillCount >= cardTarget) {
           this.cardKillCount = 0;
           if (!this.isRewardCardPending) {
             this.spawnWaveRewardCards(nowMs, false);
@@ -1404,7 +1415,7 @@ export class BeerCrusherEngine {
       this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
       this.isRewardCardPending = false;
 
-      const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
+      const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[STAGE_CONSTANTS.TOTAL_WAVES];
       const monsterTargets = this.activeTargets.filter(
         (t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind
       );
@@ -1567,7 +1578,7 @@ export class BeerCrusherEngine {
         damage = Number((baseDamage * totalMult).toFixed(3));
 
         // Knockback on Lv.2+
-        if (levelSpec.knockbackM > 0) {
+        if (levelSpec.knockbackM > 0 && target.kind !== 'boss') {
           target.radiusM = Math.min(16.0, target.radiusM + levelSpec.knockbackM);
         }
         // Lv.4 MAX slow
@@ -1769,7 +1780,9 @@ export class BeerCrusherEngine {
         if (Math.abs(monster.thetaRad) <= halfArcRad) {
           const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
           monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
-          monster.radiusM = Math.min(16.0, monster.radiusM + levelSpec.skillKnockbackM);
+          if (monster.kind !== 'boss') {
+            monster.radiusM = Math.min(16.0, monster.radiusM + levelSpec.skillKnockbackM);
+          }
           monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
           monster.slowRatio = levelSpec.skillSlowRatio;
           affectedTargets.push(monster);

@@ -1,6 +1,6 @@
 # Task: T01 Seven Waves and Boss Encounters
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임을 7웨이브로 늘리고 3·5·7웨이브에서 미니웨이브 뒤 보스전이 열리게 한다. 중간 보스를 잡으면 카드 후 다음 웨이브로, 마지막 보스전을 모두 잡으면 승리한다.
@@ -152,10 +152,10 @@
   - 1웨이브는 킬 수와 관계없이 중간 카드가 없다.
 
 ## Acceptance Criteria
-- [ ] 7웨이브까지 진행되고 HUD에 `WAVE n / 7`로 표시된다.
-- [ ] 3·5·7웨이브에서 미니웨이브를 깨면 보스가 나온다.
-- [ ] 중간 보스를 잡아도 승리가 아니고 다음 웨이브로 간다.
-- [ ] 샷건으로 쏴도 보스가 밀리지 않는다.
+- [x] 7웨이브까지 진행되고 HUD에 `WAVE n / 7`로 표시된다.
+- [x] 3·5·7웨이브에서 미니웨이브를 깨면 보스가 나온다.
+- [x] 중간 보스를 잡아도 승리가 아니고 다음 웨이브로 간다.
+- [x] 샷건으로 쏴도 보스가 밀리지 않는다.
 
 ## Validation
 - `npx vitest run tests/boss-encounters.test.ts tests/gameplay-polish.test.ts tests/shared-protocol.test.ts tests/engine-judgment-and-spawn.test.ts` — 통과
@@ -177,6 +177,6 @@ Task: T01-seven-waves-and-boss-encounters
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(waves): add seven waves with mini-wave boss encounters

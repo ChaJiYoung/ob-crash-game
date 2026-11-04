@@ -341,7 +341,9 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 }}
               >
                 <span>🎯 웨이브 토벌 {waveProgress.killedInWave}/{waveProgress.totalSpawns}</span>
-                <span>🃏 카드: {waveProgress.cardKillCount}/{waveProgress.cardKillTarget} KILL</span>
+                {waveProgress.cardKillTarget !== null && (
+                  <span>🃏 카드: {waveProgress.cardKillCount}/{waveProgress.cardKillTarget} KILL</span>
+                )}
                 <span>{waveProgress.progressPercent}%</span>
               </div>
               <div
