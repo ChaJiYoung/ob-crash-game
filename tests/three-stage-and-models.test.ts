@@ -153,6 +153,25 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(rig.healPulseMesh.scale.x).toBeGreaterThanOrEqual(1.0);
 
     rig.updateStageAnimation(2.0, true, true);
+
+    // Verify amberSignMesh has been completely removed to prevent untextured orange box artifact (D01)
+    let hasAmberSignBox = false;
+    rig.root.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        const mesh = obj as THREE.Mesh;
+        if (
+          mesh.geometry instanceof THREE.BoxGeometry &&
+          Math.abs(mesh.position.z - (-14.05)) < 0.2
+        ) {
+          hasAmberSignBox = true;
+        }
+      }
+    });
+    expect(hasAmberSignBox).toBe(false);
+
+    // Verify amberNeon point light is preserved
+    const amberLight = rig.neonLights.find((l) => l.color.getHex() === 0xf59e0b || l.color.getHex() === 0xffd700);
+    expect(amberLight).toBeDefined();
   });
 
   it('should handle DraftTapGun3D center mount, recoil, and aim updates', () => {

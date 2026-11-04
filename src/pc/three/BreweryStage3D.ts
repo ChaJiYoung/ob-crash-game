@@ -314,18 +314,11 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   mainDirLight.shadow.camera.bottom = -20;
   root.add(mainDirLight);
 
-  // Amber Neon Sign Mesh + Point Light (Optimized radius 15m)
+  // Amber Neon Point Light (Optimized radius 15m)
   const amberNeon = new THREE.PointLight(0xf59e0b, 2.6, 15);
   amberNeon.position.set(0, 6, -14);
   root.add(amberNeon);
   neonLights.push(amberNeon);
-
-  const amberSignMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(4.2, 0.8, 0.1),
-    new THREE.MeshBasicMaterial({ color: 0xf59e0b })
-  );
-  amberSignMesh.position.set(0, 6, -14.05);
-  root.add(amberSignMesh);
 
   // Cyan Neon Side Light (Optimized radius 12m)
   const cyanNeon = new THREE.PointLight(0x06b6d4, 2.2, 12);
