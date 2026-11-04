@@ -12,11 +12,12 @@ import {
   updateItemAnimation3D,
   applyTargetHitFlash3D,
   getTargetBaseY,
+  getSharedTargetResourceStats,
 } from '../src/pc/three/TargetModels3D';
 import { DraftTapGun3D, createRealisticPlungerMesh } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
-import { computeAimWorldPoint } from '../src/pc/components/GameCanvas3D';
+import { computeAimWorldPoint, disposeSceneGroup } from '../src/pc/components/GameCanvas3D';
 import { aimToNdc } from '../src/pc/components/CrosshairOverlay';
 
 describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
@@ -433,5 +434,88 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     const borderGroup = inner.children.find((c) => c.name === 'cardNeonBorder') as THREE.Group;
     expect(borderGroup).toBeDefined();
     expect(borderGroup.children.length).toBe(4);
+  });
+
+  it('should pool weapon projectiles and tracer beams across 100 shots without unbounded allocations (P02-T01, T03)', () => {
+    const scene = new THREE.Scene();
+    const fx = new ParticleEffects3D(scene);
+
+    const origin = new THREE.Vector3(0, 0, 0);
+    const target = new THREE.Vector3(0, 0, -10);
+
+    // Fire 100 projectiles and tracers across 3 weapons
+    for (let i = 0; i < 100; i++) {
+      const weapon = i % 3 === 0 ? 'shotgun' : i % 3 === 1 ? 'revolver' : 'gatling';
+      const level = ((i % 4) + 1) as 1 | 2 | 3 | 4;
+      fx.spawnWeaponProjectile(origin, target, weapon, level);
+      fx.spawnTracerBeam(origin, target, 0xffaa00);
+      fx.update(0.02);
+    }
+
+    // Advance time until all active projectiles and tracers expire and return to pool
+    for (let step = 0; step < 20; step++) {
+      fx.update(0.1);
+    }
+
+    const poolStats = fx.getPoolStats();
+    expect(poolStats.pooledProjectiles).toBeGreaterThan(0);
+    expect(poolStats.pooledTracers).toBeGreaterThan(0);
+    // Max pool size should be bounded (shotgun 32 + revolver 32 + gatling 32 = max 96; tracers max 24)
+    expect(poolStats.pooledProjectiles).toBeLessThanOrEqual(96);
+    expect(poolStats.pooledTracers).toBeLessThanOrEqual(24);
+  });
+
+  it('should reuse cached geometries across 30 spawned monsters and preserve shared resources on dispose (P02-T02, T03)', () => {
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss'];
+
+    // 1. First batch of 6 archetypes to populate shared cache
+    const firstBatch = kinds.map((k) => createTargetMesh3D(k));
+    const statsInitial = getSharedTargetResourceStats();
+    expect(statsInitial.cachedGeometries).toBeGreaterThan(0);
+
+    // 2. Spawn 24 more monsters (total 30 monsters across 5 cycles)
+    const extraMonsters: THREE.Group[] = [];
+    for (let i = 0; i < 24; i++) {
+      const kind = kinds[i % kinds.length];
+      extraMonsters.push(createTargetMesh3D(kind));
+    }
+
+    const statsAfter30 = getSharedTargetResourceStats();
+    // Cache count must not grow beyond archetype archetypes
+    expect(statsAfter30.cachedGeometries).toBe(statsInitial.cachedGeometries);
+
+    // 3. Dispose 15 monsters (firstBatch + 9 extra)
+    const monstersToDispose = [...firstBatch, ...extraMonsters.slice(0, 9)];
+    const survivingMonsters = extraMonsters.slice(9); // 15 surviving monsters
+
+    monstersToDispose.forEach((m) => {
+      disposeSceneGroup(m);
+    });
+
+    // Verify surviving monsters still have valid, non-disposed geometries
+    survivingMonsters.forEach((survivor) => {
+      survivor.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.isMesh && mesh.geometry) {
+          expect(mesh.geometry.userData?.disposed).toBeUndefined();
+        }
+      });
+    });
+
+    // Verify disposed monsters had their non-shared materials disposed, but shared geometries spared
+    monstersToDispose.forEach((disposed) => {
+      disposed.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.isMesh) {
+          if (mesh.geometry?.userData?.isShared) {
+            expect(mesh.geometry.userData.disposed).toBeUndefined();
+          }
+          if (mesh.userData?.isBodyMaterial) {
+            const mat = mesh.material as THREE.Material;
+            expect(mat.userData?.disposed).toBe(true);
+          }
+        }
+      });
+    });
   });
 });

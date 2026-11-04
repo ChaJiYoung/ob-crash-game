@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { BeerCrusherEngine, EngineShootResult, WaveProgressInfo } from './engine/BeerCrusherEngine';
-import { GameCanvas3D, GameCanvas3DHandle } from './components/GameCanvas3D';
+import { GameCanvas3D, GameCanvas3DHandle, RenderPerformanceMetrics } from './components/GameCanvas3D';
 import { ArcadeOverlayHUD, MonsterHudProjection } from './components/ArcadeOverlayHUD';
 import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
 import { JudgmentBanner } from './components/JudgmentBanner';
@@ -774,6 +774,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const bossEntity = engine.getBossEntity();
 
+  const handleRenderMetrics = useCallback((metrics: RenderPerformanceMetrics) => {
+    if (!isSensorLabOpenRef.current && gamePhaseRef.current !== 'SANDBOX') return;
+    setSensorLiveMetrics((prev) => ({
+      ...prev,
+      fps: metrics.fps,
+      drawCalls: metrics.drawCalls,
+      geometries: metrics.geometries,
+      textures: metrics.textures,
+    }));
+  }, []);
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       {/* 1. 3D WebGL Canvas */}
@@ -789,6 +800,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         soundSynth={soundSynth}
         lastShootResult={lastShootResult}
         onMonsterProjectionsUpdate={setMonsterProjections}
+        onRenderMetrics={handleRenderMetrics}
       />
 
       {/* Golden Can Screen Border Flash Indicator */}

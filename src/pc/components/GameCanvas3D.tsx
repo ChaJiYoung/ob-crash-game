@@ -76,6 +76,13 @@ export interface GameCanvas3DHandle {
   triggerSkillEffect?: (kind: WeaponKind, level?: WeaponLevel) => void;
 }
 
+export interface RenderPerformanceMetrics {
+  fps: number;
+  drawCalls: number;
+  geometries: number;
+  textures: number;
+}
+
 export interface GameCanvas3DProps {
   engine: BeerCrusherEngine;
   aimX: number;
@@ -86,6 +93,7 @@ export interface GameCanvas3DProps {
   lastShootResult?: { result: EngineShootResult; key: number };
   lastSkillTriggered?: { kind: WeaponKind; level?: WeaponLevel; key: number };
   onMonsterProjectionsUpdate?: (projections: MonsterHudProjection[]) => void;
+  onRenderMetrics?: (metrics: RenderPerformanceMetrics) => void;
 }
 
 export const GameCanvas3D = React.memo(
@@ -99,6 +107,7 @@ export const GameCanvas3D = React.memo(
     lastShootResult,
     lastSkillTriggered,
     onMonsterProjectionsUpdate,
+    onRenderMetrics,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
@@ -109,6 +118,8 @@ export const GameCanvas3D = React.memo(
     onShootRef.current = onShoot;
     const onMonsterProjectionsUpdateRef = useRef(onMonsterProjectionsUpdate);
     onMonsterProjectionsUpdateRef.current = onMonsterProjectionsUpdate;
+    const onRenderMetricsRef = useRef(onRenderMetrics);
+    onRenderMetricsRef.current = onRenderMetrics;
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const tapGunRef = useRef<DraftTapGun3D | null>(null);
@@ -396,6 +407,8 @@ export const GameCanvas3D = React.memo(
       let animId = 0;
       let lastTime = performance.now();
       let lastProjUpdateTime = 0;
+      let lastMetricsReportMs = performance.now();
+      let fpsFrameCount = 0;
       const activeIds = new Set<string>();
       const projVec = new THREE.Vector3();
 
@@ -603,6 +616,24 @@ export const GameCanvas3D = React.memo(
           composer.render();
         } else if (renderer) {
           renderer.render(scene, camera);
+        }
+
+        // Periodic render performance reporting (~250ms throttled)
+        fpsFrameCount++;
+        const nowMs = performance.now();
+        if (nowMs - lastMetricsReportMs >= 250) {
+          if (onRenderMetricsRef.current && renderer) {
+            const elapsedSec = (nowMs - lastMetricsReportMs) / 1000;
+            const fps = Math.round(fpsFrameCount / elapsedSec);
+            onRenderMetricsRef.current({
+              fps,
+              drawCalls: renderer.info.render.calls,
+              geometries: renderer.info.memory.geometries,
+              textures: renderer.info.memory.textures,
+            });
+          }
+          fpsFrameCount = 0;
+          lastMetricsReportMs = nowMs;
         }
       };
 

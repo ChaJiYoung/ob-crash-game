@@ -21,6 +21,10 @@ export interface SensorLiveMetrics {
   jitterRms: number; // 최근 30개 샘플의 변위 표준편차
   isCocked?: boolean;
   lastSnapAt?: number;
+  fps?: number;
+  drawCalls?: number;
+  geometries?: number;
+  textures?: number;
 }
 
 export interface MobileSensorLabModalProps {
@@ -391,6 +395,24 @@ export const MobileSensorLabModal: React.FC<MobileSensorLabModalProps> = ({
                   {tuningConfig.isStabilizedMode ? '🛡️ 강력 안정화 활성화됨' : '📱 기본 모드 (iPhone 원본 유지)'}
                 </span>
               </div>
+
+              {typeof metrics.fps === 'number' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '6px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>렌더 성능 (FPS / DrawCalls)</span>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#38bdf8', fontFamily: 'monospace' }}>
+                    {metrics.fps} FPS / {metrics.drawCalls ?? '-'} calls
+                  </span>
+                </div>
+              )}
+
+              {typeof metrics.geometries === 'number' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>GPU 메모리 (지오메트리 / 텍스처)</span>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#a78bfa', fontFamily: 'monospace' }}>
+                    {metrics.geometries} geos / {metrics.textures ?? '-'} tex
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* One-touch Presets */}

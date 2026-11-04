@@ -408,9 +408,9 @@ export class ParticleEffects3D {
     origin: THREE.Vector3,
     targetPos: THREE.Vector3,
     kind: WeaponKind,
-    level: WeaponLevel
+    level: WeaponLevel = 1
   ): void {
-    const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
+    const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level] || WEAPON_ARCHETYPE_SPECS[kind].levels[1];
 
     // Throttle max active projectiles to avoid runaway memory
     if (this.projectiles.length >= 32) {
