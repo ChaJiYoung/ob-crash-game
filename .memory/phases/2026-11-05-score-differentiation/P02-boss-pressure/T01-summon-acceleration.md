@@ -1,6 +1,6 @@
 # Task: T01 Summon Acceleration
 
-## Status: todo
+## Status: done
 
 ## Goal
 보스 조우가 길어질수록 공유 소환 타이머의 간격이 짧아지게 한다. 보스를 살려 두고 부하만 잡아 점수를 쌓는 방식이 오히려 위험해진다.
@@ -53,9 +53,9 @@
 
 
 ## Acceptance Criteria
-- [ ] 조우가 길어질수록 소환 간격이 4초까지 줄어든다.
-- [ ] 카드 선택·일시정지 중에는 가속이 진행되지 않는다.
-- [ ] 보스 웨이브가 아닐 때와 다음 조우 시작 시 값이 초기화된다.
+- [x] 조우가 길어질수록 소환 간격이 4초까지 줄어든다.
+- [x] 카드 선택·일시정지 중에는 가속이 진행되지 않는다.
+- [x] 보스 웨이브가 아닐 때와 다음 조우 시작 시 값이 초기화된다.
 
 ## Validation
 - `npx vitest run tests/boss-summon-acceleration.test.ts tests/boss-encounters.test.ts` — 통과
@@ -75,6 +75,6 @@ Task: T01-summon-acceleration
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
