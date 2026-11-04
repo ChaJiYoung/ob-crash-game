@@ -1,6 +1,6 @@
 # Task: T01 Wave Clock and Time Bonus
 
-## Status: todo
+## Status: done
 
 ## Goal
 웨이브마다 게임 시계 기준 경과 시간을 재고, 웨이브를 클리어하는 순간 기준 시간 대비 선형으로 줄어드는 시간 보너스를 점수에 더한다. 마지막 웨이브(승리)도 보너스를 받는다.
@@ -94,10 +94,10 @@
 
 
 ## Acceptance Criteria
-- [ ] 웨이브를 빨리 끝낼수록 점수가 더해지고, 느리면 0이다.
-- [ ] 카드 선택·일시정지 시간은 웨이브 시간에 포함되지 않는다.
-- [ ] 마지막 웨이브의 보너스도 최종 점수에 포함된다.
-- [ ] 기준 시간과 상한은 `GAME_TUNING` 한 곳에서만 바꾼다.
+- [x] 웨이브를 빨리 끝낼수록 점수가 더해지고, 느리면 0이다.
+- [x] 카드 선택·일시정지 시간은 웨이브 시간에 포함되지 않는다.
+- [x] 마지막 웨이브의 보너스도 최종 점수에 포함된다.
+- [x] 기준 시간과 상한은 `GAME_TUNING` 한 곳에서만 바꾼다.
 
 ## Validation
 - `npx vitest run tests/wave-time-bonus.test.ts tests/game-tuning.test.ts` — 통과
@@ -118,6 +118,6 @@ Task: T01-wave-clock-and-time-bonus
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
