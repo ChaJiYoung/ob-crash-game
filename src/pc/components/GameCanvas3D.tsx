@@ -309,10 +309,33 @@ export const GameCanvas3D = React.memo(
         }
       };
 
+      let mouseHoldInterval: ReturnType<typeof setInterval> | null = null;
+
+      const stopMouseHold = () => {
+        if (mouseHoldInterval !== null) {
+          clearInterval(mouseHoldInterval);
+          mouseHoldInterval = null;
+        }
+      };
+
       const handleMouseDown = (e: MouseEvent) => {
         if (e.button === 0) {
           executeShot();
+          stopMouseHold();
+          mouseHoldInterval = setInterval(() => {
+            executeShot();
+          }, 35);
         }
+      };
+
+      const handleMouseUp = (e: MouseEvent) => {
+        if (e.button === 0) {
+          stopMouseHold();
+        }
+      };
+
+      const handleMouseLeave = () => {
+        stopMouseHold();
       };
 
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -329,6 +352,9 @@ export const GameCanvas3D = React.memo(
 
       container.addEventListener('mousemove', handleMouseMove);
       container.addEventListener('mousedown', handleMouseDown);
+      window.addEventListener('mouseup', handleMouseUp);
+      container.addEventListener('mouseleave', handleMouseLeave);
+      window.addEventListener('blur', stopMouseHold);
       window.addEventListener('keydown', handleKeyDown);
 
       // 6. Animation loop
@@ -542,10 +568,14 @@ export const GameCanvas3D = React.memo(
       animId = requestAnimationFrame(animate);
 
       return () => {
-        cancelAnimationFrame(animId);
+        animId = 0;
+        stopMouseHold();
         window.removeEventListener('resize', handleResize);
         container.removeEventListener('mousemove', handleMouseMove);
         container.removeEventListener('mousedown', handleMouseDown);
+        window.removeEventListener('mouseup', handleMouseUp);
+        container.removeEventListener('mouseleave', handleMouseLeave);
+        window.removeEventListener('blur', stopMouseHold);
         window.removeEventListener('keydown', handleKeyDown);
 
         // Clean up target meshes

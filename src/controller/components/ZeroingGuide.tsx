@@ -100,6 +100,9 @@ export const ZeroingGuide: React.FC<ZeroingGuideProps> = ({
               <div>
                 <b style={{ color: '#38bdf8' }}>2. 파지 자세:</b> 편안하게 겨눈 상태를 유지하세요.
               </div>
+              <div>
+                <b style={{ color: '#fbbf24' }}>3. 사격 & 스킬 조작:</b> 화면 탭(단발) / 꾸욱 홀드(투두두두 자동 연발) / 더블탭(피버) / 위로 휙!(액티브 스킬)
+              </div>
             </div>
 
             <button

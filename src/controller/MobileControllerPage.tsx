@@ -392,6 +392,10 @@ export const MobileControllerPage: React.FC = () => {
             snapFireRef.current = true;
             flushSensorFrame();
           }}
+          onRapidFireHoldChange={(holding) => {
+            rapidFireHoldRef.current = holding;
+            flushSensorFrame();
+          }}
           onFeverTrigger={() => {
             feverTriggeredRef.current = true;
             isCockedRef.current = false;

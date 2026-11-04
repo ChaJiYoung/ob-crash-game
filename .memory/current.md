@@ -1,19 +1,17 @@
 # Current Context
 
 ## Active Plan
-[Weapon Crosshairs, Hit-Detection & Gameplay Quality Polish](./plans/2026-11-03-weapon-crosshairs-and-gameplay-polish.md) (Status: ALL PHASES COMPLETE)
+[Combat Judgment, Kill-Gauge Cards, Boss Cooler Summon, UI & Guide/Tutorial Overhaul](./plans/2026-11-04-combat-roguelike-boss-overhaul.md)
 
 ## Active Phase
-[P01 Crosshairs and Gameplay Polish](./phases/2026-11-03-weapon-crosshairs-and-gameplay-polish/P01-crosshairs-and-gameplay-polish/phase.md) (Status: ALL TASKS COMPLETE)
+[P02 Hold Auto-Fire Controls, 100% Continuous HP Gauge Bars & 3D Visual Polish](./phases/2026-11-04-combat-roguelike-boss-overhaul/P02-autofire-controls-and-3d-hud-polish/phase.md)
 
 ## Active Task
-None (All 4 Tasks Completed & Verified)
-
-## Completed Tasks
-- `P01-T01`: Weapon Crosshair HUD & PC Game Integration (commit `03a2db6`)
-- `P01-T02`: Engine Hit Tolerance, Reward Card Grace Period, 3D Card Upscaling & Fever Ammo Refill (commit `873b7e1`)
-- `P01-T03`: Mobile Snap Aim Freeze & Arcade Feedback HUD (commit `9b62b28`)
-- `P01-T04`: Test Suite & Regression Verification (commit `f3f5314`)
+[T02 100% 연속 게이지 체력바, 콤보 UI 제거, 3D 카드/개틀링 스킬 시야 개선 및 보스 탭 레버 액션 구현](./phases/2026-11-04-combat-roguelike-boss-overhaul/P02-autofire-controls-and-3d-hud-polish/T02-hud-gauge-bars-3d-boss-action-and-visual-polish.md)
 
 ## Status
-- All 4 tasks completed and fully verified with 100% pass rate (75/75 Vitest tests passing, TypeScript clean).
+- P02-T01 완료 (모바일/PC 홀드 자동 연발 구현 및 테스트 통과)
+- P02-T02 청사진 읽고 구현 진행 준비 완료
+
+## Next Step (IMPORTANT)
+T02 청사진을 읽고 100% 연속 게이지 체력바, 콤보 UI 제거, 3D 카드 링 제거, 개틀링 폼 투명도(0.42), 보스 탭 레버 애니메이션 구현 시작

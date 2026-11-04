@@ -3,12 +3,15 @@ import { WEAPON_CONSTANTS } from '../../shared/constants';
 export interface TouchPadCallbacks {
   onSingleTapFire: () => void;
   onFeverTrigger: () => void;
+  onRapidFireHoldChange?: (holding: boolean) => void;
 }
 
 export class UnifiedTouchPadController {
   private callbacks: TouchPadCallbacks;
   private lastTapMs = 0;
   private isPointerHeld = false;
+  private holdTimer: ReturnType<typeof setTimeout> | null = null;
+  private isRapidHolding = false;
 
   constructor(callbacks: TouchPadCallbacks) {
     this.callbacks = callbacks;
@@ -20,6 +23,11 @@ export class UnifiedTouchPadController {
     }
     this.isPointerHeld = true;
 
+    if (this.holdTimer !== null) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+
     const now = nowMs ?? performance.now();
     const doubleTapWindow = WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS; // 300ms
 
@@ -30,17 +38,40 @@ export class UnifiedTouchPadController {
     if (this.lastTapMs > 0 && now - this.lastTapMs <= doubleTapWindow) {
       this.lastTapMs = 0;
       this.callbacks.onFeverTrigger();
-      return;
+    } else {
+      this.lastTapMs = now;
     }
 
-    this.lastTapMs = now;
+    // Start 180ms hold timer to trigger continuous rapid-fire
+    this.holdTimer = setTimeout(() => {
+      if (this.isPointerHeld) {
+        this.isRapidHolding = true;
+        this.callbacks.onRapidFireHoldChange?.(true);
+      }
+    }, 180);
   }
 
   public handlePointerUp(_nowMs?: number): void {
     this.isPointerHeld = false;
+    if (this.holdTimer !== null) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+    if (this.isRapidHolding) {
+      this.isRapidHolding = false;
+      this.callbacks.onRapidFireHoldChange?.(false);
+    }
   }
 
   public dispose(): void {
+    if (this.holdTimer !== null) {
+      clearTimeout(this.holdTimer);
+      this.holdTimer = null;
+    }
+    if (this.isRapidHolding) {
+      this.isRapidHolding = false;
+      this.callbacks.onRapidFireHoldChange?.(false);
+    }
     this.lastTapMs = 0;
     this.isPointerHeld = false;
   }

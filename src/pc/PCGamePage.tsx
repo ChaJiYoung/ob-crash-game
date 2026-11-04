@@ -294,7 +294,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             lastIsCockedRef.current = !!p.isCocked;
 
             const isFever = engine.scoreManager.getState().isFeverActive;
-            const aimLocked = Boolean(p.isCocked && !isFever);
+            const aimLocked = Boolean(p.isCocked && !isFever && !p.rapidFireHold);
             setIsAimLocked(aimLocked);
 
             if (p.snapFire) {
@@ -325,14 +325,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }
             }
 
-            // Rapid fire hold using live aim coordinates
+            // Rapid fire hold using live aim coordinates (40ms polling interval to respect fast fire rates like gatling 83ms)
             if (p.rapidFireHold) {
               if (!rapidFireTimerRef.current) {
                 rapidFireTimerRef.current = setInterval(() => {
                   const curAim = latestAimRef.current;
                   const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now());
-                  handleShootEvent(res);
-                }, WEAPON_CONSTANTS.RAPID_FIRE_INTERVAL_MS);
+                  if (res.fired) {
+                    handleShootEvent(res);
+                  }
+                }, 40);
               }
             } else {
               if (rapidFireTimerRef.current) {

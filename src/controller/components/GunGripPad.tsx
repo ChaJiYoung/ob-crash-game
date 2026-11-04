@@ -17,6 +17,7 @@ export interface GunGripPadProps {
   onRecalibrateZero: () => void;
   onFeverTrigger: () => void;
   onSingleTapFire?: () => void;
+  onRapidFireHoldChange?: (holding: boolean) => void;
   onCockingChange?: (cocked: boolean) => void;
   isFeverReady?: boolean;
   isCocked?: boolean;
@@ -27,6 +28,7 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onRecalibrateZero,
   onFeverTrigger,
   onSingleTapFire,
+  onRapidFireHoldChange,
   onCockingChange,
   isFeverReady = false,
   isCocked: isCockedProp,
@@ -45,6 +47,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   onFeverTriggerRef.current = onFeverTrigger;
   const onSingleTapFireRef = useRef(onSingleTapFire);
   onSingleTapFireRef.current = onSingleTapFire;
+  const onRapidFireHoldChangeRef = useRef(onRapidFireHoldChange);
+  onRapidFireHoldChangeRef.current = onRapidFireHoldChange;
   const onCockingChangeRef = useRef(onCockingChange);
   onCockingChangeRef.current = onCockingChange;
 
@@ -57,6 +61,12 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
       onFeverTrigger: () => {
         triggerHaptic([50, 50, 100]);
         onFeverTriggerRef.current();
+      },
+      onRapidFireHoldChange: (holding) => {
+        if (holding) {
+          triggerHaptic(30);
+        }
+        onRapidFireHoldChangeRef.current?.(holding);
       },
     });
 
@@ -230,8 +240,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           {isFeverReady
             ? '🔥 따닥 더블탭하여 FEVER 발동!'
             : isCocked
-            ? '💥 탕! 1발 사격'
-            : '화면 톡 탭: 단발 사격'}
+            ? '💥 1발 사격 및 홀드 연발 중...'
+            : '화면 톡 탭: 단발 / 꾸욱: 자동 연발'}
         </div>
 
         <div
@@ -250,12 +260,16 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#38bdf8', fontWeight: 900, fontSize: '15px' }}>🎯 화면 톡 탭:</span>
-            <span style={{ color: '#f8fafc', fontWeight: 600 }}>"탕!" 1발 단발 사격 (홀드 연타 없음)</span>
+            <span style={{ color: '#38bdf8', fontWeight: 900, fontSize: '15px' }}>🎯 톡 탭 / 꾸욱:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>1발 단발 사격 및 꾸욱 눌러 자동 연발!</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '15px' }}>🔥 따닥 두 번 탭:</span>
             <span style={{ color: '#f8fafc', fontWeight: 600 }}>피버 모드 발동 (게이지 100% 시)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: '#a855f7', fontWeight: 900, fontSize: '15px' }}>⚡ 위로 휙! 제스처:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 600 }}>{skillName} 즉시 발동</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ color: '#34d399', fontWeight: 900, fontSize: '15px' }}>🔄 상단 주황 바:</span>
