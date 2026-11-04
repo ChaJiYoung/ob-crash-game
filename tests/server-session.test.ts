@@ -207,6 +207,25 @@ describe('PlayerStore & WebSocket Server', () => {
     expect(feverRelay.roomId).toBe(roomId);
     expect(feverRelay.isFeverReady).toBe(true);
 
+    // 5-C. Sensor config update relay from PC to mobile controller
+    const sensorConfigPromise = waitForMessage(mobileWs, 'SENSOR_CONFIG_UPDATE');
+    pcWs.send(
+      JSON.stringify({
+        type: 'SENSOR_CONFIG_UPDATE',
+        roomId,
+        config: {
+          isStabilizedMode: true,
+          preset: 'stabilized_galaxy',
+          minCutoff: 0.4,
+          beta: 2.0,
+        },
+      })
+    );
+    const configRelay = await sensorConfigPromise;
+    expect(configRelay.roomId).toBe(roomId);
+    expect(configRelay.config.isStabilizedMode).toBe(true);
+    expect(configRelay.config.preset).toBe('stabilized_galaxy');
+
     // 6. Submit score and receive updated rankings
     const rankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
     mobileWs.send(

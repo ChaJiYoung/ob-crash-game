@@ -266,6 +266,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
             break;
 
+          case 'SENSOR_CONFIG_UPDATE':
+            if (msg.config) {
+              setTuningConfig((prev) => {
+                const updated: SensorTuningConfig = { ...prev, ...msg.config };
+                saveTuningConfig(updated);
+                return updated;
+              });
+            }
+            break;
+
           case 'GAME_COUNTDOWN_START':
           case 'GAME_START_RELAY':
             soundSynth.unlockAudio();
@@ -315,6 +325,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             const effectiveAimX = Math.max(-1, Math.min(1, rawAimX));
             const effectiveAimY = Math.max(-1, Math.min(1, rawAimY));
 
+            const offsetRawX = Math.max(-1, Math.min(1, (rawFromPayloadX - zeroOffsetRef.current.offsetX) * curTuning.sensitivityX));
+            const signedRawY = curTuning.invertY ? -rawFromPayloadY : rawFromPayloadY;
+            const offsetRawY = Math.max(-1, Math.min(1, (signedRawY - zeroOffsetRef.current.offsetY) * curTuning.sensitivityY));
+
             updateAimDirect(effectiveAimX, effectiveAimY, false);
 
             if (now - lastDiagUpdateTimeRef.current >= 60) {
@@ -331,8 +345,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }));
 
               setSensorLiveMetrics({
-                rawAimX: rawFromPayloadX,
-                rawAimY: rawFromPayloadY,
+                rawAimX: offsetRawX,
+                rawAimY: offsetRawY,
                 aimX: effectiveAimX,
                 aimY: effectiveAimY,
                 yawDeg: p.yawDeg,

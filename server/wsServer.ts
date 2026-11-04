@@ -313,6 +313,21 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'SENSOR_CONFIG_UPDATE': {
+            const session = roomManager.getRoom(msg.roomId);
+            if (session) {
+              const targetSocket = ws === session.pcSocket ? session.controllerSocket : session.pcSocket;
+              if (targetSocket) {
+                sendJson(targetSocket, {
+                  type: 'SENSOR_CONFIG_UPDATE',
+                  roomId: msg.roomId,
+                  config: msg.config,
+                });
+              }
+            }
+            break;
+          }
+
           default:
             sendJson(ws, {
               type: 'ERROR',

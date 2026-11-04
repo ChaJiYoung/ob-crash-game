@@ -129,7 +129,13 @@ export type ClientToServerMessage =
       skillCooldownRemainingMs: number;
       skillCooldownTotalMs: number;
     }
-  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number };
+  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number }
+  | {
+      type: 'SENSOR_CONFIG_UPDATE';
+      roomId: string;
+      deviceId?: string;
+      config: Record<string, any>;
+    };
 
 export type ServerToClientMessage =
   | { type: 'ROOM_CREATED'; roomId: string; rankings: PlayerProfile[]; lanIp?: string }
@@ -150,6 +156,11 @@ export type ServerToClientMessage =
       maxSkillStock: number;
       skillCooldownRemainingMs: number;
       skillCooldownTotalMs: number;
+    }
+  | {
+      type: 'SENSOR_CONFIG_UPDATE';
+      roomId: string;
+      config: Record<string, any>;
     }
   | { type: 'RANKING_UPDATED'; rankings: PlayerProfile[]; updatedPlayer?: PlayerProfile }
   | { type: 'ERROR'; code: string; message: string };

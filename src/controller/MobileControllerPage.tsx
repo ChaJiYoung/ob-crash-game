@@ -124,19 +124,14 @@ export const MobileControllerPage: React.FC = () => {
             startCountdownRef.current(msg.sec || 3);
             break;
 
-          case 'SENSOR_CONFIG_UPDATE' as any: {
-            const cfg = (msg as any).config;
+          case 'SENSOR_CONFIG_UPDATE': {
+            const cfg = msg.config;
             if (cfg) {
               if (typeof cfg.isStabilizedMode === 'boolean') {
                 tracker.setStabilizedMode(cfg.isStabilizedMode);
                 setIsStabilizedMode(cfg.isStabilizedMode);
               }
               tracker.setFilterConfig(cfg);
-              tracker.setCalibrationConfig({
-                sensitivityX: cfg.sensitivityX,
-                sensitivityY: cfg.sensitivityY,
-                invertY: cfg.invertY,
-              });
             }
             break;
           }
@@ -329,7 +324,22 @@ export const MobileControllerPage: React.FC = () => {
     const next = !tracker.isStabilized();
     tracker.setStabilizedMode(next);
     setIsStabilizedMode(next);
-  }, [tracker]);
+
+    // Relay to PC host via WebSocket
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'SENSOR_CONFIG_UPDATE',
+          roomId,
+          deviceId,
+          config: {
+            isStabilizedMode: next,
+            preset: next ? 'stabilized_galaxy' : 'default_iphone',
+          },
+        })
+      );
+    }
+  }, [tracker, roomId, deviceId]);
 
   const handleStartRangeMeasure = () => {
     tracker.startRangeMeasurement();
