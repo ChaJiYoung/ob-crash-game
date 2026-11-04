@@ -214,8 +214,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     now += 500;
     expect(weapon.canFire(now, false)).toBe(false);
 
-    // After reload duration (1400ms for Lv.1 shotgun), automatic reload completes
-    now += 1000; // Total 1500ms since reload start > 1400ms
+    // After reload duration (2800ms for Lv.1 shotgun: 1400 x 2), automatic reload completes
+    now += 2400; // Total 2900ms since reload start > 2800ms
     const updateRes = weapon.update(now, false);
     expect(updateRes.reloadedJustNow).toBe(true);
     expect(weapon.getState().ammo).toBe(maxAmmo);
@@ -510,7 +510,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
     expect(shot1.fired).toBe(true);
     expect(shot1.grade).toBe('PERFECT');
-    expect(sgTarget.hp).toBeCloseTo(0.8, 5); // 4.0 - (4 x 0.40 x 2.0 PERFECT) = 0.8
+    expect(sgTarget.hp).toBeCloseTo(0.16, 5); // 4.0 - (4 x (0.40 x 1.2) x 2.0 PERFECT) = 0.16
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
     // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
@@ -552,7 +552,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(revFront.hp).toBeCloseTo(2.0, 5); // 4.0 - 2.00 = 2.00
     expect(revRear.hp).toBeCloseTo(2.066, 2); // 3.0 - (2.00 * 0.467 = 0.934) = 2.066
 
-    // 3. Gatling Lv.1: 0.25 base DMG. With PERFECT (2.0x) -> 0.50 DMG rapid fire
+    // 3. Gatling Lv.1: 0.25 base DMG x2.0 tuning. With PERFECT (2.0x) -> 1.0 DMG rapid fire
     engine.weaponSystem.selectWeapon('gatling', 1);
     const gatTarget = {
       id: 'gat_dummy',
@@ -573,7 +573,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     const shot3 = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 3000);
     expect(shot3.fired).toBe(true);
-    expect(gatTarget.hp).toBeCloseTo(1.5, 5); // 2.0 - 0.50 = 1.50
+    expect(gatTarget.hp).toBeCloseTo(1.0, 5); // 2.0 - (0.25 x 2.0 tuning x 2.0 PERFECT = 1.0) = 1.0
   });
 
   it('should execute 3 distinct active skills (Plunger Storm stun, Opener slow, Foam Tsunami knockback)', () => {
@@ -753,7 +753,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.activeTargets = [canGreat];
     const proj2 = engine.computeTargetAimCoords(canGreat);
     // Offset aim to get GREAT (error ratio ~ 0.45)
-    const shotGreat = engine.shootAt(proj2.targetNormX + proj2.apparentHitRadius * 0.42, proj2.targetNormY, 2000);
+    const shotGreat = engine.shootAt(proj2.targetNormX + (proj2.apparentHitRadius * 0.42) / engine.aspect, proj2.targetNormY, 2000);
     expect(shotGreat.fired).toBe(true);
     expect(shotGreat.grade).toBe('GREAT');
     expect(shotGreat.killed).toBe(true);
@@ -777,13 +777,13 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.activeTargets = [canGood];
     const proj3 = engine.computeTargetAimCoords(canGood);
     // Offset aim to get GOOD (error ratio ~ 0.80)
-    const shotGood = engine.shootAt(proj3.targetNormX + proj3.apparentHitRadius * 0.75, proj3.targetNormY, 3000);
+    const shotGood = engine.shootAt(proj3.targetNormX + (proj3.apparentHitRadius * 0.75) / engine.aspect, proj3.targetNormY, 3000);
     expect(shotGood.fired).toBe(true);
     expect(shotGood.grade).toBe('GOOD');
     expect(shotGood.killed).toBe(false);
     expect(canGood.hp).toBeCloseTo(0.5, 2);
 
-    // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.5x) -> 0.525 DMG (0.475 HP remains)
+    // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.5x) -> 0.63 DMG (0.37 HP remains)
     engine.weaponSystem.selectWeapon('shotgun', 1);
     const canSgGreat = {
       id: 'can_sg_great',
@@ -801,7 +801,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     };
     engine.activeTargets = [canSgGreat];
     const proj4 = engine.computeTargetAimCoords(canSgGreat);
-    const sgGreat = engine.shootAt(proj4.targetNormX + proj4.apparentHitRadius * 0.42, proj4.targetNormY, 4000);
+    const sgGreat = engine.shootAt(proj4.targetNormX + (proj4.apparentHitRadius * 0.42) / engine.aspect, proj4.targetNormY, 4000);
     expect(sgGreat.fired).toBe(true);
     expect(sgGreat.grade).toBe('GREAT');
     expect(sgGreat.killed).toBe(true);
@@ -823,10 +823,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     };
     engine.activeTargets = [canSgGood];
     const proj5 = engine.computeTargetAimCoords(canSgGood);
-    const sgGood = engine.shootAt(proj5.targetNormX + proj5.apparentHitRadius * 0.90, proj5.targetNormY, 5000);
+    const sgGood = engine.shootAt(proj5.targetNormX + (proj5.apparentHitRadius * 0.90) / engine.aspect, proj5.targetNormY, 5000);
     expect(sgGood.fired).toBe(true);
     expect(sgGood.grade).toBe('GOOD');
     expect(sgGood.killed).toBe(false);
-    expect(canSgGood.hp).toBeCloseTo(0.475, 2);
+    expect(canSgGood.hp).toBeCloseTo(0.37, 2); // 3 pellets x (0.35 x 1.2) x 0.5 GOOD = 0.63
   });
 });

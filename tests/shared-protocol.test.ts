@@ -108,7 +108,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // Check Shotgun specifics
     const sg = WEAPON_ARCHETYPE_SPECS.shotgun;
     expect(sg.levels[1].pelletCount).toBe(3);
-    expect(sg.levels[1].damagePerHit).toBe(0.35); // 1.05 total hit
+    expect(sg.levels[1].damagePerHit).toBe(0.42); // 0.35 x 1.2 (tuning) -> 1.26 total hit
     expect(sg.levels[2].knockbackM).toBe(0.3);
     expect(sg.levels[4].pelletCount).toBe(6);
     expect(sg.levels[4].slowDurationMs).toBe(1000);
@@ -124,11 +124,11 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     // Check Gatling specifics
     const gat = WEAPON_ARCHETYPE_SPECS.gatling;
-    expect(gat.levels[1].damagePerHit).toBe(0.25);
-    expect(gat.levels[1].maxAmmo).toBe(18);
-    expect(gat.levels[4].damagePerHit).toBe(0.50);
-    expect(gat.levels[4].maxAmmo).toBe(35);
-    expect(gat.levels[4].fireIntervalMs).toBe(83);
+    expect(gat.levels[1].damagePerHit).toBe(0.5); // 0.25 x 2.0 (tuning)
+    expect(gat.levels[1].maxAmmo).toBe(13);
+    expect(gat.levels[4].damagePerHit).toBe(1.0); // 0.50 x 2.0
+    expect(gat.levels[4].maxAmmo).toBe(25);
+    expect(gat.levels[4].fireIntervalMs).toBe(Math.round(83 * 0.7));
     expect(gat.levels[4].skillArcDeg).toBe(160);
   });
 
@@ -193,12 +193,12 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     ws.applyRapidReloadBuff();
     expect(ws.getState().hasRapidReloadBuff).toBe(true);
     expect(ws.getState().maxAmmo).toBe(9); // 7 + 2 = 9
-    expect(ws.getReloadDurationMs()).toBe(880); // 1100 * 0.8 = 880
+    expect(ws.getReloadDurationMs()).toBe(1760); // 1100 * 2 (tuning) * 0.8 = 1760
 
     // 5. Select Gatling archetype
     ws.selectWeapon('gatling', 1);
     expect(ws.getState().weaponKind).toBe('gatling');
-    expect(ws.getState().maxAmmo).toBe(20); // 18 + 2 (buff active) = 20
+    expect(ws.getState().maxAmmo).toBe(15); // 13 + 2 (buff active) = 15
     expect(ws.getState().skillStock).toBe(1);
   });
 });

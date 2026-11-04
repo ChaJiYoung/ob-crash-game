@@ -8,4 +8,16 @@ export const GAME_TUNING = {
   skillCooldownMsByLevel: { 1: 35000, 2: 31000, 3: 27000, 4: 23000 },
   goldenCan: { feverGain: 30, skillStockGain: 1 },
   repairCard: { healAmount: 2 },
+  hitZone: {
+    scale: 0.75,
+    toleranceByWeapon: { shotgun: 1.40, revolver: 0.95, gatling: 1.05 },
+  },
+  fire: {
+    intervalScale: 0.7,
+    reloadScale: 2.0,
+    holdDamageByWeapon: { shotgun: 0.6, revolver: 0.6, gatling: 0.85 },
+    holdIntervalScaleByWeapon: { shotgun: 0.7, revolver: 0.7, gatling: 0.85 },
+  },
+  weaponDamageScale: { shotgun: 1.2, revolver: 1.0, gatling: 2.0 },
+  gatlingMaxAmmoByLevel: { 1: 13, 2: 15, 3: 20, 4: 25 },
 } as const;

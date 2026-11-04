@@ -20,6 +20,7 @@ import {
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
 import { GAME_TUNING } from '../../shared/gameTuning';
+import type { ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
 import { getTargetBaseY } from '../three/TargetModels3D';
@@ -60,8 +61,7 @@ export interface TargetAimProjection {
   apparentHitRadius: number;
 }
 
-/** 발사 입력 종류: 새로 누름 / 누른 채 연사 / 피버 자동 발사. 카드 선택은 'press'만 허용한다. */
-export type ShotSource = 'press' | 'hold' | 'fever';
+export type { ShotSource };
 
 export interface EngineShootResult {
   fired: boolean;
@@ -1209,7 +1209,10 @@ export class BeerCrusherEngine {
     const vFovRad = (this.vFovDeg * Math.PI) / 180;
     const tanHalfFov = Math.tan(vFovRad / 2);
     const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
-    const apparentHitRadius = Math.max(0.14, baseHitRadius / 0.84);
+    // Cards, the tutorial and the sandbox keep the generous legacy hit zone.
+    const isCard = !!target.weaponSelectKind || !!target.rewardCardKind;
+    const zoneScale = isCard || this.isTutorialMode || this.isSandboxMode ? 1.0 : GAME_TUNING.hitZone.scale;
+    const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale) / 0.84);
 
     return { targetNormX, targetNormY, apparentHitRadius };
   }
@@ -1250,7 +1253,7 @@ export class BeerCrusherEngine {
   }
 
   private getWeaponHitToleranceMult(weaponKind: WeaponKind): number {
-    return weaponKind === 'shotgun' ? 1.55 : weaponKind === 'gatling' ? 1.05 : 0.95; // revolver
+    return GAME_TUNING.hitZone.toleranceByWeapon[weaponKind];
   }
 
   /**
@@ -1377,7 +1380,7 @@ export class BeerCrusherEngine {
     }
 
     const isFever = this.scoreManager.getState().isFeverActive;
-    const shot = this.weaponSystem.consumeShot(nowMs, isFever);
+    const shot = this.weaponSystem.consumeShot(nowMs, isFever, source);
     if (!shot.fired) {
       return { fired: false, grade: 'MISS' };
     }
@@ -1405,7 +1408,8 @@ export class BeerCrusherEngine {
     for (let i = 0; i < this.activeTargets.length; i++) {
       const target = this.activeTargets[i];
       const proj = this.computeTargetAimCoords(target, wideScopeMult);
-      const dx = aimX - proj.targetNormX;
+      // Aim x spans half the screen width per unit, so convert to the vertical unit to get a round zone.
+      const dx = (aimX - proj.targetNormX) * this.aspect;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
         : (aimY - proj.targetNormY) * verticalScale;
@@ -1474,7 +1478,9 @@ export class BeerCrusherEngine {
       const feverMult = isFever ? 2.0 : 1.0;
       const judgmentMult = result.damageMultiplier;
       const weaponBonusMult = this.weaponSystem.getDamageBonusMultiplier();
-      const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult;
+      // Held rapid fire is weaker than tapping; fever auto-fire is exempt.
+      const holdMult = source === 'hold' && !isFever ? GAME_TUNING.fire.holdDamageByWeapon[weaponKind] : 1.0;
+      const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult * holdMult;
       let damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
 
       if (weaponKind === 'shotgun') {

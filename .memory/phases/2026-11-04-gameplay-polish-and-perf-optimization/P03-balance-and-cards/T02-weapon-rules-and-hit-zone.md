@@ -1,6 +1,6 @@
 # Task: T02 Weapon Rules and Hit Zone
 
-## Status: pending
+## Status: done
 
 ## Goal
 조준 없이 연타로 깨는 것을 어렵게 하고, 세 무기의 클리어 확률을 비슷하게 맞춘다.
@@ -120,10 +120,10 @@
   - 카드 판정은 `hitZone.scale`의 영향을 받지 않는다.
 
 ## Acceptance Criteria
-- [ ] 연사가 더 빠르고, 탄창을 비우면 장전이 길게 느껴진다.
-- [ ] 누른 채 쏠 때와 탭할 때 피해 차이가 있다.
-- [ ] 카드 선택은 전처럼 쉽게 맞는다.
-- [ ] 튜토리얼이 정상 진행된다.
+- [x] 연사가 더 빠르고, 탄창을 비우면 장전이 길게 느껴진다.
+- [x] 누른 채 쏠 때와 탭할 때 피해 차이가 있다.
+- [x] 카드 선택은 전처럼 쉽게 맞는다.
+- [x] 튜토리얼이 정상 진행된다.
 
 ## Validation
 - `npx vitest run tests/weapon-rules.test.ts tests/shared-protocol.test.ts tests/engine-judgment-and-spawn.test.ts tests/weapon-crosshair-hit-detection.test.ts tests/gatling-balance.test.ts tests/tutorial-and-guide.test.ts` — 통과
@@ -145,6 +145,6 @@ Task: T02-weapon-rules-and-hit-zone
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(balance): narrow hit zones and penalize held rapid fire

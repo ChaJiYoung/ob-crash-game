@@ -507,7 +507,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
 
 /**
  * 기본 무기 표에 난이도 수치를 덮어쓴 복사본을 만든다. 원본 객체는 바꾸지 않는다.
- * (P03-T02가 연사·장전·판정 수치를 여기서 더 덮어쓴다.)
  */
 function applyWeaponTuning(
   base: Record<WeaponKind, WeaponArchetypeSpec>
@@ -516,9 +515,14 @@ function applyWeaponTuning(
   (Object.keys(base) as WeaponKind[]).forEach((kind) => {
     const levels = {} as WeaponArchetypeSpec['levels'];
     ([1, 2, 3, 4] as WeaponLevel[]).forEach((lv) => {
+      const b = base[kind].levels[lv];
       levels[lv] = {
-        ...base[kind].levels[lv],
+        ...b,
         skillCooldownMs: GAME_TUNING.skillCooldownMsByLevel[lv],
+        fireIntervalMs: Math.round(b.fireIntervalMs * GAME_TUNING.fire.intervalScale),
+        reloadDurationMs: Math.round(b.reloadDurationMs * GAME_TUNING.fire.reloadScale),
+        damagePerHit: Number((b.damagePerHit * GAME_TUNING.weaponDamageScale[kind]).toFixed(3)),
+        maxAmmo: kind === 'gatling' ? GAME_TUNING.gatlingMaxAmmoByLevel[lv] : b.maxAmmo,
       };
     });
     out[kind] = { ...base[kind], levels };

@@ -46,11 +46,12 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const target = engine.activeTargets[0];
     const proj = engine.computeTargetAimCoords(target);
 
-    // Aim offset by 1.35x apparentHitRadius (inside shotgun 1.55x tolerance circle)
-    const aimX = proj.targetNormX + proj.apparentHitRadius * 1.35;
+    // Aim offset by 1.35x apparentHitRadius (inside shotgun 1.40x tolerance circle).
+    // Horizontal aim spans half the screen width per unit, so divide by the aspect ratio.
+    const aimX = proj.targetNormX + (proj.apparentHitRadius * 1.35) / engine.aspect;
     const aimY = proj.targetNormY;
 
-    // 1. Shotgun test -> Should HIT (effective radius is 1.55x, so 1.35x is within circle)
+    // 1. Shotgun test -> Should HIT (effective radius is 1.40x, so 1.35x is within circle)
     engine.weaponSystem.selectWeapon('shotgun', 1);
     const shotgunShot = engine.shootAt(aimX, aimY, 1000);
     expect(shotgunShot.fired).toBe(true);
@@ -83,7 +84,7 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const proj = engine.computeTargetAimCoords(target);
 
     // 1. Inside tightened 1.05x tolerance (1.02x offset) -> HIT
-    const insideAimX = proj.targetNormX + proj.apparentHitRadius * 1.02;
+    const insideAimX = proj.targetNormX + (proj.apparentHitRadius * 1.02) / engine.aspect;
     const aimY = proj.targetNormY;
 
     engine.weaponSystem.selectWeapon('gatling', 1);
@@ -92,7 +93,7 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     expect(hitShot.grade).not.toBe('MISS');
 
     // 2. Outside 1.05x tolerance (1.12x offset) -> MISS
-    const outsideAimX = proj.targetNormX + proj.apparentHitRadius * 1.12;
+    const outsideAimX = proj.targetNormX + (proj.apparentHitRadius * 1.12) / engine.aspect;
     const missShot = engine.shootAt(outsideAimX, aimY, 2000);
     expect(missShot.fired).toBe(true);
     expect(missShot.grade).toBe('MISS');

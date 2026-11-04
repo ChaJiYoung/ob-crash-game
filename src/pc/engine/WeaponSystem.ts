@@ -1,5 +1,6 @@
 import { WEAPON_ARCHETYPE_SPECS, WEAPON_CONSTANTS } from '../../shared/constants';
-import { WeaponKind, WeaponLevel, WeaponLevelSpec } from '../../shared/types';
+import { ShotSource, WeaponKind, WeaponLevel, WeaponLevelSpec } from '../../shared/types';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface WeaponState {
   ammo: number;
@@ -50,8 +51,12 @@ export class WeaponSystem {
     return Math.max(450, Math.round(base * Math.pow(0.8, this.rapidReloadStacks)));
   }
 
-  public getFireIntervalMs(): number {
-    return this.getCurrentLevelSpec().fireIntervalMs;
+  public getFireIntervalMs(source: ShotSource = 'press'): number {
+    const base = this.getCurrentLevelSpec().fireIntervalMs;
+    if (source === 'hold') {
+      return Math.round(base * GAME_TUNING.fire.holdIntervalScaleByWeapon[this.weaponKind]);
+    }
+    return base;
   }
 
   public getMaxSkillStock(): number {
@@ -134,10 +139,10 @@ export class WeaponSystem {
     this.infiniteAmmo = enabled;
   }
 
-  public canFire(nowMs: number, isFeverActive: boolean): boolean {
+  public canFire(nowMs: number, isFeverActive: boolean, source: ShotSource = 'press'): boolean {
     const fireInterval = isFeverActive
       ? WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS
-      : this.getFireIntervalMs();
+      : this.getFireIntervalMs(source);
 
     if (nowMs - this.lastFireTimeMs < fireInterval) {
       return false;
@@ -156,9 +161,10 @@ export class WeaponSystem {
 
   public consumeShot(
     nowMs: number,
-    isFeverActive: boolean
+    isFeverActive: boolean,
+    source: ShotSource = 'press'
   ): { fired: boolean; ammo: number; isReloading: boolean } {
-    if (!this.canFire(nowMs, isFeverActive)) {
+    if (!this.canFire(nowMs, isFeverActive, source)) {
       return { fired: false, ammo: this.ammo, isReloading: this.isReloading };
     }
 

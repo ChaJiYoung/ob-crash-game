@@ -32,6 +32,9 @@ export interface WeaponLevelSpec {
   maxSkillStock: number;
 }
 
+/** 발사 입력 종류: 새로 누름 / 누른 채 연사 / 피버 자동 발사. */
+export type ShotSource = 'press' | 'hold' | 'fever';
+
 export interface WeaponArchetypeSpec {
   kind: WeaponKind;
   nameKo: string;
