@@ -1,6 +1,6 @@
 # Task: T05 Instance Particles and Slim Effects
 
-## Status: pending
+## Status: done
 
 ## Goal
 타격 파티클을 `InstancedMesh`로 묶어 그리고 수를 약 30%로 줄인다. 캔 물방울과 샷건 탄환도 단순화해 프레임당 그리기 요청을 397회에서 200회 안팎으로 낮추고 화면을 깔끔하게 한다.
@@ -93,9 +93,9 @@
 - `createTargetMesh3D('pilgood')` 안에 반경 0.012 구체가 없는지 확인한다.
 
 ## Acceptance Criteria
-- [ ] 타격감은 남고 화면은 덜 복잡하다.
-- [ ] 스킬 이펙트 모양이 그대로다.
-- [ ] 파티클 수와 관계없이 파티클 그리기 요청이 고정된다.
+- [x] 타격감은 남고 화면은 덜 복잡하다.
+- [x] 스킬 이펙트 모양이 그대로다.
+- [x] 파티클 수와 관계없이 파티클 그리기 요청이 고정된다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts` — 통과
@@ -117,6 +117,6 @@ Task: T05-instance-particles-and-slim-effects
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: perf(fx): instance hit particles and slim combat effects

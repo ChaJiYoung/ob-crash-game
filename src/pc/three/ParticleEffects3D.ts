@@ -3,13 +3,28 @@ import { ItemBuffKind, WeaponKind, WeaponLevel } from '../../shared/types';
 import { ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
 import { createRealisticPlungerMesh } from './DraftTapGun3D';
 
-interface ParticleItem {
-  mesh: THREE.Mesh;
+export const HIT_PARTICLE_COUNTS = { hit: 5, kill: 10, boss: 15 } as const;
+const BOTTLE_SHARD_COUNT = 5;
+const BOTTLE_DROP_COUNT = 4;
+
+interface BatchParticle {
+  position: THREE.Vector3;
   velocity: THREE.Vector3;
+  rotation: THREE.Euler;
+  rotSpeed: THREE.Vector3;
+  color: THREE.Color;
   lifeSec: number;
   maxLifeSec: number;
-  rotSpeed: THREE.Vector3;
 }
+
+interface ParticleBatch {
+  mesh: THREE.InstancedMesh;
+  items: BatchParticle[];
+  capacity: number;
+  usesColor: boolean;
+}
+
+const _dummy = new THREE.Object3D();
 
 interface TracerBeamItem {
   beamMesh: THREE.Mesh;
@@ -78,11 +93,21 @@ function disposeObject3D(root: THREE.Object3D): void {
 
 export class ParticleEffects3D {
   public readonly group: THREE.Group;
-  private particles: ParticleItem[] = [];
+  private batches: ParticleBatch[] = [];
+  private foamBatch!: ParticleBatch;
+  private shardBatch!: ParticleBatch;
+  private capBatch!: ParticleBatch;
+  private dropBatch!: ParticleBatch;
   private tracerBeams: TracerBeamItem[] = [];
   private floatingLabels: FloatingLabelItem[] = [];
   private projectiles: ProjectileItem[] = [];
   private skillEffects: SkillEffectItem[] = [];
+
+  public get activeParticleCount(): number {
+    let n = 0;
+    for (const b of this.batches) n += b.items.length;
+    return n;
+  }
 
   public get activeProjectiles(): ProjectileItem[] {
     return this.projectiles;
@@ -109,7 +134,19 @@ export class ParticleEffects3D {
   private foamGeo = new THREE.SphereGeometry(0.08, 6, 6);
   private shardGeo = new THREE.BufferGeometry();
   private foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
-  private matCache = new Map<string, THREE.MeshBasicMaterial>();
+  private shardMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.9,
+  });
+  private sharedShotgunPelletGeo: THREE.CylinderGeometry;
+  private sharedShotgunPelletMat: THREE.MeshBasicMaterial;
+  private skillFoamGeo: THREE.SphereGeometry;
+  private skillFoamMats: THREE.MeshBasicMaterial[];
+  private skillGoldMat: THREE.MeshStandardMaterial;
+  private skillBladeGeo: THREE.TorusGeometry;
+  private skillHookGeo: THREE.BoxGeometry;
 
   // Object Pools
   private tracerPool: TracerBeamItem[] = [];
@@ -192,21 +229,130 @@ export class ParticleEffects3D {
       opacity: 0.9,
     });
     this.beerMat.userData.isShared = true;
+    this.shardMat.userData.isShared = true;
+
+    this.foamBatch = this.createBatch(this.foamGeo, this.foamMat, 96, false);
+    this.shardBatch = this.createBatch(this.shardGeo, this.shardMat, 96, true);
+    this.capBatch = this.createBatch(this.bottleCapGeo, this.bottleCapMat, 8, false);
+    this.dropBatch = this.createBatch(this.beerDropGeo, this.beerMat, 32, false);
+
+    this.sharedShotgunPelletGeo = new THREE.CylinderGeometry(0.045, 0.07, 0.12, 8);
+    this.sharedShotgunPelletGeo.rotateX(Math.PI / 2);
+    this.sharedShotgunPelletGeo.userData.isShared = true;
+    this.sharedShotgunPelletMat = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
+    this.sharedShotgunPelletMat.userData.isShared = true;
+
+    this.skillFoamGeo = new THREE.SphereGeometry(1, 8, 8);
+    this.skillFoamGeo.userData.isShared = true;
+    this.skillFoamMats = [0xffffff, 0xe0f2fe, 0x7dd3fc].map((c) => {
+      const m = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.42 });
+      m.userData.isShared = true;
+      return m;
+    });
+    this.skillGoldMat = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 1.5,
+      metalness: 0.95,
+      roughness: 0.1,
+    });
+    this.skillGoldMat.userData.isShared = true;
+    this.skillBladeGeo = new THREE.TorusGeometry(1.35, 0.12, 16, 36);
+    this.skillBladeGeo.userData.isShared = true;
+    this.skillHookGeo = new THREE.BoxGeometry(0.75, 0.22, 0.24);
+    this.skillHookGeo.userData.isShared = true;
   }
 
-  private getMaterial(colorHex: string): THREE.MeshBasicMaterial {
-    if (!this.matCache.has(colorHex)) {
-      this.matCache.set(
-        colorHex,
-        new THREE.MeshBasicMaterial({
-          color: new THREE.Color(colorHex),
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.9,
-        })
-      );
+  private createBatch(
+    geo: THREE.BufferGeometry,
+    mat: THREE.Material,
+    capacity: number,
+    usesColor: boolean
+  ): ParticleBatch {
+    const mesh = new THREE.InstancedMesh(geo, mat, capacity);
+    mesh.frustumCulled = false;
+    mesh.count = 0;
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    if (usesColor) {
+      // instanceColor must exist before the first compile, otherwise the shader is rebuilt on first use.
+      mesh.setColorAt(0, new THREE.Color(0xffffff));
+      mesh.instanceColor!.setUsage(THREE.DynamicDrawUsage);
     }
-    return this.matCache.get(colorHex)!;
+    this.group.add(mesh);
+    const batch: ParticleBatch = { mesh, items: [], capacity, usesColor };
+    this.batches.push(batch);
+    return batch;
+  }
+
+  private addToBatch(batch: ParticleBatch, p: BatchParticle): void {
+    if (batch.items.length >= batch.capacity) batch.items.shift();
+    batch.items.push(p);
+  }
+
+  private updateBatch(batch: ParticleBatch, dtSec: number): void {
+    const items = batch.items;
+    if (items.length === 0 && batch.mesh.count === 0) return;
+
+    for (let i = items.length - 1; i >= 0; i--) {
+      const p = items[i];
+      p.lifeSec += dtSec;
+      if (p.lifeSec >= p.maxLifeSec) {
+        items.splice(i, 1);
+        continue;
+      }
+      p.velocity.y -= 9.8 * dtSec;
+      p.position.addScaledVector(p.velocity, dtSec);
+      p.rotation.x += p.rotSpeed.x * dtSec;
+      p.rotation.y += p.rotSpeed.y * dtSec;
+      p.rotation.z += p.rotSpeed.z * dtSec;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const p = items[i];
+      const scale = 1.0 - (p.lifeSec / p.maxLifeSec) * 0.8;
+      _dummy.position.copy(p.position);
+      _dummy.rotation.copy(p.rotation);
+      _dummy.scale.setScalar(scale);
+      _dummy.updateMatrix();
+      batch.mesh.setMatrixAt(i, _dummy.matrix);
+      if (batch.usesColor) batch.mesh.setColorAt(i, p.color);
+    }
+    batch.mesh.count = items.length;
+    batch.mesh.instanceMatrix.needsUpdate = true;
+    if (batch.usesColor && batch.mesh.instanceColor) batch.mesh.instanceColor.needsUpdate = true;
+  }
+
+  private makeParticle(
+    origin: THREE.Vector3,
+    offsetY: number,
+    speedBase: number,
+    speedRange: number,
+    upBias: number,
+    life: number,
+    lifeRange: number,
+    spin: number,
+    color: THREE.Color,
+    hemisphere = false
+  ): BatchParticle {
+    const speed = speedBase + Math.random() * speedRange;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = hemisphere ? Math.random() * 0.5 * Math.PI : (Math.random() - 0.5) * Math.PI;
+    const vx = Math.cos(phi) * Math.sin(theta) * speed;
+    const vy = hemisphere ? Math.sin(phi) * speed + upBias : (Math.sin(phi) + upBias) * speed;
+    const vz = Math.cos(phi) * Math.cos(theta) * speed;
+    return {
+      position: new THREE.Vector3(origin.x, origin.y + offsetY, origin.z),
+      velocity: new THREE.Vector3(vx, vy, vz),
+      rotation: new THREE.Euler(0, 0, 0),
+      rotSpeed: new THREE.Vector3(
+        (Math.random() - 0.5) * spin,
+        (Math.random() - 0.5) * spin,
+        (Math.random() - 0.5) * spin
+      ),
+      color,
+      lifeSec: 0,
+      maxLifeSec: life + Math.random() * lifeRange,
+    };
   }
 
   private getOrCreateFloatingLabelTexture(itemKind: ItemBuffKind): THREE.Texture {
@@ -345,7 +491,9 @@ export class ParticleEffects3D {
     }
 
     if (kind === 'shotgun') {
-      return createRealisticPlungerMesh(0.28);
+      const pelletGroup = new THREE.Group();
+      pelletGroup.add(new THREE.Mesh(this.sharedShotgunPelletGeo, this.sharedShotgunPelletMat));
+      return pelletGroup;
     } else if (kind === 'revolver') {
       const boltGroup = new THREE.Group();
       const boltMesh = new THREE.Mesh(this.revolverBoltGeo, this.revolverMat);
@@ -541,20 +689,14 @@ export class ParticleEffects3D {
     } else if (kind === 'revolver') {
       // 2. 오프너 불릿 타임 & 참격: Giant Golden Bottle Opener Boomerang
       const boomerangGroup = new THREE.Group();
-      const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xffd700,
-        emissive: 0xf59e0b,
-        emissiveIntensity: 1.5,
-        metalness: 0.95,
-        roughness: 0.1,
-      });
+      const goldMat = this.skillGoldMat;
 
       // Opener Ring Blade (Large 2.7m diameter golden blade tilted toward camera)
-      const blade = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.12, 16, 36), goldMat);
+      const blade = new THREE.Mesh(this.skillBladeGeo, goldMat);
       blade.rotation.x = Math.PI / 3.5;
       boomerangGroup.add(blade);
 
-      const hook = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.22, 0.24), goldMat);
+      const hook = new THREE.Mesh(this.skillHookGeo, goldMat);
       hook.position.set(0.95, 0, 0);
       boomerangGroup.add(hook);
 
@@ -586,12 +728,8 @@ export class ParticleEffects3D {
 
       for (let k = 0; k < foamCount; k++) {
         const radius = 0.15 + Math.random() * 0.14;
-        const fMat = new THREE.MeshBasicMaterial({
-          color: k % 3 === 0 ? 0xffffff : k % 3 === 1 ? 0xe0f2fe : 0x7dd3fc,
-          transparent: true,
-          opacity: 0.42,
-        });
-        const fMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 10), fMat);
+        const fMesh = new THREE.Mesh(this.skillFoamGeo, this.skillFoamMats[k % 3]);
+        fMesh.scale.setScalar(radius);
         const theta = (Math.random() * 2 - 1) * halfArc;
         fMesh.userData.theta = theta;
         fMesh.userData.speed = 10.0 + Math.random() * 5.0;
@@ -622,126 +760,36 @@ export class ParticleEffects3D {
     }
   }
 
-  public spawnHitEffect(origin: THREE.Vector3, colorHex: string, count = 12): void {
-    const shardMat = this.getMaterial(colorHex);
-
+  public spawnHitEffect(origin: THREE.Vector3, colorHex: string, count: number = HIT_PARTICLE_COUNTS.hit): void {
+    const color = new THREE.Color(colorHex);
     for (let i = 0; i < count; i++) {
       const isFoam = i % 2 === 0;
-      const mesh = new THREE.Mesh(isFoam ? this.foamGeo : this.shardGeo, isFoam ? this.foamMat : shardMat);
-      mesh.position.copy(origin);
-
-      const speed = 2.5 + Math.random() * 4.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = (Math.random() - 0.5) * Math.PI;
-
-      const vx = Math.cos(phi) * Math.sin(theta) * speed;
-      const vy = (Math.sin(phi) + 0.3) * speed;
-      const vz = Math.cos(phi) * Math.cos(theta) * speed;
-
-      this.group.add(mesh);
-      this.particles.push({
-        mesh,
-        velocity: new THREE.Vector3(vx, vy, vz),
-        lifeSec: 0,
-        maxLifeSec: 0.45 + Math.random() * 0.35,
-        rotSpeed: new THREE.Vector3(
-          (Math.random() - 0.5) * 12,
-          (Math.random() - 0.5) * 12,
-          (Math.random() - 0.5) * 12
-        ),
-      });
+      const p = this.makeParticle(origin, 0, 2.5, 4.5, 0.3, 0.45, 0.35, 12, color);
+      this.addToBatch(isFoam ? this.foamBatch : this.shardBatch, p);
     }
   }
 
-  public triggerBottleCrash(origin: THREE.Vector3, count = 16): void {
-    const capMesh = new THREE.Mesh(this.bottleCapGeo, this.bottleCapMat);
-    capMesh.position.copy(origin).add(new THREE.Vector3(0, 0.8, 0));
-    this.group.add(capMesh);
+  public triggerBottleCrash(origin: THREE.Vector3, count: number = BOTTLE_SHARD_COUNT): void {
+    const cap = this.makeParticle(origin, 0.8, 0, 0, 0, 1.2, 0, 0, new THREE.Color(0xe2e8f0));
+    cap.velocity.set((Math.random() - 0.5) * 2.5, 6.0 + Math.random() * 2.0, (Math.random() - 0.5) * 2.5);
+    cap.rotSpeed.set(15.0, 8.0, 20.0);
+    this.addToBatch(this.capBatch, cap);
 
-    const capVx = (Math.random() - 0.5) * 2.5;
-    const capVy = 6.0 + Math.random() * 2.0;
-    const capVz = (Math.random() - 0.5) * 2.5;
-
-    this.particles.push({
-      mesh: capMesh,
-      velocity: new THREE.Vector3(capVx, capVy, capVz),
-      lifeSec: 0,
-      maxLifeSec: 1.2,
-      rotSpeed: new THREE.Vector3(15.0, 8.0, 20.0),
-    });
-
-    const glassShardMat = this.getMaterial('#bae6fd');
+    const glassColor = new THREE.Color('#bae6fd');
     for (let i = 0; i < count; i++) {
-      const shardMesh = new THREE.Mesh(this.shardGeo, glassShardMat);
-      shardMesh.position.copy(origin).add(new THREE.Vector3(0, 0.4, 0));
-
-      const speed = 4.0 + Math.random() * 4.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = (Math.random() - 0.5) * Math.PI;
-
-      const vx = Math.cos(phi) * Math.sin(theta) * speed;
-      const vy = (Math.sin(phi) + 0.4) * speed;
-      const vz = Math.cos(phi) * Math.cos(theta) * speed;
-
-      this.group.add(shardMesh);
-      this.particles.push({
-        mesh: shardMesh,
-        velocity: new THREE.Vector3(vx, vy, vz),
-        lifeSec: 0,
-        maxLifeSec: 0.6 + Math.random() * 0.4,
-        rotSpeed: new THREE.Vector3(
-          (Math.random() - 0.5) * 16,
-          (Math.random() - 0.5) * 16,
-          (Math.random() - 0.5) * 16
-        ),
-      });
+      this.addToBatch(this.shardBatch, this.makeParticle(origin, 0.4, 4.0, 4.5, 0.4, 0.6, 0.4, 16, glassColor));
     }
 
-    for (let i = 0; i < 14; i++) {
-      const beerDrop = new THREE.Mesh(this.beerDropGeo, this.beerMat);
-      beerDrop.position.copy(origin).add(new THREE.Vector3(0, 0.35, 0));
-
-      const speed = 3.0 + Math.random() * 3.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * 0.5 * Math.PI;
-
-      const vx = Math.cos(phi) * Math.sin(theta) * speed;
-      const vy = Math.sin(phi) * speed + 1.5;
-      const vz = Math.cos(phi) * Math.cos(theta) * speed;
-
-      this.group.add(beerDrop);
-      this.particles.push({
-        mesh: beerDrop,
-        velocity: new THREE.Vector3(vx, vy, vz),
-        lifeSec: 0,
-        maxLifeSec: 0.5 + Math.random() * 0.3,
-        rotSpeed: new THREE.Vector3(0, 0, 0),
-      });
+    const dropColor = new THREE.Color(0xffffff);
+    for (let i = 0; i < BOTTLE_DROP_COUNT; i++) {
+      const drop = this.makeParticle(origin, 0.35, 3.0, 3.5, 1.5, 0.5, 0.3, 0, dropColor, true);
+      this.addToBatch(this.dropBatch, drop);
     }
   }
 
   public update(dtSec: number): void {
-    // 1. Update particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.lifeSec += dtSec;
-
-      if (p.lifeSec >= p.maxLifeSec) {
-        this.group.remove(p.mesh);
-        this.particles.splice(i, 1);
-        continue;
-      }
-
-      p.velocity.y -= 9.8 * dtSec;
-      p.mesh.position.addScaledVector(p.velocity, dtSec);
-      p.mesh.rotation.x += p.rotSpeed.x * dtSec;
-      p.mesh.rotation.y += p.rotSpeed.y * dtSec;
-      p.mesh.rotation.z += p.rotSpeed.z * dtSec;
-
-      const progress = p.lifeSec / p.maxLifeSec;
-      const scale = 1.0 - progress * 0.8;
-      p.mesh.scale.set(scale, scale, scale);
-    }
+    // 1. Update instanced particle batches
+    for (const batch of this.batches) this.updateBatch(batch, dtSec);
 
     // 2. Update tracer beams
     for (let i = this.tracerBeams.length - 1; i >= 0; i--) {
@@ -854,8 +902,10 @@ export class ParticleEffects3D {
   }
 
   public clear(): void {
-    this.particles.forEach((p) => this.group.remove(p.mesh));
-    this.particles = [];
+    for (const batch of this.batches) {
+      batch.items.length = 0;
+      batch.mesh.count = 0;
+    }
     this.tracerBeams.forEach((tb) => {
       this.group.remove(tb.beamMesh);
       this.group.remove(tb.flashMesh);
@@ -887,28 +937,17 @@ export class ParticleEffects3D {
    * 호출자는 이 객체를 앵커로 살려 두어 셰이더 프로그램이 해제되지 않게 해야 한다.
    */
   public createWarmupObjects(): THREE.Object3D[] {
+    // 파티클 배치 메시는 항상 씬에 있으므로 제외한다.
     const objs: THREE.Object3D[] = [];
     const tracerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false });
     objs.push(new THREE.Mesh(this.unitTracerGeo, tracerMat));
     objs.push(new THREE.Mesh(this.unitFlashGeo, tracerMat));
     objs.push(new THREE.Mesh(this.revolverBoltGeo, this.revolverMat));
     objs.push(new THREE.Mesh(this.gatlingBubbleGeo, this.gatlingMat));
-    objs.push(new THREE.Mesh(this.bottleCapGeo, this.bottleCapMat));
-    objs.push(new THREE.Mesh(this.beerDropGeo, this.beerMat));
-    objs.push(new THREE.Mesh(this.foamGeo, this.foamMat));
-    objs.push(new THREE.Mesh(this.shardGeo, this.getMaterial('#ffffff')));
+    objs.push(new THREE.Mesh(this.sharedShotgunPelletGeo, this.sharedShotgunPelletMat));
     objs.push(createRealisticPlungerMesh(0.28));
-
-    const skillGold = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      emissive: 0xf59e0b,
-      emissiveIntensity: 1.5,
-      metalness: 0.95,
-      roughness: 0.1,
-    });
-    objs.push(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.02, 6, 8), skillGold));
-    const skillFoam = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.42 });
-    objs.push(new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), skillFoam));
+    objs.push(new THREE.Mesh(this.skillBladeGeo, this.skillGoldMat));
+    objs.push(new THREE.Mesh(this.skillFoamGeo, this.skillFoamMats[0]));
 
     const labelTex = this.getOrCreateFloatingLabelTexture('power_shot');
     labelTex.userData.isShared = true;

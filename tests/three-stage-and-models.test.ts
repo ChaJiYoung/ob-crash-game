@@ -17,7 +17,7 @@ import {
 } from '../src/pc/three/TargetModels3D';
 import { buildShaderAnchorGroup } from '../src/pc/three/ShaderWarmup';
 import { DraftTapGun3D, createRealisticPlungerMesh } from '../src/pc/three/DraftTapGun3D';
-import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
+import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
 import { computeAimWorldPoint, disposeSceneGroup } from '../src/pc/components/GameCanvas3D';
 import { aimToNdc } from '../src/pc/components/CrosshairOverlay';
@@ -260,11 +260,15 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     const fx = new ParticleEffects3D();
     expect(fx.group).toBeInstanceOf(THREE.Group);
 
+    const batchMeshCount = fx.group.children.length;
     fx.spawnHitEffect(new THREE.Vector3(0, 1, -5), '#f59e0b', 10);
-    expect(fx.group.children.length).toBe(10);
+    expect(fx.activeParticleCount).toBe(10);
+    // Particles are drawn through fixed instanced batches: spawning never adds scene children
+    expect(fx.group.children.length).toBe(batchMeshCount);
 
     fx.update(0.1);
-    expect(fx.group.children.length).toBe(10);
+    expect(fx.activeParticleCount).toBe(10);
+    expect(fx.group.children.length).toBe(batchMeshCount);
 
     // Test 3D floating labels
     const originPos = new THREE.Vector3(0, 1.2, -5);
@@ -290,7 +294,46 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(fx.activeFloatingLabels.length).toBe(2);
     fx.clear();
     expect(fx.activeFloatingLabels.length).toBe(0);
-    expect(fx.group.children.length).toBe(0);
+    expect(fx.activeParticleCount).toBe(0);
+    expect(fx.group.children.length).toBe(batchMeshCount);
+  });
+
+  it('should expire instanced particles, stay within capacity, and keep fixed draw batches (gameplay-polish P01-T05)', () => {
+    const fx = new ParticleEffects3D();
+    const batchMeshCount = fx.group.children.length;
+    const origin = new THREE.Vector3(0, 1, -5);
+
+    for (let i = 0; i < 20; i++) fx.spawnHitEffect(origin, '#ef4444', HIT_PARTICLE_COUNTS.kill);
+    fx.triggerBottleCrash(origin);
+    expect(fx.activeParticleCount).toBeGreaterThan(0);
+    expect(fx.group.children.length).toBe(batchMeshCount);
+
+    // Far above capacity (96 + 96 + 8 + 32): must not throw and must stay bounded
+    for (let i = 0; i < 100; i++) fx.spawnHitEffect(origin, '#ef4444', 50);
+    expect(fx.activeParticleCount).toBeLessThanOrEqual(232);
+    fx.update(0.016);
+
+    for (let step = 0; step < 20; step++) fx.update(0.1);
+    expect(fx.activeParticleCount).toBe(0);
+    expect(fx.group.children.length).toBe(batchMeshCount);
+  });
+
+  it('should use the slimmed particle counts (gameplay-polish P01-T05)', () => {
+    expect(HIT_PARTICLE_COUNTS).toEqual({ hit: 5, kill: 10, boss: 15 });
+    const fx = new ParticleEffects3D();
+    fx.triggerBottleCrash(new THREE.Vector3(0, 1, -5));
+    // 1 cap + 5 shards + 4 drops
+    expect(fx.activeParticleCount).toBe(10);
+  });
+
+  it('should not add condensation droplets to can monsters (gameplay-polish P01-T05)', () => {
+    const mesh = createTargetMesh3D('pilgood');
+    let droplets = 0;
+    mesh.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh && m.geometry instanceof THREE.SphereGeometry && m.geometry.parameters.radius === 0.012) droplets++;
+    });
+    expect(droplets).toBe(0);
   });
 
   it('should instantiate SoundSynthesizer safely in headless test environment', () => {

@@ -16,7 +16,7 @@ import {
   getTargetBaseY,
 } from '../three/TargetModels3D';
 import { DraftTapGun3D } from '../three/DraftTapGun3D';
-import { ParticleEffects3D } from '../three/ParticleEffects3D';
+import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
@@ -204,14 +204,14 @@ export const GameCanvas3D = React.memo(
                 particlesRef.current.triggerBottleCrash(targetPos);
               } else if (result.target.kind === 'boss') {
                 soundSynth.playBossExplosionSound();
-                particlesRef.current.spawnHitEffect(targetPos, hitColor, 48);
+                particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.boss);
               } else {
                 soundSynth.playCanCrushSound();
-                particlesRef.current.spawnHitEffect(targetPos, hitColor, 32);
+                particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
               }
             } else {
               soundSynth.playMetallicHitSound();
-              particlesRef.current.spawnHitEffect(targetPos, hitColor, 18);
+              particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.hit);
             }
 
             if (result.target.isItem && result.target.itemKind) {

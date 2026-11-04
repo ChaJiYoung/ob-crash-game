@@ -463,25 +463,6 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     tab.position.y = h / 2 + h * 0.075;
     inner.add(tab);
 
-    // Condensation water droplets (8 tiny glassy beads)
-    const dropletGeo = getCachedGeometry('can-droplet-geo', () => new THREE.SphereGeometry(0.012, 6, 6));
-    const dropletMat = getCachedMaterial('can-droplet-mat', () => {
-      return new THREE.MeshPhysicalMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.85,
-        roughness: 0.04,
-        ior: 1.33,
-      });
-    });
-    for (let i = 0; i < 8; i++) {
-      const drop = new THREE.Mesh(dropletGeo, dropletMat);
-      const angle = (i * Math.PI) / 4 + 0.2;
-      const dropY = -h * 0.3 + (i % 4) * 0.2;
-      drop.position.set(Math.cos(angle) * (r + 0.006), dropY, Math.sin(angle) * (r + 0.006));
-      inner.add(drop);
-    }
-
     // Foam crown on top for pilgood & hanmac
     if (kind === 'pilgood' || kind === 'hanmac') {
       const foamGeo = getCachedGeometry('top-foam-geo', () => new THREE.SphereGeometry(r * 0.65, 12, 8));

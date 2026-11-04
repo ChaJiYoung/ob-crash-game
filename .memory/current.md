@@ -7,10 +7,10 @@
 [P01 Render and Stutter](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/phase.md)
 
 ## Active Task
-[T05 Instance Particles and Slim Effects](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/T05-instance-particles-and-slim-effects.md)
+[T06 Strip HUD Compositing Costs](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/T06-strip-hud-compositing-costs.md)
 
 ## Status
-- T04 완료, T05 구현 시작 준비 완료
+- T05 완료, T06 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T05 청사진을 읽고 구현 시작
+T06 청사진을 읽고 구현 시작
