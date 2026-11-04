@@ -112,23 +112,24 @@ const spike=async(label,fnStr,wait=1500)=>{
   await page.waitForTimeout(600);
   const out=await page.evaluate(async({fnStr,wait})=>{
     const P=window.__prof; const b=window.__renderer.info.programs.length; const m0=window.__renderer.info.memory.textures;
-    const c0=P.compile,l0=P.link,t0=P.tex;
+    const c0=P.compile,l0=P.link,t0=P.tex; P.longCb=0;
     P.frames=[]; P.last=0; P.rec=true;
     (0,eval)(`(${fnStr})()`);
     await new Promise(r=>setTimeout(r,wait));
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     P.rec=false;
-    return { maxFrameMs:+Math.max(0,...P.frames).toFixed(0), programs:`${b}->${window.__renderer.info.programs.length}`, linkProgram:P.link-l0, compileShader:P.compile-c0, texUploads:P.tex-t0, texturesMem:`${m0}->${window.__renderer.info.memory.textures}` };
+    return { maxFrameMs:+Math.max(0,...P.frames).toFixed(0), jsBlockedFrames:P.longCb, programs:`${b}->${window.__renderer.info.programs.length}`, linkProgram:P.link-l0, compileShader:P.compile-c0, texUploads:P.tex-t0, texturesMem:`${m0}->${window.__renderer.info.memory.textures}` };
   },{fnStr,wait});
   results.spikes[label]=out; console.log('SPIKE',label,JSON.stringify(out));
 };
 
+await page.waitForTimeout(+(process.env.LEAD_IDLE_MS||0));
 // --- A. Clean hitch tests, before any toggle
 await spike('A1_first_monster_spawn_ever', `()=>{ window.__engine.activeTargets=window.__benchTargets(12); }`,2500);
 await spike('A2_kill_one_pilgood(another_remains)', `()=>{ const e=window.__engine; const i=e.activeTargets.findIndex(t=>t.kind==='pilgood'); e.activeTargets.splice(i,1); }`);
 await spike('A3_kill_one_obi(another_remains)', `()=>{ const e=window.__engine; const i=e.activeTargets.findIndex(t=>t.kind==='obi'); e.activeTargets.splice(i,1); }`);
 await spike('A4_kill_one_hanmac(another_remains)', `()=>{ const e=window.__engine; const i=e.activeTargets.findIndex(t=>t.kind==='hanmac'); e.activeTargets.splice(i,1); }`);
-await spike('A5_clear_all_monsters', `()=>{ window.__engine.activeTargets=[]; }`,2500);
+await spike('A5_clear_all_monsters', process.env.NOOP_CONTROL ? `()=>{}` : `()=>{ window.__engine.activeTargets=[]; }`,2500);
 await spike('A6_respawn_after_field_empty', `()=>{ window.__engine.activeTargets=window.__benchTargets(12); }`,2500);
 await spike('A7_clear_all_again', `()=>{ window.__engine.activeTargets=[]; }`,2500);
 await spike('A8_respawn_again', `()=>{ window.__engine.activeTargets=window.__benchTargets(12); }`,2500);
@@ -166,10 +167,11 @@ await page.evaluate(()=>{
   c.dispatchEvent(new MouseEvent('mousemove',{button:0,bubbles:true,clientX:x,clientY:y}));
   c.dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true,clientX:x,clientY:y}));
   window.dispatchEvent(new MouseEvent('mouseup',{button:0}));
+  window.__flashSample = window.__particles.getActiveFlashScales();
 });
 await page.waitForTimeout(40);
 await page.screenshot({path:`${OUT}${TAG}-after-shot.png`});
-results.afterShotFlashScales = await page.evaluate(()=>window.__particles.getActiveFlashScales());
+results.afterShotFlashScales = await page.evaluate(()=>window.__flashSample);
 
 // --- D. Natural play, real waves & kills, no cheats except infinite lives
 await page.evaluate(()=>{
@@ -211,6 +213,8 @@ results.verdict = (() => {
     naturalLinkProgram: { value: natural.link, pass: natural.link === 0 },
     // 이 환경의 헤드리스 Metal은 빈 캔버스에서도 약 13초마다 180~280ms 멈춤이 생긴다(앱과 무관).
     // JS가 50ms 넘게 막은 프레임(longCallbacks)은 0이어야 하고, 250ms 초과 프레임은 환경 멈춤 수(약 초당 1/13) 이내여야 한다.
+    // 환경 멈춤은 스크립트 시간이 없다. NOOP_CONTROL=1로 A5를 빈 동작으로 바꿔도 무작위 spike에서 270~850ms 멈춤이 재현된다.
+    spikeJsBlockedFrames: { value: Object.entries(sp).filter(([,v])=>v.jsBlockedFrames>0).map(([k])=>k), pass: Object.values(sp).every(v=>v.jsBlockedFrames===0) },
     naturalJsBlockedFrames: { value: natural.longCallbacks, pass: natural.longCallbacks === 0 },
     naturalOver250ms: { value: natural.over250ms, limit: Math.ceil(natural.durSec / 13) + 1, pass: natural.over250ms <= Math.ceil(natural.durSec / 13) + 1 && natural.over1000ms === 0 },
     killTextureUploads: { value: killSpikes.map(k=>sp[k]?.texUploads), pass: killSpikes.every(k=>sp[k]?.texUploads === 0) },
@@ -218,7 +222,7 @@ results.verdict = (() => {
     gatlingAvgFps: { value: gat?.fps, pass: (gat?.fps ?? 0) >= 90 },
     gatlingP95: { value: gat?.p95, limit: p95Limit, pass: (gat?.p95 ?? 1e9) <= p95Limit },
     naturalCommitsPerSec: { value: natural.commitsPerSec, pass: natural.commitsPerSec <= 15 },
-    flashScalesAfterShot: { value: results.afterShotFlashScales, pass: results.afterShotFlashScales.every(v=>v < 0.2) },
+    flashScalesAfterShot: { value: results.afterShotFlashScales, pass: results.afterShotFlashScales.length > 0 && results.afterShotFlashScales.every(v=>v < 0.2) },
   };
 })();
 fs.writeFileSync(`${OUT}perf-after-P01-${TAG}.json`,JSON.stringify(results,null,2));

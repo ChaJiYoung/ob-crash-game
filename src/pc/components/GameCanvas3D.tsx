@@ -275,10 +275,11 @@ export const GameCanvas3D = React.memo(
       // variants, so warming up earlier would be wasted. The anchor group stays referenced
       // (never disposed during play) so shader programs are not released.
       const runShaderWarmup = () => {
-        if (!renderer || disposed || shaderAnchors) return;
+        if (!renderer || disposed) return;
         if (typeof renderer.compile !== 'function') return;
+        let anchors: THREE.Group | null = null;
         try {
-          const anchors = buildShaderAnchorGroup(particles);
+          anchors = buildShaderAnchorGroup(particles);
           anchors.position.set(0, -999, 0);
           // Draw (not only compile) every anchor once: ANGLE/Metal builds the pipeline state lazily on the
           // first draw, which otherwise shows up as a 0.5s+ stall the first time an item, boss, or card is drawn.
@@ -292,12 +293,23 @@ export const GameCanvas3D = React.memo(
             const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
             if (mat && !Array.isArray(mat) && mat.map) renderer!.initTexture(mat.map);
           });
-          scene.remove(anchors);
+          // Keep the newest anchors alive; release the ones from an earlier (fallback environment) warmup.
+          const previous = shaderAnchors;
           shaderAnchors = anchors;
+          if (previous) disposeSceneGroup(previous);
         } catch {
           // Headless / unsupported WebGL context fallback
+          if (anchors) disposeSceneGroup(anchors);
+        } finally {
+          if (anchors) scene.remove(anchors);
         }
       };
+
+      // The HDRI changes the PBR shader variants, so the real warmup waits for it. If it is slow,
+      // warm up against the fallback environment so play never starts completely cold.
+      const fallbackWarmupTimer = window.setTimeout(() => {
+        if (sceneReady && !environmentReady) runShaderWarmup();
+      }, 4000);
 
       const particles = new ParticleEffects3D();
       particlesRef.current = particles;
@@ -650,6 +662,7 @@ export const GameCanvas3D = React.memo(
           animId = 0;
         }
         disposed = true;
+        window.clearTimeout(fallbackWarmupTimer);
         stopMouseHold();
         window.removeEventListener('resize', handleResize);
         container.removeEventListener('mousemove', handleMouseMove);

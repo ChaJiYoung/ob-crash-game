@@ -39,7 +39,7 @@ export interface HudSnapshot {
   bossHpKey: string;
 }
 
-const roundTo100Ms = (ms: number): number => Math.round(ms / 100) * 100;
+export const roundTo100Ms = (ms: number): number => Math.round(ms / 100) * 100;
 
 export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudSnapshot {
   const feverState = engine.scoreManager.getState();

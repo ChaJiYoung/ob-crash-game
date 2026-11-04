@@ -71,11 +71,6 @@ export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => 
         root.style.transform = `translate(-50%, -50%) scale(${spec.scale})`;
         root.style.display = 'flex';
 
-        // Restart the pop animation on every shot.
-        root.style.animation = 'none';
-        void root.offsetWidth;
-        root.style.animation = 'popBanner 0.5s ease-out forwards';
-
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
           timerRef.current = null;
