@@ -780,6 +780,10 @@ export function updateTargetAnimation3D(
         inner.scale.set(base * 1.06, base * 1.06, base * 1.06);
       } else {
         inner.position.x = 0;
+        if (!root.userData.hitFlashUntilSec) {
+          const base = (root.userData.baseScale as number) || 1.85;
+          inner.scale.set(base, base, base);
+        }
       }
 
       const bounce = Math.abs(Math.sin(elapsedSec * 3.0)) * 0.04;

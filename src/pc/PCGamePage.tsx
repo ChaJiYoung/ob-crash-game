@@ -323,7 +323,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }
             }
 
-            // Rapid fire hold using live aim coordinates (40ms polling interval to respect fast fire rates like gatling 83ms)
+            // Rapid fire hold using live aim coordinates (20ms polling interval to respect fast fire rates like gatling 83ms without quantization loss)
             if (p.rapidFireHold) {
               if (!rapidFireTimerRef.current) {
                 rapidFireTimerRef.current = setInterval(() => {
@@ -332,7 +332,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   if (res.fired) {
                     handleShootEvent(res);
                   }
-                }, 40);
+                }, 20);
               }
             } else {
               if (rapidFireTimerRef.current) {
@@ -481,10 +481,18 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
       // Synchronize game over / victory
       if (engine.gamePhase === 'GAMEOVER' && gamePhase === 'PLAYING') {
+        if (rapidFireTimerRef.current) {
+          clearInterval(rapidFireTimerRef.current);
+          rapidFireTimerRef.current = null;
+        }
         setGamePhase('GAMEOVER');
         soundSynth.playHit('MISS');
         submitScore(feverState.totalScore, engine.currentWave, feverState.maxCombo);
       } else if (engine.gamePhase === 'VICTORY' && gamePhase === 'PLAYING') {
+        if (rapidFireTimerRef.current) {
+          clearInterval(rapidFireTimerRef.current);
+          rapidFireTimerRef.current = null;
+        }
         setGamePhase('VICTORY');
         soundSynth.playFeverStart();
         submitScore(feverState.totalScore, STAGE_CONSTANTS.TOTAL_WAVES, feverState.maxCombo);
@@ -511,6 +519,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   };
 
   const handleStartGame = useCallback(() => {
+    if (rapidFireTimerRef.current) {
+      clearInterval(rapidFireTimerRef.current);
+      rapidFireTimerRef.current = null;
+    }
     engine.startGame({ withWeaponSelect: true });
     setGamePhase('PLAYING');
     setIsNewRecord(false);
@@ -621,11 +633,19 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [engine]);
 
   const handleExitTutorial = useCallback(() => {
+    if (rapidFireTimerRef.current) {
+      clearInterval(rapidFireTimerRef.current);
+      rapidFireTimerRef.current = null;
+    }
     engine.exitTutorialMode();
     setGamePhase('PAIRING');
   }, [engine]);
 
   const handleReturnToLobby = useCallback(() => {
+    if (rapidFireTimerRef.current) {
+      clearInterval(rapidFireTimerRef.current);
+      rapidFireTimerRef.current = null;
+    }
     engine.gamePhase = 'PAIRING';
     setGamePhase('PAIRING');
   }, [engine]);

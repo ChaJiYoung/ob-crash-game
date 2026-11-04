@@ -298,7 +298,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             >
               <div
                 style={{
-                  width: `${Math.round(hpRatio * 100)}%`,
+                  width: `${proj.hp > 0 ? Math.max(2, Math.round(hpRatio * 100)) : 0}%`,
                   height: '100%',
                   borderRadius: '2px',
                   background: color,
