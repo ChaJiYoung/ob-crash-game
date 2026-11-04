@@ -4,7 +4,7 @@
 
 PC 모니터는 실사 펍 HDRI 환경과 PBR 맥주 모델·네온 블룸·아이템 타이머를 화려하게 렌더링하고, 스마트폰의 자이로/가속도 센서와 터치 인터페이스를 무선 권총 컨트롤러로 활용합니다.
 
-![비어 크러셔 3D 인게임 전투 화면](./docs/screens/screen-04-pc-gameplay.png)
+![비어 크러셔 3D 인게임 전투 화면](./docs/screens/play-wave1-shotgun-combat.png)
 
 ---
 
@@ -47,6 +47,14 @@ PC 모니터는 실사 펍 HDRI 환경과 PBR 맥주 모델·네온 블룸·아�
   - 손목을 위로 빠르게 튕겨 8방향 뚫어뻥 폭풍(기절), 오프너 부메랑(슬로우), 거품 해일(넉백) 시전.
 - **🔥 4초 초고밀도 피버 버스트 & 2배 데미지 난사**:
   - PERFECT(+8%) 및 몬스터 처치(+12%)로 100% 충전 후 더블탭으로 발동. 4초간 무제한 탄창 + 2배 화력으로 폭딜을 쏟아붓습니다.
+
+### 📸 Arcade v2.2 라이브 인게임 갤러리
+
+| Wave 5 냉각기 보스 레이드 (10m 안전 정지) | 피버 버스트 & 거품 해일 스킬 시전 |
+| :---: | :---: |
+| ![Wave 5 보스 레이드](./docs/screens/play-wave5-boss-cooler.png) | ![피버 버스트 & 거품 해일](./docs/screens/play-fever-foam-tsunami.png) |
+| **황금 캔 출현 (골드 네온 플래시)** | **킬 게이지 3D 보상 카드 사격 선택** |
+| ![황금 캔 출현](./docs/screens/play-golden-can-detected.png) | ![3D 보상 카드](./docs/screens/play-kill-gauge-reward-cards.png) |
 
 ---
 
