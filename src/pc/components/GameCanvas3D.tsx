@@ -574,6 +574,7 @@ export const GameCanvas3D = React.memo(
               stuckPlungerCount: target.stuckPlungerCount ?? 0,
               isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
               isGuarding: Boolean(target.isGuarding),
+              isShielded: Boolean(target.isShielded),
             });
           }
         });

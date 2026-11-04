@@ -256,6 +256,27 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(resolveHitFxColor({ ...base, kind: 'obi' })).toBe(TARGET_SPECS.obi.brandColorHex);
   });
 
+  it('should show the boss shield bubble only while shielded (gameplay-polish P04-T05)', () => {
+    const boss = createTargetMesh3D('boss');
+    const shield = boss.userData.shieldMesh as THREE.Mesh;
+    expect(shield).toBeDefined();
+    expect(shield.visible).toBe(false);
+    updateTargetAnimation3D(boss, 'boss', 1.0, 1.0, { isShielded: true });
+    expect(shield.visible).toBe(true);
+    updateTargetAnimation3D(boss, 'boss', 1.1, 1.0, { isShielded: false });
+    expect(shield.visible).toBe(false);
+  });
+
+  it('should show the obi shield plate only while guarding (gameplay-polish P04-T03)', () => {
+    const obi = createTargetMesh3D('obi');
+    const plate = obi.userData.guardShieldMesh as THREE.Mesh;
+    expect(plate).toBeDefined();
+    updateTargetAnimation3D(obi, 'obi', 1.0, 1.0, { isGuarding: true });
+    expect(plate.visible).toBe(true);
+    updateTargetAnimation3D(obi, 'obi', 1.1, 1.0, { isGuarding: false });
+    expect(plate.visible).toBe(false);
+  });
+
   it('should handle DraftTapGun3D center mount, recoil, and aim updates', () => {
     const gun = new DraftTapGun3D();
     expect(gun.group).toBeInstanceOf(THREE.Group);

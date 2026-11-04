@@ -1,7 +1,8 @@
 import React from 'react';
 import { ActiveBuffState, PlayerProfile, TargetKind, WeaponKind, WeaponLevel } from '../../shared/types';
 import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
-import { ActiveTargetEntity, WaveProgressInfo } from '../engine/BeerCrusherEngine';
+import { WaveProgressInfo } from '../engine/BeerCrusherEngine';
+import type { BossHudInfo } from '../hudSnapshot';
 
 export interface MonsterHudProjection {
   id: string;
@@ -158,7 +159,7 @@ export interface ArcadeOverlayHUDProps {
   feverGauge: number;
   isFeverReady: boolean;
   isFeverActive: boolean;
-  bossEntity?: ActiveTargetEntity;
+  bosses?: BossHudInfo[];
   activeBuffs?: ActiveBuffState[];
   waveProgress?: WaveProgressInfo;
   weaponKind?: WeaponKind;
@@ -185,7 +186,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   feverGauge,
   isFeverReady,
   isFeverActive,
-  bossEntity,
+  bosses = [],
   activeBuffs = [],
   waveProgress,
   weaponKind = 'shotgun',
@@ -368,48 +369,62 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             </div>
           )}
 
-          {bossEntity && (
-            <div
-              style={{
-                width: '420px',
-                background: 'rgba(17, 24, 39, 0.96)',
-                border: '1px solid rgba(239, 68, 68, 0.7)',
-                borderRadius: '12px',
-                padding: '10px 14px',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  color: '#ef4444',
-                  marginBottom: '6px',
-                }}
-              >
-                <span>🧊 BOSS: 업소용 생맥주 냉각기</span>
-                <span>
-                  HP {Math.ceil(bossEntity.hp)} / {bossEntity.maxHp}
-                </span>
-              </div>
-              <div
-                style={{
-                  height: '12px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    height: '100%',
-                    width: `${Math.max(0, (bossEntity.hp / bossEntity.maxHp) * 100)}%`,
-                    background: 'linear-gradient(90deg, #ef4444, #f59e0b)',
-                    transition: 'width 0.2s',
-                  }}
-                />
-              </div>
+          {bosses.length > 0 && (
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              {bosses.map((boss) => {
+                const width = bosses.length === 1 ? 420 : bosses.length === 2 ? 240 : 200;
+                const compact = bosses.length >= 3;
+                const label =
+                  boss.role === 'king' ? (compact ? '👑 대왕' : '👑 대왕 냉각기') : '🧊 냉각기';
+                return (
+                  <div
+                    key={boss.id}
+                    style={{
+                      width: `${width}px`,
+                      background: 'rgba(17, 24, 39, 0.96)',
+                      border: boss.isShielded ? '2px solid #67e8f9' : '1px solid rgba(239, 68, 68, 0.7)',
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        color: boss.isShielded ? '#67e8f9' : '#ef4444',
+                        marginBottom: '6px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span>{boss.isShielded ? `🛡️ ${label}` : label}</span>
+                      <span>
+                        HP {boss.hp}/{boss.maxHp}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        height: '12px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`,
+                          background: boss.isShielded
+                            ? 'linear-gradient(90deg, #67e8f9, #38bdf8)'
+                            : 'linear-gradient(90deg, #ef4444, #f59e0b)',
+                          transition: 'width 0.2s',
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

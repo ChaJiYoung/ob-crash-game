@@ -753,8 +753,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     setGamePhase('PAIRING');
   }, [engine]);
 
-  const bossEntity = engine.getBossEntity();
-
   const handleRenderMetrics = useCallback((metrics: RenderPerformanceMetrics) => {
     if (!isSensorLabOpenRef.current && gamePhaseRef.current !== 'SANDBOX') return;
     setSensorLiveMetrics((prev) => ({
@@ -813,6 +811,31 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         </div>
       )}
 
+      {/* Boss encounter warning */}
+      {gamePhase === 'PLAYING' && hudState.isBossWarning && (
+        <div
+          data-testid="boss-warning-banner"
+          style={{
+            position: 'absolute',
+            top: '24%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 125,
+            padding: '10px 32px',
+            borderRadius: '9999px',
+            background: 'rgba(69, 10, 10, 0.96)',
+            border: '3px solid #ef4444',
+            color: '#fecaca',
+            fontSize: '22px',
+            fontWeight: 900,
+            letterSpacing: '0.08em',
+            pointerEvents: 'none',
+          }}
+        >
+          ⚠️ 보스 등장!
+        </div>
+      )}
+
       {/* 2. 4-Corner Arcade Overlay HUD */}
       {gamePhase === 'PLAYING' && (
         <>
@@ -863,7 +886,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             feverGauge={hudState.feverGauge}
             isFeverReady={hudState.isFeverReady}
             isFeverActive={hudState.isFeverActive}
-            bossEntity={bossEntity}
+            bosses={hudState.bosses}
             activeBuffs={hudState.activeBuffs}
             waveProgress={hudState.waveProgress}
             weaponKind={hudState.weaponKind}

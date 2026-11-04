@@ -53,6 +53,7 @@ export interface ActiveTargetEntity {
   modelScaleMult?: number;
   // Boss king shield (invulnerable)
   isShielded?: boolean;
+  isSummonedMinion?: boolean;
   // Roguelike & Gimmick extensions
   stunUntilMs?: number;
   slowUntilMs?: number;
@@ -168,6 +169,7 @@ export class BeerCrusherEngine {
   public bossSummonActionUntilMs = 0;
   public lastBossSummonTimeMs = 0;
   public lastBossSummonHpThreshold = 45;
+  public bossWarningUntilMs = 0;
   private bossShooterIndex = 0;
   private shieldKillCount = 0;
   private shieldThresholdIndex = 0;
@@ -929,6 +931,7 @@ export class BeerCrusherEngine {
         hitRadiusM: spec.hitRadiusM,
         killBonusScore: spec.killBonusScore,
         breached: false,
+        isSummonedMinion: true,
       };
       this.applyMonsterTraits(entity);
       this.activeTargets.push(entity);
@@ -1363,6 +1366,7 @@ export class BeerCrusherEngine {
     if (!waveDef?.boss) return;
     this.bossSpawned = true;
     this.isBossEncounterActive = true;
+    this.bossWarningUntilMs = nowMs + 2000;
     this.lastBossSummonTimeMs = nowMs - GAME_TUNING.boss.summonIntervalMs + GAME_TUNING.boss.firstSummonDelayMs;
     this.lastBossSummonHpThreshold = 0;
     this.bossShooterIndex = 0;
@@ -1408,6 +1412,7 @@ export class BeerCrusherEngine {
     if (kingHp !== null) {
       const king = make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
       king.isShielded = true;
+      king.modelScaleMult = GAME_TUNING.boss.kingScale;
       this.activeTargets.push(king);
     }
     this.lastSpawnTimeMs = nowMs;
@@ -1484,7 +1489,8 @@ export class BeerCrusherEngine {
         // 1. 적 처치 랜덤 아이템 드롭 (필드 위 아이템 2개 미만 시)
         const currentItemCount = this.activeTargets.filter((t) => t.isItem).length;
         if (currentItemCount < 2) {
-          const dropProb = 0.04 * this.getLuckyDropMultiplier();
+          const baseChance = target.isSummonedMinion ? GAME_TUNING.boss.summonDropChance : GAME_TUNING.itemDropChance;
+          const dropProb = baseChance * this.getLuckyDropMultiplier();
           if (this.dropRng() < dropProb) {
             this.spawnItemTargetAt(nowMs, target.thetaRad, target.radiusM);
           }
@@ -1829,7 +1835,8 @@ export class BeerCrusherEngine {
       }
 
       const scoreMultiplier = weaponKind === 'gatling' ? 0.5 : 1.0;
-      const feverMultiplier = weaponKind === 'gatling' ? 0.33 : 1.0;
+      // Boss body hits give no fever: minions (and their drops) are how the player fills the gauge
+      const feverMultiplier = target.kind === 'boss' ? 0 : weaponKind === 'gatling' ? 0.33 : 1.0;
 
       const hitInfo = this.scoreManager.registerHit(
         result.grade as Exclude<JudgmentGrade, 'MISS'>,

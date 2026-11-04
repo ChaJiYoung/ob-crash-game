@@ -53,9 +53,9 @@ describe('Gatling Gun Balance & Score Normalization', () => {
   it('should charge fever gauge at 0.33x rate for gatling compared to revolver', () => {
     engine.activeTargets.push({
       id: 'target_fever_test',
-      kind: 'boss',
-      hp: 50,
-      maxHp: 50,
+      kind: 'bottle',
+      hp: 500,
+      maxHp: 500,
       radiusM: 10.0,
       thetaRad: 0,
       x: 0,

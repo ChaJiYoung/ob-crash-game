@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 import { STAGE_CONSTANTS } from '../src/shared/constants';
+import { buildHudSnapshot } from '../src/pc/hudSnapshot';
 
 /** Runs the engine until the mini-wave is exhausted: pretend all spawns happened and the field is clear. */
 function finishMiniWave(engine: BeerCrusherEngine, wave: number, now: number): void {
@@ -388,6 +389,72 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       const before = b.thetaRad;
       run(engine, 100_500, 105_000, 100);
       expect(b.thetaRad).toBe(before);
+    });
+  });
+
+  describe('boss rewards, model and HUD (P04-T05)', () => {
+    it('boss body hits give no fever; minion kills do', () => {
+      finishMiniWave(engine, 3, 100_000);
+      const boss = bosses(engine)[0];
+      boss.x = 0;
+      boss.thetaRad = 0;
+      engine.weaponSystem.selectWeapon('revolver', 1);
+      const p = engine.computeTargetAimCoords(boss);
+      const res = engine.shootAt(p.targetNormX, p.targetNormY, 101_000);
+      expect(res.fired).toBe(true);
+      expect(res.shieldBlocked).toBeUndefined();
+      expect(boss.hp).toBeLessThan(boss.maxHp);
+      expect(engine.scoreManager.getState().feverGauge).toBe(0);
+
+      const minion = engine.spawnBossMinionWave(101_100, 1)[0];
+      minion.hp = 0.05;
+      minion.thetaRad = 0;
+      minion.x = 0;
+      minion.z = -minion.radiusM;
+      const mp = engine.computeTargetAimCoords(minion);
+      engine.shootAt(mp.targetNormX, mp.targetNormY, 102_000);
+      expect(engine.scoreManager.getState().feverGauge).toBeGreaterThan(0);
+    });
+
+    it('summoned minions drop items at 20% while regular monsters stay at 4%', () => {
+      const dropsFor = (summoned: boolean) => {
+        const e = new BeerCrusherEngine();
+        e.startGame({ withWeaponSelect: false });
+        e.activeTargets = [];
+        e.dropRng = () => 0.1;
+        (e as any).handleMonsterKilled(
+          {
+            id: 'm', kind: 'obi', hp: 0, maxHp: 2, radiusM: 9, thetaRad: 0, x: 0, z: -9, speedMps: 1,
+            hitRadiusM: 1, killBonusScore: 1, breached: false, isSummonedMinion: summoned,
+          },
+          1000
+        );
+        return e.activeTargets.filter((t) => t.isItem).length;
+      };
+      expect(dropsFor(true)).toBe(1);
+      expect(dropsFor(false)).toBe(0);
+      expect(engine.spawnBossMinionWave(1000, 2).every((m) => m.isSummonedMinion)).toBe(true);
+    });
+
+    it('the king is flagged to render 1.5x larger and starts with a warning window', () => {
+      finishMiniWave(engine, 7, 100_000);
+      const king = bosses(engine).find((b) => b.bossRole === 'king')!;
+      const cooler = bosses(engine).find((b) => b.bossRole === 'cooler')!;
+      expect(king.modelScaleMult).toBe(GAME_TUNING.boss.kingScale);
+      expect(cooler.modelScaleMult).toBeUndefined();
+      expect(engine.bossWarningUntilMs).toBe(100_000 + 2000);
+    });
+
+    it('HUD snapshot lists every boss with role, hp and shield state', () => {
+      finishMiniWave(engine, 7, 100_000);
+      const snap = buildHudSnapshot(engine, 100_500);
+      expect(snap.bosses.length).toBe(3);
+      expect(snap.bosses.map((b) => b.role).sort()).toEqual(['cooler', 'cooler', 'king']);
+      const king = snap.bosses.find((b) => b.role === 'king')!;
+      expect(king.isShielded).toBe(true);
+      expect(king.hp).toBe(110);
+      expect(snap.isBossWarning).toBe(true);
+      expect(buildHudSnapshot(engine, 103_000).isBossWarning).toBe(false);
     });
   });
 });

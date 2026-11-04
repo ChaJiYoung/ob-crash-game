@@ -1,6 +1,6 @@
 # Task: T05 Boss Rewards, Model, and HUD
 
-## Status: pending
+## Status: done
 
 ## Goal
 부하를 잡아 피버와 아이템을 모아야 보스를 쉽게 깨는 구조를 완성하고, 여러 보스와 쉴드가 화면에 보이게 한다.
@@ -102,11 +102,11 @@
 - 쉴드 중 `hp`가 표시용으로 정상 값이다.
 
 ## Acceptance Criteria
-- [ ] 보스를 쏘기만 해서는 피버가 차지 않는다.
-- [ ] 부하를 잡으면 피버가 차고 아이템이 자주 나온다.
-- [ ] 대왕이 눈에 띄게 크고, 쉴드 상태가 보인다.
-- [ ] 여러 보스의 체력이 각각 표시된다.
-- [ ] 보스 등장 전에 경고가 보인다.
+- [x] 보스를 쏘기만 해서는 피버가 차지 않는다.
+- [x] 부하를 잡으면 피버가 차고 아이템이 자주 나온다.
+- [x] 대왕이 눈에 띄게 크고, 쉴드 상태가 보인다.
+- [x] 여러 보스의 체력이 각각 표시된다.
+- [x] 보스 등장 전에 경고가 보인다.
 
 ## Validation
 - `npx vitest run tests/boss-encounters.test.ts tests/hud-snapshot.test.ts tests/gatling-balance.test.ts tests/three-stage-and-models.test.ts` — 통과
@@ -129,6 +129,6 @@ Task: T05-boss-rewards-model-and-hud
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(boss): reward minion kills and show multiple bosses
