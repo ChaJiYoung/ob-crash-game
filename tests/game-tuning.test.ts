@@ -1,0 +1,62 @@
+import { describe, it, expect } from 'vitest';
+import { GAME_TUNING } from '../src/shared/gameTuning';
+import { FEVER_CONSTANTS, JUDGMENT_SPECS, WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
+import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
+import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
+
+describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
+  it('feeds judgment, fever and skill cooldown constants', () => {
+    expect(JUDGMENT_SPECS.PERFECT.damageMultiplier).toBe(GAME_TUNING.judgment.perfectDamage);
+    expect(JUDGMENT_SPECS.GREAT.damageMultiplier).toBe(GAME_TUNING.judgment.greatDamage);
+    expect(JUDGMENT_SPECS.GOOD.damageMultiplier).toBe(GAME_TUNING.judgment.goodDamage);
+    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(GAME_TUNING.fever.perfectDelta);
+    expect(FEVER_CONSTANTS.KILL_FEVER_DELTA).toBe(GAME_TUNING.fever.killDelta);
+    ([1, 2, 3, 4] as const).forEach((lv) => {
+      (['shotgun', 'revolver', 'gatling'] as const).forEach((kind) => {
+        expect(WEAPON_ARCHETYPE_SPECS[kind].levels[lv].skillCooldownMs).toBe(GAME_TUNING.skillCooldownMsByLevel[lv]);
+      });
+    });
+  });
+
+  it('golden can adds only +30% fever and one skill charge', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.activeTargets = [];
+    engine.weaponSystem.selectWeapon('shotgun', 4);
+    engine.weaponSystem.consumeSkill(0);
+    engine.weaponSystem.consumeSkill(0);
+    expect(engine.weaponSystem.getState().skillStock).toBe(0);
+
+    const can = engine.spawnGoldenCanTarget(1000);
+    const p = engine.computeTargetAimCoords(can);
+    const res = engine.shootAt(p.targetNormX, p.targetNormY, 1100);
+    expect(res.goldenCanKilled).toBe(true);
+    expect(engine.weaponSystem.getState().skillStock).toBe(1);
+    const fever = engine.scoreManager.getState();
+    expect(fever.isFeverReady).toBe(false);
+    expect(fever.feverGauge).toBeGreaterThanOrEqual(GAME_TUNING.goldenCan.feverGain);
+    expect(fever.feverGauge).toBeLessThan(60);
+  });
+
+  it('fever_boost card adds exactly +50 gauge', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.applyRewardCard('fever_boost', 1000);
+    expect(engine.scoreManager.getState().feverGauge).toBe(50);
+    engine.applyRewardCard('fever_boost', 2000);
+    expect(engine.scoreManager.getState().feverGauge).toBe(100);
+  });
+
+  it('addSkillStock never exceeds max stock and clears cooldown when full', () => {
+    const ws = new WeaponSystem('shotgun', 1);
+    ws.consumeSkill(0);
+    ws.addSkillStock(5);
+    expect(ws.getState().skillStock).toBe(ws.getMaxSkillStock());
+    expect(ws.getState().skillCooldownRemainingMs).toBe(0);
+  });
+
+  it('does not mutate the base weapon spec table', () => {
+    // 35s Lv.1 comes from tuning, not the literal table
+    expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].skillCooldownMs).toBe(35000);
+  });
+});

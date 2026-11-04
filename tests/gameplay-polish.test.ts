@@ -163,14 +163,19 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(extraMonster.radiusM).toBeLessThan(survivorRadiusBefore);
     });
 
-    it('should upgrade bar_repair reward card to +1 maxLives and 100% full heal', () => {
+    it('should heal bar_repair reward card by 2 without raising maxLives', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.lives = 2; // Damaged
       expect(engine.maxLives).toBe(5);
 
       engine.applyRewardCard('bar_repair', 1000);
-      expect(engine.maxLives).toBe(6);
-      expect(engine.lives).toBe(6);
+      expect(engine.maxLives).toBe(5);
+      expect(engine.lives).toBe(4);
+
+      // Never heals past maxLives
+      engine.lives = 4;
+      engine.applyRewardCard('bar_repair', 1500);
+      expect(engine.lives).toBe(5);
 
       // Normal item bar_repair only heals 1 HP up to maxLives
       engine.lives = 4;

@@ -11,7 +11,7 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
     case 'PERFECT':
       return {
         title: 'PERFECT!',
-        subtitle: '1.5x 데미지 (+150 PTS)',
+        subtitle: '2.0x 데미지 (+150 PTS)',
         colorHex: '#fbbf24',
         scale: 1.3,
       };
@@ -25,7 +25,7 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
     case 'GOOD':
       return {
         title: 'GOOD!',
-        subtitle: '0.8x 데미지 (+50 PTS)',
+        subtitle: '0.5x 데미지 (+50 PTS)',
         colorHex: '#4ade80',
         scale: 1.0,
       };

@@ -8,7 +8,9 @@ import {
   TargetSpec,
   WeaponArchetypeSpec,
   WeaponKind,
+  WeaponLevel,
 } from './types';
+import { GAME_TUNING } from './gameTuning';
 
 export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
   pilgood: {
@@ -136,22 +138,22 @@ export const JUDGMENT_SPECS: Record<Exclude<JudgmentGrade, 'MISS'>, JudgmentSpec
   PERFECT: {
     maxErrorRatio: 0.25,
     baseScore: 150,
-    feverDelta: 8,
-    damageMultiplier: 1.5,
+    feverDelta: GAME_TUNING.fever.perfectDelta,
+    damageMultiplier: GAME_TUNING.judgment.perfectDamage,
     colorHex: '#fbbf24',
   },
   GREAT: {
     maxErrorRatio: 0.55,
     baseScore: 100,
     feverDelta: 0,
-    damageMultiplier: 1.0,
+    damageMultiplier: GAME_TUNING.judgment.greatDamage,
     colorHex: '#38bdf8',
   },
   GOOD: {
     maxErrorRatio: 1.00,
     baseScore: 50,
     feverDelta: 0,
-    damageMultiplier: 0.8,
+    damageMultiplier: GAME_TUNING.judgment.goodDamage,
     colorHex: '#4ade80',
   },
 };
@@ -159,7 +161,7 @@ export const JUDGMENT_SPECS: Record<Exclude<JudgmentGrade, 'MISS'>, JudgmentSpec
 export const FEVER_CONSTANTS = {
   MAX_GAUGE: 100,
   MISS_PENALTY: 0,
-  KILL_FEVER_DELTA: 12,
+  KILL_FEVER_DELTA: GAME_TUNING.fever.killDelta,
   DURATION_MS: 4000,
   LOCK_WHEN_FULL: true,
 } as const;
@@ -185,7 +187,7 @@ export const STAGE_CONSTANTS = {
   ITEM_DURATION_MS: 8000,
 } as const;
 
-export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
+const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
   shotgun: {
     kind: 'shotgun',
     nameKo: '맥주관 뚫어뻥 샷건',
@@ -503,6 +505,31 @@ export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
   },
 };
 
+/**
+ * 기본 무기 표에 난이도 수치를 덮어쓴 복사본을 만든다. 원본 객체는 바꾸지 않는다.
+ * (P03-T02가 연사·장전·판정 수치를 여기서 더 덮어쓴다.)
+ */
+function applyWeaponTuning(
+  base: Record<WeaponKind, WeaponArchetypeSpec>
+): Record<WeaponKind, WeaponArchetypeSpec> {
+  const out = {} as Record<WeaponKind, WeaponArchetypeSpec>;
+  (Object.keys(base) as WeaponKind[]).forEach((kind) => {
+    const levels = {} as WeaponArchetypeSpec['levels'];
+    ([1, 2, 3, 4] as WeaponLevel[]).forEach((lv) => {
+      levels[lv] = {
+        ...base[kind].levels[lv],
+        skillCooldownMs: GAME_TUNING.skillCooldownMsByLevel[lv],
+      };
+    });
+    out[kind] = { ...base[kind], levels };
+  });
+  return out;
+}
+
+export const WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = applyWeaponTuning(
+  BASE_WEAPON_ARCHETYPE_SPECS
+);
+
 export const REWARD_CARD_SPECS: Record<RewardCardKind, RewardCardSpec> = {
   weapon_level_up: {
     kind: 'weapon_level_up',
@@ -520,10 +547,10 @@ export const REWARD_CARD_SPECS: Record<RewardCardKind, RewardCardSpec> = {
   },
   bar_repair: {
     kind: 'bar_repair',
-    nameKo: '바리케이드 완전 복구',
+    nameKo: '바리케이드 수리',
     badgeText: 'BAR REPAIR',
     colorHex: '#10b981',
-    descriptionKo: '바 방어선 체력 100% 전체 회복 및 최대 체력 +1 영구 확장',
+    descriptionKo: '바 방어선 체력 +2 회복',
   },
   fever_boost: {
     kind: 'fever_boost',

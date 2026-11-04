@@ -508,12 +508,12 @@ export const GameCanvas3D = React.memo(
               let ico = '🌟';
               if (rk === 'rapid_reload') {
                 title = '초고속 장전';
-                sub = '재장전 딜레이 35% 단축\n최대 탄창 +2발 확장';
+                sub = '재장전 딜레이 20% 단축\n최대 탄창 +2발 확장';
                 col = '#38bdf8';
                 ico = '⚡';
               } else if (rk === 'bar_repair') {
                 title = '바리케이드 수리';
-                sub = '방어선 체력 100% 전체 회복!\n최대 체력 상한 +1 영구 확장';
+                sub = '방어선 체력 +2 회복';
                 col = '#10b981';
                 ico = '🍺';
               } else if (rk === 'fever_boost') {

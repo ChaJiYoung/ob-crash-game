@@ -69,18 +69,18 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     const target = engine.activeTargets[0];
     const proj = engine.computeTargetAimCoords(target);
 
-    // 1. Gatling non-kill hit: base fever delta is 8 * 0.33 = 3
+    // 1. Gatling non-kill hit: base fever delta is round(2 * 0.33) = 1
     engine.weaponSystem.selectWeapon('gatling', 1);
     engine.shootAt(proj.targetNormX, proj.targetNormY, 1000);
-    expect(engine.scoreManager.getState().feverGauge).toBe(3);
+    expect(engine.scoreManager.getState().feverGauge).toBe(1);
 
     // Reset score manager
     engine.scoreManager.reset();
 
-    // 2. Revolver non-kill hit: base fever delta is 8 * 1.0 = 8
+    // 2. Revolver non-kill hit: base fever delta is 2 * 1.0 = 2
     engine.weaponSystem.selectWeapon('revolver', 1);
     engine.shootAt(proj.targetNormX, proj.targetNormY, 2000);
-    expect(engine.scoreManager.getState().feverGauge).toBe(8);
+    expect(engine.scoreManager.getState().feverGauge).toBe(2);
   });
 
   it('should preserve full kill bonus score when gatling kills a target', () => {

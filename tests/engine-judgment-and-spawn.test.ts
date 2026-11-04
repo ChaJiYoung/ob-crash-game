@@ -44,8 +44,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const perfect = evaluateHitJudgment(0.12, 1.0);
     expect(perfect.grade).toBe('PERFECT');
     expect(perfect.baseScore).toBe(150);
-    expect(perfect.feverDelta).toBe(8);
-    expect(perfect.damageMultiplier).toBe(1.5);
+    expect(perfect.feverDelta).toBe(2);
+    expect(perfect.damageMultiplier).toBe(2.0);
 
     const great = evaluateHitJudgment(0.35, 1.0);
     expect(great.grade).toBe('GREAT');
@@ -56,7 +56,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     // Rebalanced D03: relaxed PERFECT tolerance (up to 0.25)
     const relaxedPerfect = evaluateHitJudgment(0.22, 1.0);
     expect(relaxedPerfect.grade).toBe('PERFECT');
-    expect(relaxedPerfect.damageMultiplier).toBe(1.5);
+    expect(relaxedPerfect.damageMultiplier).toBe(2.0);
 
     // Rebalanced D03: relaxed GREAT tolerance (up to 0.55)
     const relaxedGreat = evaluateHitJudgment(0.50, 1.0);
@@ -67,7 +67,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(good.grade).toBe('GOOD');
     expect(good.baseScore).toBe(50);
     expect(good.feverDelta).toBe(0);
-    expect(good.damageMultiplier).toBe(0.8);
+    expect(good.damageMultiplier).toBe(0.5);
 
     const miss = evaluateHitJudgment(1.15, 1.0);
     expect(miss.grade).toBe('MISS');
@@ -93,19 +93,19 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
   it('should enforce Fever 100% Lock on missed shots (D06 Anti-Regression)', () => {
     const manager = new ScoreAndFeverManager();
 
-    // 1. PERFECT adds +8 fever gauge, MISS penalty is 0 (D01 & D02)
-    manager.registerHit('PERFECT'); // +8 -> gauge 8
+    // 1. PERFECT adds +2 fever gauge, MISS penalty is 0 (D01 & D02)
+    manager.registerHit('PERFECT'); // +2 -> gauge 2
+    expect(manager.getState().feverGauge).toBe(2);
+
+    manager.applyMissPenalty(); // MISS_PENALTY is 0 -> gauge stays 2
+    expect(manager.getState().feverGauge).toBe(2);
+
+    // Monster kill adds +4 bonus (+6 total on PERFECT kill)
+    manager.registerHit('PERFECT', 50, true); // +6 -> gauge 8
     expect(manager.getState().feverGauge).toBe(8);
 
-    manager.applyMissPenalty(); // MISS_PENALTY is 0 -> gauge stays 8
-    expect(manager.getState().feverGauge).toBe(8);
-
-    // Monster kill adds +12 bonus (+20 total on PERFECT kill)
-    manager.registerHit('PERFECT', 50, true); // +20 -> gauge 28
-    expect(manager.getState().feverGauge).toBe(28);
-
-    // 2. Build up to 100%
-    for (let i = 0; i < 9; i++) {
+    // 2. Build up to 100% (46 PERFECT hits x +2)
+    for (let i = 0; i < 46; i++) {
       manager.registerHit('PERFECT');
     }
     expect(manager.getState().feverGauge).toBe(100);
@@ -140,6 +140,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     for (let i = 0; i < 13; i++) {
       manager.registerHit('PERFECT');
     }
+    manager.forceSetFeverGauge(100); // PERFECT hits alone give only +2 each now
     expect(manager.getState().combo).toBe(13);
     expect(manager.getState().isFeverReady).toBe(true);
 
@@ -177,6 +178,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     for (let i = 0; i < 13; i++) {
       manager.registerHit('PERFECT');
     }
+    manager.forceSetFeverGauge(100); // PERFECT hits alone give only +2 each now
     expect(manager.getState().combo).toBe(13);
     expect(manager.getState().isFeverReady).toBe(true);
 
@@ -508,10 +510,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
     expect(shot1.fired).toBe(true);
     expect(shot1.grade).toBe('PERFECT');
-    expect(sgTarget.hp).toBe(1.6); // 4.0 - 2.4 = 1.6
+    expect(sgTarget.hp).toBeCloseTo(0.8, 5); // 4.0 - (4 x 0.40 x 2.0 PERFECT) = 0.8
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
-    // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (1.5x) -> 1.50 DMG + pierces 1 rear target at 1.50 * 0.467 = 0.70 DMG
+    // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
     engine.weaponSystem.selectWeapon('revolver', 1);
     const revFront = {
       id: 'rev_front',
@@ -547,10 +549,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot2 = engine.shootAt(projRev.targetNormX, projRev.targetNormY, 2000);
     expect(shot2.fired).toBe(true);
     expect(shot2.hitTargets?.length).toBe(2);
-    expect(revFront.hp).toBe(2.50); // 4.0 - 1.50 = 2.50
-    expect(revRear.hp).toBeCloseTo(2.30, 2); // 3.0 - (1.50 * 0.467 = 0.701) = 2.299
+    expect(revFront.hp).toBeCloseTo(2.0, 5); // 4.0 - 2.00 = 2.00
+    expect(revRear.hp).toBeCloseTo(2.066, 2); // 3.0 - (2.00 * 0.467 = 0.934) = 2.066
 
-    // 3. Gatling Lv.1: 0.25 base DMG. With PERFECT (1.5x) -> 0.375 DMG rapid fire
+    // 3. Gatling Lv.1: 0.25 base DMG. With PERFECT (2.0x) -> 0.50 DMG rapid fire
     engine.weaponSystem.selectWeapon('gatling', 1);
     const gatTarget = {
       id: 'gat_dummy',
@@ -571,7 +573,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     const shot3 = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 3000);
     expect(shot3.fired).toBe(true);
-    expect(gatTarget.hp).toBe(1.625); // 2.0 - 0.375 = 1.625
+    expect(gatTarget.hp).toBeCloseTo(1.5, 5); // 2.0 - 0.50 = 1.50
   });
 
   it('should execute 3 distinct active skills (Plunger Storm stun, Opener slow, Foam Tsunami knockback)', () => {
@@ -681,11 +683,17 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const goldenCan = engine.spawnGoldenCanTarget(3000);
     expect(goldenCan.isGoldenCan).toBe(true);
     const projGold = engine.computeTargetAimCoords(goldenCan);
+    const skillBefore = engine.weaponSystem.getState().skillStock;
+    const feverBefore = engine.scoreManager.getState().feverGauge;
     const goldShot = engine.shootAt(projGold.targetNormX, projGold.targetNormY, 3100);
     expect(goldShot.fired).toBe(true);
     expect(goldShot.goldenCanKilled).toBe(true);
-    expect(engine.scoreManager.getState().isFeverReady).toBe(true); // Full fever!
-    expect(engine.weaponSystem.getState().skillStock).toBe(engine.weaponSystem.getMaxSkillStock()); // Full skill!
+    // Golden can gives +30% fever (not a full charge) and one skill charge
+    expect(engine.scoreManager.getState().feverGauge).toBeGreaterThanOrEqual(feverBefore + 30);
+    expect(engine.scoreManager.getState().isFeverReady).toBe(false);
+    expect(engine.weaponSystem.getState().skillStock).toBe(
+      Math.min(engine.weaponSystem.getMaxSkillStock(), skillBefore + 1)
+    );
 
     // 4. Projectile Interception
     const proj = engine.spawnMonsterProjectile(4000, 'hanmac');
@@ -751,7 +759,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(shotGreat.killed).toBe(true);
     expect(canGreat.hp).toBe(0);
 
-    // GOOD shot (0.8x) -> 1.0 * 0.8 = 0.8 -> 0.2 HP remains!
+    // GOOD shot (0.5x) -> 1.0 * 0.5 = 0.5 -> 0.5 HP remains!
     const canGood = {
       id: 'can_good',
       kind: 'pilgood' as const,
@@ -773,9 +781,9 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(shotGood.fired).toBe(true);
     expect(shotGood.grade).toBe('GOOD');
     expect(shotGood.killed).toBe(false);
-    expect(canGood.hp).toBeCloseTo(0.2, 2);
+    expect(canGood.hp).toBeCloseTo(0.5, 2);
 
-    // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.8x) -> 0.84 DMG (0.16 HP remains)
+    // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.5x) -> 0.525 DMG (0.475 HP remains)
     engine.weaponSystem.selectWeapon('shotgun', 1);
     const canSgGreat = {
       id: 'can_sg_great',
@@ -819,6 +827,6 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(sgGood.fired).toBe(true);
     expect(sgGood.grade).toBe('GOOD');
     expect(sgGood.killed).toBe(false);
-    expect(canSgGood.hp).toBeCloseTo(0.16, 2);
+    expect(canSgGood.hp).toBeCloseTo(0.475, 2);
   });
 });

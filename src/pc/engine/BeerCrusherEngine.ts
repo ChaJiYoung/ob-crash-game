@@ -19,6 +19,7 @@ import {
 } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
+import { GAME_TUNING } from '../../shared/gameTuning';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
 import { getTargetBaseY } from '../three/TargetModels3D';
@@ -425,14 +426,13 @@ export class BeerCrusherEngine {
         this.weaponSystem.applyRapidReloadBuff();
         break;
       case 'bar_repair':
-        this.maxLives += 1;
-        this.lives = this.maxLives;
+        this.lives = Math.min(this.maxLives, this.lives + GAME_TUNING.repairCard.healAmount);
         break;
       case 'lucky_drop':
         this.luckyDropStacks = Math.min(3, this.luckyDropStacks + 1);
         break;
       case 'fever_boost':
-        this.scoreManager.chargeFeverToMax();
+        this.scoreManager.addFeverGauge(GAME_TUNING.fever.cardBoostGain);
         break;
     }
   }
@@ -1454,8 +1454,8 @@ export class BeerCrusherEngine {
       if (target.isGoldenCan) {
         goldenCanKilled = true;
         this.activeTargets.splice(index, 1);
-        this.weaponSystem.refillSkillInstant();
-        this.scoreManager.chargeFeverToMax();
+        this.weaponSystem.addSkillStock(GAME_TUNING.goldenCan.skillStockGain);
+        this.scoreManager.addFeverGauge(GAME_TUNING.goldenCan.feverGain);
         const hitInfo = this.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
         return {
           fired: true,

@@ -7,10 +7,10 @@
 [P03 Balance and Cards](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P03-balance-and-cards/phase.md)
 
 ## Active Task
-[T01 Game Tuning and Gauges](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P03-balance-and-cards/T01-game-tuning-and-gauges.md)
+[T02 Weapon Rules and Hit Zone](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P03-balance-and-cards/T02-weapon-rules-and-hit-zone.md)
 
 ## Status
-- T03 완료, T01 구현 시작 준비 완료
+- T01 완료, T02 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 구현 시작
+T02 청사진을 읽고 구현 시작

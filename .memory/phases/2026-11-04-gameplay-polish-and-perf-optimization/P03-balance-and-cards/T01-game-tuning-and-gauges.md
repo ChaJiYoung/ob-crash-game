@@ -1,6 +1,6 @@
 # Task: T01 Game Tuning and Gauges
 
-## Status: pending
+## Status: done
 
 ## Goal
 난이도 상수 파일을 만들고 피버, 판정 피해, 스킬 쿨다운, 금색 캔, 수리 카드를 결정값으로 바꾼다. 피버와 스킬이 너무 빨리 차는 문제를 해결한다.
@@ -107,10 +107,10 @@
 - `subtitle`을 `2.0x 데미지 (+150 PTS)`, `1.0x 데미지 (+100 PTS)`, `0.5x 데미지 (+50 PTS)`로 바꾼다.
 
 ## Acceptance Criteria
-- [ ] 난이도 수치를 `gameTuning.ts`에서 바꾸면 게임에 반영된다.
-- [ ] 피버가 처치만으로 약 17~25마리에 찬다(개틀링 제외).
-- [ ] 금색 캔이 피버를 다 채우지 않는다.
-- [ ] 수리 카드가 최대 체력을 올리지 않는다.
+- [x] 난이도 수치를 `gameTuning.ts`에서 바꾸면 게임에 반영된다.
+- [x] 피버가 처치만으로 약 17~25마리에 찬다(개틀링 제외).
+- [x] 금색 캔이 피버를 다 채우지 않는다.
+- [x] 수리 카드가 최대 체력을 올리지 않는다.
 
 ## Validation
 - `npx vitest run tests/shared-protocol.test.ts tests/score-fever-multiplier.test.ts tests/engine-judgment-and-spawn.test.ts tests/gatling-balance.test.ts tests/gameplay-polish.test.ts tests/tutorial-and-guide.test.ts tests/pc-hud-and-banner.test.ts` — 통과
@@ -131,6 +131,6 @@ Task: T01-game-tuning-and-gauges
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(balance): centralize tuning and slow fever and skill gauges

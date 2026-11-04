@@ -40,8 +40,8 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
   it('should define 3-tier judgment thresholds and scores', () => {
     expect(JUDGMENT_SPECS.PERFECT.maxErrorRatio).toBe(0.25);
     expect(JUDGMENT_SPECS.PERFECT.baseScore).toBe(150);
-    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(8);
-    expect(JUDGMENT_SPECS.PERFECT.damageMultiplier).toBe(1.5);
+    expect(JUDGMENT_SPECS.PERFECT.feverDelta).toBe(2);
+    expect(JUDGMENT_SPECS.PERFECT.damageMultiplier).toBe(2.0);
 
     expect(JUDGMENT_SPECS.GREAT.maxErrorRatio).toBe(0.55);
     expect(JUDGMENT_SPECS.GREAT.baseScore).toBe(100);
@@ -51,13 +51,13 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(JUDGMENT_SPECS.GOOD.maxErrorRatio).toBe(1.00);
     expect(JUDGMENT_SPECS.GOOD.baseScore).toBe(50);
     expect(JUDGMENT_SPECS.GOOD.feverDelta).toBe(0);
-    expect(JUDGMENT_SPECS.GOOD.damageMultiplier).toBe(0.8);
+    expect(JUDGMENT_SPECS.GOOD.damageMultiplier).toBe(0.5);
   });
 
   it('should enforce 4s fever burst rules and weapon constants (D04)', () => {
     expect(FEVER_CONSTANTS.MAX_GAUGE).toBe(100);
     expect(FEVER_CONSTANTS.MISS_PENALTY).toBe(0);
-    expect(FEVER_CONSTANTS.KILL_FEVER_DELTA).toBe(12);
+    expect(FEVER_CONSTANTS.KILL_FEVER_DELTA).toBe(4);
     expect(FEVER_CONSTANTS.DURATION_MS).toBe(4000); // 4s ultra burst
     expect(FEVER_CONSTANTS.LOCK_WHEN_FULL).toBe(true);
 
@@ -159,18 +159,18 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     const skillUsed = ws.consumeSkill(1000);
     expect(skillUsed).toBe(true);
     expect(ws.getState().skillStock).toBe(0);
-    expect(ws.getState().skillCooldownRemainingMs).toBe(25000); // Lv.1 cooldown
+    expect(ws.getState().skillCooldownRemainingMs).toBe(35000); // Lv.1 cooldown
 
     // Trying to use skill again without stock fails
     expect(ws.consumeSkill(1050)).toBe(false);
 
-    // 2. Advance time by 10s -> 15s remaining
+    // 2. Advance time by 10s -> 25s remaining
     ws.update(11000, false, 10000);
     expect(ws.getState().skillStock).toBe(0);
-    expect(ws.getState().skillCooldownRemainingMs).toBe(15000);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(25000);
 
-    // Advance remaining 15s -> Skill recharges!
-    ws.update(26000, false, 15000);
+    // Advance remaining 25s -> Skill recharges!
+    ws.update(36000, false, 25000);
     expect(ws.getState().skillStock).toBe(1);
     expect(ws.getState().skillCooldownRemainingMs).toBe(0);
 

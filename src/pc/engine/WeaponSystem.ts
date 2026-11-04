@@ -114,6 +114,11 @@ export class WeaponSystem {
     return true;
   }
 
+  public addSkillStock(amount: number): void {
+    this.skillStock = Math.min(this.getMaxSkillStock(), this.skillStock + amount);
+    if (this.skillStock >= this.getMaxSkillStock()) this.skillCooldownRemainingMs = 0;
+  }
+
   public refillSkillInstant(): void {
     this.skillStock = this.getMaxSkillStock();
     this.skillCooldownRemainingMs = 0;

@@ -28,12 +28,12 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     expect(t0.hp).toBe(1);
     expect(shouldRenderMonsterHpBar(t0.maxHp, false, false, t0.hp)).toBe(false);
 
-    // If target takes GOOD 0.8x damage, remaining hp is 0.2 and hp bar should show
-    t0.hp = Math.max(0, t0.hp - 0.8);
-    expect(t0.hp).toBeCloseTo(0.2, 2);
+    // If target takes GOOD 0.5x damage, remaining hp is 0.5 and hp bar should show
+    t0.hp = Math.max(0, t0.hp - 0.5);
+    expect(t0.hp).toBeCloseTo(0.5, 2);
     expect(shouldRenderMonsterHpBar(t0.maxHp, false, false, t0.hp)).toBe(true);
 
-    // If target takes GREAT 1.0x or PERFECT 1.5x, target is killed (hp <= 0)
+    // If target takes GREAT 1.0x or PERFECT 2.0x, target is killed (hp <= 0)
     t0.hp = 0;
     expect(t0.hp).toBe(0);
   });

@@ -39,8 +39,8 @@ describe('ScoreAndFeverManager Multipliers', () => {
       feverMultiplier: 0.33,
     });
 
-    // feverDelta: round(8 * 0.33) = 3
-    expect(res.feverGauge).toBe(3);
+    // feverDelta: round(2 * 0.33) = 1
+    expect(res.feverGauge).toBe(1);
     expect(res.isFeverReady).toBe(false);
   });
 
@@ -53,17 +53,17 @@ describe('ScoreAndFeverManager Multipliers', () => {
     // baseScore: 150 * 0.5 = 75, kill: 50 => earned: 125
     expect(res.earnedScore).toBe(125);
 
-    // fever: round(8 * 0.33) = 3 + round(12 * 0.33) = 4 => delta = 7
-    expect(res.feverGauge).toBe(7);
+    // fever: round(2 * 0.33) = 1 + round(4 * 0.33) = 1 => delta = 2
+    expect(res.feverGauge).toBe(2);
   });
 
   it('should prevent fever overcharge while respecting MAX_GAUGE', () => {
-    manager.forceSetFeverGauge(96);
+    manager.forceSetFeverGauge(98);
     const res = manager.registerHit('PERFECT', 0, true, {
       feverMultiplier: 0.5,
     });
 
-    // 96 + (4 + 6) = 106 => clamped to 100
+    // 98 + (round(2 * 0.5) + round(4 * 0.5)) = 98 + (1 + 2) = 101 => clamped to 100
     expect(res.feverGauge).toBe(100);
     expect(res.isFeverReady).toBe(true);
   });
