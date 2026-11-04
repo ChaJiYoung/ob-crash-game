@@ -13,8 +13,8 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 번쩍임·멈춤·상시 저하 해결 후 성능 재측정 | [P01](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/phase.md) |
-| P02 | `pending` | 바닥선, 요격 폭발, 카드 선택 중 오발 방지와 전체 정지 | [P02](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P02-stage-and-input/phase.md) |
+| P01 | `done` | 번쩍임·멈춤·상시 저하 해결 후 성능 재측정 | [P01](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/phase.md) |
+| P02 | `in_progress` | 바닥선, 요격 폭발, 카드 선택 중 오발 방지와 전체 정지 | [P02](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P02-stage-and-input/phase.md) |
 | P03 | `pending` | 난이도 상수 통합, 게이지, 연사·장전·판정 규칙, 카드 9종 | [P03](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P03-balance-and-cards/phase.md) |
 | P04 | `pending` | 7웨이브, 몬스터 5종 특색, 미니웨이브 후 보스, 냉각기·대왕 패턴, 수치 재조정 | [P04](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/phase.md) |
 | P05 | `pending` | 스크립트·안내·문서 갱신, 랭킹 초기화, 직접 플레이 검증, 스크린샷 재촬영 | [P05](../phases/2026-11-04-gameplay-polish-and-perf-optimization/P05-docs-and-verification/phase.md) |

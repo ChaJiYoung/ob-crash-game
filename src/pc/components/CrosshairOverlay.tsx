@@ -157,8 +157,9 @@ export const CrosshairOverlay = React.memo(
       weaponLevel,
     });
 
-    const [isKicking, setIsKicking] = useState(false);
+    // Kick feedback is written straight to the DOM: a React state flip per shot would commit twice per shot.
     const kickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const kickScaleRef = useRef(1.0);
 
     const applyDomPosition = useCallback((curX: number, curY: number) => {
       if (containerRef.current) {
@@ -172,11 +173,13 @@ export const CrosshairOverlay = React.memo(
       ref,
       () => ({
         kick() {
-          setIsKicking(true);
+          const el = containerRef.current;
+          if (!el) return;
+          el.style.transform = `translate(-50%, -50%) scale(${kickScaleRef.current})`;
           if (kickTimerRef.current) clearTimeout(kickTimerRef.current);
           kickTimerRef.current = setTimeout(() => {
             kickTimerRef.current = null;
-            setIsKicking(false);
+            if (containerRef.current) containerRef.current.style.transform = 'translate(-50%, -50%) scale(1)';
           }, 120);
         },
         updatePosition(nextAimX: number, nextAimY: number, immediate = true) {
@@ -241,6 +244,8 @@ export const CrosshairOverlay = React.memo(
       };
     }, []);
 
+    kickScaleRef.current = spec.weaponKind === 'shotgun' ? 1.32 : spec.weaponKind === 'revolver' ? 0.90 : 1.20;
+
     const cornerSize = spec.sizePx * 0.22;
 
     return (
@@ -252,15 +257,7 @@ export const CrosshairOverlay = React.memo(
           top: `${topPercent}%`,
           width: `${spec.sizePx}px`,
           height: `${spec.sizePx}px`,
-          transform: `translate(-50%, -50%) scale(${
-            isKicking
-              ? spec.weaponKind === 'shotgun'
-                ? 1.32
-                : spec.weaponKind === 'revolver'
-                ? 0.90
-                : 1.20
-              : 1.0
-          })`,
+          transform: 'translate(-50%, -50%) scale(1)',
           pointerEvents: 'none',
           display: 'flex',
           alignItems: 'center',
@@ -377,11 +374,7 @@ export const CrosshairOverlay = React.memo(
                 border: `2px solid ${spec.primaryColor}`,
                 borderTopColor: 'transparent',
                 borderBottomColor: 'transparent',
-                animation: isKicking
-                  ? 'spin 0.25s linear infinite'
-                  : isFeverActive
-                  ? 'spin 0.6s linear infinite'
-                  : 'spin 4s linear infinite',
+                animation: isFeverActive ? 'spin 0.6s linear infinite' : 'spin 4s linear infinite',
               }}
             />
 

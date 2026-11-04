@@ -1,6 +1,6 @@
 # Task: T08 Update Perf Script and Verify
 
-## Status: pending
+## Status: done
 
 ## Goal
 후처리 제거로 깨진 측정 스크립트를 고치고, P01의 결과를 실측으로 확인한다. 수치가 기준에 못 미치면 다음 Phase로 넘어가지 않는다.
@@ -60,9 +60,9 @@
 - 수정으로 해결되지 않으면 결과를 사용자에게 보고하고 판단을 받는다.
 
 ## Acceptance Criteria
-- [ ] I02 표의 기준을 모두 만족한다.
-- [ ] 측정 결과 파일이 `out/`에 있다.
-- [ ] 사격 직후 스크린샷을 직접 확인했다.
+- [x] I02 표의 기준을 모두 만족한다.
+- [x] 측정 결과 파일이 `out/`에 있다.
+- [x] 사격 직후 스크린샷을 직접 확인했다.
 
 ## Validation
 - `node .memory/references/scripts/perf-frame-profile.mjs 3440 1440 1 ultrawide 3000` — 기준 충족
@@ -81,6 +81,6 @@ Task: T08-update-perf-script-and-verify
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: test(perf): verify render and stutter fixes with updated profiler

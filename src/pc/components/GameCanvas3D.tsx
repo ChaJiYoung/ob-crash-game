@@ -280,8 +280,14 @@ export const GameCanvas3D = React.memo(
         try {
           const anchors = buildShaderAnchorGroup(particles);
           anchors.position.set(0, -999, 0);
+          // Draw (not only compile) every anchor once: ANGLE/Metal builds the pipeline state lazily on the
+          // first draw, which otherwise shows up as a 0.5s+ stall the first time an item, boss, or card is drawn.
+          anchors.traverse((o) => {
+            o.frustumCulled = false;
+          });
           scene.add(anchors);
           renderer.compile(scene, camera);
+          renderer.render(scene, camera);
           anchors.traverse((obj) => {
             const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
             if (mat && !Array.isArray(mat) && mat.map) renderer!.initTexture(mat.map);

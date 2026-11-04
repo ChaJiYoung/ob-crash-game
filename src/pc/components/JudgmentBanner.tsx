@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { JudgmentGrade } from '../../shared/types';
 
 export function getJudgmentBannerSpec(grade: JudgmentGrade): {
@@ -43,23 +43,44 @@ export interface JudgmentBannerHandle {
   show(grade: JudgmentGrade): void;
 }
 
-/** 판정 배너. 부모를 다시 그리지 않고 `show()`로 직접 띄운다. */
+const BANNER_VISIBLE_MS = 600;
+
+/**
+ * 판정 배너. 연타 중에도 React 커밋이 생기지 않도록 DOM을 직접 갱신한다.
+ */
 export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => {
-  const [shown, setShown] = useState<{ grade: JudgmentGrade; key: number } | null>(null);
-  const keyRef = useRef(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const subtitleRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useImperativeHandle(
     ref,
     () => ({
       show(grade: JudgmentGrade) {
-        keyRef.current += 1;
-        setShown({ grade, key: keyRef.current });
+        const root = rootRef.current;
+        const title = titleRef.current;
+        const subtitle = subtitleRef.current;
+        if (!root || !title || !subtitle) return;
+
+        const spec = getJudgmentBannerSpec(grade);
+        title.textContent = spec.title;
+        title.style.color = spec.colorHex;
+        subtitle.textContent = spec.subtitle;
+        subtitle.style.border = `1px solid ${spec.colorHex}`;
+        root.style.transform = `translate(-50%, -50%) scale(${spec.scale})`;
+        root.style.display = 'flex';
+
+        // Restart the pop animation on every shot.
+        root.style.animation = 'none';
+        void root.offsetWidth;
+        root.style.animation = 'popBanner 0.5s ease-out forwards';
+
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
           timerRef.current = null;
-          setShown(null);
-        }, 600);
+          if (rootRef.current) rootRef.current.style.display = 'none';
+        }, BANNER_VISIBLE_MS);
       },
     }),
     []
@@ -72,37 +93,32 @@ export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => 
     []
   );
 
-  if (!shown) return null;
-  const spec = getJudgmentBannerSpec(shown.grade);
-
   return (
     <div
-      key={shown.key}
+      ref={rootRef}
       style={{
         position: 'absolute',
         top: '38%',
         left: '50%',
-        transform: `translate(-50%, -50%) scale(${spec.scale})`,
+        transform: 'translate(-50%, -50%)',
         pointerEvents: 'none',
-        display: 'flex',
+        display: 'none',
         flexDirection: 'column',
         alignItems: 'center',
-        animation: 'popBanner 0.5s ease-out forwards',
         zIndex: 50,
       }}
     >
       <div
+        ref={titleRef}
         style={{
           fontSize: '36px',
           fontWeight: 900,
-          color: spec.colorHex,
           textShadow: '0 2px 2px #000',
           letterSpacing: '2px',
         }}
-      >
-        {spec.title}
-      </div>
+      />
       <div
+        ref={subtitleRef}
         style={{
           fontSize: '15px',
           fontWeight: 700,
@@ -111,11 +127,8 @@ export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => 
           padding: '4px 12px',
           borderRadius: '20px',
           marginTop: '4px',
-          border: `1px solid ${spec.colorHex}`,
         }}
-      >
-        {spec.subtitle}
-      </div>
+      />
     </div>
   );
 });

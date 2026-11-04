@@ -3,7 +3,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 벽 제거와 뒤집힌 바닥선 수정 | [T01](./T01-floor-line-and-remove-bar-wall.md) |
+| T01 | `in_progress 🔵` | 벽 제거와 뒤집힌 바닥선 수정 | [T01](./T01-floor-line-and-remove-bar-wall.md) |
 | T02 | `pending` | 요격 배너 제거와 투사체 폭발 | [T02](./T02-remove-intercept-banner.md) |
 | T03 | `pending` | 카드 선택 중 오발 방지와 전체 정지 | [T03](./T03-card-select-input-gate-and-freeze.md) |
 

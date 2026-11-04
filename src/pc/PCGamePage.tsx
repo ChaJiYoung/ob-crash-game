@@ -136,6 +136,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const lastDiagUpdateTimeRef = useRef<number>(0);
 
   const [hoveredResultAction, setHoveredResultAction] = useState<'restart' | 'lobby' | null>(null);
+  const hoveredResultActionRef = useRef<'restart' | 'lobby' | null>(null);
   const restartButtonRef = useRef<HTMLButtonElement | null>(null);
   const lobbyButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -169,7 +170,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     canvasRef.current?.setAim(x, y, immediate);
     crosshairRef.current?.updatePosition(x, y, immediate);
     const action = checkResultButtonHover(x, y);
-    setHoveredResultAction(action);
+    if (hoveredResultActionRef.current !== action) {
+      hoveredResultActionRef.current = action;
+      setHoveredResultAction(action);
+    }
   }, [checkResultButtonHover]);
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {

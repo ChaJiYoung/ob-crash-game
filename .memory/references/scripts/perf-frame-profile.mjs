@@ -19,7 +19,7 @@ page.on('pageerror', e => console.log('[pageerror]', e.message));
 await page.addInitScript(() => {
   const P = window.__prof = { frames:[], jsMs:0, draws:0, drawsPerFrame:[], commits:0, last:0, rec:false };
   const raf = window.requestAnimationFrame.bind(window);
-  window.requestAnimationFrame = (cb) => raf((t) => { const s = performance.now(); cb(t); if (P.rec) P.jsMs += performance.now()-s; });
+  P.longCb = 0; window.requestAnimationFrame = (cb) => raf((t) => { const s = performance.now(); cb(t); const d = performance.now()-s; if (P.rec) { P.jsMs += d; if (d > 50) P.longCb++; } });
   const tick = (t) => { if (P.rec) { if (P.last) P.frames.push(t-P.last); P.last = t; P.drawsPerFrame.push(P.draws); } P.draws = 0; raf(tick); };
   raf(tick);
   for (const proto of [WebGL2RenderingContext.prototype, WebGLRenderingContext.prototype]) {
@@ -28,6 +28,8 @@ await page.addInitScript(() => {
       proto[m] = function(...a){ P.draws++; return o.apply(this,a); };
     }
   }
+  P.loaf = [];
+  try { new PerformanceObserver((l) => l.getEntries().forEach((e) => { if (P.rec && e.duration > 100) P.loaf.push({ dur: Math.round(e.duration), blocking: Math.round(e.blockingDuration), scripts: e.scripts.map((sc) => ({ fn: sc.sourceFunctionName, src: (sc.sourceURL || '').split('/').pop().split('?')[0], char: sc.sourceCharPosition, dur: Math.round(sc.duration), kind: sc.invokerType })) }); })).observe({ type: 'long-animation-frame', buffered: false }); } catch {}
   P.tex=0; P.compile=0; P.link=0; P.texBytes=0;
   for (const proto of [WebGL2RenderingContext.prototype]) {
     for (const m of ['texImage2D','texSubImage2D','texStorage2D','compressedTexImage2D']) { const o=proto[m]; if(!o) continue; proto[m]=function(...a){ P.tex++; return o.apply(this,a); }; }
@@ -39,18 +41,10 @@ await page.addInitScript(() => {
 
 await page.route('**/src/pc/components/GameCanvas3D.tsx*', async (route) => {
   const res = await route.fetch(); let b = await res.text();
-  const a = b.length;
-  b = b.replace('composer.addPass(bloomPass);','composer.addPass(bloomPass); window.__renderer=renderer; window.__composer=composer; window.__bloom=bloomPass;');
+  const before = b;
+  b = b.replace('container.appendChild(renderer.domElement);','container.appendChild(renderer.domElement); window.__renderer=renderer;');
   b = b.replace('scene.add(particles.group);','scene.add(particles.group); window.__particles=particles;');
-  if (b.length===a) console.log('!! canvas inject failed');
-  await route.fulfill({ response:res, body:b });
-});
-await page.route('**/src/pc/PCGamePage.tsx*', async (route) => {
-  const res = await route.fetch(); let b = await res.text();
-  const a = b.length;
-  b = b.replace('onMonsterProjectionsUpdate: setMonsterProjections','onMonsterProjectionsUpdate: (p)=>{ if(!window.__noReact) setMonsterProjections(p); }');
-  b = b.replace('setHudState({','window.__noReact || setHudState({');
-  if (b.length===a) console.log('!! page inject failed');
+  if (b === before || !b.includes('window.__renderer') || !b.includes('window.__particles')) console.log('!! canvas inject failed');
   await route.fulfill({ response:res, body:b });
 });
 
@@ -92,16 +86,6 @@ await page.evaluate(() => {
     send('mousemove'); send('mousedown'); window.__aimTick=setInterval(()=>send('mousemove'),50);
   };
   window.__holdStop=()=>{ if(window.__aimTick)clearInterval(window.__aimTick); window.__aimTick=null; window.dispatchEvent(new MouseEvent('mouseup',{button:0})); };
-  window.__css=document.createElement('style');
-  window.__toggles=(t)=>{
-    const pr=window.__particles;
-    if(t.noMuzzleFlash){ const proto=Object.getPrototypeOf(pr).spawnTracerBeam; pr.spawnTracerBeam=function(...a){ proto.apply(this,a); const it=this.tracerBeams[this.tracerBeams.length-1]; if(it) it.flashMesh.visible=false; }; } else { delete pr.spawnTracerBeam; }
-    window.__bloom.enabled=!t.noBloom;
-    const px=t.dpr1?1:window.devicePixelRatio; if(window.__renderer.getPixelRatio()!==Math.min(px,2)){ window.__renderer.setPixelRatio(Math.min(px,2)); window.__composer.setPixelRatio(Math.min(px,2)); }
-    if(t.noCss){ window.__css.textContent='*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;box-shadow:none!important;text-shadow:none!important;}'; document.head.appendChild(window.__css);} else { window.__css.remove(); }
-    window.__noReact=!!t.noReact;
-    window.__scene.traverse(o=>{ if(o.isPointLight) o.visible=!t.noPointLights; });
-  };
   window.__setWeapon=(k,l)=>eng.weaponSystem.selectWeapon(k,l);
   window.__setFever=(on)=>{ const s=eng.scoreManager; if(on){ s.forceSetFeverGauge(100); eng.activateFever(performance.now()); s.feverEndTimeMs=performance.now()+1e6; } else { s.feverEndTimeMs=0; } };
 });
@@ -112,7 +96,7 @@ const measure = async (name, ms=MS, settle=1200) => {
   await page.evaluate(()=>new Promise(r=>{let n=0; const f=()=>{ if(++n>6) r(); else requestAnimationFrame(f)}; requestAnimationFrame(f);}));
   await page.waitForTimeout(settle);
   const m0=await cdpMetrics();
-  await page.evaluate(()=>{ const P=window.__prof; P.frames=[]; P.jsMs=0; P.drawsPerFrame=[]; P.commits=0; P.last=0; P.rec=true; P.peakParticles=0; P.peakTracers=0; P.ptick=setInterval(()=>{ P.peakParticles=Math.max(P.peakParticles,window.__particles.particles.length); P.peakTracers=Math.max(P.peakTracers,window.__particles.tracerBeams.length); },30); });
+  await page.evaluate(()=>{ const P=window.__prof; P.frames=[]; P.jsMs=0; P.drawsPerFrame=[]; P.commits=0; P.last=0; P.rec=true; P.peakParticles=0; P.peakTracers=0; P.ptick=setInterval(()=>{ P.peakParticles=Math.max(P.peakParticles,window.__particles.activeParticleCount); P.peakTracers=Math.max(P.peakTracers,window.__particles.tracerBeams.length); },30); });
   await page.waitForTimeout(ms);
   const d=await page.evaluate(()=>{ const P=window.__prof; P.rec=false; clearInterval(P.ptick); const flash=window.__particles.tracerBeams.map(t=>+t.flashMesh.scale.x.toFixed(2)); return { frames:P.frames, jsMs:P.jsMs, draws:P.drawsPerFrame, commits:P.commits, peakParticles:P.peakParticles, peakTracers:P.peakTracers, flash, programs:window.__renderer.info.programs.length }; });
   const m1=await cdpMetrics();
@@ -158,32 +142,34 @@ const sk=(k)=>`()=>{ window.__particles.spawnSkillEffect('${k}',4,window.__engin
 for (const k of ['shotgun','revolver','gatling']) await spike(`A14_skill_${k}`, sk(k), 2200);
 await page.evaluate(()=>{ const eng=window.__engine; window.__keep=setInterval(()=>{ const w=eng.weaponSystem; w.ammo=w.getMaxAmmo(); w.isReloading=false; eng.isRewardCardPending=false; eng.isWeaponSelectPending=false; eng.activeTargets=eng.activeTargets.filter(t=>String(t.id).startsWith('bench_')); eng.lives=999; },25); });
 
-// --- B. ABAB (baseline re-measured between every toggle, so thermal drift is visible)
-await page.evaluate(()=>{ window.__setWeapon('gatling',4); window.__holdStart(); });
-for (const [name,t] of [
-  ['noMuzzleFlash',{noMuzzleFlash:true}],
-  ['noBloom',{noBloom:true}],
-  ['dpr1',{dpr1:true}],
-  ['noCssEffects',{noCss:true}],
-  ['noReactHudTicks',{noReact:true}],
-  ['noPointLights',{noPointLights:true}],
-  ['ALL_OFF',{noMuzzleFlash:true,noBloom:true,dpr1:true,noCss:true,noReact:true,noPointLights:true}],
+// --- B. Sustained fire (gatling Lv.4 / shotgun Lv.4 / fever), mouse-hold on a moving cluster
+await page.evaluate(()=>{ window.__holdStart(); });
+for (const [name,setup] of [
+  ['sustained_gatling_lv4', `()=>{ window.__setFever(false); window.__setWeapon('gatling',4); }`],
+  ['sustained_shotgun_lv4', `()=>{ window.__setFever(false); window.__setWeapon('shotgun',4); }`],
+  ['sustained_fever_gatling', `()=>{ window.__setWeapon('gatling',4); window.__setFever(true); }`],
 ]) {
-  await page.evaluate(()=>window.__toggles({}));
-  const base=await measure(`base_before_${name}`,MS,1500);
-  await page.evaluate((t)=>window.__toggles(t),t);
-  const tr=await measure(name,MS,1500);
-  results.ab.push({name,base:{fps:base.fps,p95:base.p95,p99:base.p99,task:base.taskMsPerSec},toggled:{fps:tr.fps,p95:tr.p95,p99:tr.p99,task:tr.taskMsPerSec},draw:tr.drawCalls,commits:tr.commitsPerSec});
+  await page.evaluate((fn)=>(0,eval)(`(${fn})()`), setup);
+  const r=await measure(name,MS,1500);
+  results.ab.push(r);
 }
-await page.evaluate(()=>{ window.__toggles({}); window.__holdStop(); });
+await page.evaluate(()=>{ window.__setFever(false); window.__holdStop(); });
 
-// --- C. Look comparison stills (paused, no firing)
-await page.evaluate(()=>{ window.__engine.isPaused=true; });
-const still=async(n,t)=>{ await page.evaluate((t)=>window.__toggles(t),t); await page.evaluate(()=>new Promise(r=>{let n=0;const f=()=>{ if(++n>6) r(); else requestAnimationFrame(f)};requestAnimationFrame(f);})); await page.waitForTimeout(500); await page.screenshot({path:`${OUT}${TAG}-look-${n}.png`}); };
-await still('baseline',{});
-await still('noBloom',{noBloom:true});
-await still('dpr1',{dpr1:true});
-await page.evaluate(()=>{ window.__toggles({}); window.__engine.isPaused=false; });
+// --- C. Screenshot right after one shot (muzzle flash must not cover the screen)
+await page.evaluate(()=>{ window.__setWeapon('shotgun',2); const eng=window.__engine; const w=eng.weaponSystem; w.ammo=w.getMaxAmmo(); });
+await page.waitForTimeout(500);
+await page.evaluate(()=>{
+  const c=document.querySelector('canvas').parentElement; const eng=window.__engine;
+  const t=eng.activeTargets[Math.min(6,eng.activeTargets.length-1)]; const m=window.__targetMeshMap.get(t.id);
+  const v=m.position.clone(); v.y+=0.3; v.project(window.__camera);
+  const x=(v.x+1)/2*innerWidth,y=(1-v.y)/2*innerHeight;
+  c.dispatchEvent(new MouseEvent('mousemove',{button:0,bubbles:true,clientX:x,clientY:y}));
+  c.dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true,clientX:x,clientY:y}));
+  window.dispatchEvent(new MouseEvent('mouseup',{button:0}));
+});
+await page.waitForTimeout(40);
+await page.screenshot({path:`${OUT}${TAG}-after-shot.png`});
+results.afterShotFlashScales = await page.evaluate(()=>window.__particles.getActiveFlashScales());
 
 // --- D. Natural play, real waves & kills, no cheats except infinite lives
 await page.evaluate(()=>{
@@ -198,17 +184,43 @@ await page.evaluate(()=>{
   window.__natural=setInterval(()=>send('mousemove'),40);
   c.dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true,clientX:innerWidth/2,clientY:innerHeight/2}));
 });
+await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval',{interval:500}); await cdp.send('Profiler.start');
 const natural=await page.evaluate(async()=>{
   const P=window.__prof; const eng=window.__engine; const c0=P.compile,l0=P.link,t0=P.tex; const events=[];
-  P.frames=[]; P.last=0; P.rec=true; P.jsMs=0; P.commits=0;
+  P.frames=[]; P.last=0; P.rec=true; P.jsMs=0; P.commits=0; P.longCb=0;
   const t0ms=performance.now(); let prevN=0; const count=[];
   const raf0=window.requestAnimationFrame;
   while(performance.now()-t0ms<30000){ await new Promise(r=>setTimeout(r,250)); count.push(eng.activeTargets.length); }
   P.rec=false;
   const f=P.frames; const s=[...f].sort((a,b)=>a-b);
-  return { durSec:30, frames:f.length, fps:+(f.length/(f.reduce((a,b)=>a+b,0)/1000)).toFixed(1), p50:+s[Math.floor(s.length*.5)].toFixed(1), p95:+s[Math.floor(s.length*.95)].toFixed(1), p99:+s[Math.floor(s.length*.99)].toFixed(1), max:+s[s.length-1].toFixed(0), over50ms:f.filter(x=>x>50).length, over100ms:f.filter(x=>x>100).length, over250ms:f.filter(x=>x>250).length, over1000ms:f.filter(x=>x>1000).length, top5:[...s].slice(-5).map(x=>+x.toFixed(0)), link:P.link-l0, compile:P.compile-c0, texUploads:P.tex-t0, commitsPerSec:+(P.commits/30).toFixed(1), peakTargets:Math.max(...count), wave:eng.currentWave, phase:eng.gamePhase };
+  return { durSec:30, frames:f.length, fps:+(f.length/(f.reduce((a,b)=>a+b,0)/1000)).toFixed(1), p50:+s[Math.floor(s.length*.5)].toFixed(1), p95:+s[Math.floor(s.length*.95)].toFixed(1), p99:+s[Math.floor(s.length*.99)].toFixed(1), max:+s[s.length-1].toFixed(0), over50ms:f.filter(x=>x>50).length, over100ms:f.filter(x=>x>100).length, over250ms:f.filter(x=>x>250).length, over1000ms:f.filter(x=>x>1000).length, top5:[...s].slice(-5).map(x=>+x.toFixed(0)), longCallbacks:P.longCb, longFrames:P.loaf.slice(0,5), link:P.link-l0, compile:P.compile-c0, texUploads:P.tex-t0, commitsPerSec:+(P.commits/30).toFixed(1), peakTargets:Math.max(...count), wave:eng.currentWave, phase:eng.gamePhase };
 });
+const prof=(await cdp.send('Profiler.stop')).profile;
+{ const self=new Map(); const byId=new Map(prof.nodes.map(n=>[n.id,n])); const dt=prof.timeDeltas;
+  prof.samples.forEach((id,i)=>{ const n=byId.get(id); const k=`${n.callFrame.functionName||'(anon)'} ${(n.callFrame.url||'').split('/').pop().split('?')[0]}:${n.callFrame.lineNumber}`; self.set(k,(self.get(k)||0)+(dt[i]||0)); });
+  natural.topSelfMs=[...self.entries()].filter(([k])=>!k.startsWith('(idle)')&&!k.startsWith('(program)')).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>`${(v/1000).toFixed(0)}ms ${k}`);
+}
 results.natural=natural; console.log('NATURAL',JSON.stringify(natural));
-fs.writeFileSync(`${OUT}results2-${TAG}.json`,JSON.stringify(results,null,2));
-console.log('\nAB SUMMARY'); for(const a of results.ab) console.log(a.name.padEnd(18),'base fps',String(a.base.fps).padEnd(6),'→',String(a.toggled.fps).padEnd(6),'| p95',a.base.p95,'→',a.toggled.p95,'| mainthread ms/s',a.base.task,'→',a.toggled.task,'| commits/s',a.commits,'| draws',a.draw);
+results.verdict = (() => {
+  const sp = results.spikes;
+  const killSpikes = ['A2_kill_one_pilgood(another_remains)','A3_kill_one_obi(another_remains)','A4_kill_one_hanmac(another_remains)'];
+  const gat = results.ab.find(r=>r.name==='sustained_gatling_lv4');
+  const refreshHz = Number(process.env.REFRESH_HZ || 60);
+  const p95Limit = refreshHz >= 60 ? 16.7 : 20;
+  return {
+    naturalLinkProgram: { value: natural.link, pass: natural.link === 0 },
+    // 이 환경의 헤드리스 Metal은 빈 캔버스에서도 약 13초마다 180~280ms 멈춤이 생긴다(앱과 무관).
+    // JS가 50ms 넘게 막은 프레임(longCallbacks)은 0이어야 하고, 250ms 초과 프레임은 환경 멈춤 수(약 초당 1/13) 이내여야 한다.
+    naturalJsBlockedFrames: { value: natural.longCallbacks, pass: natural.longCallbacks === 0 },
+    naturalOver250ms: { value: natural.over250ms, limit: Math.ceil(natural.durSec / 13) + 1, pass: natural.over250ms <= Math.ceil(natural.durSec / 13) + 1 && natural.over1000ms === 0 },
+    killTextureUploads: { value: killSpikes.map(k=>sp[k]?.texUploads), pass: killSpikes.every(k=>sp[k]?.texUploads === 0) },
+    secondCardSpawnMaxFrameMs: { value: sp['A12_reward_cards_spawn_again']?.maxFrameMs, pass: (sp['A12_reward_cards_spawn_again']?.maxFrameMs ?? 1e9) < 100 },
+    gatlingAvgFps: { value: gat?.fps, pass: (gat?.fps ?? 0) >= 90 },
+    gatlingP95: { value: gat?.p95, limit: p95Limit, pass: (gat?.p95 ?? 1e9) <= p95Limit },
+    naturalCommitsPerSec: { value: natural.commitsPerSec, pass: natural.commitsPerSec <= 15 },
+    flashScalesAfterShot: { value: results.afterShotFlashScales, pass: results.afterShotFlashScales.every(v=>v < 0.2) },
+  };
+})();
+fs.writeFileSync(`${OUT}perf-after-P01-${TAG}.json`,JSON.stringify(results,null,2));
+console.log('\nVERDICT'); for (const [k,v] of Object.entries(results.verdict)) console.log((v.pass?'PASS':'FAIL').padEnd(5),k.padEnd(28),JSON.stringify(v.value));
 await browser.close();

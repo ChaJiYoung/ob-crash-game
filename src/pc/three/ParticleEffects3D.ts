@@ -949,6 +949,14 @@ export class ParticleEffects3D {
     objs.push(new THREE.Mesh(this.skillBladeGeo, this.skillGoldMat));
     objs.push(new THREE.Mesh(this.skillFoamGeo, this.skillFoamMats[0]));
 
+    // Instanced variants (USE_INSTANCING / USE_INSTANCING_COLOR) are separate shader programs.
+    for (const batch of this.batches) {
+      const inst = new THREE.InstancedMesh(batch.mesh.geometry, batch.mesh.material, 1);
+      inst.setMatrixAt(0, new THREE.Matrix4().makeScale(0.001, 0.001, 0.001));
+      if (batch.usesColor) inst.setColorAt(0, new THREE.Color(0xffffff));
+      objs.push(inst);
+    }
+
     const labelTex = this.getOrCreateFloatingLabelTexture('power_shot');
     labelTex.userData.isShared = true;
     objs.push(new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthWrite: false })));
