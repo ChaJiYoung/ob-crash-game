@@ -436,7 +436,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크<br />
-                  • <strong>성능:</strong> Lv.1(0.25 DMG, 12발, 150ms) ➔ Lv.2(0.32 DMG, 16발) ➔ Lv.3(0.40 DMG, 20발) ➔ MAX(0.50 DMG, 24발, 83ms)<br />
+                  • <strong>성능:</strong> Lv.1(0.25 DMG, 18발, 150ms) ➔ Lv.2(0.32 DMG, 22발) ➔ Lv.3(0.40 DMG, 28발) ➔ MAX(0.50 DMG, 35발, 83ms)<br />
                   • <strong>⚡ 전용 액티브 스킬 [거품 해일 160도 오버히트]:</strong> 160도 부채꼴 각도로 반투명 거품 해일이 밀려나가며 전방의 모든 몬스터를 1.0~1.4m 뒤로 밀어내고 둔화시킵니다.
                 </div>
               </div>

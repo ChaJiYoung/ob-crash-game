@@ -98,6 +98,6 @@ npm run dev
 # TypeScript 타입 무결성 검사 (0 errors)
 npx tsc --noEmit
 
-# 11개 스위트, 81개 단위/통합 테스트 전체 실행 (100% PASS)
+# 11개 스위트, 82개 단위/통합 테스트 전체 실행 (100% PASS)
 npx vitest run tests/
 ```
