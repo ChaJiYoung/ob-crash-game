@@ -437,8 +437,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
   });
 
   it('should pool weapon projectiles and tracer beams across 100 shots without unbounded allocations (P02-T01, T03)', () => {
-    const scene = new THREE.Scene();
-    const fx = new ParticleEffects3D(scene);
+    const fx = new ParticleEffects3D();
 
     const origin = new THREE.Vector3(0, 0, 0);
     const target = new THREE.Vector3(0, 0, -10);
@@ -448,7 +447,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       const weapon = i % 3 === 0 ? 'shotgun' : i % 3 === 1 ? 'revolver' : 'gatling';
       const level = ((i % 4) + 1) as 1 | 2 | 3 | 4;
       fx.spawnWeaponProjectile(origin, target, weapon, level);
-      fx.spawnTracerBeam(origin, target, 0xffaa00);
+      fx.spawnTracerBeam(origin, target, '#ffaa00');
       fx.update(0.02);
     }
 
@@ -511,8 +510,12 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
             expect(mesh.geometry.userData.disposed).toBeUndefined();
           }
           if (mesh.userData?.isBodyMaterial) {
-            const mat = mesh.material as THREE.Material;
-            expect(mat.userData?.disposed).toBe(true);
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            const nonSharedMats = mats.filter((m) => !m.userData?.isShared);
+            expect(nonSharedMats.length).toBeGreaterThan(0);
+            nonSharedMats.forEach((mat) => {
+              expect(mat.userData?.disposed).toBe(true);
+            });
           }
         }
       });

@@ -751,9 +751,8 @@ export class ParticleEffects3D {
         if (this.tracerPool.length < 24) {
           this.tracerPool.push(tb);
         } else {
-          tb.beamMesh.geometry.dispose();
+          // Geometries (unitTracerGeo, unitFlashGeo) are shared singletons and must NEVER be disposed.
           (tb.beamMesh.material as THREE.Material).dispose();
-          tb.flashMesh.geometry.dispose();
           (tb.flashMesh.material as THREE.Material).dispose();
         }
         this.tracerBeams.splice(i, 1);

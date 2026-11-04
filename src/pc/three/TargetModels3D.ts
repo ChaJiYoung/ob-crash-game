@@ -313,6 +313,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     });
     const billboardMesh = new THREE.Mesh(billboardGeo, billboardMat);
     billboardMesh.name = 'cassBillboard';
+    billboardMesh.userData.isBodyMaterial = true;
     billboardMesh.position.y = 0.05;
     inner.add(billboardMesh);
 
@@ -367,6 +368,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
       cabinetGeo,
       [bodyMat, bodyMat, capMat, bodyMat, panelMat, bodyMat]
     );
+    cabinet.userData.isBodyMaterial = true;
     inner.add(cabinet);
 
     // Louver grille on front bottom
@@ -439,6 +441,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     // Can body
     const canGeo = getCachedGeometry('can-body-geo', () => new THREE.CylinderGeometry(r * 0.96, r, h, 28));
     const canBody = new THREE.Mesh(canGeo, [sideMat, capMat, capMat]);
+    canBody.userData.isBodyMaterial = true;
     inner.add(canBody);
 
     // Tapered neck & rim
@@ -567,14 +570,18 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   frostRing.visible = false;
   root.add(frostRing);
 
-  // Collect monster body materials for frost tinting
+  // Collect monster body materials for frost tinting (only unshared instance materials to prevent cross-monster color bleed)
   const bodyMaterials: { mat: THREE.MeshStandardMaterial; origColor: THREE.Color }[] = [];
   inner.traverse((obj) => {
     const m = obj as THREE.Mesh;
     if (m.isMesh && m.material) {
       const mats = Array.isArray(m.material) ? m.material : [m.material];
       mats.forEach((mat) => {
-        if ('color' in mat && (mat as THREE.MeshStandardMaterial).color instanceof THREE.Color) {
+        if (
+          !mat.userData?.isShared &&
+          'color' in mat &&
+          (mat as THREE.MeshStandardMaterial).color instanceof THREE.Color
+        ) {
           bodyMaterials.push({
             mat: mat as THREE.MeshStandardMaterial,
             origColor: (mat as THREE.MeshStandardMaterial).color.clone(),

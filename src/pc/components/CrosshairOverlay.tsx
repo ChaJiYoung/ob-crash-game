@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 
 export function aimToViewportPercent(
