@@ -1,6 +1,6 @@
 # Task: T02 Wave Clear Banner and Result Breakdown
 
-## Status: todo
+## Status: done
 
 ## Goal
 웨이브를 클리어할 때 시간과 보너스를 보여 주고, 결과 화면에 점수 내역(기본/시간/정밀도)을 표시한다.
@@ -62,9 +62,9 @@
 
 
 ## Acceptance Criteria
-- [ ] 웨이브를 깰 때마다 시간과 보너스가 표시되고 약 2.5초 뒤 사라진다.
-- [ ] 결과 화면에 기본/시간/정밀도 내역이 나온다.
-- [ ] 평상시 React 커밋이 늘지 않는다(`hud-render-cost` 테스트 통과).
+- [x] 웨이브를 깰 때마다 시간과 보너스가 표시되고 약 2.5초 뒤 사라진다.
+- [x] 결과 화면에 기본/시간/정밀도 내역이 나온다.
+- [x] 평상시 React 커밋이 늘지 않는다(`hud-render-cost` 테스트 통과).
 
 ## Validation
 - `npx vitest run tests/wave-clear-banner.test.ts tests/hud-snapshot.test.ts tests/hud-render-cost.test.ts` — 통과
@@ -85,6 +85,6 @@ Task: T02-wave-clear-banner-and-result-breakdown
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
