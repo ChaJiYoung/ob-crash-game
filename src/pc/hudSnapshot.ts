@@ -47,7 +47,11 @@ export interface HudSnapshot {
   bossHpKey: string;
   bosses: BossHudInfo[];
   isBossWarning: boolean;
+  /** `${wave}|${seconds}|${bonus}` while the wave-clear banner is up, '' otherwise. */
+  waveClearKey: string;
 }
+
+export const WAVE_CLEAR_BANNER_MS = 2500;
 
 export const roundTo100Ms = (ms: number): number => Math.round(ms / 100) * 100;
 
@@ -97,6 +101,10 @@ export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudS
       isShielded: Boolean(b.isShielded),
     })),
     isBossWarning: nowMs < engine.bossWarningUntilMs,
+    waveClearKey:
+      engine.lastWaveClear && nowMs - engine.lastWaveClear.atMs < WAVE_CLEAR_BANNER_MS
+        ? `${engine.lastWaveClear.wave}|${engine.lastWaveClear.seconds.toFixed(1)}|${engine.lastWaveClear.bonus}`
+        : '',
   };
 }
 

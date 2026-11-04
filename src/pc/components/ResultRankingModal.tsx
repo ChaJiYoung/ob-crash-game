@@ -4,6 +4,8 @@ import { GamePhase, PlayerProfile } from '../../shared/types';
 export interface ResultRankingModalProps {
   gamePhase: GamePhase;
   score: number;
+  /** Score split shown under the total (base hits and kills / wave time / precision). */
+  breakdown?: { base: number; timeBonus: number; precisionBonus: number };
   maxCombo: number;
   waveReached: number;
   currentPlayer?: PlayerProfile;
@@ -19,6 +21,7 @@ export interface ResultRankingModalProps {
 export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   gamePhase,
   score,
+  breakdown,
   maxCombo,
   waveReached,
   currentPlayer,
@@ -104,6 +107,16 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#fbbf24', marginTop: '4px' }}>
               {score}점
             </div>
+            {breakdown && (breakdown.timeBonus > 0 || breakdown.precisionBonus > 0) && (
+              <div
+                data-testid="score-breakdown"
+                style={{ marginTop: '8px', fontSize: '12px', color: '#cbd5e1', lineHeight: 1.6 }}
+              >
+                <div>기본 {breakdown.base}점</div>
+                {breakdown.timeBonus > 0 && <div>시간 보너스 +{breakdown.timeBonus}점</div>}
+                {breakdown.precisionBonus > 0 && <div>정밀도 보너스 +{breakdown.precisionBonus}점</div>}
+              </div>
+            )}
             {isNewRecord && (
               <span
                 style={{

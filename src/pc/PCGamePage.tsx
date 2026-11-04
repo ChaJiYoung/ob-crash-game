@@ -836,6 +836,36 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         </div>
       )}
 
+      {/* Wave clear: clear time and time bonus */}
+      {gamePhase === 'PLAYING' && hudState.waveClearKey !== '' && (() => {
+        const [waveStr, secStr, bonusStr] = hudState.waveClearKey.split('|');
+        const bonus = Number(bonusStr);
+        return (
+          <div
+            data-testid="wave-clear-banner"
+            style={{
+              position: 'absolute',
+              top: '16%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 124,
+              padding: '8px 28px',
+              borderRadius: '9999px',
+              background: 'rgba(8, 47, 73, 0.94)',
+              border: '2px solid #38bdf8',
+              color: '#e0f2fe',
+              fontSize: '20px',
+              fontWeight: 900,
+              letterSpacing: '0.06em',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            WAVE {waveStr} CLEAR · {secStr}초{bonus > 0 ? ` · +${bonus}` : ''}
+          </div>
+        );
+      })()}
+
       {/* 2. 4-Corner Arcade Overlay HUD */}
       {gamePhase === 'PLAYING' && (
         <>
@@ -1094,6 +1124,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           <ResultRankingModal
             gamePhase={gamePhase}
             score={hudState.score}
+            breakdown={engine.getScoreBreakdown()}
             maxCombo={engine.scoreManager.getState().maxCombo}
             waveReached={engine.currentWave}
             currentPlayer={pairedPlayer}
