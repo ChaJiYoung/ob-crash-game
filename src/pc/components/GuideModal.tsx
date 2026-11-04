@@ -12,6 +12,34 @@ export interface GuideModalProps {
 
 type TabType = 'weapons' | 'monsters' | 'cards' | 'items';
 
+type WeaponKindKey = 'shotgun' | 'revolver' | 'gatling';
+
+/** 무기 도감의 "성능" 줄을 무기 표(`WEAPON_ARCHETYPE_SPECS`, GAME_TUNING 반영)에서 만든다. 수치를 조정해도 안내가 어긋나지 않는다. */
+function weaponPerformanceText(kind: WeaponKindKey): string {
+  const lv = WEAPON_ARCHETYPE_SPECS[kind].levels;
+  const levels = [1, 2, 3, 4] as const;
+  return levels
+    .map((l) => {
+      const spec = lv[l];
+      const label = l === 4 ? 'MAX' : `Lv.${l}`;
+      const parts: string[] = [];
+      if (kind === 'shotgun') {
+        parts.push(`${spec.damagePerHit.toFixed(2)}×${spec.pelletCount}=${(spec.damagePerHit * spec.pelletCount).toFixed(2)} DMG`);
+        if (spec.knockbackM > 0) parts.push(`${spec.knockbackM}m 넉백`);
+        if (spec.slowDurationMs > 0) parts.push('둔화');
+      } else if (kind === 'revolver') {
+        parts.push(`${spec.damagePerHit.toFixed(2)} DMG`);
+        if (spec.pierceCount > 0) {
+          parts.push(`${spec.pierceCount}체 관통(관통 피해 ${Math.round(spec.pierceDamageRatio * 100)}%)`);
+        }
+      } else {
+        parts.push(`${spec.damagePerHit.toFixed(2)} DMG`, `${spec.maxAmmo}발`, `${spec.fireIntervalMs}ms`);
+      }
+      return `${label}(${parts.join(', ')})`;
+    })
+    .join(' ➔ ');
+}
+
 const MONSTER_DETAILS: Record<
   TargetKind,
   {
@@ -303,9 +331,9 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   🎯 명중 정밀도 데미지 배율 & 노-미스(No-Miss) 아케이드 판정
                 </div>
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
-                  • <strong>PERFECT (중심 75% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+150 PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
-                  • <strong>GREAT (중심 100% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+100 PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
-                  • <strong>GOOD (외곽 125% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
+                  • <strong>PERFECT (오차 25% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+150 PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
+                  • <strong>GREAT (오차 55% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+100 PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
+                  • <strong>GOOD (오차 100% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
                   • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {Math.round(GAME_TUNING.fire.reloadScale)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
                   • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르거나 피버 자동 발사를 노리세요.
                 </div>
@@ -350,7 +378,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 리얼 고무 벨 뚫어뻥 장착 ➔ Lv.2 듀얼 고압관 ➔ Lv.3 호박색 맥주관 순환 ➔ Lv.4 쿼드 배럴 + 둔화 파동<br />
-                  • <strong>성능:</strong> Lv.1(0.42×3=1.26 DMG) ➔ Lv.2(0.48×4=1.92 DMG + 0.3m 넉백) ➔ Lv.3(0.60×5=3.00 DMG) ➔ MAX(0.72×6=4.32 DMG + 둔화) · 보스는 넉백 면역<br />
+                  • <strong>성능:</strong> {weaponPerformanceText('shotgun')}<br />
                   • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 화면 8방향에서 12~22개의 미니 뚫어뻥이 포물선으로 날아가 몬스터를 1.0~2.0초간 부착 기절(Stun)시킵니다! (빗나간 탄은 바닥에서 통통 튕김)
                 </div>
               </div>
@@ -394,7 +422,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 병따개 해머 & 실린더 ➔ Lv.2 롱배럴 ➔ Lv.3 시안 네온 레이저 스코프 ➔ Lv.4 4각 머즐 브레이크<br />
-                  • <strong>성능:</strong> Lv.1(1.00 DMG + 후열 1체 관통) ➔ Lv.2(1.35 DMG) ➔ Lv.3(1.75 DMG + 2체 관통) ➔ MAX(2.20 DMG + 100% 2관통)<br />
+                  • <strong>성능:</strong> {weaponPerformanceText('revolver')}<br />
                   • <strong>⚡ 전용 액티브 스킬 [오프너 불릿 타임 & 참격]:</strong> 거대한 황금 병따개 블레이드가 전방을 회전하며 모든 몬스터를 베고 지나가며, 3.5~5.0초간 전장을 40~60% 슬로우 모션 상태로 만듭니다.
                 </div>
               </div>
@@ -438,7 +466,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크<br />
-                  • <strong>성능:</strong> Lv.1(0.50 DMG, 13발, 105ms) ➔ Lv.2(0.64 DMG, 15발) ➔ Lv.3(0.80 DMG, 20발) ➔ MAX(1.00 DMG, 25발, 58ms)<br />
+                  • <strong>성능:</strong> {weaponPerformanceText('gatling')}<br />
                   • <strong>⚡ 전용 액티브 스킬 [거품 해일 160도 오버히트]:</strong> 160도 부채꼴 각도로 반투명 거품 해일이 밀려나가며 전방의 모든 몬스터를 1.0~1.4m 뒤로 밀어내고 둔화시킵니다.
                 </div>
               </div>

@@ -41,92 +41,100 @@ async function testGame() {
   );
   console.log('Canvas maintained same instance across 20 mouse movements:', isSameCanvas);
 
-  // 3. Start game as PC
+  // 3. Start game as PC (the lobby button text contains '스마트폰 없이 PC')
   console.log('Looking for PC start button...');
-  const startBtn = page.getByRole('button', { name: /PC 단독 플레이/i });
-  if (await startBtn.isVisible()) {
-    await startBtn.click();
-    console.log('Clicked PC start button!');
-  } else {
-    const anyStart = page.locator('button:has-text("시작")').first();
-    if (await anyStart.isVisible()) {
-      await anyStart.click();
-      console.log('Clicked start button!');
-    }
-  }
-
-  await page.waitForTimeout(1000);
-
-  // 4. Check active targets moving in engine
-  const targetCheck = await page.evaluate(() => {
-    const engine = window.__engine;
-    if (!engine) return { found: false, error: 'no window.__engine' };
-    const targets = engine.activeTargets.map(t => ({
-      id: t.id,
-      kind: t.kind,
-      radiusM: Number(t.radiusM.toFixed(2)),
-      x: Number(t.x.toFixed(2)),
-      z: Number(t.z.toFixed(2)),
-      speedMps: t.speedMps
-    }));
-    return {
-      found: true,
-      gamePhase: engine.gamePhase,
-      wave: engine.currentWave,
-      targetCount: targets.length,
-      targets: targets.slice(0, 3)
-    };
+  const clicked = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button')).find(
+      (b) => b.textContent && b.textContent.includes('스마트폰 없이 PC')
+    );
+    if (btn) btn.click();
+    return Boolean(btn);
   });
-  console.log('Initial Targets state:', JSON.stringify(targetCheck, null, 2));
-
-  // Wait 1.5 seconds and check targets again to verify movement towards player
+  const problems = [];
+  if (!clicked) problems.push('PC start button not found');
+  if (!isSameCanvas) problems.push('canvas was re-created during mouse movement');
+  await page.waitForFunction(() => window.__engine && window.__engine.gamePhase === 'PLAYING', null, { timeout: 15000 }).catch(() => {
+    problems.push('game did not reach PLAYING');
+  });
   await page.waitForTimeout(1500);
 
-  const targetCheck2 = await page.evaluate(() => {
-    const engine = window.__engine;
-    if (!engine) return { found: false };
-    const targets = engine.activeTargets.map(t => ({
-      id: t.id,
-      kind: t.kind,
-      radiusM: Number(t.radiusM.toFixed(2)),
-      x: Number(t.x.toFixed(2)),
-      z: Number(t.z.toFixed(2)),
-      speedMps: t.speedMps
-    }));
+  // 4. Pick the starting weapon with a real fresh press (after the 0.8s input lock), then check live combat
+  const pick = await page.evaluate(() => {
+    const eng = window.__engine;
+    const card = eng.activeTargets.find((t) => t.weaponSelectKind);
+    if (!card) return { found: false };
+    const p = eng.computeTargetAimCoords(card);
+    const res = eng.shootAt(p.targetNormX, p.targetNormY, performance.now(), 'press');
+    return { found: true, selected: res.selectedWeapon ?? null, pending: eng.isWeaponSelectPending };
+  });
+  console.log('Weapon pick:', JSON.stringify(pick));
+  if (!pick.found || !pick.selected || pick.pending) problems.push('starting weapon was not selected');
+
+  await page.waitForTimeout(2500);
+  const snapshot = () =>
+    page.evaluate(() => {
+      const engine = window.__engine;
+      return {
+        phase: engine.gamePhase,
+        wave: engine.currentWave,
+        targets: engine.activeTargets
+          .filter((t) => !t.rewardCardKind && !t.weaponSelectKind)
+          .map((t) => ({ id: t.id, kind: t.kind, radiusM: Number(t.radiusM.toFixed(2)) })),
+      };
+    });
+  const before = await snapshot();
+  console.log('Targets state:', JSON.stringify(before));
+  await page.waitForTimeout(1500);
+  const after = await snapshot();
+  console.log('After 1.5s:', JSON.stringify(after));
+  if (before.targets.length === 0) problems.push('no targets in play');
+  const moved = before.targets.some((t) => {
+    const later = after.targets.find((x) => x.id === t.id);
+    return later && later.radiusM < t.radiusM;
+  });
+  if (before.targets.length > 0 && !moved) problems.push('targets did not approach the player');
+
+  // 5. A real shot at the nearest target must register and spend ammo
+  const shot = await page.evaluate(() => {
+    const eng = window.__engine;
+    const ammoBefore = eng.weaponSystem.getState().ammo;
+    const t = [...eng.activeTargets]
+      .filter((x) => !x.isItem && !x.isProjectile && !x.rewardCardKind && !x.weaponSelectKind && !x.isGuarding)
+      .sort((a, b) => a.radiusM - b.radiusM)[0];
+    if (!t) return { fired: false, reason: 'no target' };
+    const p = eng.computeTargetAimCoords(t);
+    const res = eng.shootAt(p.targetNormX, p.targetNormY, performance.now(), 'press');
     return {
-      targetCount: targets.length,
-      targets: targets.slice(0, 3)
+      fired: res.fired,
+      grade: res.grade,
+      ammoBefore,
+      ammoAfter: eng.weaponSystem.getState().ammo,
+      totalScore: eng.scoreManager.getState().totalScore,
     };
   });
-  console.log('After 1.5s Targets state (checking approach):', JSON.stringify(targetCheck2, null, 2));
+  console.log('Shot result:', JSON.stringify(shot));
+  if (!shot.fired) problems.push(`shot did not fire (${shot.reason ?? 'engine refused'})`);
+  else if (shot.ammoAfter >= shot.ammoBefore) problems.push('ammo was not spent');
 
-  // 5. Test mouse shoot click
-  console.log('Simulating mouse shoot...');
-  await page.mouse.click(640, 360);
-  await page.waitForTimeout(300);
-
-  const afterShotEngine = await page.evaluate(() => {
-    const engine = window.__engine;
-    return {
-      ammo: engine.weaponSystem.getState().ammo,
-      totalScore: engine.scoreManager.getState().totalScore
-    };
-  });
-  console.log('Weapon & Score state after shot:', JSON.stringify(afterShotEngine, null, 2));
-
-  // Screenshot capture
   await page.screenshot({ path: 'docs/screens/screen-live-verification.png' });
   console.log('Screenshot saved to docs/screens/screen-live-verification.png');
 
   console.log('Page Errors count:', errors.length);
   if (errors.length > 0) {
     console.error('Errors:', errors);
+    problems.push(`${errors.length} page error(s)`);
   }
 
   await browser.close();
+
+  if (problems.length) {
+    console.error('❌ verify-live failed:\n - ' + problems.join('\n - '));
+    process.exit(1);
+  }
+  console.log('✅ verify-live passed');
 }
 
-testGame().catch(err => {
+testGame().catch((err) => {
   console.error('Test script failed:', err);
   process.exit(1);
 });

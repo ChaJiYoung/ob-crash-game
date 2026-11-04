@@ -78,7 +78,7 @@ describe('PlayerStore & WebSocket Server', () => {
       const realWrite = fs.writeFileSync;
       const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const spy = vi.spyOn(fs, 'writeFileSync').mockImplementation(((file: any, ...rest: any[]) => {
-        if (String(file).endsWith('.bak')) throw new Error('disk full');
+        if (String(file).includes('.bak')) throw new Error('disk full');
         return (realWrite as any)(file, ...rest);
       }) as any);
 
@@ -107,6 +107,75 @@ describe('PlayerStore & WebSocket Server', () => {
       expect(store.findByDeviceId('device-1')?.bestScore).toBe(777);
       expect(fs.readdirSync(tempDir).filter((f) => f.endsWith('.bak'))).toEqual([]);
       expect(fs.readFileSync(testStorePath, 'utf-8')).toBe(current);
+    });
+
+    it('never resets a file written by a newer ruleset version', () => {
+      const future = JSON.stringify(
+        {
+          rulesetVersion: RANKING_RULESET_VERSION + 1,
+          players: { 'device-1': { deviceId: 'device-1', nickname: '미래고수', bestScore: 5555, totalGames: 9, lastPlayedAt: '2027-01-01T00:00:00.000Z' } },
+        },
+        null,
+        2
+      );
+      fs.writeFileSync(testStorePath, future, 'utf-8');
+      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const store = new PlayerStore(testStorePath);
+        expect(store.findByDeviceId('device-1')?.bestScore).toBe(5555);
+        expect(fs.readFileSync(testStorePath, 'utf-8')).toBe(future);
+        expect(fs.readdirSync(tempDir).filter((f) => f.endsWith('.bak'))).toEqual([]);
+      } finally {
+        errSpy.mockRestore();
+      }
+    });
+
+    it('does not trust or overwrite a different pre-existing backup', () => {
+      const original = oldFile();
+      fs.writeFileSync(testStorePath, original, 'utf-8');
+      // A truncated / foreign file already sits at the backup path
+      fs.writeFileSync(`${testStorePath}.ruleset-1.bak`, '{"players": {', 'utf-8');
+
+      new PlayerStore(testStorePath);
+
+      expect(fs.readFileSync(`${testStorePath}.ruleset-1.bak`, 'utf-8')).toBe('{"players": {');
+      const extra = fs.readdirSync(tempDir).filter((f) => f.startsWith('players.json.ruleset-1.') && f !== 'players.json.ruleset-1.bak');
+      expect(extra.length).toBe(1);
+      expect(fs.readFileSync(path.join(tempDir, extra[0]), 'utf-8')).toBe(original);
+    });
+
+    it('keeps a copy of an unreadable store before starting empty', () => {
+      fs.writeFileSync(testStorePath, '{"players": {"device-1": ', 'utf-8');
+      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const store = new PlayerStore(testStorePath);
+        expect(store.getTopRankings(5)).toEqual([]);
+        const copies = fs.readdirSync(tempDir).filter((f) => f.includes('.unreadable-'));
+        expect(copies.length).toBe(1);
+        expect(fs.readFileSync(path.join(tempDir, copies[0]), 'utf-8')).toBe('{"players": {"device-1": ');
+      } finally {
+        errSpy.mockRestore();
+      }
+    });
+
+    it('shows an empty board after the reset instead of zero-point rows, and leaves no temp files', () => {
+      fs.writeFileSync(testStorePath, oldFile(), 'utf-8');
+      const store = new PlayerStore(testStorePath);
+      expect(store.getTopRankings(5)).toEqual([]);
+      store.recordGameScore('device-2', 100);
+      expect(store.getTopRankings(5).map((p) => p.deviceId)).toEqual(['device-2']);
+      expect(fs.readdirSync(tempDir).filter((f) => f.includes('.tmp-'))).toEqual([]);
+    });
+
+    it('survives a null profile entry without crashing the load', () => {
+      fs.writeFileSync(
+        testStorePath,
+        JSON.stringify({ players: { bad: null, 'device-1': { deviceId: 'device-1', nickname: '맥주고수', bestScore: 10, totalGames: 1, lastPlayedAt: 'x' } } }),
+        'utf-8'
+      );
+      const store = new PlayerStore(testStorePath);
+      expect(store.findByDeviceId('device-1')?.nickname).toBe('맥주고수');
+      expect(store.findByDeviceId('device-1')?.bestScore).toBe(0);
     });
 
     it('writes the current version when the store file does not exist yet', () => {

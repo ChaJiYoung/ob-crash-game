@@ -140,16 +140,17 @@ async function runPlaytest() {
   // 2. Starting weapon: the three weapon cards are up; pick the shotgun after the input lock
   console.log('2. Choosing starting weapon (shotgun card)...');
   await page.waitForTimeout(CARD_LOCK_WAIT_MS);
-  await page.evaluate(() => {
+  const pick = await page.evaluate(() => {
     const eng = window.__engine;
     const card = eng.activeTargets.find((t) => t.weaponSelectKind === 'shotgun');
-    if (card) {
-      const p = eng.computeTargetAimCoords(card);
-      eng.shootAt(p.targetNormX, p.targetNormY, performance.now(), 'press');
-    }
+    if (!card) return { found: false, stillPending: eng.isWeaponSelectPending };
+    const p = eng.computeTargetAimCoords(card);
+    const res = eng.shootAt(p.targetNormX, p.targetNormY, performance.now(), 'press');
+    return { found: true, selected: res.selectedWeapon ?? null, stillPending: eng.isWeaponSelectPending };
   });
+  // Judge by the engine's own pick result (the default weapon is already the shotgun, so the weapon state proves nothing)
+  metrics.weaponSelected = pick.found && !pick.stillPending ? pick.selected : null;
   await page.waitForTimeout(500);
-  metrics.weaponSelected = await page.evaluate(() => window.__engine.weaponSystem.getState().weaponKind);
 
   // 3. Wave 1 combat with some extra targets
   console.log('3. Playing wave 1...');

@@ -1,5 +1,6 @@
 import React from 'react';
 import { TutorialStep } from '../../shared/types';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface TutorialGuideOverlayProps {
   step: TutorialStep;
@@ -112,7 +113,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
                       🔥 4초 초고밀도 피버 버스트 발동 중! 무제한 무한 연사 & 2배 데미지 폭딜!
                     </span>
                   ) : (
-                    <span>💡 PERFECT(+8%) 및 몬스터 처치(+12%)로 충전되며, 발동 시 4초간 무한 연사 & 2배 화력으로 폭딜을 쏟아붓습니다!</span>
+                    <span>💡 PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%)로 충전되며, 발동 시 4초간 무한 연사 & 2배 화력으로 폭딜을 쏟아붓습니다!</span>
                   )}
                 </div>
               </>

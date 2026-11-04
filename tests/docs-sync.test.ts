@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { GAME_TUNING } from '../src/shared/gameTuning';
+import { WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
 
 /** Guards against old specs creeping back into player-facing text (gameplay-polish P05-T02). */
 const FORBIDDEN: { pattern: RegExp; why: string }[] = [
@@ -34,16 +36,56 @@ describe('player-facing text matches the final spec', () => {
     expect(hits).toEqual([]);
   });
 
-  it('tutorial overlay shows the final judgment multipliers', () => {
-    const src = fs.readFileSync('src/pc/components/TutorialGuideOverlay.tsx', 'utf8');
-    expect(src).toContain('2.0x/1.0x/0.5x');
-    expect(src).toContain('PERFECT(2.0배)');
-    expect(src).toContain('GOOD(0.5배)');
+  it('tutorial overlay and README show the judgment multipliers from GAME_TUNING', () => {
+    const j = GAME_TUNING.judgment;
+    const x = (n: number) => n.toFixed(1);
+    const overlay = fs.readFileSync('src/pc/components/TutorialGuideOverlay.tsx', 'utf8');
+    expect(overlay).toContain(`${x(j.perfectDamage)}x/${x(j.greatDamage)}x/${x(j.goodDamage)}x`);
+    expect(overlay).toContain(`PERFECT(${x(j.perfectDamage)}배)`);
+    expect(overlay).toContain(`GOOD(${x(j.goodDamage)}배)`);
+
+    const readme = fs.readFileSync('README.md', 'utf8');
+    expect(readme).toContain(`**${x(j.perfectDamage)}배 데미지**`);
+    expect(readme).toContain(`**${x(j.goodDamage)}배 스침 데미지**`);
+    expect(readme).toContain(`PERFECT(+${GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+${GAME_TUNING.fever.killDelta}%)`);
   });
 
-  it('guide modal reads judgment and fever numbers from GAME_TUNING', () => {
-    const src = fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8');
-    expect(src).toContain('GAME_TUNING.judgment.perfectDamage');
-    expect(src).toContain('GAME_TUNING.fever.killDelta');
+  it('guide modal and tutorial overlay read fever and judgment numbers from GAME_TUNING', () => {
+    for (const file of ['GuideModal.tsx', 'TutorialGuideOverlay.tsx']) {
+      const src = fs.readFileSync(path.join('src/pc/components', file), 'utf8');
+      expect(src).toContain('GAME_TUNING.fever.killDelta');
+    }
+    expect(fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8')).toContain('GAME_TUNING.judgment.perfectDamage');
+    // Weapon stat lines are generated from the spec table, not hard-coded
+    expect(fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8')).toContain("weaponPerformanceText('gatling')");
+  });
+
+  it('the weapon guide tables match WEAPON_ARCHETYPE_SPECS (fire interval, magazine, reload, skill cooldown)', () => {
+    const doc = fs.readFileSync('docs/무기_및_스킬_가이드.md', 'utf8');
+    const weapons = ['shotgun', 'revolver', 'gatling'] as const;
+    const mismatches: string[] = [];
+    weapons.forEach((kind, idx) => {
+      const start = doc.indexOf(`(\`${kind}\`)`, doc.indexOf('상세 밸런스 수치표'));
+      const end = idx + 1 < weapons.length ? doc.indexOf(`(\`${weapons[idx + 1]}\`)`, start) : doc.indexOf('\n---', start);
+      const section = doc.slice(start, end);
+      ([1, 2, 3, 4] as const).forEach((lv) => {
+        const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[lv];
+        const row = section.split('\n').find((l) => l.startsWith(`| **Lv.${lv}`));
+        if (!row) {
+          mismatches.push(`${kind} Lv.${lv}: row missing`);
+          return;
+        }
+        const expected = [
+          `${spec.fireIntervalMs}ms`,
+          `${spec.maxAmmo}발`,
+          `${(spec.reloadDurationMs / 1000).toFixed(1)}s`,
+          `${spec.skillCooldownMs / 1000}s`,
+        ];
+        expected.forEach((e) => {
+          if (!row.includes(e)) mismatches.push(`${kind} Lv.${lv}: expected "${e}" in ${row.slice(0, 80)}`);
+        });
+      });
+    });
+    expect(mismatches).toEqual([]);
   });
 });
