@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { STAGE_CONSTANTS } from '../../shared/constants';
 
 export interface BreweryStageRig {
   root: THREE.Group;
@@ -85,39 +84,6 @@ export function applyCachedHdriToScene(scene: THREE.Scene, onReady?: () => void)
   }
 }
 
-export function createHazardStripeTexture(): THREE.Texture {
-  if (typeof document === 'undefined') {
-    const data = new Uint8Array([245, 158, 11, 255]);
-    const tex = new THREE.DataTexture(data, 1, 1, THREE.RGBAFormat);
-    tex.needsUpdate = true;
-    return tex;
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = '#f59e0b'; // Amber-gold background
-    ctx.fillRect(0, 0, 512, 64);
-    ctx.fillStyle = '#1e140d'; // Dark brown/black diagonal stripes
-    const stripeWidth = 32;
-    for (let x = -64; x < 512 + 64; x += stripeWidth * 2) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x + stripeWidth, 0);
-      ctx.lineTo(x + stripeWidth + 64, 64);
-      ctx.lineTo(x + 64, 64);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.wrapS = THREE.RepeatWrapping;
-  tex.wrapT = THREE.ClampToEdgeWrapping;
-  tex.repeat.set(16, 1);
-  return tex;
-}
-
 export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () => void): BreweryStageRig {
   const root = new THREE.Group();
   root.name = 'BreweryStage3D';
@@ -162,26 +128,11 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
   floor.receiveShadow = true;
   root.add(floor);
 
-  // 3. Defense Line Bar Counter at R = 1.8m with 30cm Hazard Stripe (Floor y = 0.02)
-  const hazardTex = createHazardStripeTexture();
-  const defArcGeo = new THREE.RingGeometry(1.65, 1.95, 64, 1, 0, Math.PI);
-  const defArcMat = new THREE.MeshBasicMaterial({
-    map: hazardTex,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.95,
-    depthWrite: false,
-  });
-  const defenseArcMesh = new THREE.Mesh(defArcGeo, defArcMat);
-  defenseArcMesh.rotation.x = -Math.PI / 2;
-  defenseArcMesh.rotation.z = Math.PI; // Face forward (-Z)
-  defenseArcMesh.position.set(0, 0.02, 0);
-  root.add(defenseArcMesh);
-
-  // Outer Neon Glow Perimeter Line (R = 1.94 ~ 1.98 at floor y = 0.022)
-  const neonRimGeo = new THREE.RingGeometry(1.94, 1.98, 64, 1, 0, Math.PI);
+  // 3. Defense line: one 12cm neon line on the floor in FRONT of the player (-Z, where monsters come from).
+  // RingGeometry(…, 0, PI) is the +y half; rotation.x = -PI/2 alone lays it toward -Z. Do not add rotation.z = PI.
+  const neonRimGeo = new THREE.RingGeometry(1.86, 1.98, 64, 1, 0, Math.PI);
   const neonRimMat = new THREE.MeshBasicMaterial({
-    color: 0xef4444,
+    color: 0xf59e0b,
     side: THREE.DoubleSide,
     transparent: true,
     opacity: 0.85,
@@ -189,12 +140,12 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
   });
   const neonRimMesh = new THREE.Mesh(neonRimGeo, neonRimMat);
   neonRimMesh.rotation.x = -Math.PI / 2;
-  neonRimMesh.rotation.z = Math.PI;
   neonRimMesh.position.set(0, 0.022, 0);
   root.add(neonRimMesh);
+  const defenseArcMesh = neonRimMesh;
 
   // Emerald heal pulse shockwave ring on bar defense line
-  const healPulseGeo = new THREE.RingGeometry(1.72, 1.88, 48, 1, 0, Math.PI);
+  const healPulseGeo = new THREE.RingGeometry(1.84, 2.0, 48, 1, 0, Math.PI);
   const healPulseMat = new THREE.MeshBasicMaterial({
     color: 0x10b981,
     transparent: true,
@@ -204,7 +155,6 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
   });
   const healPulseMesh = new THREE.Mesh(healPulseGeo, healPulseMat);
   healPulseMesh.rotation.x = -Math.PI / 2;
-  healPulseMesh.rotation.z = Math.PI;
   healPulseMesh.position.set(0, 0.02, 0);
   healPulseMesh.visible = false;
   root.add(healPulseMesh);
@@ -214,62 +164,6 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
     healPulseUntilSec = performance.now() / 1000 + 0.5;
     healPulseMesh.visible = true;
   };
-
-  // Bar Counter curved wall
-  const barCounterGeo = new THREE.CylinderGeometry(1.85, 1.85, 1.05, 48, 1, true, 0, Math.PI);
-  const barCounterMat = new THREE.MeshStandardMaterial({
-    color: 0x3b2111,
-    roughness: 0.65,
-    metalness: 0.22,
-    side: THREE.DoubleSide,
-  });
-  const barCounter = new THREE.Mesh(barCounterGeo, barCounterMat);
-  barCounter.position.set(0, 0.52, 0);
-  barCounter.rotation.y = Math.PI;
-  barCounter.receiveShadow = true;
-  root.add(barCounter);
-
-  // Brass Bar Rail Trim on top
-  const brassRailGeo = new THREE.TorusGeometry(1.86, 0.045, 10, 48, Math.PI);
-  const brassRailMat = new THREE.MeshStandardMaterial({
-    color: 0xd4af37,
-    metalness: 0.92,
-    roughness: 0.18,
-  });
-  const brassRail = new THREE.Mesh(brassRailGeo, brassRailMat);
-  brassRail.rotation.x = Math.PI / 2;
-  brassRail.rotation.z = Math.PI;
-  brassRail.position.set(0, 1.06, 0);
-  root.add(brassRail);
-
-  // Brass Tap Tower on Bar Counter
-  const towerMat = new THREE.MeshStandardMaterial({
-    color: 0xd4af37,
-    metalness: 0.94,
-    roughness: 0.14,
-  });
-  [-0.6, 0.6].forEach((tx) => {
-    const tapTower = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.42, 16), towerMat);
-    tapTower.position.set(tx, 1.25, -1.72);
-    root.add(tapTower);
-  });
-
-  // 4. Distance Arcs (6m, 12m, 18m Spawn Radius)
-  const distanceArcRadii = [6.0, 12.0, STAGE_CONSTANTS.SPAWN_RADIUS_M];
-  distanceArcRadii.forEach((radius, idx) => {
-    const arcGeo = new THREE.RingGeometry(radius - 0.06, radius + 0.06, 64, 1, 0, Math.PI);
-    const arcMat = new THREE.MeshBasicMaterial({
-      color: idx === 2 ? 0xef4444 : 0x38bdf8,
-      transparent: true,
-      opacity: 0.4,
-      side: THREE.DoubleSide,
-    });
-    const arcMesh = new THREE.Mesh(arcGeo, arcMat);
-    arcMesh.rotation.x = -Math.PI / 2;
-    arcMesh.rotation.z = Math.PI;
-    arcMesh.position.set(0, 0.02, 0);
-    root.add(arcMesh);
-  });
 
   // 5. Copper Fermentation Tanks (6 Large Brewery Tanks on Left and Right)
   const tankMat = new THREE.MeshStandardMaterial({

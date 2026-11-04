@@ -199,6 +199,53 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(amberMat.color.getHex()).toBe(0xf59e0b);
   });
 
+  it('should draw the defense line and heal pulse in front of the player (-Z), not behind (gameplay-polish P02-T01)', () => {
+    const scene = new THREE.Scene();
+    const rig = buildBreweryStage3D(scene);
+    rig.root.updateMatrixWorld(true);
+
+    const worldZRange = (mesh: THREE.Mesh) => {
+      const pos = mesh.geometry.getAttribute('position');
+      const v = new THREE.Vector3();
+      let minZ = Infinity;
+      let maxZ = -Infinity;
+      for (let i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i);
+        mesh.localToWorld(v);
+        minZ = Math.min(minZ, v.z);
+        maxZ = Math.max(maxZ, v.z);
+      }
+      return { minZ, maxZ };
+    };
+
+    const line = worldZRange(rig.defenseArcMesh);
+    expect(line.maxZ).toBeLessThanOrEqual(0.001);
+    expect(line.minZ).toBeCloseTo(-1.98, 1);
+
+    const pulse = worldZRange(rig.healPulseMesh);
+    expect(pulse.maxZ).toBeLessThanOrEqual(0.001);
+    expect(pulse.minZ).toBeCloseTo(-2.0, 1);
+  });
+
+  it('should not contain the bar wall, brass rail, hazard stripe or distance arcs (gameplay-polish P02-T01)', () => {
+    const scene = new THREE.Scene();
+    const rig = buildBreweryStage3D(scene);
+    let wall = 0;
+    let rail = 0;
+    let rings = 0;
+    rig.root.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      if (mesh.geometry instanceof THREE.CylinderGeometry && mesh.geometry.parameters.radiusTop === 1.85) wall++;
+      if (mesh.geometry instanceof THREE.TorusGeometry && mesh.geometry.parameters.radius === 1.86) rail++;
+      if (mesh.geometry instanceof THREE.RingGeometry) rings++;
+    });
+    expect(wall).toBe(0);
+    expect(rail).toBe(0);
+    // Only the neon defense line and the heal pulse remain
+    expect(rings).toBe(2);
+  });
+
   it('should handle DraftTapGun3D center mount, recoil, and aim updates', () => {
     const gun = new DraftTapGun3D();
     expect(gun.group).toBeInstanceOf(THREE.Group);

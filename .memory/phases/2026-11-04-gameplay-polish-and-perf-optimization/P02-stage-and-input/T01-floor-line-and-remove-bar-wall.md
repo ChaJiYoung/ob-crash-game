@@ -1,6 +1,6 @@
 # Task: T01 Floor Line and Remove Bar Wall
 
-## Status: pending
+## Status: done
 
 ## Goal
 카드와 몬스터를 가리는 벽을 없애고, 방어선을 플레이어 앞쪽 바닥의 굵은 네온 라인으로 보여 준다.
@@ -57,9 +57,9 @@
 - `RingGeometry`가 바닥선과 힐 펄스 2개뿐이다.
 
 ## Acceptance Criteria
-- [ ] 카드가 하단 `SHOOT TO SELECT`까지 다 보인다.
-- [ ] 화면 아래쪽 바닥에 황금색 곡선이 보이고, 위험할 때 빨갛게 깜빡인다.
-- [ ] 수리 아이템을 먹으면 힐 펄스가 앞쪽 바닥에서 퍼진다.
+- [x] 카드가 하단 `SHOOT TO SELECT`까지 다 보인다.
+- [x] 화면 아래쪽 바닥에 황금색 곡선이 보이고, 위험할 때 빨갛게 깜빡인다.
+- [x] 수리 아이템을 먹으면 힐 펄스가 앞쪽 바닥에서 퍼진다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts` — 통과
@@ -81,6 +81,6 @@ Task: T01-floor-line-and-remove-bar-wall
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: fix(stage): remove bar wall and show defense line in front of the player

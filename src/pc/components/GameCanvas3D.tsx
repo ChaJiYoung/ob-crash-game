@@ -535,7 +535,7 @@ export const GameCanvas3D = React.memo(
           let baseY = (target as any).customBaseY;
           if (baseY === undefined) {
             if (target.weaponSelectKind || target.rewardCardKind) {
-              baseY = 1.50; // 1인칭 총기 및 바 카운터에 가려지지 않도록 1.50m로 상향
+              baseY = 1.50; // 1인칭 총기에 가려지지 않도록 1.50m로 상향
             } else {
               baseY = getTargetBaseY(target.kind, target.isItem);
             }
@@ -586,7 +586,7 @@ export const GameCanvas3D = React.memo(
         tapGun.updateAimAndRecoil(curAim.aimX, curAim.aimY, dtSec, feverState.isFeverActive);
 
         // Update stage lighting & alert
-        const hasDanger = engine.activeTargets.some((t) => !t.isItem && t.radiusM < 5.0);
+        const hasDanger = engine.activeTargets.some((t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && t.radiusM < 5.0);
         stageRig.updateStageAnimation(time / 1000, feverState.isFeverActive, hasDanger);
 
         // Project monster 3D head positions to HUD screen percentage (~30fps throttled)
