@@ -46,27 +46,38 @@ export const DEFAULT_TUNING_CONFIG: SensorTuningConfig = {
   preset: 'default_iphone',
 };
 
-export function loadSavedTuningConfig(): SensorTuningConfig {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const raw = localStorage.getItem(STORAGE_KEY);
+export function loadSavedTuningConfig(storage?: Pick<Storage, 'getItem' | 'setItem'>): SensorTuningConfig {
+  let targetStorage = storage;
+  if (!targetStorage && typeof window !== 'undefined' && window.localStorage) {
+    targetStorage = window.localStorage;
+  }
+  if (targetStorage) {
+    try {
+      const raw = targetStorage.getItem(STORAGE_KEY);
       if (raw) {
         return { ...DEFAULT_TUNING_CONFIG, ...JSON.parse(raw) };
       }
+    } catch {
+      // Local storage restricted
     }
-  } catch {
-    // Local storage restricted
   }
   return DEFAULT_TUNING_CONFIG;
 }
 
-export function saveTuningConfig(config: SensorTuningConfig): void {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+export function saveTuningConfig(
+  config: SensorTuningConfig,
+  storage?: Pick<Storage, 'getItem' | 'setItem'>
+): void {
+  let targetStorage = storage;
+  if (!targetStorage && typeof window !== 'undefined' && window.localStorage) {
+    targetStorage = window.localStorage;
+  }
+  if (targetStorage) {
+    try {
+      targetStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    } catch {
+      // Local storage restricted
     }
-  } catch {
-    // Local storage restricted
   }
 }
 

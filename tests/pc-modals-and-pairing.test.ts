@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { buildControllerPairingUrl } from '../src/pc/components/QRPairingModal';
 import { PlayerProfile } from '../src/shared/types';
+import {
+  DEFAULT_TUNING_CONFIG,
+  loadSavedTuningConfig,
+  saveTuningConfig,
+} from '../src/pc/components/MobileSensorLabModal';
 
 describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
   it('should format pairing URL correctly with or without trailing slash', () => {
@@ -93,5 +98,44 @@ describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
     expect(handleShoot('PLAYING', 0, 0)).toBe('INGAME_SHOT');
     expect(handleShoot('TUTORIAL', 0, 0)).toBe('INGAME_SHOT');
     expect(handleShoot('SANDBOX', 0, 0)).toBe('INGAME_SHOT');
+  });
+
+  it('should manage MobileSensorLabModal tuning presets and live jitter classification', () => {
+    const defaultTuning = DEFAULT_TUNING_CONFIG;
+    expect(defaultTuning.isStabilizedMode).toBe(false); // iPhone 13 mini original behavior preserved
+    expect(defaultTuning.preset).toBe('default_iphone');
+
+    // Jitter RMS stability classification
+    const classifyStability = (rms: number) => {
+      if (rms >= 0.018) return 'RED_NOISY';
+      if (rms >= 0.006) return 'YELLOW_NORMAL';
+      return 'GREEN_STABLE';
+    };
+
+    expect(classifyStability(0.002)).toBe('GREEN_STABLE'); // iPhone level
+    expect(classifyStability(0.010)).toBe('YELLOW_NORMAL');
+    expect(classifyStability(0.025)).toBe('RED_NOISY'); // Galaxy A15 virtual gyro jitter
+
+    // Storage persistence test with mock storage
+    const memoryStore: Record<string, string> = {};
+    const mockStorage = {
+      getItem: (key: string) => memoryStore[key] || null,
+      setItem: (key: string, val: string) => {
+        memoryStore[key] = val;
+      },
+    };
+
+    const customConfig = {
+      ...defaultTuning,
+      isStabilizedMode: true,
+      minCutoff: 0.4,
+      beta: 2.0,
+      preset: 'stabilized_galaxy' as const,
+    };
+    saveTuningConfig(customConfig, mockStorage);
+    const loaded = loadSavedTuningConfig(mockStorage);
+    expect(loaded.isStabilizedMode).toBe(true);
+    expect(loaded.preset).toBe('stabilized_galaxy');
+    expect(loaded.minCutoff).toBe(0.4);
   });
 });

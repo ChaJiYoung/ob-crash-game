@@ -168,6 +168,7 @@ export interface ArcadeOverlayHUDProps {
   maxSkillStock?: number;
   skillCooldownRemainingMs?: number;
   onOpenGuide?: () => void;
+  onOpenSensorLab?: () => void;
 }
 
 export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
@@ -195,6 +196,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   maxSkillStock = 1,
   skillCooldownRemainingMs = 0,
   onOpenGuide,
+  onOpenSensorLab,
 }) => {
   const ammoText = formatAmmoStatusText(ammo, maxAmmo, isReloading, isFeverActive);
   const feverBadge = formatFeverStatusBadge(feverGauge, isFeverReady, isFeverActive);
@@ -520,30 +522,55 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             alignItems: 'flex-end',
           }}
         >
-          {onOpenGuide && (
-            <button
-              onClick={onOpenGuide}
-              style={{
-                pointerEvents: 'auto',
-                background: 'rgba(17, 24, 39, 0.88)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(245, 158, 11, 0.6)',
-                borderRadius: '10px',
-                padding: '6px 14px',
-                color: '#fbbf24',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-                marginBottom: '4px',
-              }}
-            >
-              📖 가이드 & 도감
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+            {onOpenSensorLab && (
+              <button
+                onClick={onOpenSensorLab}
+                style={{
+                  pointerEvents: 'auto',
+                  background: 'rgba(17, 24, 39, 0.88)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(16, 185, 129, 0.6)',
+                  borderRadius: '10px',
+                  padding: '6px 14px',
+                  color: '#34d399',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+                }}
+              >
+                🎯 센서 진단
+              </button>
+            )}
+
+            {onOpenGuide && (
+              <button
+                onClick={onOpenGuide}
+                style={{
+                  pointerEvents: 'auto',
+                  background: 'rgba(17, 24, 39, 0.88)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(245, 158, 11, 0.6)',
+                  borderRadius: '10px',
+                  padding: '6px 14px',
+                  color: '#fbbf24',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+                }}
+              >
+                📖 가이드 & 도감
+              </button>
+            )}
+          </div>
 
           {activeBuffs.map((buff) => {
             const badge = formatActiveBuffBadge(buff);

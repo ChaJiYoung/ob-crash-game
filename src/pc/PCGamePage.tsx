@@ -9,6 +9,13 @@ import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
+import {
+  MobileSensorLabModal,
+  loadSavedTuningConfig,
+  saveTuningConfig,
+  SensorLiveMetrics,
+  SensorTuningConfig,
+} from './components/MobileSensorLabModal';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
@@ -33,6 +40,23 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [topRankings, setTopRankings] = useState<PlayerProfile[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const [isSensorLabOpen, setIsSensorLabOpen] = useState<boolean>(false);
+  const [tuningConfig, setTuningConfig] = useState<SensorTuningConfig>(() => loadSavedTuningConfig());
+  const tuningConfigRef = useRef<SensorTuningConfig>(tuningConfig);
+  tuningConfigRef.current = tuningConfig;
+
+  const recentRawSamplesRef = useRef<{ x: number; y: number }[]>([]);
+  const [sensorLiveMetrics, setSensorLiveMetrics] = useState<SensorLiveMetrics>({
+    rawAimX: 0,
+    rawAimY: 0,
+    aimX: 0,
+    aimY: 0,
+    yawDeg: 0,
+    pitchDeg: 0,
+    rollDeg: 0,
+    packetHz: 0,
+    jitterRms: 0,
+  });
   const [isZeroCalibrated, setIsZeroCalibrated] = useState<boolean>(false);
   const [isAimLocked, setIsAimLocked] = useState<boolean>(false);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
@@ -263,16 +287,37 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               lastPacketTimeRef.current = now;
             }
 
-            const curDiag = diagnosticsRef.current;
-            const rawAimX = (p.aimX - zeroOffsetRef.current.offsetX) * curDiag.sensitivityX;
-            const signedAimY = curDiag.invertY ? -p.aimY : p.aimY;
-            const rawAimY = (signedAimY - zeroOffsetRef.current.offsetY) * curDiag.sensitivityY;
+            const curTuning = tuningConfigRef.current;
+            const rawFromPayloadX = p.rawAimX ?? p.aimX;
+            const rawFromPayloadY = p.rawAimY ?? p.aimY;
+
+            // Rolling window of raw samples (up to 30) for jitter calculation
+            recentRawSamplesRef.current.push({ x: rawFromPayloadX, y: rawFromPayloadY });
+            if (recentRawSamplesRef.current.length > 30) {
+              recentRawSamplesRef.current.shift();
+            }
+
+            let currentJitterRms = 0;
+            const samples = recentRawSamplesRef.current;
+            if (samples.length >= 2) {
+              let sumSq = 0;
+              for (let i = 1; i < samples.length; i++) {
+                const dx = samples[i].x - samples[i - 1].x;
+                const dy = samples[i].y - samples[i - 1].y;
+                sumSq += dx * dx + dy * dy;
+              }
+              currentJitterRms = Math.sqrt(sumSq / (samples.length - 1));
+            }
+
+            const rawAimX = (p.aimX - zeroOffsetRef.current.offsetX) * curTuning.sensitivityX;
+            const signedAimY = curTuning.invertY ? -p.aimY : p.aimY;
+            const rawAimY = (signedAimY - zeroOffsetRef.current.offsetY) * curTuning.sensitivityY;
             const effectiveAimX = Math.max(-1, Math.min(1, rawAimX));
             const effectiveAimY = Math.max(-1, Math.min(1, rawAimY));
 
             updateAimDirect(effectiveAimX, effectiveAimY, false);
 
-            if (now - lastDiagUpdateTimeRef.current >= 250) {
+            if (now - lastDiagUpdateTimeRef.current >= 60) {
               lastDiagUpdateTimeRef.current = now;
               setDiagnostics((prev) => ({
                 ...prev,
@@ -284,6 +329,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 rapidFireHold: p.rapidFireHold,
                 lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
               }));
+
+              setSensorLiveMetrics({
+                rawAimX: rawFromPayloadX,
+                rawAimY: rawFromPayloadY,
+                aimX: effectiveAimX,
+                aimY: effectiveAimY,
+                yawDeg: p.yawDeg,
+                pitchDeg: p.pitchDeg,
+                rollDeg: p.rollDeg,
+                packetHz: packetCountRef.current * 4 || 60,
+                jitterRms: currentJitterRms,
+                isCocked: p.isCocked,
+                lastSnapAt: p.snapFire ? Date.now() : undefined,
+              });
             }
 
             if (p.isCocked && !lastIsCockedRef.current) {
@@ -620,6 +679,40 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
   }, [startResumeCountdown]);
 
+  const handleOpenSensorLab = useCallback(() => {
+    setIsSensorLabOpen(true);
+  }, []);
+
+  const handleCloseSensorLab = useCallback(() => {
+    setIsSensorLabOpen(false);
+  }, []);
+
+  const handleUpdateTuningConfig = useCallback(
+    (newConfig: SensorTuningConfig) => {
+      setTuningConfig(newConfig);
+      saveTuningConfig(newConfig);
+
+      // Relay config update to mobile controller via WebSocket
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: 'SENSOR_CONFIG_UPDATE',
+            roomId,
+            config: newConfig,
+          })
+        );
+      }
+    },
+    [roomId]
+  );
+
+  const handleResetSensorZero = useCallback(() => {
+    zeroOffsetRef.current = {
+      offsetX: latestAimRef.current.aimX,
+      offsetY: latestAimRef.current.aimY,
+    };
+  }, []);
+
   const handleStartSandbox = useCallback(() => {
     setIsGuideOpen(false);
     engine.startSandboxMode();
@@ -766,6 +859,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             maxSkillStock={hudState.maxSkillStock}
             skillCooldownRemainingMs={hudState.skillCooldownRemainingMs}
             onOpenGuide={handleOpenGuide}
+            onOpenSensorLab={handleOpenSensorLab}
           />
           <CrosshairOverlay
             ref={crosshairRef}
@@ -1001,6 +1095,45 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         onClose={handleCloseGuide}
         showTutorialButton={gamePhase === 'PAIRING' || gamePhase === 'ZEROING'}
         onStartTutorial={handleStartTutorial}
+      />
+
+      {/* Top-Right Quick Sensor Lab Floating Button in PAIRING / ZEROING */}
+      {(gamePhase === 'PAIRING' || gamePhase === 'ZEROING') && (
+        <button
+          onClick={handleOpenSensorLab}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            zIndex: 110,
+            background: 'rgba(17, 24, 39, 0.92)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(16, 185, 129, 0.7)',
+            borderRadius: '12px',
+            padding: '8px 18px',
+            color: '#34d399',
+            fontSize: '14px',
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.25)',
+          }}
+        >
+          <span>🎯</span>
+          <span>모바일 센서 진단 & 안정화 랩</span>
+        </button>
+      )}
+
+      {/* 6. Mobile Sensor Lab & Stabilizer Modal */}
+      <MobileSensorLabModal
+        isOpen={isSensorLabOpen}
+        onClose={handleCloseSensorLab}
+        metrics={sensorLiveMetrics}
+        tuningConfig={tuningConfig}
+        onUpdateConfig={handleUpdateTuningConfig}
+        onResetZero={handleResetSensorZero}
       />
     </div>
   );
