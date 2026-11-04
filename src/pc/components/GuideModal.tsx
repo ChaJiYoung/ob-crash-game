@@ -39,7 +39,7 @@ const MONSTER_DETAILS: Record<
     role: '지상 바운스 · 랄라베어 정통 보병 (2HP)',
     speedText: '1.9 m/s',
     description: '왕관을 쓴 오비 랄라베어 마스코트가 그려진 앰버 골드 캔. 바닥을 안정적으로 전진합니다.',
-    tip: '체력 2! 머리 위에 [■][■] 네온 도트가 표시됩니다. 2연타 사격이나 샷건 산탄으로 제압하세요.',
+    tip: '체력 2! 머리 위에 100% 연속 슬림 체력바가 표시됩니다. 2연타 사격이나 샷건 산탄으로 제압하세요.',
     imageSrc: '/docs/screens/monster-03-obi.png',
   },
   hanmac: {
@@ -53,14 +53,14 @@ const MONSTER_DETAILS: Record<
     role: '지상 대형 탱커 · 카스 500ml 투명병 (4HP)',
     speedText: '1.5 m/s',
     description: '2.45배 대형화된 압도적 크기와 좌우 통통 튀며 바운스 전진하는 4HP 엘리트 탱커.',
-    tip: '체력 4! [■][■][■][■] 체력바를 확인하며 관통 리볼버나 샷건 넉백을 적극 활용하세요.',
+    tip: '체력 4! 100% 연속 슬림 체력바를 확인하며 관통 리볼버나 샷건 넉백을 적극 활용하세요.',
     imageSrc: '/docs/screens/monster-05-cass-bottle.png',
   },
   boss: {
     role: '최종 레이드 보스 · 업소용 냉각기 (60HP)',
-    speedText: '0.85 m/s',
-    description: '스테인리스 헤어라인 패널, 듀얼 골드 탭, 디지털 온도계를 장착한 60HP 거대 캐비닛 보스.',
-    tip: '방어선 도달 시 즉시 패배! 지속적으로 탄산 투사체를 발사하므로 4초 피버 모드로 집중 난사하세요!',
+    speedText: '0.85 m/s (10m 안전 정지)',
+    description: '스테인리스 캐비닛, 듀얼 골드 탭, 디지털 온도계를 장착한 60HP 보스. 방어선 전방 10m에 안전 정지하며 탭 레버를 당겨 부하 맥주 미니웨이브를 주기적으로 소환합니다.',
+    tip: '전방 10m에 멈추므로 방어선 즉사는 없습니다! 탭 레버 액션과 함께 소환되는 부하들을 처치해 아이템과 피버를 얻고 4초 피버 2배 난사로 보스를 격파하세요. 보스 격파 시 즉시 승리합니다!',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
 };
@@ -286,6 +286,29 @@ export const GuideModal: React.FC<GuideModalProps> = ({
           {/* TAB 1: 3 WEAPONS & SKILLS */}
           {activeTab === 'weapons' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Accuracy Damage Multiplier & No-Miss Arcade Banner */}
+              <div
+                style={{
+                  background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.18), rgba(56, 189, 248, 0.18))',
+                  border: '1.5px solid #fbbf24',
+                  borderRadius: '16px',
+                  padding: '16px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ fontSize: '16px', fontWeight: 900, color: '#fbbf24' }}>
+                  🎯 명중 정밀도 데미지 배율 & 노-미스(No-Miss) 아케이드 판정
+                </div>
+                <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
+                  • <strong>PERFECT (중심 75% 이내):</strong> <strong>1.5배 데미지</strong> 폭딜 (+150 PTS & 피버 +8% 충전)<br />
+                  • <strong>GREAT (중심 100% 이내):</strong> <strong>1.0배 정타 데미지</strong> (+100 PTS) — 1레벨 모든 무기로 기본 캔(1HP) 원샷 제압!<br />
+                  • <strong>GOOD (외곽 125% 이내):</strong> <strong>0.8배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
+                  • <strong>MISS 페널티 완전 폐지:</strong> 빗나가도 콤보 초기화 페널티 없이 호쾌하고 통쾌하게 난사할 수 있습니다!
+                </div>
+              </div>
+
               {/* Shotgun */}
               <div
                 style={{
@@ -325,7 +348,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 리얼 고무 벨 뚫어뻥 장착 ➔ Lv.2 듀얼 고압관 ➔ Lv.3 호박색 맥주관 순환 ➔ Lv.4 쿼드 배럴 + 둔화 파동<br />
-                  • <strong>성능:</strong> Lv.1(1.05 DMG, 3발) ➔ Lv.2(1.60 DMG + 0.3m 넉백) ➔ Lv.3(2.50 DMG) ➔ MAX(3.60 DMG + 둔화)<br />
+                  • <strong>성능:</strong> Lv.1(0.35×3=1.05 DMG) ➔ Lv.2(1.60 DMG + 0.3m 넉백) ➔ Lv.3(2.50 DMG) ➔ MAX(0.60×6=3.60 DMG + 둔화)<br />
                   • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 화면 8방향에서 12~22개의 미니 뚫어뻥이 포물선으로 날아가 몬스터를 1.0~2.0초간 부착 기절(Stun)시킵니다! (빗나간 탄은 바닥에서 통통 튕김)
                 </div>
               </div>
@@ -369,7 +392,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 병따개 해머 & 실린더 ➔ Lv.2 롱배럴 ➔ Lv.3 시안 네온 레이저 스코프 ➔ Lv.4 4각 머즐 브레이크<br />
-                  • <strong>성능:</strong> Lv.1(0.75 DMG + 후열 1체 관통) ➔ Lv.2(1.0 DMG) ➔ Lv.3(1.35 DMG + 2체 관통) ➔ MAX(1.75 DMG + 100% 2관통)<br />
+                  • <strong>성능:</strong> Lv.1(1.00 DMG + 후열 1체 관통) ➔ Lv.2(1.35 DMG) ➔ Lv.3(1.75 DMG + 2체 관통) ➔ MAX(2.20 DMG + 100% 2관통)<br />
                   • <strong>⚡ 전용 액티브 스킬 [오프너 불릿 타임 & 참격]:</strong> 거대한 황금 병따개 블레이드가 전방을 회전하며 모든 몬스터를 베고 지나가며, 3.5~5.0초간 전장을 40~60% 슬로우 모션 상태로 만듭니다.
                 </div>
               </div>
@@ -413,8 +436,8 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크<br />
-                  • <strong>성능:</strong> Lv.1(0.15 DMG, 18발, 150ms) ➔ Lv.2(0.20 DMG, 22발) ➔ Lv.3(0.25 DMG, 28발) ➔ MAX(0.35 DMG, 35발, 80ms)<br />
-                  • <strong>⚡ 전용 액티브 스킬 [거품 해일 160도 오버히트]:</strong> 160도 부채꼴 각도로 55개 이상의 거품 구체가 해일처럼 밀려나가며 전방의 모든 몬스터를 1.0~1.4m 뒤로 밀어내고 둔화시킵니다.
+                  • <strong>성능:</strong> Lv.1(0.25 DMG, 12발, 150ms) ➔ Lv.2(0.32 DMG, 16발) ➔ Lv.3(0.40 DMG, 20발) ➔ MAX(0.50 DMG, 24발, 83ms)<br />
+                  • <strong>⚡ 전용 액티브 스킬 [거품 해일 160도 오버히트]:</strong> 160도 부채꼴 각도로 반투명 거품 해일이 밀려나가며 전방의 모든 몬스터를 1.0~1.4m 뒤로 밀어내고 둔화시킵니다.
                 </div>
               </div>
             </div>
@@ -439,7 +462,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   ✨ 전장 특수 기믹 & 체력바 시스템
                 </div>
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
-                  • <strong>3D 머리 위 슬림 네온 도트 체력바:</strong> 1HP 캔(필굿, 카스라이트)은 가시성을 위해 숨겨지고, 2HP 이상의 몬스터(오비 2, 한맥 3, 맥주병 4, 보스 60)만 머리 위에 네온 세그먼트 도트가 표시됩니다.<br />
+                  • <strong>100% 비례 슬림 게이지 체력바:</strong> 모든 몬스터는 100% 비례 연속 게이지 바로 체력이 표시됩니다. 1HP 캔(필굿, 카스라이트)도 스쳐 맞았을 때(hp &lt; maxHp) 즉시 머리 위에 잔여 체력바가 나타납니다!<br />
                   • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +500점 및 액티브 스킬과 피버 게이지가 즉시 100% 충전됩니다.<br />
                   • <strong>🫧 거품/병뚜껑 투사체 요격:</strong> 한맥과 보스가 플레이어를 향해 날리는 투사체를 공중에서 사격하여 격추하세요! 방어선 통과 시 바 생명이 1 차감됩니다.
                 </div>
@@ -526,10 +549,10 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 }}
               >
                 <div style={{ fontSize: '17px', fontWeight: 900, color: '#38bdf8' }}>
-                  🃏 웨이브 클리어 사격 선택 카드 (Shoot-to-Select)
+                  🃏 킬 게이지 보상 카드 (Shoot-to-Select & 전장 일시정지)
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  웨이브를 클리어할 때마다 펍 공간에 3장의 3D 홀로그램 카드가 소환됩니다. 원하는 카드에 조준선을 맞추고 <strong>직접 사격</strong>하여 획득하세요!
+                  웨이브 진행 중 킬 게이지(10/14/18/20/15 KILL)를 채울 때마다 전장이 즉시 일시정지(Combat Freeze)되며 펍 공간에 3장의 3D 홀로그램 카드가 소환됩니다. 원하는 카드에 조준선을 맞추고 <strong>직접 사격</strong>하여 획득하세요!
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {Object.entries(REWARD_CARD_SPECS).map(([rk, cspec]) => (
@@ -577,17 +600,16 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
-                    • <strong>단발 사격:</strong> 화면 톡 탭 (홀드 연사 없음)<br />
+                    • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림!)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> 100% 게이지 상태에서 <strong>따닥 더블 탭</strong><br />
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+8%) 및 몬스터 처치(+12%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 연사 & 2배 데미지 폭딜!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
-                    • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭<br />
+                    • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> <strong>R 키</strong> 또는 <strong>마우스 우클릭</strong><br />
-                    • <strong>🔥 4초 피버 버스트:</strong> <strong>Space 키</strong> 누르기<br />
-                    • <strong>개틀링 무기:</strong> 마우스 좌클릭 유지 시 고속 연속 발사 지원
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+8%) 및 몬스터 처치(+12%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 연사 & 2배 데미지)
                   </div>
                 </div>
               </div>

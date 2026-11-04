@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActiveBuffState, ItemBuffKind, JudgmentGrade, PlayerProfile, TargetKind } from '../../shared/types';
+import { ActiveBuffState, ItemBuffKind, JudgmentGrade, PlayerProfile, TargetKind, WeaponKind, WeaponLevel } from '../../shared/types';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
 
 export interface SensorDiagnosticsState {
@@ -42,6 +42,12 @@ export interface SensorAndModuleTestLabOverlayProps {
   onToggleInfiniteAmmo: (infinite: boolean) => void;
   onTestFireShot: () => void;
   onSensitivityChange: (sensX: number, sensY: number, invertY: boolean) => void;
+  weaponKind?: WeaponKind;
+  weaponLevel?: WeaponLevel;
+  onSelectWeapon?: (kind: WeaponKind) => void;
+  onUpgradeWeapon?: () => void;
+  onSpawnRewardCards?: () => void;
+  onSummonBossMinions?: () => void;
   onResetZeroCenter: () => void;
   onStartRealGame: () => void;
   onExitToLobby: () => void;
@@ -68,6 +74,12 @@ export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverl
   onActivateBuffImmediate,
   onTriggerFeverImmediate,
   onToggleInfiniteAmmo,
+  weaponKind,
+  weaponLevel,
+  onSelectWeapon,
+  onUpgradeWeapon,
+  onSpawnRewardCards,
+  onSummonBossMinions,
   onTestFireShot,
   onSensitivityChange,
   onResetZeroCenter,
@@ -486,6 +498,119 @@ export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverl
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8' }}>
               무기 및 피버 시험:
             </div>
+            {/* 3 Weapon Switcher */}
+            {onSelectWeapon && (
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => onSelectWeapon('shotgun')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 4px',
+                    borderRadius: '6px',
+                    border: weaponKind === 'shotgun' ? '1.5px solid #ef4444' : '1px solid rgba(255,255,255,0.15)',
+                    background: weaponKind === 'shotgun' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(0,0,0,0.4)',
+                    color: '#ef4444',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🪠 샷건
+                </button>
+                <button
+                  onClick={() => onSelectWeapon('revolver')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 4px',
+                    borderRadius: '6px',
+                    border: weaponKind === 'revolver' ? '1.5px solid #fbbf24' : '1px solid rgba(255,255,255,0.15)',
+                    background: weaponKind === 'revolver' ? 'rgba(251, 191, 36, 0.25)' : 'rgba(0,0,0,0.4)',
+                    color: '#fbbf24',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🍾 리볼버
+                </button>
+                <button
+                  onClick={() => onSelectWeapon('gatling')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 4px',
+                    borderRadius: '6px',
+                    border: weaponKind === 'gatling' ? '1.5px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
+                    background: weaponKind === 'gatling' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(0,0,0,0.4)',
+                    color: '#38bdf8',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🍺 개틀링
+                </button>
+              </div>
+            )}
+
+            {/* Weapon Level Up & Roguelike Reward Cards & Boss Summon Controls */}
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {onUpgradeWeapon && (
+                <button
+                  onClick={onUpgradeWeapon}
+                  style={{
+                    flex: 1,
+                    padding: '7px',
+                    borderRadius: '6px',
+                    border: '1px solid #fbbf24',
+                    background: 'rgba(251, 191, 36, 0.15)',
+                    color: '#fbbf24',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ⬆️ 레벨업 (Lv.{weaponLevel || 1})
+                </button>
+              )}
+              {onSpawnRewardCards && (
+                <button
+                  onClick={onSpawnRewardCards}
+                  style={{
+                    flex: 1,
+                    padding: '7px',
+                    borderRadius: '6px',
+                    border: '1px solid #c084fc',
+                    background: 'rgba(192, 132, 252, 0.15)',
+                    color: '#c084fc',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🃏 보상 카드 스폰
+                </button>
+              )}
+            </div>
+
+            {onSummonBossMinions && (
+              <button
+                onClick={onSummonBossMinions}
+                style={{
+                  width: '100%',
+                  padding: '7px',
+                  borderRadius: '6px',
+                  border: '1px solid #ef4444',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#f87171',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                👑 보스 미니웨이브 소환 시험
+              </button>
+            )}
+
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={onTriggerFeverImmediate}

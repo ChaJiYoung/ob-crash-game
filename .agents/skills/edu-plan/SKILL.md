@@ -16,12 +16,14 @@ All plan files, phase folders, and decision files MUST start with today's date i
 A Task must be **independently executable**: an engineer or AI agent reading **ONLY that single Task file** must be able to write the exact production code without re-exploring the codebase or guessing missing details.
 Never summarize or collapse technical details into vague bullet points. When brevity conflicts with completeness, **always keep the exact technical information**.
 
-## Phase vs Task Granularity (과도한 Phase 분할 금지 - CRITICAL)
-- **기본은 단일 Phase (`P01`)**: 일반적인 기능 추가, 단일 모듈, 리팩토링, 또는 1~4개 Task 수준의 작업은 **억지로 여러 Phase로 쪼개지 말고 단일 Phase (`P01-{feature-slug}`) 하나에 Task들(`T01`, `T02`, `T03`...)을 배치**하세요.
-- **다중 Phase (Multi-Phase) 분리 기준**: 오직 아래와 같이 물리적으로 명확한 마일스톤 경계가 있는 대규모 기능에만 `P01`, `P02`...로 분할합니다:
-  1. 완전히 다른 도메인/레이어의 작업인 경우 (예: `P01-core-backend-api` ➔ `P02-frontend-ui` ➔ `P03-infra-deployment`)
-  2. 선행 Phase 완료 후 외부 연동이나 추가 검증이 필요한 대규모 프로젝트인 경우
-- **핵심 원칙**: 사소한 작업 단계를 Phase로 쪼개지 마세요. 쪼개야 할 단위는 Phase가 아니라 **Task**입니다.
+## Phase vs Task Granularity
+- **Plan / Phase / Task 정의**:
+  - **Plan**: 하나의 기능 목표를 나타냅니다.
+  - **Phase**: 관련 Task들을 함께 검증·리뷰할 수 있는 의미 있는 결과를 나타냅니다.
+  - **Task**: 구현·검증 단위를 나타냅니다.
+- **다중 Phase 분리 기준**: 하나의 기능 안에서도 중간 결과를 검증하고 다음 작업 전에 묶어서 리뷰할 가치가 있다면 `P01`, `P02`...로 나눕니다. 대규모 프로젝트나 서로 다른 도메인·계층일 때만 분리할 수 있는 것은 아닙니다.
+- **단일 Phase 기준**: 작은 작업이나 자연스러운 중간 검증·리뷰 경계가 없는 작업은 단일 Phase로 둡니다.
+- **분할 판단 원칙**: 함수별·사소한 작업 단계별로 나누거나 Task 수만으로 기계적으로 분할하지 않습니다. Task 수에 고정 상한을 두지 않고 결과와 리뷰 가능성으로 판단합니다.
 
 ---
 

@@ -131,9 +131,9 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
               border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
-            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>최대 콤보</div>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>누적 격파 (KILL)</div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#38bdf8', marginTop: '4px' }}>
-              {maxCombo}x
+              {maxCombo} KILL
             </div>
           </div>
 

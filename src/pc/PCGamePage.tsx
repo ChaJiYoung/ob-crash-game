@@ -832,6 +832,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverActive={hudState.isFeverActive}
             activeBuffs={hudState.activeBuffs}
             lastJudgment={lastJudgment}
+            weaponKind={hudState.weaponKind}
+            weaponLevel={hudState.weaponLevel}
+            onSelectWeapon={(k) => engine.weaponSystem.selectWeapon(k)}
+            onUpgradeWeapon={() => engine.weaponSystem.upgradeWeaponLevel()}
+            onSpawnRewardCards={() => engine.spawnWaveRewardCards(performance.now(), false)}
+            onSummonBossMinions={() => engine.spawnBossMinionWave(performance.now(), 2)}
             onToggleStationarySpawn={setStationarySpawn}
             onSpawnTarget={(k) => engine.spawnSandboxTarget(k, { stationary: stationarySpawn })}
             onSpawnFivePointTargets={() => engine.spawnCalibrationFiveTargets()}

@@ -4,14 +4,14 @@
 [Combat Judgment, Kill-Gauge Cards, Boss Cooler Summon, UI & Guide/Tutorial Overhaul](./plans/2026-11-04-combat-roguelike-boss-overhaul.md)
 
 ## Active Phase
-[P02 Hold Auto-Fire Controls, 100% Continuous HP Gauge Bars & 3D Visual Polish](./phases/2026-11-04-combat-roguelike-boss-overhaul/P02-autofire-controls-and-3d-hud-polish/phase.md)
+[P03 In-Game Guide Modal, Interactive 3-Step Tutorial, Sandbox Lab & Official Docs Overhaul](./phases/2026-11-04-combat-roguelike-boss-overhaul/P03-guide-tutorial-and-docs-sync/phase.md) (COMPLETED)
 
 ## Active Task
-[T02 100% 연속 게이지 체력바, 콤보 UI 제거, 3D 카드/개틀링 스킬 시야 개선 및 보스 탭 레버 액션 구현](./phases/2026-11-04-combat-roguelike-boss-overhaul/P02-autofire-controls-and-3d-hud-polish/T02-hud-gauge-bars-3d-boss-action-and-visual-polish.md)
+None (All phases and tasks completed: P01, P02, P03)
 
 ## Status
-- P02-T01 완료 (모바일/PC 홀드 자동 연발 구현 및 테스트 통과)
-- P02-T02 청사진 읽고 구현 진행 준비 완료
+- P01, P02, P03 전 Phase 구현 및 검증(82/82 테스트 통과, Vite 빌드 성공) 완료
+- P03-T01 구현 및 마크다운 문서 6종 최신화 완료
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 100% 연속 게이지 체력바, 콤보 UI 제거, 3D 카드 링 제거, 개틀링 폼 투명도(0.42), 보스 탭 레버 애니메이션 구현 시작
+Phase P03 서브에이전트 코드리뷰 수행 및 최종 보고

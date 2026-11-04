@@ -72,9 +72,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               TRAINING MODE
             </span>
             <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>
-              {step === 1 && '🎯 STEP 1. 조준 & 단발 사격'}
-              {step === 2 && '💥 STEP 2. 연타 사격 & 재장전'}
-              {step === 3 && '🔥 STEP 3. 피버 모드 대폭발'}
+              {step === 1 && '🎯 STEP 1. 정밀 조준 배율(1.5x/1.0x/0.8x) & 원샷'}
+              {step === 2 && '💥 STEP 2. 홀드 자동 연발(투두두두) & 100% 체력 게이지'}
+              {step === 3 && '🔥 STEP 3. 피버 모드 & 2배 화력 대폭발'}
               {step === 'COMPLETED' && '🎉 훈련 수료 완료!'}
             </span>
           </div>
@@ -84,7 +84,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               <>
                 스마트폰을 모니터로 겨누고 <strong>화면을 톡 탭(탕! 발사)</strong>하여 정지된 <strong>연습 캔 3개</strong>를 맞히세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 스마트폰을 모니터로 조준하고 화면을 가볍게 탭하면 즉시 발사됩니다. (PC는 마우스 좌클릭 / 남은 표적:{' '}
+                  💡 <strong>PERFECT(1.5배)·GREAT(1.0배)</strong> 명중 시 1HP 캔 한 방 격파! <strong>GOOD(0.8배)</strong> 스침 시 잔여 체력 게이지가 표시됩니다. (MISS 페널티 없음 / 남은 표적:{' '}
                   <span style={{ color: '#fbbf24', fontWeight: 800 }}>{targetsRemaining}개</span>)
                 </div>
               </>
@@ -92,9 +92,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 2 && (
               <>
-                다가오는 단단한 <strong>카스 병맥주 (체력 4HP)</strong>를 <strong>화면 탭 4회</strong>로 침착하게 격파하세요!
+                다가오는 <strong>카스 병맥주 (4HP)</strong>를 향해 화면을 <strong>꾸욱 누르고(홀드) 있거나</strong> PC 마우스 좌클릭을 유지하여 <strong>'투두두두' 자동 연발</strong>로 격파하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 탄약 소진 시 자동으로 재장전됩니다. (현재 탄창:{' '}
+                  💡 100% 슬림 연속 체력 게이지가 깎이며, 탄약 소진 시 자동으로 재장전됩니다. (현재 탄창:{' '}
                   <span style={{ color: '#38bdf8', fontWeight: 800 }}>
                     {isReloading ? '⚡ 재장전 중...' : `${ammo}/${maxAmmo}`}
                   </span>
@@ -109,10 +109,10 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
-                      🔥 4초 초고밀도 피버 버스트 발동 중! 0.08초 무한 자동 난사 & 2배 데미지!
+                      🔥 4초 초고밀도 피버 버스트 발동 중! 무제한 무한 연사 & 2배 데미지 폭딜!
                     </span>
                   ) : (
-                    <span>💡 피버 4초 동안 무제한 초고속 자동 난사 & 탄환이 빗맞아도 콤보가 100% 보존됩니다!</span>
+                    <span>💡 PERFECT(+8%) 및 몬스터 처치(+12%)로 충전되며, 발동 시 4초간 무한 연사 & 2배 화력으로 폭딜을 쏟아붓습니다!</span>
                   )}
                 </div>
               </>
@@ -120,7 +120,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 'COMPLETED' && (
               <>
-                모든 건슈팅 조작법(단발 탭 사격, 더블탭 피버 버스트)을 완벽히 마스터하셨습니다!
+                모든 건슈팅 조작법(단발 탭 & 홀드 자동 연발, 더블탭 피버 버스트)을 완벽히 마스터하셨습니다!
                 <div style={{ fontSize: '13px', color: '#10b981', marginTop: '4px' }}>
                   💡 <strong>전용 액티브 스킬 팁:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히면 강력한 필살기가 발동됩니다! (PC는 R키 / 우클릭)
                 </div>

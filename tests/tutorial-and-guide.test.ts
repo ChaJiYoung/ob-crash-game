@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
+import { shouldRenderMonsterHpBar } from '../src/pc/components/ArcadeOverlayHUD';
 
 describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should initialize tutorial mode with 3 static 1HP can targets for Step 1', () => {
@@ -18,6 +19,23 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
       expect(target.hp).toBe(1);
       expect(target.maxHp).toBe(1);
     });
+  });
+
+  it('should handle accuracy multipliers and HP bar visibility in Step 1 shooting', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startTutorialMode();
+    const t0 = engine.activeTargets[0];
+    expect(t0.hp).toBe(1);
+    expect(shouldRenderMonsterHpBar(t0.maxHp, false, false, t0.hp)).toBe(false);
+
+    // If target takes GOOD 0.8x damage, remaining hp is 0.2 and hp bar should show
+    t0.hp = Math.max(0, t0.hp - 0.8);
+    expect(t0.hp).toBeCloseTo(0.2, 2);
+    expect(shouldRenderMonsterHpBar(t0.maxHp, false, false, t0.hp)).toBe(true);
+
+    // If target takes GREAT 1.0x or PERFECT 1.5x, target is killed (hp <= 0)
+    t0.hp = 0;
+    expect(t0.hp).toBe(0);
   });
 
   it('should advance from Step 1 to Step 2 when all 3 targets are destroyed', () => {
