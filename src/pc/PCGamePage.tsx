@@ -41,6 +41,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isSensorLabOpen, setIsSensorLabOpen] = useState<boolean>(false);
+  const isSensorLabOpenRef = useRef<boolean>(isSensorLabOpen);
+  isSensorLabOpenRef.current = isSensorLabOpen;
+  const skillGraceUntilRef = useRef<number>(0);
   const [tuningConfig, setTuningConfig] = useState<SensorTuningConfig>(() => loadSavedTuningConfig());
   const tuningConfigRef = useRef<SensorTuningConfig>(tuningConfig);
   tuningConfigRef.current = tuningConfig;
@@ -173,7 +176,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
     latestAimRef.current = { aimX: x, aimY: y };
     canvasRef.current?.setAim(x, y, immediate);
-    crosshairRef.current?.updatePosition(x, y);
+    crosshairRef.current?.updatePosition(x, y, immediate);
     const action = checkResultButtonHover(x, y);
     setHoveredResultAction(action);
   }, [checkResultButtonHover]);
@@ -288,11 +291,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             const p = msg.payload;
             packetCountRef.current += 1;
             const now = performance.now();
-            if (now - lastPacketTimeRef.current >= 1000) {
+            const isDiagnosticsNeeded = isSensorLabOpenRef.current || gamePhaseRef.current === 'SANDBOX';
+
+            if (isDiagnosticsNeeded && now - lastPacketTimeRef.current >= 1000) {
               setDiagnostics((prev) => ({
                 ...prev,
                 packetHz: packetCountRef.current,
               }));
+              packetCountRef.current = 0;
+              lastPacketTimeRef.current = now;
+            } else if (!isDiagnosticsNeeded && now - lastPacketTimeRef.current >= 1000) {
               packetCountRef.current = 0;
               lastPacketTimeRef.current = now;
             }
@@ -301,22 +309,24 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             const rawFromPayloadX = p.rawAimX ?? p.aimX;
             const rawFromPayloadY = p.rawAimY ?? p.aimY;
 
-            // Rolling window of raw samples (up to 30) for jitter calculation
-            recentRawSamplesRef.current.push({ x: rawFromPayloadX, y: rawFromPayloadY });
-            if (recentRawSamplesRef.current.length > 30) {
-              recentRawSamplesRef.current.shift();
-            }
-
             let currentJitterRms = 0;
-            const samples = recentRawSamplesRef.current;
-            if (samples.length >= 2) {
-              let sumSq = 0;
-              for (let i = 1; i < samples.length; i++) {
-                const dx = samples[i].x - samples[i - 1].x;
-                const dy = samples[i].y - samples[i - 1].y;
-                sumSq += dx * dx + dy * dy;
+            if (isDiagnosticsNeeded) {
+              // Rolling window of raw samples (up to 30) for jitter calculation
+              recentRawSamplesRef.current.push({ x: rawFromPayloadX, y: rawFromPayloadY });
+              if (recentRawSamplesRef.current.length > 30) {
+                recentRawSamplesRef.current.shift();
               }
-              currentJitterRms = Math.sqrt(sumSq / (samples.length - 1));
+
+              const samples = recentRawSamplesRef.current;
+              if (samples.length >= 2) {
+                let sumSq = 0;
+                for (let i = 1; i < samples.length; i++) {
+                  const dx = samples[i].x - samples[i - 1].x;
+                  const dy = samples[i].y - samples[i - 1].y;
+                  sumSq += dx * dx + dy * dy;
+                }
+                currentJitterRms = Math.sqrt(sumSq / (samples.length - 1));
+              }
             }
 
             const rawAimX = (p.aimX - zeroOffsetRef.current.offsetX) * curTuning.sensitivityX;
@@ -331,7 +341,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
             updateAimDirect(effectiveAimX, effectiveAimY, false);
 
-            if (now - lastDiagUpdateTimeRef.current >= 60) {
+            if (isDiagnosticsNeeded && now - lastDiagUpdateTimeRef.current >= 60) {
               lastDiagUpdateTimeRef.current = now;
               setDiagnostics((prev) => ({
                 ...prev,
@@ -425,7 +435,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
 
             if (p.skillSnapTriggered) {
-              executeSkill();
+              const isPendingCard = engine.isWeaponSelectPending || engine.isRewardCardPending;
+              const inGrace = performance.now() < skillGraceUntilRef.current;
+              if (gamePhaseRef.current === 'PLAYING' && !isPendingCard && !inGrace) {
+                executeSkill();
+              }
             }
             break;
           }
@@ -596,6 +610,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       clearInterval(rapidFireTimerRef.current);
       rapidFireTimerRef.current = null;
     }
+    skillGraceUntilRef.current = performance.now() + 1500;
     engine.startGame({ withWeaponSelect: true });
     setGamePhase('PLAYING');
     setIsNewRecord(false);
@@ -848,6 +863,38 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       {/* 2. 4-Corner Arcade Overlay HUD */}
       {gamePhase === 'PLAYING' && (
         <>
+          {(engine.isWeaponSelectPending || engine.isRewardCardPending) && (
+            <div
+              data-testid="card-select-guide-banner"
+              style={{
+                position: 'absolute',
+                top: '28px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 110,
+                padding: '12px 28px',
+                borderRadius: '9999px',
+                background: 'rgba(15, 23, 42, 0.90)',
+                border: '2px solid #06b6d4',
+                boxShadow: '0 0 25px rgba(6, 182, 212, 0.6), inset 0 0 15px rgba(6, 182, 212, 0.25)',
+                color: '#ffffff',
+                fontSize: '18px',
+                fontWeight: 800,
+                letterSpacing: '0.05em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                pointerEvents: 'none',
+                userSelect: 'none',
+              }}
+            >
+              <span>
+                {engine.isWeaponSelectPending
+                  ? '🎯 원하는 무기를 사격하여 선택하세요! (SHOOT TO SELECT)'
+                  : '🃏 보상 카드를 사격하여 선택하세요! (SHOOT TO SELECT)'}
+              </span>
+            </div>
+          )}
           <ArcadeOverlayHUD
             player={pairedPlayer}
             score={hudState.score}

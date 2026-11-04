@@ -1026,12 +1026,30 @@ export function createCardTargetMesh3D(
   const cardMat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(colorHex),
     emissive: new THREE.Color(colorHex),
-    emissiveIntensity: 0.25,
+    emissiveIntensity: 0.85,
     metalness: 0.8,
     roughness: 0.2,
   });
   const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.80, 2.40, 0.08), cardMat);
   inner.add(cardFrame);
+
+  // Outer Neon Frame for High Visibility in Dark HDRI
+  const borderMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(colorHex) });
+  const borderThickness = 0.04;
+  const borderDepth = 0.09;
+  const topBar = new THREE.Mesh(new THREE.BoxGeometry(1.82, borderThickness, borderDepth), borderMat);
+  topBar.position.set(0, 1.20, 0);
+  const btmBar = new THREE.Mesh(new THREE.BoxGeometry(1.82, borderThickness, borderDepth), borderMat);
+  btmBar.position.set(0, -1.20, 0);
+  const leftBar = new THREE.Mesh(new THREE.BoxGeometry(borderThickness, 2.40, borderDepth), borderMat);
+  leftBar.position.set(-0.90, 0, 0);
+  const rightBar = new THREE.Mesh(new THREE.BoxGeometry(borderThickness, 2.40, borderDepth), borderMat);
+  rightBar.position.set(0.90, 0, 0);
+
+  const borderGroup = new THREE.Group();
+  borderGroup.name = 'cardNeonBorder';
+  borderGroup.add(topBar, btmBar, leftBar, rightBar);
+  inner.add(borderGroup);
 
   // Card Front Face
   const frontPlane = new THREE.Mesh(
@@ -1048,6 +1066,7 @@ export function createCardTargetMesh3D(
 
   root.userData = {
     isCard: true,
+    hasNeonFrame: true,
     inner,
     baseScale: 1.0,
     hitRadiusM: 1.75,

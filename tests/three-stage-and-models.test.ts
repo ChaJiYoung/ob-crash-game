@@ -412,4 +412,26 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       synth.playSkillActivation('gatling');
     }).not.toThrow();
   });
+
+  it('should create 3D holographic card target mesh with high-visibility emissive frame and neon border (D02)', () => {
+    const card = createCardTargetMesh3D('테스트 카드', '설명 문구\n두번째 줄', '#38bdf8', '🃏');
+    expect(card).toBeInstanceOf(THREE.Group);
+    expect(card.userData.isCard).toBe(true);
+    expect(card.userData.hasNeonFrame).toBe(true);
+    expect(card.userData.hitRadiusM).toBeGreaterThanOrEqual(1.5);
+
+    const inner = card.userData.inner as THREE.Group;
+    expect(inner).toBeDefined();
+
+    // Check cardFrame emissiveIntensity
+    const frameMesh = inner.children.find((c) => c instanceof THREE.Mesh && c.geometry instanceof THREE.BoxGeometry) as THREE.Mesh;
+    expect(frameMesh).toBeDefined();
+    const frameMat = frameMesh.material as THREE.MeshStandardMaterial;
+    expect(frameMat.emissiveIntensity).toBeGreaterThanOrEqual(0.8);
+
+    // Check neon border group
+    const borderGroup = inner.children.find((c) => c.name === 'cardNeonBorder') as THREE.Group;
+    expect(borderGroup).toBeDefined();
+    expect(borderGroup.children.length).toBe(4);
+  });
 });

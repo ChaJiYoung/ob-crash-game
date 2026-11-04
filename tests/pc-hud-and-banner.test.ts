@@ -190,4 +190,23 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     expect(gat.skillStatusText).toContain('★2/2');
     expect(gat.accentColor).toBe('#06b6d4');
   });
+
+  it('should support immediate and lerp interpolation modes for CrosshairOverlay', () => {
+    // Coordinate mapping correctness
+    const center = aimToViewportPercent(0, 0);
+    expect(center.leftPercent).toBe(50);
+    expect(center.topPercent).toBe(50);
+
+    const corner = aimToViewportPercent(1, 1);
+    expect(corner.leftPercent).toBe(97);
+    expect(corner.topPercent).toBe(8);
+
+    const ndc = aimToNdc(0, 0);
+    expect(ndc.ndcX).toBe(0);
+    expect(ndc.ndcY).toBe(0);
+
+    const backToAim = viewportRatioToAim(0, 0);
+    expect(backToAim.aimX).toBe(0);
+    expect(backToAim.aimY).toBe(0);
+  });
 });

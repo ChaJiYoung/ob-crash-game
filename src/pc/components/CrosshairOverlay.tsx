@@ -113,7 +113,7 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
 }
 
 export interface CrosshairOverlayHandle {
-  updatePosition: (aimX: number, aimY: number) => void;
+  updatePosition: (aimX: number, aimY: number, immediate?: boolean) => void;
 }
 
 export interface CrosshairOverlayProps {
@@ -141,6 +141,12 @@ export const CrosshairOverlay = React.memo(
     shotTriggerKey = 0,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
+    const targetPosRef = useRef({ x: aimX, y: aimY });
+    const currentPosRef = useRef({ x: aimX, y: aimY });
+    const hasInitialPosRef = useRef(false);
+    const rafIdRef = useRef<number | null>(null);
+    const lastTimeRef = useRef<number>(0);
+
     const { leftPercent, topPercent } = aimToViewportPercent(aimX, aimY);
     const spec = getCrosshairVisualSpec({
       isFeverActive,
@@ -151,19 +157,77 @@ export const CrosshairOverlay = React.memo(
       weaponLevel,
     });
 
+    const applyDomPosition = useCallback((curX: number, curY: number) => {
+      if (containerRef.current) {
+        const pos = aimToViewportPercent(curX, curY);
+        containerRef.current.style.left = `${pos.leftPercent}%`;
+        containerRef.current.style.top = `${pos.topPercent}%`;
+      }
+    }, []);
+
     useImperativeHandle(
       ref,
       () => ({
-        updatePosition(nextAimX: number, nextAimY: number) {
-          if (containerRef.current) {
-            const pos = aimToViewportPercent(nextAimX, nextAimY);
-            containerRef.current.style.left = `${pos.leftPercent}%`;
-            containerRef.current.style.top = `${pos.topPercent}%`;
+        updatePosition(nextAimX: number, nextAimY: number, immediate = true) {
+          targetPosRef.current = { x: nextAimX, y: nextAimY };
+
+          if (
+            immediate ||
+            !hasInitialPosRef.current ||
+            typeof window === 'undefined' ||
+            typeof window.requestAnimationFrame !== 'function'
+          ) {
+            currentPosRef.current = { x: nextAimX, y: nextAimY };
+            hasInitialPosRef.current = true;
+            if (rafIdRef.current !== null && typeof window !== 'undefined') {
+              window.cancelAnimationFrame(rafIdRef.current);
+              rafIdRef.current = null;
+            }
+            applyDomPosition(nextAimX, nextAimY);
+            return;
+          }
+
+          if (rafIdRef.current === null) {
+            lastTimeRef.current = performance.now();
+            const tick = (now: number) => {
+              const dtSec = Math.min(0.1, Math.max(0.001, (now - lastTimeRef.current) / 1000));
+              lastTimeRef.current = now;
+              const lerpFactor = Math.min(1, dtSec * 28);
+
+              const cur = currentPosRef.current;
+              const tgt = targetPosRef.current;
+              const dx = tgt.x - cur.x;
+              const dy = tgt.y - cur.y;
+              const dist = Math.hypot(dx, dy);
+
+              if (dist < 0.0005) {
+                cur.x = tgt.x;
+                cur.y = tgt.y;
+                applyDomPosition(cur.x, cur.y);
+                rafIdRef.current = null;
+                return;
+              }
+
+              cur.x += dx * lerpFactor;
+              cur.y += dy * lerpFactor;
+              applyDomPosition(cur.x, cur.y);
+              rafIdRef.current = window.requestAnimationFrame(tick);
+            };
+            rafIdRef.current = window.requestAnimationFrame(tick);
           }
         },
       }),
-      []
+      [applyDomPosition]
     );
+
+    useEffect(() => {
+      return () => {
+        if (rafIdRef.current !== null && typeof window !== 'undefined') {
+          window.cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+      };
+    }, []);
 
     const [isKicking, setIsKicking] = useState(false);
 
