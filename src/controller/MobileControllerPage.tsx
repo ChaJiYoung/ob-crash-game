@@ -6,6 +6,7 @@ import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
 import { PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
+import { WEAPON_CONSTANTS } from '../shared/constants';
 
 export const MobileControllerPage: React.FC = () => {
   const deviceId = useMemo(() => getOrCreateDeviceId(), []);
@@ -43,7 +44,13 @@ export const MobileControllerPage: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const startCountdownRef = useRef<(sec?: number) => void>(() => {});
+  const countdownSecRef = useRef<number | null>(null);
+  const snapGraceUntilMsRef = useRef<number>(0);
   const latestOrientationRef = useRef<EulerOrientation>({ alpha: 0, beta: 0, gamma: 0 });
+
+  useEffect(() => {
+    countdownSecRef.current = countdownSec;
+  }, [countdownSec]);
   const snapFireRef = useRef<boolean>(false);
   const skillSnapTriggeredRef = useRef<boolean>(false);
   const prevSkillStockRef = useRef<number>(1);
@@ -178,7 +185,9 @@ export const MobileControllerPage: React.FC = () => {
     const snapFire = snapFireRef.current;
     snapFireRef.current = false;
 
-    const skillSnapTriggered = skillSnapTriggeredRef.current;
+    const now = performance.now();
+    const isSnapAllowed = countdownSecRef.current === null && now >= snapGraceUntilMsRef.current;
+    const skillSnapTriggered = isSnapAllowed && skillSnapTriggeredRef.current;
     skillSnapTriggeredRef.current = false;
 
     const feverTriggered = feverTriggeredRef.current;
@@ -222,13 +231,19 @@ export const MobileControllerPage: React.FC = () => {
 
     const onMotion = (e: DeviceMotionEvent) => {
       if (e.acceleration) {
+        const now = performance.now();
+        const isSnapAllowed = countdownSecRef.current === null && now >= snapGraceUntilMsRef.current;
+        if (!isSnapAllowed) {
+          skillSnapTriggeredRef.current = false;
+        }
+
         const snap = tracker.detectSnapFire({
           x: e.acceleration.x || 0,
           y: e.acceleration.y || 0,
           z: e.acceleration.z || 0,
-          timestampMs: performance.now(),
+          timestampMs: now,
         });
-        if (snap) {
+        if (snap && isSnapAllowed) {
           skillSnapTriggeredRef.current = true;
 
           // [손목 반동 흡수] 스킬 시전 시 에임을 350ms 동안 모니터 정면에 고정하여 천장으로 튀는 현상 방지
@@ -274,6 +289,8 @@ export const MobileControllerPage: React.FC = () => {
     tracker.unlockAim();
     isCockedRef.current = false;
     setIsCockedState(false);
+    skillSnapTriggeredRef.current = false;
+    snapGraceUntilMsRef.current = performance.now() + WEAPON_CONSTANTS.SNAP_GRACE_PERIOD_MS;
     tracker.calibrateZero(latestOrientationRef.current);
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
@@ -295,6 +312,9 @@ export const MobileControllerPage: React.FC = () => {
         clearInterval(countdownTimerRef.current);
       }
       setCountdownSec(initialSec);
+      countdownSecRef.current = initialSec;
+      skillSnapTriggeredRef.current = false;
+      snapGraceUntilMsRef.current = performance.now() + (initialSec * 1000) + WEAPON_CONSTANTS.SNAP_GRACE_PERIOD_MS;
       setStep('PAD');
       setIsGameWaiting(false);
       triggerHaptic(60);
@@ -304,6 +324,7 @@ export const MobileControllerPage: React.FC = () => {
         cur -= 1;
         if (cur > 0) {
           setCountdownSec(cur);
+          countdownSecRef.current = cur;
           triggerHaptic(60);
         } else {
           if (countdownTimerRef.current) {
@@ -311,6 +332,7 @@ export const MobileControllerPage: React.FC = () => {
             countdownTimerRef.current = null;
           }
           setCountdownSec(null);
+          countdownSecRef.current = null;
           handleCalibrateZero();
           triggerHaptic([100, 50, 150]);
         }

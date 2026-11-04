@@ -25,6 +25,27 @@ export interface AimResult {
   rollDeg: number;
 }
 
+export function computeAdaptiveSmoothingAlpha(
+  baseAlpha: number,
+  delta: number,
+  hasSmoothedSample: boolean
+): number {
+  if (!hasSmoothedSample || baseAlpha >= 1.0) {
+    return 1.0;
+  }
+  const clampedBase = Math.max(0.05, Math.min(1.0, baseAlpha));
+  const lowerKnee = 0.03;
+  const upperKnee = 0.35;
+  if (delta <= lowerKnee) {
+    return clampedBase;
+  }
+  if (delta >= upperKnee) {
+    return 1.0;
+  }
+  const ratio = (delta - lowerKnee) / (upperKnee - lowerKnee);
+  return clampedBase + (1.0 - clampedBase) * ratio;
+}
+
 export interface AimCalibrationConfig {
   yawHalfRangeDeg: number;   // 기본 25 (최소 8, 최대 45)
   pitchHalfRangeDeg: number; // 기본 18 (최소 6, 최대 40)
@@ -296,9 +317,9 @@ export class GunGripTracker {
       };
     }
 
-    // [분기 2: 기본 모드 (아이폰 13 미니 기존 손맛 100% 보존)]
+    // [분기 2: 기본 모드 (연속 가변 스무딩 곡선 적용)]
     const delta = Math.hypot(rawAimX - this.smoothedAimX, rawAimY - this.smoothedAimY);
-    const effectiveAlpha = !this.hasSmoothedSample || delta > 0.15 ? 1.0 : smoothingAlpha;
+    const effectiveAlpha = computeAdaptiveSmoothingAlpha(smoothingAlpha, delta, this.hasSmoothedSample);
     this.smoothedAimX += (rawAimX - this.smoothedAimX) * effectiveAlpha;
     this.smoothedAimY += (rawAimY - this.smoothedAimY) * effectiveAlpha;
     this.hasSmoothedSample = true;

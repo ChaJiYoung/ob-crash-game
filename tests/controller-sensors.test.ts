@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getOrCreateDeviceId, DEVICE_ID_STORAGE_KEY } from '../src/controller/sensors/DeviceIdentity';
-import { GunGripTracker } from '../src/controller/sensors/GunGripTracker';
+import { GunGripTracker, computeAdaptiveSmoothingAlpha } from '../src/controller/sensors/GunGripTracker';
 import { UnifiedTouchPadController } from '../src/controller/sensors/UnifiedTouchPad';
 
 describe('GunGripTracker & UnifiedTouchPadController', () => {
@@ -41,20 +41,24 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const tiltUp = tracker.computeAim({ alpha: 180, beta: 10, gamma: -85 });
     expect(tiltUp.aimY).toBeGreaterThan(0.2);
 
-    // Snap fire test with 3D acceleration norm (relaxed threshold 2.2 m/s^2)
+    // Snap fire test with 3D acceleration norm (raised threshold 4.8 m/s^2 for D04 false-positive guard)
     const low = tracker.detectSnapFire({ x: 1.5, y: 0, z: 0, timestampMs: 1000 });
     expect(low).toBe(false);
 
-    // Y-axis upward snap (light effortless flick >= 2.2 m/s^2)
-    const snap1 = tracker.detectSnapFire({ x: 0, y: 2.5, z: 0, timestampMs: 1050 });
+    // Mid acceleration from casual re-grip (3.2 m/s^2 < 4.8 m/s^2) -> no false snap
+    const regrip = tracker.detectSnapFire({ x: 0, y: 3.2, z: 0, timestampMs: 1050 });
+    expect(regrip).toBe(false);
+
+    // Y-axis upward deliberate snap flick (5.0 m/s^2 >= 4.8 m/s^2)
+    const snap1 = tracker.detectSnapFire({ x: 0, y: 5.0, z: 0, timestampMs: 1100 });
     expect(snap1).toBe(true);
 
     // Cooldown test (within 110ms)
-    const snapCooldown = tracker.detectSnapFire({ x: 0, y: 0, z: 12.0, timestampMs: 1120 });
+    const snapCooldown = tracker.detectSnapFire({ x: 0, y: 0, z: 12.0, timestampMs: 1150 });
     expect(snapCooldown).toBe(false);
 
-    // After 110ms cooldown: combined 3D acceleration vector sqrt(2^2 + 2^2) ≈ 2.82 >= 2.2
-    const snap2 = tracker.detectSnapFire({ x: 2.0, y: 2.0, z: 0, timestampMs: 1180 });
+    // After 110ms cooldown: combined 3D acceleration vector sqrt(3.6^2 + 3.6^2) ≈ 5.09 >= 4.8
+    const snap2 = tracker.detectSnapFire({ x: 3.6, y: 3.6, z: 0, timestampMs: 1250 });
     expect(snap2).toBe(true);
   });
 
@@ -103,7 +107,21 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     vi.useRealTimers();
   });
 
-  it('should apply adaptive smoothing to aim coordinates for tremor suppression', () => {
+  it('should apply continuous adaptive smoothing to aim coordinates without step jumps', () => {
+    // 1. Direct function verification for smooth continuous curve
+    expect(computeAdaptiveSmoothingAlpha(0.5, 0.01, false)).toBe(1.0); // uninitialized
+    expect(computeAdaptiveSmoothingAlpha(0.5, 0.02, true)).toBeCloseTo(0.5, 3); // tremor knee
+    expect(computeAdaptiveSmoothingAlpha(0.5, 0.35, true)).toBe(1.0); // full flick
+    expect(computeAdaptiveSmoothingAlpha(0.5, 0.50, true)).toBe(1.0);
+
+    const alphaAt14 = computeAdaptiveSmoothingAlpha(0.5, 0.14, true);
+    const alphaAt16 = computeAdaptiveSmoothingAlpha(0.5, 0.16, true);
+    expect(alphaAt14).toBeGreaterThan(0.5);
+    expect(alphaAt16).toBeGreaterThan(alphaAt14);
+    // Difference between 0.14 and 0.16 should be continuous and small (~0.03), not a 0.5 jump!
+    expect(alphaAt16 - alphaAt14).toBeLessThan(0.06);
+
+    // 2. Integration with GunGripTracker
     const tracker = new GunGripTracker();
     const zeroPose = { alpha: 180, beta: 0, gamma: -85 };
     tracker.calibrateZero(zeroPose);
@@ -328,15 +346,15 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     // 2. User touches down -> Cocking ON
     isCocked = true;
 
-    // 3. 1st Snap flick -> fires shot #1 and resets isCocked to false
-    handleMotion(4.5, 1200);
+    // 3. 1st Snap flick -> fires shot #1 and resets isCocked to false (>= 4.8 m/s^2)
+    handleMotion(5.5, 1200);
     expect(firedCount).toBe(1);
     expect(isCocked).toBe(false);
 
     // 4. User keeps holding finger on screen; recoil rebound occurs after 150ms
     // Even if motion is detected, since isCocked is false, NO second fire occurs!
-    handleMotion(5.0, 1350);
-    handleMotion(4.0, 1400);
+    handleMotion(6.0, 1350);
+    handleMotion(5.0, 1400);
     expect(firedCount).toBe(1); // STILL 1! Double fire completely prevented!
 
     // 5. User lifts finger (pointerUp) -> remains false
@@ -346,7 +364,7 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     isCocked = true;
 
     // 7. 2nd Snap flick -> fires shot #2
-    handleMotion(4.0, 1600);
+    handleMotion(5.2, 1600);
     expect(firedCount).toBe(2);
     expect(isCocked).toBe(false);
   });
@@ -363,8 +381,8 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
       }
     };
 
-    // Upward snap flick triggers active skill
-    onMotion(3.2, 1000);
+    // Upward snap flick triggers active skill (>= 4.8 m/s^2)
+    onMotion(5.2, 1000);
     expect(skillSnapTriggered).toBe(true);
 
     // Frame payload construction test
