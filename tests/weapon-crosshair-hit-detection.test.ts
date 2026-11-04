@@ -63,7 +63,7 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     expect(revolverShot.grade).toBe('MISS');
   });
 
-  it('should allow gatling to hit target within its 1.25x spray radius (1.15x offset)', () => {
+  it('should allow gatling to hit target within its tightened 1.05x spray radius (1.02x offset) and miss outside (1.12x)', () => {
     engine.activeTargets.push({
       id: 'target_test_gatling',
       kind: 'pilgood',
@@ -82,14 +82,20 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const target = engine.activeTargets[0];
     const proj = engine.computeTargetAimCoords(target);
 
-    // Offset by 1.15x apparentHitRadius (within gatling 1.25x)
-    const aimX = proj.targetNormX + proj.apparentHitRadius * 1.15;
+    // 1. Inside tightened 1.05x tolerance (1.02x offset) -> HIT
+    const insideAimX = proj.targetNormX + proj.apparentHitRadius * 1.02;
     const aimY = proj.targetNormY;
 
     engine.weaponSystem.selectWeapon('gatling', 1);
-    const shot = engine.shootAt(aimX, aimY, 1000);
-    expect(shot.fired).toBe(true);
-    expect(shot.grade).not.toBe('MISS');
+    const hitShot = engine.shootAt(insideAimX, aimY, 1000);
+    expect(hitShot.fired).toBe(true);
+    expect(hitShot.grade).not.toBe('MISS');
+
+    // 2. Outside 1.05x tolerance (1.12x offset) -> MISS
+    const outsideAimX = proj.targetNormX + proj.apparentHitRadius * 1.12;
+    const missShot = engine.shootAt(outsideAimX, aimY, 2000);
+    expect(missShot.fired).toBe(true);
+    expect(missShot.grade).toBe('MISS');
   });
 
   it('should apply relaxed vertical tolerance (0.70x dy) for revolver sniper piercing line', () => {

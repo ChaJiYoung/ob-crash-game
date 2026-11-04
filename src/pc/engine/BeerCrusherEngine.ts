@@ -1237,7 +1237,7 @@ export class BeerCrusherEngine {
     // Weapon-specific hit tolerance multiplier
     const weaponHitToleranceMult =
       weaponKind === 'shotgun' ? 1.55 :
-      weaponKind === 'gatling' ? 1.25 :
+      weaponKind === 'gatling' ? 1.05 :
       0.95; // revolver
 
     const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
@@ -1454,10 +1454,14 @@ export class BeerCrusherEngine {
         activatedItem = target.itemKind;
       }
 
+      const scoreMultiplier = weaponKind === 'gatling' ? 0.5 : 1.0;
+      const feverMultiplier = weaponKind === 'gatling' ? 0.33 : 1.0;
+
       const hitInfo = this.scoreManager.registerHit(
         result.grade as Exclude<JudgmentGrade, 'MISS'>,
         killed ? target.killBonusScore : 0,
-        killed
+        killed,
+        { scoreMultiplier, feverMultiplier }
       );
 
       if (killed) {
