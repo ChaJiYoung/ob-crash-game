@@ -1,6 +1,6 @@
 # Task: T02 Random Minion Drop
 
-## Status: todo
+## Status: done
 
 ## Goal
 보스 부하를 보스 뒤가 아니라 필드 곳곳(반경 6~14m)에 무작위로 떨어뜨린다. 착지하기 전에는 맞힐 수도 움직일 수도 없다.
@@ -61,9 +61,9 @@
 
 
 ## Acceptance Criteria
-- [ ] 부하가 반경 6~14m, 화면 폭 안에 무작위로 소환된다.
-- [ ] 착지 전에는 맞지도 움직이지도 공격하지도 않는다.
-- [ ] 카드 선택·일시정지 중에는 낙하 시간이 줄지 않는다.
+- [x] 부하가 반경 6~14m, 화면 폭 안에 무작위로 소환된다.
+- [x] 착지 전에는 맞지도 움직이지도 공격하지도 않는다.
+- [x] 카드 선택·일시정지 중에는 낙하 시간이 줄지 않는다.
 
 ## Validation
 - `npx vitest run tests/boss-minion-drop.test.ts tests/boss-encounters.test.ts tests/monster-traits.test.ts` — 통과
@@ -84,6 +84,6 @@ Task: T02-random-minion-drop
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
