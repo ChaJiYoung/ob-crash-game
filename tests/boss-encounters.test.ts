@@ -211,7 +211,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(opposite).toBeGreaterThan(100);
     });
 
-    it('summons 4 minions every 8s (first after 2.5s), once per encounter even with two bosses', () => {
+    it('summons 4 minions per summon (first after 2.5s, gaps shrinking from 8s), once per encounter even with two bosses', () => {
       finishMiniWave(engine, 5, 100_000);
       let now = 100_000;
       const summons: { at: number; minions: number }[] = [];
@@ -229,11 +229,12 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       }
       expect(summons.length).toBeGreaterThanOrEqual(5);
       summons.forEach((sm) => expect(sm.minions).toBe(GAME_TUNING.boss.summonCount));
-      for (let i = 1; i < summons.length; i++) {
-        const gap = summons[i].at - summons[i - 1].at;
-        expect(gap).toBeGreaterThanOrEqual(GAME_TUNING.boss.summonIntervalMs - 60);
+      const gaps = summons.slice(1).map((sm, i) => sm.at - summons[i].at);
+      gaps.forEach((gap) => {
+        expect(gap).toBeGreaterThanOrEqual(GAME_TUNING.boss.summonAccel.minIntervalMs - 60);
         expect(gap).toBeLessThan(GAME_TUNING.boss.summonIntervalMs + 200);
-      }
+      });
+      expect(gaps[gaps.length - 1]).toBeLessThan(gaps[0]); // the fight drags on -> summons come faster
       // The very first summon arrives ~2.5s after the encounter spawned (once the bosses are in range)
       expect(summons[0].at - 100_000).toBeGreaterThanOrEqual(GAME_TUNING.boss.firstSummonDelayMs - 100);
     });

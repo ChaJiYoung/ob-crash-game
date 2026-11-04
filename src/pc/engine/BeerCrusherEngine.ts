@@ -155,6 +155,8 @@ export class BeerCrusherEngine {
 
   public readonly scoreManager = new ScoreAndFeverManager();
   /** Game-clock start of the current wave; null until the wave's first running tick (shifted by freezeTimers). */
+  /** Game-clock start of the current boss encounter (summon acceleration ramp); null outside one. */
+  public bossEncounterStartMs: number | null = null;
   private waveStartMs: number | null = null;
   public waveTimeBonusTotal = 0;
   public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
@@ -326,6 +328,7 @@ export class BeerCrusherEngine {
     this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
     this.precisionBonusApplied = 0;
     this.waveStartMs = null;
+    this.bossEncounterStartMs = null;
     this.waveTimeBonusTotal = 0;
     this.lastWaveClear = null;
     this.weaponSystem.reset();
@@ -360,6 +363,7 @@ export class BeerCrusherEngine {
     this.lastBossSummonTimeMs = 0;
     this.lastBossSummonHpThreshold = 45;
     this.waveStartMs = null;
+    this.bossEncounterStartMs = null;
   }
 
   public spawnWeaponSelectTargets(nowMs = 0): void {
@@ -927,6 +931,15 @@ export class BeerCrusherEngine {
     return itemEntity;
   }
 
+  /** Summon gap: shrinks linearly the longer the boss fight drags on (stalling gets more dangerous). */
+  public getBossSummonIntervalMs(nowMs: number): number {
+    const base = GAME_TUNING.boss.summonIntervalMs;
+    if (this.bossEncounterStartMs === null) return base;
+    const { minIntervalMs, rampMs } = GAME_TUNING.boss.summonAccel;
+    const t = Math.min(1, Math.max(0, (nowMs - this.bossEncounterStartMs) / rampMs));
+    return Math.round(base + (minIntervalMs - base) * t);
+  }
+
   public spawnBossMinionWave(nowMs: number, count = 4): ActiveTargetEntity[] {
     this.lastBossSummonTimeMs = nowMs;
     this.bossSummonActionUntilMs = nowMs + 1800;
@@ -974,6 +987,7 @@ export class BeerCrusherEngine {
     this.scoreManager.shiftFeverTimer(deltaMs);
     this.weaponSystem.shiftReloadTimer(deltaMs);
     if (this.waveStartMs !== null) this.waveStartMs += deltaMs;
+    if (this.bossEncounterStartMs !== null) this.bossEncounterStartMs += deltaMs;
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
     if (this.lastBossProjectileMs > 0) this.lastBossProjectileMs += deltaMs;
@@ -1217,7 +1231,7 @@ export class BeerCrusherEngine {
     // Boss encounter: one shared summon timer for the whole fight (no charging; bosses summon minions instead)
     if (this.isBossEncounterActive) {
       const inRange = this.getBossEntities().some((b) => b.radiusM <= GAME_TUNING.boss.summonRadiusM);
-      if (inRange && nowMs - this.lastBossSummonTimeMs >= GAME_TUNING.boss.summonIntervalMs) {
+      if (inRange && nowMs - this.lastBossSummonTimeMs >= this.getBossSummonIntervalMs(nowMs)) {
         const activeMinions = this.activeTargets.filter(
           (t) =>
             !t.isItem &&
@@ -1399,6 +1413,7 @@ export class BeerCrusherEngine {
     this.bossSpawned = true;
     this.isBossEncounterActive = true;
     this.bossWarningUntilMs = nowMs + 2000;
+    this.bossEncounterStartMs = nowMs;
     this.lastBossSummonTimeMs = nowMs - GAME_TUNING.boss.summonIntervalMs + GAME_TUNING.boss.firstSummonDelayMs;
     this.lastBossSummonHpThreshold = 0;
     this.bossShooterIndex = 0;
@@ -1504,6 +1519,7 @@ export class BeerCrusherEngine {
       if (target.bossRole === 'cooler') this.releaseKingShield();
       if (this.getBossEntities().length > 0) return; // other bosses remain
       this.isBossEncounterActive = false;
+      this.bossEncounterStartMs = null;
       this.activeTargets = [];
       this.isRewardCardPending = false;
       if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {

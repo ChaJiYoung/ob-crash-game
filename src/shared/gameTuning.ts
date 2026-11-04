@@ -82,6 +82,8 @@ export const GAME_TUNING = {
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
     summonDropChance: 0.20,
     summonIntervalMs: 8000,
+    /** 보스 조우가 길어질수록 소환 간격이 summonIntervalMs에서 minIntervalMs까지 rampMs에 걸쳐 선형으로 줄어든다. */
+    summonAccel: { minIntervalMs: 4000, rampMs: 40000 },
     summonCount: 4,
     summonMaxActive: 7,
     firstSummonDelayMs: 2500,
