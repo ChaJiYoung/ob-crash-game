@@ -54,6 +54,8 @@ export interface ActiveTargetEntity {
   // Boss king shield (invulnerable)
   isShielded?: boolean;
   isSummonedMinion?: boolean;
+  /** Boss minions fall in from above: untargetable and idle until this game-clock time. */
+  dropLandAtMs?: number;
   // Roguelike & Gimmick extensions
   stunUntilMs?: number;
   slowUntilMs?: number;
@@ -940,6 +942,26 @@ export class BeerCrusherEngine {
     return Math.round(base + (minIntervalMs - base) * t);
   }
 
+  /** False while a summoned minion is still falling in (it cannot be hit and does not act yet). */
+  public isTargetLanded(t: ActiveTargetEntity, nowMs: number): boolean {
+    return t.dropLandAtMs === undefined || nowMs >= t.dropLandAtMs;
+  }
+
+  /** Random landing spot across the field, not too close to the defense line and not on top of a sibling. */
+  private pickMinionDropSpot(placed: { x: number; z: number }[]): { theta: number; radius: number } {
+    const cfg = GAME_TUNING.boss.minionDrop;
+    let theta = 0;
+    let radius = cfg.minRadiusM;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      theta = (this.dropRng() * 2 - 1) * cfg.thetaRangeRad;
+      radius = cfg.minRadiusM + this.dropRng() * (cfg.maxRadiusM - cfg.minRadiusM);
+      const x = Math.sin(theta) * radius;
+      const z = -Math.cos(theta) * radius;
+      if (placed.every((p) => Math.hypot(p.x - x, p.z - z) >= cfg.minSeparationM)) break;
+    }
+    return { theta, radius };
+  }
+
   public spawnBossMinionWave(nowMs: number, count = 4): ActiveTargetEntity[] {
     this.lastBossSummonTimeMs = nowMs;
     this.bossSummonActionUntilMs = nowMs + 1800;
@@ -948,13 +970,16 @@ export class BeerCrusherEngine {
       ? waveBoss.summonKinds
       : ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'];
     const spawned: ActiveTargetEntity[] = [];
+    const placed: { x: number; z: number }[] = [];
 
     for (let i = 0; i < count; i++) {
       this.targetCounter += 1;
       const kind = kinds[Math.floor(this.dropRng() * kinds.length)];
       const spec = TARGET_SPECS[kind];
-      const theta = -0.42 + this.dropRng() * 0.84;
-      const radius = 11.5 + this.dropRng() * 3.0;
+      const { theta, radius } = this.pickMinionDropSpot(placed);
+      const x = Math.sin(theta) * radius;
+      const z = -Math.cos(theta) * radius;
+      placed.push({ x, z });
 
       const entity: ActiveTargetEntity = {
         id: `boss_minion_${this.targetCounter}_${kind}`,
@@ -964,13 +989,14 @@ export class BeerCrusherEngine {
         radiusM: radius,
         thetaRad: theta,
         initialThetaRad: theta,
-        x: Math.sin(theta) * radius,
-        z: -Math.cos(theta) * radius,
+        x,
+        z,
         speedMps: spec.speedMps * this.getWaveSpeedMultiplier(),
         hitRadiusM: spec.hitRadiusM,
         killBonusScore: spec.killBonusScore,
         breached: false,
         isSummonedMinion: true,
+        dropLandAtMs: nowMs + GAME_TUNING.boss.minionDrop.dropMs,
       };
       this.applyMonsterTraits(entity);
       this.activeTargets.push(entity);
@@ -996,6 +1022,7 @@ export class BeerCrusherEngine {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
       if (target.lastFireMs !== undefined) target.lastFireMs += deltaMs;
+      if (target.dropLandAtMs !== undefined) target.dropLandAtMs += deltaMs;
     }
   }
 
@@ -1053,6 +1080,18 @@ export class BeerCrusherEngine {
     // 1. Advance active targets radially
     for (let i = this.activeTargets.length - 1; i >= 0; i--) {
       const target = this.activeTargets[i];
+
+      // A minion still falling in does nothing yet; a caslight keeps its sway so it does not jump on landing
+      if (!this.isTargetLanded(target, nowMs)) {
+        if (target.kind === 'caslight' && target.initialThetaRad !== undefined) {
+          const { swayAmplitudeRad, swayFrequency } = GAME_TUNING.monsters.caslight;
+          target.thetaRad =
+            target.initialThetaRad + Math.sin(nowMs * swayFrequency + target.radiusM * 0.7) * swayAmplitudeRad;
+          target.x = Math.sin(target.thetaRad) * target.radiusM;
+          target.z = -Math.cos(target.thetaRad) * target.radiusM;
+        }
+        continue;
+      }
 
       // Check stun status
       const isStunned = target.stunUntilMs !== undefined && target.stunUntilMs > nowMs;
@@ -1119,7 +1158,7 @@ export class BeerCrusherEngine {
         }
       } else if (target.kind === 'hanmac' && isRegularPlay && isPlainMonster && next.radiusM <= GAME_TUNING.monsters.hanmac.stopRadiusM) {
         // Hanmac stops at range and bombards from its own position
-        const stopRadiusM = GAME_TUNING.monsters.hanmac.stopRadiusM;
+        const stopRadiusM = Math.min(GAME_TUNING.monsters.hanmac.stopRadiusM, target.radiusM); // a drop inside the stop radius stays put
         target.radiusM = stopRadiusM;
         target.x = Math.sin(target.thetaRad) * stopRadiusM;
         target.z = -Math.cos(target.thetaRad) * stopRadiusM;
@@ -1785,6 +1824,7 @@ export class BeerCrusherEngine {
 
     for (let i = 0; i < this.activeTargets.length; i++) {
       const target = this.activeTargets[i];
+      if (!this.isTargetLanded(target, nowMs)) continue;
       const proj = this.computeTargetAimCoords(target, wideScopeMult);
       // Aim x spans half the screen width per unit, so convert to the vertical unit to get a round zone.
       // The tutorial and sandbox keep the legacy (uncorrected) zone their guidance assumes.
@@ -1921,6 +1961,7 @@ export class BeerCrusherEngine {
                 !t.isGoldenCan &&
                 !t.isGuarding &&
                 !t.isShielded &&
+                this.isTargetLanded(t, nowMs) &&
                 t.radiusM > target.radiusM &&
                 Math.abs(t.thetaRad - target.thetaRad) <= 0.16
             )
@@ -2035,7 +2076,7 @@ export class BeerCrusherEngine {
 
     const affectedTargets: ActiveTargetEntity[] = [];
     const activeMonsters = this.activeTargets.filter(
-      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isProjectile && !t.isGoldenCan
+      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isProjectile && !t.isGoldenCan && this.isTargetLanded(t, nowMs)
     );
 
     if (weaponKind === 'shotgun') {
