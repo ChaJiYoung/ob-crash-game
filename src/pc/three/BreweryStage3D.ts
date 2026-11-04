@@ -4,7 +4,7 @@ import { STAGE_CONSTANTS } from '../../shared/constants';
 
 export interface BreweryStageRig {
   root: THREE.Group;
-  neonLights: THREE.PointLight[];
+  neonStrips: THREE.Mesh[];
   defenseArcMesh: THREE.Mesh;
   healPulseMesh: THREE.Mesh;
   triggerHealPulse: () => void;
@@ -310,8 +310,6 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
   });
 
   // 6. Upgraded Stage Lights & Directional Shadows
-  const neonLights: THREE.PointLight[] = [];
-
   // Soft Dual-tone Hemisphere Light (Warm ceiling sky, dark pub floor)
   const hemiLight = new THREE.HemisphereLight(0xfff0d8, 0x1e293b, 0.85);
   root.add(hemiLight);
@@ -332,53 +330,40 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
   mainDirLight.shadow.camera.bottom = -20;
   root.add(mainDirLight);
 
-  // Amber Neon Point Light (Optimized radius 15m)
-  const amberNeon = new THREE.PointLight(0xf59e0b, 2.6, 15);
-  amberNeon.position.set(0, 6, -14);
-  root.add(amberNeon);
-  neonLights.push(amberNeon);
+  // Emissive neon meshes replace the decorative point lights (D16): no per-pixel light cost.
+  const amberStripMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+  const amberStrip = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 0.12), amberStripMat);
+  amberStrip.position.set(0, 6, -14);
+  root.add(amberStrip);
 
-  // Cyan Neon Side Light (Optimized radius 12m)
-  const cyanNeon = new THREE.PointLight(0x06b6d4, 2.2, 12);
-  cyanNeon.position.set(-10, 5, -8);
-  root.add(cyanNeon);
-  neonLights.push(cyanNeon);
-
-  const cyanTubeMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.06, 3.2, 8),
-    new THREE.MeshBasicMaterial({ color: 0x06b6d4 })
-  );
+  const cyanTubeMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+  const cyanTubeMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.2, 8), cyanTubeMat);
   cyanTubeMesh.position.set(-10, 5, -8);
   root.add(cyanTubeMesh);
 
-  // Red/Gold Defense Alert Light (Optimized radius 8m)
-  const alertLight = new THREE.PointLight(0xef4444, 1.4, 8);
-  alertLight.position.set(0, 3, -2);
-  root.add(alertLight);
-  neonLights.push(alertLight);
+  const neonStrips: THREE.Mesh[] = [amberStrip, cyanTubeMesh];
 
   scene.add(root);
 
   const updateStageAnimation = (elapsedSec: number, isFeverActive: boolean, dangerAlert: boolean) => {
-    // Pulse neon lights
+    // Neon strips + hemisphere light carry the fever/danger mood (no point lights).
     if (isFeverActive) {
-      amberNeon.color.setHex(0xffd700);
-      amberNeon.intensity = 2.8 + Math.sin(elapsedSec * 4) * 0.4;
-      cyanNeon.color.setHex(0xf59e0b);
-      cyanNeon.intensity = 2.8;
+      amberStripMat.color.setHex(0xffd700);
+      cyanTubeMat.color.setHex(0xf59e0b);
+      hemiLight.color.setHex(0xffe08a);
+      hemiLight.intensity = 1.05 + Math.sin(elapsedSec * 4) * 0.1;
     } else {
-      amberNeon.color.setHex(0xf59e0b);
-      amberNeon.intensity = 2.4 + Math.sin(elapsedSec * 2) * 0.5;
-      cyanNeon.color.setHex(0x06b6d4);
-      cyanNeon.intensity = 2.0 + Math.cos(elapsedSec * 2.5) * 0.4;
+      amberStripMat.color.setHex(0xf59e0b);
+      cyanTubeMat.color.setHex(0x06b6d4);
+      hemiLight.color.setHex(0xfff0d8);
+      hemiLight.intensity = 0.85 + Math.sin(elapsedSec * 2) * 0.05;
     }
+    hemiLight.groundColor.setHex(dangerAlert ? 0x7f1d1d : 0x1e293b);
 
     if (dangerAlert) {
-      alertLight.intensity = 2.0 + Math.sin(elapsedSec * 6) * 0.6;
       neonRimMat.color.setHex(0xef4444);
       neonRimMat.opacity = 0.85 + Math.sin(elapsedSec * 6) * 0.1;
     } else {
-      alertLight.intensity = 0.6;
       neonRimMat.color.setHex(isFeverActive ? 0xffd700 : 0xf59e0b);
       neonRimMat.opacity = 0.80;
     }
@@ -399,7 +384,7 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
 
   return {
     root,
-    neonLights,
+    neonStrips,
     defenseArcMesh,
     healPulseMesh,
     triggerHealPulse,

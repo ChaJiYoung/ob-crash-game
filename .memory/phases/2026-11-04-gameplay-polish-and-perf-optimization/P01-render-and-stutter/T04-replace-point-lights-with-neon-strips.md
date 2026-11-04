@@ -1,6 +1,6 @@
 # Task: T04 Replace Point Lights with Neon Strips
 
-## Status: pending
+## Status: done
 
 ## Goal
 장식용 포인트 라이트 3개를 없애 PBR 재질의 픽셀 연산을 줄인다. 피버 전환과 위험 표시는 유지한다.
@@ -77,10 +77,10 @@
 - 조정 후에도 크게 다르면 커밋 전에 사용자에게 비교 이미지를 보여 주고 판단을 받는다.
 
 ## Acceptance Criteria
-- [ ] 스테이지에 포인트 라이트가 없다.
-- [ ] 피버 때 조명 색이 황금색으로 바뀐다.
-- [ ] 위험할 때 바닥 쪽 빛이 붉어지고 바닥선이 깜빡인다.
-- [ ] 전후 스크린샷의 분위기가 비슷하다.
+- [x] 스테이지에 포인트 라이트가 없다.
+- [x] 피버 때 조명 색이 황금색으로 바뀐다.
+- [x] 위험할 때 바닥 쪽 빛이 붉어지고 바닥선이 깜빡인다.
+- [x] 전후 스크린샷의 분위기가 비슷하다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts` — 통과
@@ -101,6 +101,6 @@ Task: T04-replace-point-lights-with-neon-strips
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: perf(stage): replace decorative point lights with neon strips

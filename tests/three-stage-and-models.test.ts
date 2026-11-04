@@ -141,7 +141,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(rig.root).toBeInstanceOf(THREE.Group);
     expect(rig.defenseArcMesh).toBeInstanceOf(THREE.Mesh);
     expect(rig.healPulseMesh).toBeInstanceOf(THREE.Mesh);
-    expect(rig.neonLights.length).toBeGreaterThanOrEqual(3);
+    expect(rig.neonStrips.length).toBeGreaterThanOrEqual(2);
 
     // Initial state: heal pulse invisible
     expect(rig.healPulseMesh.visible).toBe(false);
@@ -161,8 +161,10 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     rig.root.traverse((obj) => {
       if ((obj as THREE.Mesh).isMesh) {
         const mesh = obj as THREE.Mesh;
+        // A thin neon strip (height 0.12) is allowed; the removed sign was a thick untextured box.
         if (
           mesh.geometry instanceof THREE.BoxGeometry &&
+          mesh.geometry.parameters.height > 0.5 &&
           Math.abs(mesh.position.z - (-14.05)) < 0.2
         ) {
           hasAmberSignBox = true;
@@ -171,9 +173,30 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     });
     expect(hasAmberSignBox).toBe(false);
 
-    // Verify amberNeon point light is preserved
-    const amberLight = rig.neonLights.find((l) => l.color.getHex() === 0xf59e0b || l.color.getHex() === 0xffd700);
-    expect(amberLight).toBeDefined();
+    // Verify the amber neon strip replaced the amber point light (D16)
+    const amberStrip = rig.neonStrips.find((m) => {
+      const hex = (m.material as THREE.MeshBasicMaterial).color.getHex();
+      return hex === 0xf59e0b || hex === 0xffd700;
+    });
+    expect(amberStrip).toBeDefined();
+  });
+
+  it('should not contain any point lights and should switch strips to gold in fever (gameplay-polish P01-T04)', () => {
+    const scene = new THREE.Scene();
+    const rig = buildBreweryStage3D(scene);
+
+    let pointLights = 0;
+    rig.root.traverse((obj) => {
+      if ((obj as THREE.PointLight).isPointLight) pointLights++;
+    });
+    expect(pointLights).toBe(0);
+
+    rig.updateStageAnimation(1, true, false);
+    const amberMat = rig.neonStrips[0].material as THREE.MeshBasicMaterial;
+    expect(amberMat.color.getHex()).toBe(0xffd700);
+
+    rig.updateStageAnimation(1, false, false);
+    expect(amberMat.color.getHex()).toBe(0xf59e0b);
   });
 
   it('should handle DraftTapGun3D center mount, recoil, and aim updates', () => {
