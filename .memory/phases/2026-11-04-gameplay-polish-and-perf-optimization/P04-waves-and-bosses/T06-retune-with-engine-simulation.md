@@ -1,6 +1,6 @@
 # Task: T06 Retune with Engine Simulation
 
-## Status: pending
+## Status: done
 
 ## Goal
 시뮬레이터를 실제 구현된 엔진 기반으로 바꾸고, 보스전 시간과 무기 균형을 D14 기준에 맞춘다. 샷건의 첫 보스전이 3~5초로 너무 짧은 문제를 해결한다.
@@ -68,10 +68,10 @@
 - 스크립트의 벤치 대상 생성이 새 엔티티 구조와 맞는지 확인한다. 7웨이브 보스전 시나리오를 추가한다.
 
 ## Acceptance Criteria
-- [ ] I02 목표를 모두 만족하거나, 못 맞춘 항목을 수치와 함께 사용자에게 보고했다.
-- [ ] 시뮬레이터가 패치 없이 실제 엔진으로 동작한다.
-- [ ] 결과가 `out/balance-final.txt`에 저장되어 있다.
-- [ ] 보스전과 대왕 쉴드 상태에서도 렌더 기준을 만족한다.
+- [x] I02 목표를 모두 만족하거나, 못 맞춘 항목을 수치와 함께 사용자에게 보고했다.
+- [x] 시뮬레이터가 패치 없이 실제 엔진으로 동작한다.
+- [x] 결과가 `out/balance-final.txt`에 저장되어 있다.
+- [x] 보스전과 대왕 쉴드 상태에서도 렌더 기준을 만족한다.
 
 ## Validation
 - `npx tsx .memory/references/scripts/simulate-current-decisions.ts 60 > .memory/references/scripts/out/balance-final.txt` — 목표 충족
@@ -93,6 +93,6 @@ Task: T06-retune-with-engine-simulation
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: balance(game): retune bosses and weapons against the real engine

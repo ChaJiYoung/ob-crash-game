@@ -38,12 +38,12 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     expect(GAME_TUNING.waves.filter((w) => w.boss).map((w) => w.waveIndex)).toEqual([3, 5, 7]);
   });
 
-  it('spawns one 40hp cooler after the wave-3 mini-wave', () => {
+  it('spawns one 45hp cooler after the wave-3 mini-wave', () => {
     finishMiniWave(engine, 3, 1000);
     expect(engine.isBossEncounterActive).toBe(true);
     const b = bosses(engine);
     expect(b.length).toBe(1);
-    expect(b[0].hp).toBe(40);
+    expect(b[0].hp).toBe(45);
     expect(b[0].bossRole).toBe('cooler');
     expect(b[0].thetaRad).toBe(0);
     expect(b[0].radiusM).toBe(GAME_TUNING.boss.startRadiusM);
@@ -68,7 +68,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     finishMiniWave(engine, 5, 1000);
     const b = bosses(engine);
     expect(b.length).toBe(2);
-    expect(b.map((x) => x.hp)).toEqual([35, 35]);
+    expect(b.map((x) => x.hp)).toEqual([40, 40]);
     expect(b[0].thetaRad).not.toBe(b[1].thetaRad);
     expect(Math.abs(b[0].thetaRad)).toBeCloseTo(GAME_TUNING.boss.coolerSpreadRad, 5);
 
@@ -84,9 +84,9 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     finishMiniWave(engine, 7, 1000);
     const b = bosses(engine);
     expect(b.length).toBe(3);
-    expect(b.filter((x) => x.bossRole === 'cooler').map((x) => x.hp)).toEqual([45, 45]);
+    expect(b.filter((x) => x.bossRole === 'cooler').map((x) => x.hp)).toEqual([50, 50]);
     const king = b.find((x) => x.bossRole === 'king')!;
-    expect(king.hp).toBe(110);
+    expect(king.hp).toBe(120);
     expect(king.hitRadiusM).toBeCloseTo(2.1 * GAME_TUNING.boss.kingScale, 5);
 
     b.forEach((boss, i) => {
@@ -452,7 +452,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(snap.bosses.map((b) => b.role).sort()).toEqual(['cooler', 'cooler', 'king']);
       const king = snap.bosses.find((b) => b.role === 'king')!;
       expect(king.isShielded).toBe(true);
-      expect(king.hp).toBe(110);
+      expect(king.hp).toBe(120);
       expect(snap.isBossWarning).toBe(true);
       expect(buildHudSnapshot(engine, 103_000).isBossWarning).toBe(false);
     });

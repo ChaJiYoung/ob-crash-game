@@ -8,10 +8,10 @@
 | T03 | `done ✅` | 오비 방패병, 병맥주 분열 | [T03](./T03-obi-guard-and-bottle-split.md) |
 | T04 | `done ✅` | 보스 이동, 공유 소환, 대왕 쉴드 | [T04](./T04-boss-patterns-and-shield.md) |
 | T05 | `done ✅` | 부하로 피버·아이템 얻기, 대왕 모델, 보스 HUD와 경고 | [T05](./T05-boss-rewards-model-and-hud.md) |
-| T06 | `in_progress 🔵` | 실제 엔진 기반 시뮬레이션과 수치 재조정 | [T06](./T06-retune-with-engine-simulation.md) |
+| T06 | `done ✅` | 실제 엔진 기반 시뮬레이션과 수치 재조정 | [T06](./T06-retune-with-engine-simulation.md) |
 
 ## Progress
-- done: 5/6 (active: T06)
+- done: 6/6
 
 ## Phase Goal
 몬스터마다 대응법이 다르고, 보스가 세 번 나오며, 가운데만 쏴서는 깰 수 없는 게임으로 바꾼다. 마지막 Task에서 시뮬레이션으로 수치를 맞춰 Phase를 마무리한다.

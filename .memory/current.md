@@ -4,13 +4,13 @@
 [Gameplay Polish and Performance Optimization](./plans/2026-11-04-gameplay-polish-and-perf-optimization.md)
 
 ## Active Phase
-[P04 Waves and Bosses](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/phase.md)
+[P05 Docs and Verification](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P05-docs-and-verification/phase.md)
 
 ## Active Task
-[T06 Retune with Engine Simulation](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/T06-retune-with-engine-simulation.md)
+[T01 Update Automation Scripts](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P05-docs-and-verification/T01-update-automation-scripts.md)
 
 ## Status
-- T05 완료, T06 구현 시작 준비 완료
+- T06 완료, T01 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T06 청사진을 읽고 구현 시작
+T01 청사진을 읽고 구현 시작

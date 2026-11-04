@@ -141,6 +141,10 @@ await spike('A12_reward_cards_spawn_again', `()=>{ window.__engine.spawnWaveRewa
 await spike('A13_reward_cards_gone_again', `()=>{ const e=window.__engine; e.activeTargets=e.activeTargets.filter(t=>!t.rewardCardKind); e.isRewardCardPending=false; }`);
 const sk=(k)=>`()=>{ window.__particles.spawnSkillEffect('${k}',4,window.__engine.activeTargets.slice(0,12).map(t=>window.__targetMeshMap.get(t.id)?.position.clone()).filter(Boolean)); }`;
 for (const k of ['shotgun','revolver','gatling']) await spike(`A14_skill_${k}`, sk(k), 2200);
+await spike('A15_wave7_boss_encounter_with_king_shield', `()=>{ const e=window.__engine; e.startWave(7); e.activeTargets=[]; e.spawnedInWave=999; e.spawnBossEncounter(performance.now()); }`, 3000);
+await spike('A16_boss_minion_summon', `()=>{ window.__engine.spawnBossMinionWave(performance.now(), 4); }`, 2500);
+// Back to a clean wave-1 state with the bench cluster for the sustained-fire and natural-play sections
+await page.evaluate(()=>{ const e=window.__engine; e.startWave(1); e.activeTargets=window.__benchTargets(12); e.isBossEncounterActive=false; });
 await page.evaluate(()=>{ const eng=window.__engine; window.__keep=setInterval(()=>{ const w=eng.weaponSystem; w.ammo=w.getMaxAmmo(); w.isReloading=false; eng.isRewardCardPending=false; eng.isWeaponSelectPending=false; eng.activeTargets=eng.activeTargets.filter(t=>String(t.id).startsWith('bench_')); eng.lives=999; },25); });
 
 // --- B. Sustained fire (gatling Lv.4 / shotgun Lv.4 / fever), mouse-hold on a moving cluster

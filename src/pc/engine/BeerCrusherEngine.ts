@@ -1770,7 +1770,8 @@ export class BeerCrusherEngine {
         source === 'hold' && !isFever && !this.isTutorialMode && !this.isSandboxMode
           ? GAME_TUNING.fire.holdDamageByWeapon[weaponKind]
           : 1.0;
-      const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult * holdMult;
+      const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.damageScaleByWeapon[weaponKind] : 1.0;
+      const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult * holdMult * bossScale;
       let damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
 
       if (weaponKind === 'shotgun') {
