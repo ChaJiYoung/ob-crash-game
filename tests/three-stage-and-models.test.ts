@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as THREE from 'three';
 import { ItemBuffKind, TargetKind } from '../src/shared/types';
 import { buildBreweryStage3D } from '../src/pc/three/BreweryStage3D';
@@ -13,7 +13,9 @@ import {
   applyTargetHitFlash3D,
   getTargetBaseY,
   getSharedTargetResourceStats,
+  getOrCreateTargetLabelTexture,
 } from '../src/pc/three/TargetModels3D';
+import { buildShaderAnchorGroup } from '../src/pc/three/ShaderWarmup';
 import { DraftTapGun3D, createRealisticPlungerMesh } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
@@ -499,6 +501,39 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     const scales = fx.getActiveFlashScales();
     expect(scales.length).toBe(2);
     scales.forEach((s) => expect(s).toBeLessThan(0.2));
+  });
+
+  it('should keep shared label textures alive when a monster is disposed (gameplay-polish P01-T03)', () => {
+    const labelTex = getOrCreateTargetLabelTexture('pilgood');
+    expect(labelTex.userData.isShared).toBe(true);
+    const spy = vi.spyOn(labelTex, 'dispose');
+
+    const monster = createTargetMesh3D('pilgood');
+    disposeSceneGroup(monster);
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('should reuse card geometry and materials for the same card (gameplay-polish P01-T03)', () => {
+    const a = createCardTargetMesh3D('공격력 증가', '설명', '#f43f5e', '🔥');
+    const b = createCardTargetMesh3D('공격력 증가', '설명', '#f43f5e', '🔥');
+    const meshesA: THREE.Mesh[] = [];
+    const meshesB: THREE.Mesh[] = [];
+    a.traverse((o) => { if ((o as THREE.Mesh).isMesh) meshesA.push(o as THREE.Mesh); });
+    b.traverse((o) => { if ((o as THREE.Mesh).isMesh) meshesB.push(o as THREE.Mesh); });
+    expect(meshesA.length).toBe(meshesB.length);
+    meshesA.forEach((m, i) => {
+      expect(m.geometry).toBe(meshesB[i].geometry);
+      expect(m.material).toBe(meshesB[i].material);
+    });
+  });
+
+  it('should build a visible shader anchor group without throwing (gameplay-polish P01-T03)', () => {
+    const fx = new ParticleEffects3D();
+    const anchors = buildShaderAnchorGroup(fx);
+    expect(anchors.children.length).toBeGreaterThan(10);
+    anchors.traverse((o) => expect(o.visible).toBe(true));
   });
 
   it('should reuse cached geometries across 30 spawned monsters and preserve shared resources on dispose (P02-T02, T03)', () => {

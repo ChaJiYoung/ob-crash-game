@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 import { computeRenderPixelRatio } from '../three/renderBudget';
+import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
 import { BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
@@ -276,33 +277,49 @@ export const GameCanvas3D = React.memo(
       }
 
       // 2. Add Brewery Stage, Gun, and Particle pool
-      const stageRig: BreweryStageRig = buildBreweryStage3D(scene);
+      let disposed = false;
+      let shaderAnchors: THREE.Group | null = null;
+      let environmentReady = false;
+      let sceneReady = false;
+
+      // Pre-warm shaders after the HDRI is applied: the environment map changes the PBR shader
+      // variants, so warming up earlier would be wasted. The anchor group stays referenced
+      // (never disposed during play) so shader programs are not released.
+      const runShaderWarmup = () => {
+        if (!renderer || disposed || shaderAnchors) return;
+        if (typeof renderer.compile !== 'function') return;
+        try {
+          const anchors = buildShaderAnchorGroup(particles);
+          anchors.position.set(0, -999, 0);
+          scene.add(anchors);
+          renderer.compile(scene, camera);
+          anchors.traverse((obj) => {
+            const mat = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+            if (mat && !Array.isArray(mat) && mat.map) renderer!.initTexture(mat.map);
+          });
+          scene.remove(anchors);
+          shaderAnchors = anchors;
+        } catch {
+          // Headless / unsupported WebGL context fallback
+        }
+      };
+
+      const particles = new ParticleEffects3D();
+      particlesRef.current = particles;
+
+      const stageRig: BreweryStageRig = buildBreweryStage3D(scene, () => {
+        environmentReady = true;
+        if (sceneReady) runShaderWarmup();
+      });
       stageRigRef.current = stageRig;
       const tapGun = new DraftTapGun3D();
       tapGunRef.current = tapGun;
       camera.add(tapGun.group);
       scene.add(camera);
-
-      const particles = new ParticleEffects3D();
-      particlesRef.current = particles;
       scene.add(particles.group);
 
-      // Pre-warm shaders to prevent first-spawn and first-shot compilation stutter
-      if (renderer && typeof renderer.compile === 'function') {
-        try {
-          const warmupGroup = new THREE.Group();
-          warmupGroup.position.set(0, -999, 0);
-          const sampleMonster = createTargetMesh3D('pilgood');
-          const sampleItem = createItemMesh3D('power_shot');
-          warmupGroup.add(sampleMonster, sampleItem);
-          scene.add(warmupGroup);
-          renderer.compile(scene, camera);
-          scene.remove(warmupGroup);
-          disposeSceneGroup(warmupGroup);
-        } catch {
-          // Headless / unsupported WebGL context fallback
-        }
-      }
+      sceneReady = true;
+      if (environmentReady) runShaderWarmup();
 
       // 3. Target meshes map
       const targetMeshMap = targetMeshMapRef.current;
@@ -637,6 +654,7 @@ export const GameCanvas3D = React.memo(
           cancelAnimationFrame(animId);
           animId = 0;
         }
+        disposed = true;
         stopMouseHold();
         window.removeEventListener('resize', handleResize);
         container.removeEventListener('mousemove', handleMouseMove);
@@ -652,6 +670,11 @@ export const GameCanvas3D = React.memo(
           disposeSceneGroup(mesh);
         });
         targetMeshMap.clear();
+
+        if (shaderAnchors) {
+          disposeSceneGroup(shaderAnchors);
+          shaderAnchors = null;
+        }
 
         // Resource cleanup
         if (renderer && renderer.domElement && container.contains(renderer.domElement)) {

@@ -882,6 +882,40 @@ export class ParticleEffects3D {
     this.skillEffects = [];
   }
 
+  /**
+   * 셰이더 예열용 샘플. 실제 이펙트가 쓰는 재질 종류(투명 Basic, Standard, Sprite)를 한 개씩 담는다.
+   * 호출자는 이 객체를 앵커로 살려 두어 셰이더 프로그램이 해제되지 않게 해야 한다.
+   */
+  public createWarmupObjects(): THREE.Object3D[] {
+    const objs: THREE.Object3D[] = [];
+    const tracerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false });
+    objs.push(new THREE.Mesh(this.unitTracerGeo, tracerMat));
+    objs.push(new THREE.Mesh(this.unitFlashGeo, tracerMat));
+    objs.push(new THREE.Mesh(this.revolverBoltGeo, this.revolverMat));
+    objs.push(new THREE.Mesh(this.gatlingBubbleGeo, this.gatlingMat));
+    objs.push(new THREE.Mesh(this.bottleCapGeo, this.bottleCapMat));
+    objs.push(new THREE.Mesh(this.beerDropGeo, this.beerMat));
+    objs.push(new THREE.Mesh(this.foamGeo, this.foamMat));
+    objs.push(new THREE.Mesh(this.shardGeo, this.getMaterial('#ffffff')));
+    objs.push(createRealisticPlungerMesh(0.28));
+
+    const skillGold = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      emissive: 0xf59e0b,
+      emissiveIntensity: 1.5,
+      metalness: 0.95,
+      roughness: 0.1,
+    });
+    objs.push(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.02, 6, 8), skillGold));
+    const skillFoam = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.42 });
+    objs.push(new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), skillFoam));
+
+    const labelTex = this.getOrCreateFloatingLabelTexture('power_shot');
+    labelTex.userData.isShared = true;
+    objs.push(new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthWrite: false })));
+    return objs;
+  }
+
   public getActiveFlashScales(): number[] {
     return this.tracerBeams.map((tb) => tb.flashMesh.scale.x);
   }

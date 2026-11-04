@@ -13,13 +13,25 @@ export interface BreweryStageRig {
 
 let cachedHdriTexture: THREE.DataTexture | null = null;
 let hdriLoadCallbacks: Array<(tex: THREE.DataTexture) => void> | null = null;
+let hdriFailureCallbacks: Array<() => void> = [];
 
-export function applyCachedHdriToScene(scene: THREE.Scene): void {
-  if (cachedHdriTexture) {
-    scene.environment = cachedHdriTexture;
-    scene.background = cachedHdriTexture;
+export function applyCachedHdriToScene(scene: THREE.Scene, onReady?: () => void): void {
+  let notified = false;
+  const notify = () => {
+    if (notified) return;
+    notified = true;
+    onReady?.();
+  };
+  const applyTexture = (texture: THREE.DataTexture) => {
+    scene.environment = texture;
+    scene.background = texture;
     scene.backgroundBlurriness = 0.08;
     scene.backgroundIntensity = 0.72;
+  };
+
+  if (cachedHdriTexture) {
+    applyTexture(cachedHdriTexture);
+    notify();
     return;
   }
 
@@ -27,22 +39,27 @@ export function applyCachedHdriToScene(scene: THREE.Scene): void {
 
   if (hdriLoadCallbacks !== null) {
     hdriLoadCallbacks.push((texture) => {
-      scene.environment = texture;
-      scene.background = texture;
-      scene.backgroundBlurriness = 0.08;
-      scene.backgroundIntensity = 0.72;
+      applyTexture(texture);
+      notify();
     });
+    hdriFailureCallbacks.push(notify);
     return;
   }
 
   hdriLoadCallbacks = [
     (texture) => {
-      scene.environment = texture;
-      scene.background = texture;
-      scene.backgroundBlurriness = 0.08;
-      scene.backgroundIntensity = 0.72;
+      applyTexture(texture);
+      notify();
     },
   ];
+  hdriFailureCallbacks = [notify];
+
+  const fail = () => {
+    hdriLoadCallbacks = null;
+    const cbs = hdriFailureCallbacks;
+    hdriFailureCallbacks = [];
+    cbs.forEach((cb) => cb());
+  };
 
   try {
     const rgbeLoader = new RGBELoader();
@@ -53,17 +70,18 @@ export function applyCachedHdriToScene(scene: THREE.Scene): void {
         cachedHdriTexture = texture;
         const cbs = hdriLoadCallbacks || [];
         hdriLoadCallbacks = null;
+        hdriFailureCallbacks = [];
         cbs.forEach((cb) => cb(texture));
       },
       undefined,
       (err) => {
         console.warn('Failed to load HDRI texture, using canvas fallback:', err);
-        hdriLoadCallbacks = null;
+        fail();
       }
     );
   } catch (err) {
     console.warn('RGBELoader failed to initialize:', err);
-    hdriLoadCallbacks = null;
+    fail();
   }
 }
 
@@ -100,7 +118,7 @@ export function createHazardStripeTexture(): THREE.Texture {
   return tex;
 }
 
-export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
+export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () => void): BreweryStageRig {
   const root = new THREE.Group();
   root.name = 'BreweryStage3D';
 
@@ -129,7 +147,7 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   }
 
   // Load Real CC0 2K Pub HDRI Environment in Browser (Singleton cached)
-  applyCachedHdriToScene(scene);
+  applyCachedHdriToScene(scene, onEnvironmentReady);
 
   // 2. Warm Brewery Wooden Floor (100m x 100m)
   const floorGeo = new THREE.PlaneGeometry(100, 100, 32, 32);

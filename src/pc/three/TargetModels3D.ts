@@ -4,6 +4,13 @@ import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { createRealisticPlungerMesh } from './DraftTapGun3D';
 
 const labelTextureCache = new Map<string, THREE.Texture>();
+
+/** 공유 텍스처는 몬스터가 사라질 때 dispose되지 않도록 표시한다. */
+function markShared<T extends THREE.Texture>(tex: T): T {
+  tex.userData.isShared = true;
+  return tex;
+}
+
 let officialCassTexture: THREE.Texture | null = null;
 
 const targetGeometryCache = new Map<string, THREE.BufferGeometry>();
@@ -48,7 +55,7 @@ export function getOrCreateOfficialCassTexture(): THREE.Texture {
 
   if (typeof document === 'undefined') {
     const fallback = createDataTextureFallback('#004b91');
-    officialCassTexture = fallback;
+    officialCassTexture = markShared(fallback);
     return fallback;
   }
 
@@ -63,11 +70,11 @@ export function getOrCreateOfficialCassTexture(): THREE.Texture {
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
-    officialCassTexture = texture;
+    officialCassTexture = markShared(texture);
     return texture;
   } catch {
     const fallback = createDataTextureFallback('#004b91');
-    officialCassTexture = fallback;
+    officialCassTexture = markShared(fallback);
     return fallback;
   }
 }
@@ -100,7 +107,7 @@ export function getOrCreateTargetLabelTexture(kind: TargetKind | 'bottle-neck'):
 
   if (typeof document === 'undefined') {
     const fallback = createDataTextureFallback(spec.brandColorHex);
-    labelTextureCache.set(kind, fallback);
+    labelTextureCache.set(kind, markShared(fallback));
     return fallback;
   }
 
@@ -111,7 +118,7 @@ export function getOrCreateTargetLabelTexture(kind: TargetKind | 'bottle-neck'):
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       const fallback = createDataTextureFallback(spec.brandColorHex);
-      labelTextureCache.set(kind, fallback);
+      labelTextureCache.set(kind, markShared(fallback));
       return fallback;
     }
 
@@ -160,11 +167,11 @@ export function getOrCreateTargetLabelTexture(kind: TargetKind | 'bottle-neck'):
       }
     }
 
-    labelTextureCache.set(kind, texture);
+    labelTextureCache.set(kind, markShared(texture));
     return texture;
   } catch {
     const fallback = createDataTextureFallback(spec.brandColorHex);
-    labelTextureCache.set(kind, fallback);
+    labelTextureCache.set(kind, markShared(fallback));
     return fallback;
   }
 }
@@ -182,7 +189,7 @@ export function getOrCreateItemBillboardTexture(itemKind: ItemBuffKind): THREE.T
 
   if (typeof document === 'undefined') {
     const fallback = createDataTextureFallback(colorHex);
-    itemBillboardCache.set(itemKind, fallback);
+    itemBillboardCache.set(itemKind, markShared(fallback));
     return fallback;
   }
 
@@ -193,7 +200,7 @@ export function getOrCreateItemBillboardTexture(itemKind: ItemBuffKind): THREE.T
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       const fallback = createDataTextureFallback(colorHex);
-      itemBillboardCache.set(itemKind, fallback);
+      itemBillboardCache.set(itemKind, markShared(fallback));
       return fallback;
     }
 
@@ -222,11 +229,11 @@ export function getOrCreateItemBillboardTexture(itemKind: ItemBuffKind): THREE.T
     ctx.fillText(labelText, 256, 64);
 
     const texture = new THREE.CanvasTexture(canvas);
-    itemBillboardCache.set(itemKind, texture);
+    itemBillboardCache.set(itemKind, markShared(texture));
     return texture;
   } catch {
     const fallback = createDataTextureFallback(colorHex);
-    itemBillboardCache.set(itemKind, fallback);
+    itemBillboardCache.set(itemKind, markShared(fallback));
     return fallback;
   }
 }
@@ -1058,6 +1065,115 @@ export function createProjectileMesh3D(): THREE.Group {
   return root;
 }
 
+const cardTextureCache = new Map<string, THREE.CanvasTexture>();
+
+/** 카드 텍스처는 종류별로 한 번만 그려 재사용한다. (key: title|subtitle|colorHex|icon) */
+function getOrCreateCardTexture(
+  title: string,
+  subtitle: string,
+  colorHex: string,
+  icon: string
+): THREE.CanvasTexture | null {
+  const key = `${title}|${subtitle}|${colorHex}|${icon}`;
+  const cached = cardTextureCache.get(key);
+  if (cached) return cached;
+  const tex = drawCardTexture(title, subtitle, colorHex, icon);
+  if (tex) cardTextureCache.set(key, tex);
+  return tex;
+}
+
+function drawCardTexture(
+  title: string,
+  subtitle: string,
+  colorHex: string,
+  icon: string
+): THREE.CanvasTexture | null {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 680;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const safeRoundRect = (
+      context: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      r: number
+    ) => {
+      if (typeof context.roundRect === 'function') {
+        context.roundRect(x, y, w, h, r);
+      } else {
+        context.rect(x, y, w, h);
+      }
+    };
+
+    // Card background
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, 680);
+    bgGrad.addColorStop(0, '#0f172a');
+    bgGrad.addColorStop(0.5, '#1e293b');
+    bgGrad.addColorStop(1, '#090d16');
+    ctx.fillStyle = bgGrad;
+    ctx.beginPath();
+    safeRoundRect(ctx, 16, 16, 480, 648, 28);
+    ctx.fill();
+
+    // Neon Border
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = colorHex;
+    ctx.shadowColor = colorHex;
+    ctx.shadowBlur = 18;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Header Glow Icon
+    ctx.font = '96px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(icon, 256, 140);
+
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px sans-serif';
+    ctx.fillText(title, 256, 225);
+
+    // Divider Line
+    ctx.strokeStyle = colorHex;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(50, 255);
+    ctx.lineTo(462, 255);
+    ctx.stroke();
+
+    // Subtitle / Description
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '500 28px sans-serif';
+    const subLines = subtitle.split('\n');
+    subLines.forEach((line, idx) => {
+      ctx.fillText(line, 256, 315 + idx * 42);
+    });
+
+    // Shoot to Select Button Badge
+    const btnGrad = ctx.createLinearGradient(0, 500, 0, 600);
+    btnGrad.addColorStop(0, colorHex);
+    btnGrad.addColorStop(1, '#0284c7');
+    ctx.fillStyle = btnGrad;
+    ctx.beginPath();
+    safeRoundRect(ctx, 48, 500, 416, 96, 24);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText('🎯 SHOOT TO SELECT', 256, 560);
+  }
+
+  const canvasTexture = new THREE.CanvasTexture(canvas);
+  canvasTexture.colorSpace = THREE.SRGBColorSpace;
+  canvasTexture.userData.isShared = true;
+  canvasTexture.needsUpdate = true;
+  return canvasTexture;
+}
+
 /**
  * 🃏 Procedural 3D Holographic Shoot-to-Select Card Target Mesh
  */
@@ -1073,113 +1189,39 @@ export function createCardTargetMesh3D(
   const inner = new THREE.Group();
   root.add(inner);
 
-  // 1. Holographic Dynamic Canvas Texture (safe in Node.js headless environment)
-  let canvasTexture: THREE.CanvasTexture | null = null;
-  if (typeof document !== 'undefined') {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 680;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      const safeRoundRect = (
-        context: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        r: number
-      ) => {
-        if (typeof context.roundRect === 'function') {
-          context.roundRect(x, y, w, h, r);
-        } else {
-          context.rect(x, y, w, h);
-        }
-      };
+  const canvasTexture = getOrCreateCardTexture(title, subtitle, colorHex, icon);
+  const textureKey = `${title}|${subtitle}|${colorHex}|${icon}`;
 
-      // Card background
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, 680);
-      bgGrad.addColorStop(0, '#0f172a');
-      bgGrad.addColorStop(0.5, '#1e293b');
-      bgGrad.addColorStop(1, '#090d16');
-      ctx.fillStyle = bgGrad;
-      ctx.beginPath();
-      safeRoundRect(ctx, 16, 16, 480, 648, 28);
-      ctx.fill();
-
-      // Neon Border
-      ctx.lineWidth = 10;
-      ctx.strokeStyle = colorHex;
-      ctx.shadowColor = colorHex;
-      ctx.shadowBlur = 18;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Header Glow Icon
-      ctx.font = '96px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(icon, 256, 140);
-
-      // Title
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 44px sans-serif';
-      ctx.fillText(title, 256, 225);
-
-      // Divider Line
-      ctx.strokeStyle = colorHex;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(50, 255);
-      ctx.lineTo(462, 255);
-      ctx.stroke();
-
-      // Subtitle / Description
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '500 28px sans-serif';
-      const subLines = subtitle.split('\n');
-      subLines.forEach((line, idx) => {
-        ctx.fillText(line, 256, 315 + idx * 42);
-      });
-
-      // Shoot to Select Button Badge
-      const btnGrad = ctx.createLinearGradient(0, 500, 0, 600);
-      btnGrad.addColorStop(0, colorHex);
-      btnGrad.addColorStop(1, '#0284c7');
-      ctx.fillStyle = btnGrad;
-      ctx.beginPath();
-      safeRoundRect(ctx, 48, 500, 416, 96, 24);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 32px sans-serif';
-      ctx.fillText('🎯 SHOOT TO SELECT', 256, 560);
-    }
-
-    canvasTexture = new THREE.CanvasTexture(canvas);
-    canvasTexture.colorSpace = THREE.SRGBColorSpace;
-    canvasTexture.needsUpdate = true;
-  }
-
-  const cardMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(colorHex),
-    emissive: new THREE.Color(colorHex),
-    emissiveIntensity: 0.85,
-    metalness: 0.8,
-    roughness: 0.2,
-  });
-  const cardFrame = new THREE.Mesh(new THREE.BoxGeometry(1.80, 2.40, 0.08), cardMat);
+  const cardMat = getCachedMaterial(`card-frame-mat-${colorHex}`, () =>
+    new THREE.MeshStandardMaterial({
+      color: new THREE.Color(colorHex),
+      emissive: new THREE.Color(colorHex),
+      emissiveIntensity: 0.85,
+      metalness: 0.8,
+      roughness: 0.2,
+    })
+  );
+  const cardFrame = new THREE.Mesh(
+    getCachedGeometry('card-frame-geo', () => new THREE.BoxGeometry(1.80, 2.40, 0.08)),
+    cardMat
+  );
   inner.add(cardFrame);
 
   // Outer Neon Frame for High Visibility in Dark HDRI
-  const borderMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(colorHex) });
+  const borderMat = getCachedMaterial(`card-border-mat-${colorHex}`, () =>
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(colorHex) })
+  );
   const borderThickness = 0.04;
   const borderDepth = 0.09;
-  const topBar = new THREE.Mesh(new THREE.BoxGeometry(1.82, borderThickness, borderDepth), borderMat);
+  const borderHGeo = getCachedGeometry('card-border-h-geo', () => new THREE.BoxGeometry(1.82, borderThickness, borderDepth));
+  const borderVGeo = getCachedGeometry('card-border-v-geo', () => new THREE.BoxGeometry(borderThickness, 2.40, borderDepth));
+  const topBar = new THREE.Mesh(borderHGeo, borderMat);
   topBar.position.set(0, 1.20, 0);
-  const btmBar = new THREE.Mesh(new THREE.BoxGeometry(1.82, borderThickness, borderDepth), borderMat);
+  const btmBar = new THREE.Mesh(borderHGeo, borderMat);
   btmBar.position.set(0, -1.20, 0);
-  const leftBar = new THREE.Mesh(new THREE.BoxGeometry(borderThickness, 2.40, borderDepth), borderMat);
+  const leftBar = new THREE.Mesh(borderVGeo, borderMat);
   leftBar.position.set(-0.90, 0, 0);
-  const rightBar = new THREE.Mesh(new THREE.BoxGeometry(borderThickness, 2.40, borderDepth), borderMat);
+  const rightBar = new THREE.Mesh(borderVGeo, borderMat);
   rightBar.position.set(0.90, 0, 0);
 
   const borderGroup = new THREE.Group();
@@ -1188,14 +1230,17 @@ export function createCardTargetMesh3D(
   inner.add(borderGroup);
 
   // Card Front Face (z = 0.048 to prevent z-fighting with cardFrame)
-  const frontPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.74, 2.34),
+  const frontMat = getCachedMaterial(`card-front-mat-${textureKey}`, () =>
     new THREE.MeshBasicMaterial({
       map: canvasTexture,
       transparent: true,
       side: THREE.DoubleSide,
       color: canvasTexture ? 0xffffff : new THREE.Color(colorHex),
     })
+  );
+  const frontPlane = new THREE.Mesh(
+    getCachedGeometry('card-front-geo', () => new THREE.PlaneGeometry(1.74, 2.34)),
+    frontMat
   );
   frontPlane.position.z = 0.048;
   inner.add(frontPlane);

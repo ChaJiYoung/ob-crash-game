@@ -1,6 +1,6 @@
 # Task: T03 Keep Shaders and Shared Textures Alive
 
-## Status: pending
+## Status: done
 
 ## Goal
 플레이 중 셰이더 재생성과 공유 텍스처 재업로드를 없애 0.6~2초 멈춤과 카드 등장 시 0.57초 멈춤을 해결한다.
@@ -107,9 +107,9 @@
 - 기존 "비공유 머티리얼은 dispose된다" 테스트는 그대로 통과해야 한다.
 
 ## Acceptance Criteria
-- [ ] 몬스터가 모두 죽은 뒤 다시 나와도 멈춤이 없다.
-- [ ] 카드가 두 번째부터 끊김 없이 나타난다.
-- [ ] 처치할 때 라벨 텍스처가 다시 올라가지 않는다.
+- [x] 몬스터가 모두 죽은 뒤 다시 나와도 멈춤이 없다.
+- [x] 카드가 두 번째부터 끊김 없이 나타난다.
+- [x] 처치할 때 라벨 텍스처가 다시 올라가지 않는다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts` — 통과
@@ -131,6 +131,6 @@ Task: T03-keep-shaders-and-shared-textures-alive
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: perf(render): keep shader programs and shared textures alive during play
