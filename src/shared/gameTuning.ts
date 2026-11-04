@@ -20,4 +20,14 @@ export const GAME_TUNING = {
   },
   weaponDamageScale: { shotgun: 1.2, revolver: 1.0, gatling: 2.0 },
   gatlingMaxAmmoByLevel: { 1: 13, 2: 15, 3: 20, 4: 25 },
+  cards: {
+    damageUp: { amount: 0.1, maxStacks: 3 },
+    skillCooldown: { multiplier: 0.9, maxStacks: 3 },
+    feverExtend: { amountMs: 500, maxStacks: 3 },
+    hitZoneUp: { amount: 0.05, maxStacks: 2 },
+    rapidReloadMaxStacks: 3,
+    luckyDropMaxStacks: 3,
+  },
+  /** 웨이브별 무기 레벨 상한. 무기 MAX(Lv.4)는 5웨이브부터. */
+  weaponLevelCapByWave: { 1: 2, 2: 3, 3: 3, 4: 3, 5: 4, 6: 4, 7: 4 },
 } as const;

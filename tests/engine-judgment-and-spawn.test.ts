@@ -662,8 +662,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(engine.isRewardCardPending).toBe(true);
     expect(engine.activeTargets.length).toBe(3);
 
-    const lvlUpCard = engine.activeTargets.find((t) => t.rewardCardKind === 'weapon_level_up')!;
-    const projCard = engine.computeTargetAimCoords(lvlUpCard);
+    // Cards are drawn at random from the pool, so shoot whichever card is first
+    const pickedCard = engine.activeTargets[0];
+    const pickedKind = pickedCard.rewardCardKind!;
+    const projCard = engine.computeTargetAimCoords(pickedCard);
     // Within 800ms grace period (2100 - 2000 = 100ms): shot should be ignored to prevent spam misclicks
     const earlyShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2100);
     expect(earlyShot.fired).toBe(false);
@@ -673,10 +675,13 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     // After 800ms grace period (2900 - 2000 = 900ms): card is successfully selected!
     const cardShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2900);
     expect(cardShot.fired).toBe(true);
-    expect(cardShot.selectedCard).toBe('weapon_level_up');
-    expect(engine.weaponSystem.getState().weaponLevel).toBe(2); // Upgraded!
+    expect(cardShot.selectedCard).toBe(pickedKind);
     expect(engine.isRewardCardPending).toBe(false);
     expect(engine.currentWave).toBe(2); // Advanced to wave 2!
+    // The card draw is random, so check the level-up effect directly and relative to the current level
+    const levelBefore = engine.weaponSystem.getState().weaponLevel;
+    engine.applyRewardCard('weapon_level_up', 2950);
+    expect(engine.weaponSystem.getState().weaponLevel).toBe(Math.min(4, levelBefore + 1));
 
     // 3. Golden Can Bonus
     const goldenCan = engine.spawnGoldenCanTarget(3000);

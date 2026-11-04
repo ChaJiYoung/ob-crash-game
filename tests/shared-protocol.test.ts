@@ -132,14 +132,20 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(gat.levels[4].skillArcDeg).toBe(160);
   });
 
-  it('should define 5 shoot-to-select reward card specs (D01, D06)', () => {
-    const cardKinds: RewardCardKind[] = ['weapon_level_up', 'rapid_reload', 'bar_repair', 'fever_boost', 'lucky_drop'];
+  it('should define 9 shoot-to-select reward card specs (D08)', () => {
+    const cardKinds: RewardCardKind[] = [
+      'weapon_level_up', 'rapid_reload', 'bar_repair', 'fever_boost', 'lucky_drop',
+      'damage_up', 'skill_cooldown', 'fever_extend', 'hit_zone_up',
+    ];
+    expect(Object.keys(REWARD_CARD_SPECS).length).toBe(9);
     cardKinds.forEach((k) => {
       expect(REWARD_CARD_SPECS[k]).toBeDefined();
       expect(REWARD_CARD_SPECS[k].kind).toBe(k);
       expect(REWARD_CARD_SPECS[k].nameKo.length).toBeGreaterThan(0);
       expect(REWARD_CARD_SPECS[k].badgeText.length).toBeGreaterThan(0);
       expect(REWARD_CARD_SPECS[k].colorHex).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(REWARD_CARD_SPECS[k].cardSubtitleKo.length).toBeGreaterThan(0);
+      expect(REWARD_CARD_SPECS[k].icon.length).toBeGreaterThan(0);
     });
   });
 

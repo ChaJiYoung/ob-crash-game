@@ -3,7 +3,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 7웨이브 표, 미니웨이브 후 보스, 다수 보스 승리 조건, 넉백 면역 | [T01](./T01-seven-waves-and-boss-encounters.md) |
+| T01 | `in_progress 🔵` | 7웨이브 표, 미니웨이브 후 보스, 다수 보스 승리 조건, 넉백 면역 | [T01](./T01-seven-waves-and-boss-encounters.md) |
 | T02 | `pending` | 필굿 돌격, 카스 라이트 회피, 한맥 포격 | [T02](./T02-monster-movement-and-artillery.md) |
 | T03 | `pending` | 오비 방패병, 병맥주 분열 | [T03](./T03-obi-guard-and-bottle-split.md) |
 | T04 | `pending` | 보스 이동, 공유 소환, 대왕 쉴드 | [T04](./T04-boss-patterns-and-shield.md) |

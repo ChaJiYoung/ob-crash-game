@@ -27,6 +27,7 @@ export class WeaponSystem {
   private hasRapidReloadBuff = false;
   private rapidReloadStacks = 0;
   private damageBonusMultiplier = 1.0;
+  private skillCooldownScale = 1.0;
 
   // Active Skill State
   private skillStock = 1;
@@ -64,7 +65,19 @@ export class WeaponSystem {
   }
 
   public getSkillCooldownTotalMs(): number {
-    return this.getCurrentLevelSpec().skillCooldownMs;
+    return Math.round(this.getCurrentLevelSpec().skillCooldownMs * this.skillCooldownScale);
+  }
+
+  public addDamageBonus(amount: number): void {
+    this.damageBonusMultiplier = Number((this.damageBonusMultiplier + amount).toFixed(2));
+  }
+
+  public setSkillCooldownScale(scale: number): void {
+    this.skillCooldownScale = scale;
+  }
+
+  public getRapidReloadStacks(): number {
+    return this.rapidReloadStacks;
   }
 
   public getDamageBonusMultiplier(): number {
@@ -254,6 +267,7 @@ export class WeaponSystem {
     this.hasRapidReloadBuff = false;
     this.rapidReloadStacks = 0;
     this.damageBonusMultiplier = 1.0;
+    this.skillCooldownScale = 1.0;
     this.ammo = this.getMaxAmmo();
     this.isReloading = false;
     this.reloadEndTimeMs = 0;

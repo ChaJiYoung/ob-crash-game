@@ -5,7 +5,16 @@ export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'SANDBO
 
 export type WeaponKind = 'shotgun' | 'revolver' | 'gatling';
 export type WeaponLevel = 1 | 2 | 3 | 4;
-export type RewardCardKind = 'weapon_level_up' | 'rapid_reload' | 'bar_repair' | 'fever_boost' | 'lucky_drop';
+export type RewardCardKind =
+  | 'weapon_level_up'
+  | 'rapid_reload'
+  | 'bar_repair'
+  | 'fever_boost'
+  | 'lucky_drop'
+  | 'damage_up'
+  | 'skill_cooldown'
+  | 'fever_extend'
+  | 'hit_zone_up';
 
 export interface WeaponLevelSpec {
   level: WeaponLevel;
@@ -50,6 +59,9 @@ export interface RewardCardSpec {
   badgeText: string;
   colorHex: string;
   descriptionKo: string;
+  /** 3D 카드에 두 줄로 표시하는 문구(\n 포함). */
+  cardSubtitleKo: string;
+  icon: string;
 }
 
 export type TutorialStep = 1 | 2 | 3 | 'COMPLETED';

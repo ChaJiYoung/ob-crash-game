@@ -14,6 +14,7 @@ export class ScoreAndFeverManager {
   private isFeverReady = false;
   private isFeverActive = false;
   private feverEndTimeMs = 0;
+  private feverDurationBonusMs = 0;
   private feverBaseCombo = 0;
   private lastHitCombo = 0;
 
@@ -93,7 +94,7 @@ export class ScoreAndFeverManager {
 
     this.isFeverActive = true;
     this.isFeverReady = false;
-    this.feverEndTimeMs = nowMs + FEVER_CONSTANTS.DURATION_MS;
+    this.feverEndTimeMs = nowMs + this.getFeverDurationMs();
     this.feverBaseCombo = Math.max(this.combo, this.lastHitCombo);
     this.combo = this.feverBaseCombo;
     return true;
@@ -108,9 +109,17 @@ export class ScoreAndFeverManager {
       } else {
         // Decrease gauge smoothly for UI
         const remainMs = Math.max(0, this.feverEndTimeMs - nowMs);
-        this.feverGauge = Math.round((remainMs / FEVER_CONSTANTS.DURATION_MS) * 100);
+        this.feverGauge = Math.round((remainMs / this.getFeverDurationMs()) * 100);
       }
     }
+  }
+
+  public getFeverDurationMs(): number {
+    return FEVER_CONSTANTS.DURATION_MS + this.feverDurationBonusMs;
+  }
+
+  public setFeverDurationBonusMs(ms: number): void {
+    this.feverDurationBonusMs = ms;
   }
 
   public shiftFeverTimer(deltaMs: number): void {
@@ -153,6 +162,7 @@ export class ScoreAndFeverManager {
     this.isFeverReady = false;
     this.isFeverActive = false;
     this.feverEndTimeMs = 0;
+    this.feverDurationBonusMs = 0;
     this.feverBaseCombo = 0;
     this.lastHitCombo = 0;
   }

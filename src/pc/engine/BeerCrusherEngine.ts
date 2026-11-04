@@ -208,6 +208,12 @@ export class BeerCrusherEngine {
   private itemsSpawnedInWave = 0;
   private killedInWave = 0;
   private bossSpawned = false;
+  private cardStacks: Record<'damage_up' | 'skill_cooldown' | 'fever_extend' | 'hit_zone_up', number> = {
+    damage_up: 0,
+    skill_cooldown: 0,
+    fever_extend: 0,
+    hit_zone_up: 0,
+  };
   private lastSpawnTimeMs = 0;
   private lastUpdateNowMs = 0;
   private targetCounter = 0;
@@ -316,6 +322,7 @@ export class BeerCrusherEngine {
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
+    this.resetCardStacks();
 
     if (options?.withWeaponSelect) {
       this.spawnWeaponSelectTargets();
@@ -371,6 +378,48 @@ export class BeerCrusherEngine {
     });
   }
 
+  private resetCardStacks(): void {
+    this.cardStacks = { damage_up: 0, skill_cooldown: 0, fever_extend: 0, hit_zone_up: 0 };
+    this.weaponSystem.setSkillCooldownScale(1.0);
+    this.scoreManager.setFeverDurationBonusMs(0);
+  }
+
+  /** 지금 상태에서 나올 수 있는 카드 풀. 최대치에 도달했거나 의미 없는 카드는 제외한다. */
+  public buildRewardCardPool(): RewardCardKind[] {
+    const cards = GAME_TUNING.cards;
+    const weapon = this.weaponSystem.getState();
+    const fever = this.scoreManager.getState();
+    const waveCap = (GAME_TUNING.weaponLevelCapByWave as Record<number, number>)[this.currentWave] ?? 4;
+    const pool: RewardCardKind[] = [];
+
+    if (weapon.weaponLevel < 4 && weapon.weaponLevel < waveCap) pool.push('weapon_level_up');
+    if (this.luckyDropStacks < cards.luckyDropMaxStacks) pool.push('lucky_drop');
+    if (this.weaponSystem.getRapidReloadStacks() < cards.rapidReloadMaxStacks) pool.push('rapid_reload');
+    if (!fever.isFeverReady && !fever.isFeverActive) pool.push('fever_boost');
+    if (this.lives < this.maxLives) pool.push('bar_repair');
+    if (this.cardStacks.damage_up < cards.damageUp.maxStacks) pool.push('damage_up');
+    if (this.cardStacks.skill_cooldown < cards.skillCooldown.maxStacks) pool.push('skill_cooldown');
+    if (this.cardStacks.fever_extend < cards.feverExtend.maxStacks) pool.push('fever_extend');
+    if (this.cardStacks.hit_zone_up < cards.hitZoneUp.maxStacks) pool.push('hit_zone_up');
+    return pool;
+  }
+
+  /** 풀에서 중복 없이 count장을 뽑는다. 풀이 모자라면 수리·부스터·장전으로 채워 항상 count장을 만든다. */
+  private drawRewardCards(count: number): RewardCardKind[] {
+    const pool = this.buildRewardCardPool();
+    // Fisher-Yates shuffle with the injectable RNG
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(this.dropRng() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const picked = pool.slice(0, count);
+    for (const filler of ['bar_repair', 'fever_boost', 'rapid_reload'] as RewardCardKind[]) {
+      if (picked.length >= count) break;
+      if (!picked.includes(filler)) picked.push(filler);
+    }
+    return picked;
+  }
+
   public spawnWaveRewardCards(nowMs: number, isWaveClear = true): void {
     this.isRewardCardPending = true;
     this.rewardCardsSpawnTimeMs = nowMs;
@@ -379,16 +428,7 @@ export class BeerCrusherEngine {
     // Clean existing reward card targets if any
     this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
 
-    const slot1: RewardCardKind = 'weapon_level_up';
-    const slot2: RewardCardKind = this.luckyDropStacks < 3 ? 'lucky_drop' : 'rapid_reload';
-    const slot3: RewardCardKind =
-      this.lives < this.maxLives
-        ? 'bar_repair'
-        : this.luckyDropStacks < 3
-        ? 'rapid_reload'
-        : 'fever_boost';
-
-    const candidateCards: RewardCardKind[] = [slot1, slot2, slot3];
+    const candidateCards: RewardCardKind[] = this.drawRewardCards(3);
     const xPositions = [-1.85, 0, 1.85];
 
     candidateCards.forEach((cardKind, idx) => {
@@ -429,10 +469,37 @@ export class BeerCrusherEngine {
         this.lives = Math.min(this.maxLives, this.lives + GAME_TUNING.repairCard.healAmount);
         break;
       case 'lucky_drop':
-        this.luckyDropStacks = Math.min(3, this.luckyDropStacks + 1);
+        this.luckyDropStacks = Math.min(GAME_TUNING.cards.luckyDropMaxStacks, this.luckyDropStacks + 1);
         break;
       case 'fever_boost':
         this.scoreManager.addFeverGauge(GAME_TUNING.fever.cardBoostGain);
+        break;
+      case 'damage_up':
+        if (this.cardStacks.damage_up < GAME_TUNING.cards.damageUp.maxStacks) {
+          this.cardStacks.damage_up += 1;
+          this.weaponSystem.addDamageBonus(GAME_TUNING.cards.damageUp.amount);
+        }
+        break;
+      case 'skill_cooldown':
+        if (this.cardStacks.skill_cooldown < GAME_TUNING.cards.skillCooldown.maxStacks) {
+          this.cardStacks.skill_cooldown += 1;
+          this.weaponSystem.setSkillCooldownScale(
+            GAME_TUNING.cards.skillCooldown.multiplier ** this.cardStacks.skill_cooldown
+          );
+        }
+        break;
+      case 'fever_extend':
+        if (this.cardStacks.fever_extend < GAME_TUNING.cards.feverExtend.maxStacks) {
+          this.cardStacks.fever_extend += 1;
+          this.scoreManager.setFeverDurationBonusMs(
+            GAME_TUNING.cards.feverExtend.amountMs * this.cardStacks.fever_extend
+          );
+        }
+        break;
+      case 'hit_zone_up':
+        if (this.cardStacks.hit_zone_up < GAME_TUNING.cards.hitZoneUp.maxStacks) {
+          this.cardStacks.hit_zone_up += 1;
+        }
         break;
     }
   }
@@ -1211,7 +1278,10 @@ export class BeerCrusherEngine {
     const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
     // Cards, the tutorial and the sandbox keep the generous legacy hit zone.
     const isCard = !!target.weaponSelectKind || !!target.rewardCardKind;
-    const zoneScale = isCard || this.isTutorialMode || this.isSandboxMode ? 1.0 : GAME_TUNING.hitZone.scale;
+    const baseZoneScale = isCard || this.isTutorialMode || this.isSandboxMode ? 1.0 : GAME_TUNING.hitZone.scale;
+    const zoneScale = isCard
+      ? baseZoneScale
+      : baseZoneScale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.cardStacks.hit_zone_up);
     const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale) / 0.84);
 
     return { targetNormX, targetNormY, apparentHitRadius };

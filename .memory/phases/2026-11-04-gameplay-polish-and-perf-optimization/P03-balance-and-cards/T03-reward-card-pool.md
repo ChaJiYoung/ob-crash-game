@@ -1,6 +1,6 @@
 # Task: T03 Reward Card Pool
 
-## Status: pending
+## Status: done
 
 ## Goal
 카드를 9종으로 늘리고 매번 중복 없이 3장을 뽑는다. MAX 무기 카드가 계속 나오는 문제와 같은 카드만 반복되는 문제를 해결하고, 무기 MAX 시점을 늦춘다.
@@ -137,10 +137,10 @@
   - `startGame` 후 스택과 효과가 초기화된다.
 
 ## Acceptance Criteria
-- [ ] 무기가 MAX면 무기 카드가 나오지 않는다.
-- [ ] 카드 구성이 매번 달라진다.
-- [ ] 새 카드 4종의 효과가 실제로 적용된다.
-- [ ] 새 게임을 시작하면 카드 효과가 사라진다.
+- [x] 무기가 MAX면 무기 카드가 나오지 않는다.
+- [x] 카드 구성이 매번 달라진다.
+- [x] 새 카드 4종의 효과가 실제로 적용된다.
+- [x] 새 게임을 시작하면 카드 효과가 사라진다.
 
 ## Validation
 - `npx vitest run tests/reward-card-pool.test.ts tests/shared-protocol.test.ts tests/gameplay-polish.test.ts tests/engine-judgment-and-spawn.test.ts` — 통과
@@ -161,6 +161,6 @@ Task: T03-reward-card-pool
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(cards): add nine card pool with random draws and weapon level caps

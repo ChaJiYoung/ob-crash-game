@@ -146,12 +146,12 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(extraMonster.radiusM).toBe(survivorRadiusBefore);
 
       // Now select a card after 800ms cooldown (spawned at ~5500ms)
-      const chosenCard = cards.find((c) => c.rewardCardKind === 'weapon_level_up')!;
+      const chosenCard = cards[0];
       const cardProj = engine.computeTargetAimCoords(chosenCard);
       const cardShot = engine.shootAt(cardProj.targetNormX, cardProj.targetNormY, 12000);
 
       expect(cardShot.fired).toBe(true);
-      expect(cardShot.selectedCard).toBe('weapon_level_up');
+      expect(cardShot.selectedCard).toBe(chosenCard.rewardCardKind);
       expect(engine.isRewardCardPending).toBe(false);
 
       // The surviving monster must still be present on field and wave 1 continues
