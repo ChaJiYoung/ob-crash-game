@@ -1765,8 +1765,8 @@ export class BeerCrusherEngine {
         };
       }
 
-      // Obi shield: blocks damage while raised. Fever shots and skills pierce it.
-      if (target.isGuarding && !isFever) {
+      // Obi shield: blocks damage while raised. Only skills pierce it.
+      if (target.isGuarding) {
         return {
           fired: true,
           grade: result.grade,
@@ -1781,7 +1781,6 @@ export class BeerCrusherEngine {
 
       // 5. Standard Monster Damage & Weapon Ballistics
       const powerMult = isPowerShot ? 2.0 : 1.0;
-      const feverMult = isFever ? 2.0 : 1.0;
       const judgmentMult = result.damageMultiplier;
       const weaponBonusMult = this.weaponSystem.getDamageBonusMultiplier();
       // Held rapid fire is weaker than tapping; fever auto-fire is exempt.
@@ -1790,7 +1789,7 @@ export class BeerCrusherEngine {
           ? GAME_TUNING.fire.holdDamageByWeapon[weaponKind]
           : 1.0;
       const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.damageScaleByWeapon[weaponKind] : 1.0;
-      const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult * holdMult * bossScale;
+      const totalMult = powerMult * judgmentMult * weaponBonusMult * holdMult * bossScale;
       let damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
 
       if (weaponKind === 'shotgun') {
@@ -1818,7 +1817,7 @@ export class BeerCrusherEngine {
                 !t.isItem &&
                 !t.isProjectile &&
                 !t.isGoldenCan &&
-                (!t.isGuarding || isFever) &&
+                !t.isGuarding &&
                 !t.isShielded &&
                 t.radiusM > target.radiusM &&
                 Math.abs(t.thetaRad - target.thetaRad) <= 0.16

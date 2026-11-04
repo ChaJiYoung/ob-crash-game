@@ -153,9 +153,8 @@ export class WeaponSystem {
   }
 
   public canFire(nowMs: number, isFeverActive: boolean, source: ShotSource = 'press'): boolean {
-    const fireInterval = isFeverActive
-      ? WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS
-      : this.getFireIntervalMs(source);
+    // Fever only removes the ammo limit: the fire rate stays the weapon's normal tap rate.
+    const fireInterval = this.getFireIntervalMs(isFeverActive ? 'press' : source);
 
     if (nowMs - this.lastFireTimeMs < fireInterval) {
       return false;

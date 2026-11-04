@@ -498,14 +498,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       }
       lastGoldenCanActiveRef.current = hasGoldenCan;
 
-      // 100% Auto-Rapid-Fire loop during active Fever mode
+      // Auto-fire loop during active Fever mode: polls fast, the weapon's own fire interval gates the actual shots
       if (feverState.isFeverActive && !engine.isPaused && !engine.isCardSelectPending && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
         if (!feverAutoFireTimerRef.current) {
           feverAutoFireTimerRef.current = setInterval(() => {
             const curAim = latestAimRef.current;
             const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now(), 'fever');
             handleShootEvent(res);
-          }, WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS);
+          }, 16);
         }
       } else {
         if (feverAutoFireTimerRef.current) {

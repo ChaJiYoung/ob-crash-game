@@ -74,11 +74,11 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(miss.feverDelta).toBe(0);
     expect(miss.damageMultiplier).toBe(0);
 
-    // During Fever, normal hits are upgraded to PERFECT with damage 2 and multiplier 1.5
+    // Fever does not touch judgment: the same error grades the same, with normal damage
     const feverHit = evaluateHitJudgment(0.75, 1.0, true);
-    expect(feverHit.grade).toBe('PERFECT');
-    expect(feverHit.damage).toBe(2);
-    expect(feverHit.damageMultiplier).toBe(1.5);
+    expect(feverHit.grade).toBe(evaluateHitJudgment(0.75, 1.0).grade);
+    expect(feverHit.grade).not.toBe('PERFECT');
+    expect(feverHit.damage).toBe(1);
 
     // Power shot buff grants damage 2 even outside fever
     const powerHit = evaluateHitJudgment(0.12, 1.0, { isPowerShotActive: true });

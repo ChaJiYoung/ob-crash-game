@@ -23,7 +23,6 @@ export function evaluateHitJudgment(
 ): HitJudgmentResult {
   const options: HitJudgmentOptions =
     typeof optionsOrFever === 'boolean' ? { isFeverActive: optionsOrFever } : optionsOrFever;
-  const isFeverActive = Boolean(options.isFeverActive);
   const isPowerShotActive = Boolean(options.isPowerShotActive);
   const isWideScopeActive = Boolean(options.isWideScopeActive);
 
@@ -40,28 +39,7 @@ export function evaluateHitJudgment(
 
   const effectiveHitRadius = isWideScopeActive ? hitRadiusM * 1.6 : hitRadiusM;
   const errorRatio = distanceToCenterM / effectiveHitRadius;
-  const baseDamage = isFeverActive || isPowerShotActive ? 2 : 1;
-
-  if (isFeverActive) {
-    if (errorRatio <= 1.0) {
-      return {
-        grade: 'PERFECT',
-        errorRatio,
-        baseScore: JUDGMENT_SPECS.PERFECT.baseScore * 1.5,
-        feverDelta: 0, // Fever is already active
-        damage: 2, // Double damage during fever
-        damageMultiplier: 1.5,
-      };
-    }
-    return {
-      grade: 'MISS',
-      errorRatio,
-      baseScore: 0,
-      feverDelta: 0,
-      damage: 0,
-      damageMultiplier: 0,
-    };
-  }
+  const baseDamage = isPowerShotActive ? 2 : 1;
 
   if (errorRatio <= JUDGMENT_SPECS.PERFECT.maxErrorRatio) {
     return {

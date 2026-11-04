@@ -67,7 +67,6 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS).toBe(300);
     expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(4.8);
     expect(WEAPON_CONSTANTS.SNAP_GRACE_PERIOD_MS).toBe(1500);
-    expect(WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS).toBe(80); // 0.08s rapid fire
 
     expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBe(24.0);
     expect(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M).toBe(1.8);

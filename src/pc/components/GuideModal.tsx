@@ -68,7 +68,7 @@ const MONSTER_DETAILS: Record<
     role: '지상 방패병 · 방패를 들었다 내리는 타이밍형 (2HP)',
     speedText: '1.9 m/s',
     description: `푸른 방패를 ${GAME_TUNING.monsters.obi.guardUpMs / 1000}초 들고 ${GAME_TUNING.monsters.obi.guardDownMs / 1000}초 내리기를 반복합니다. 방패가 올라가 있으면 총알이 튕겨 나가고(점수·피버 없음) 탄약만 소모됩니다.`,
-    tip: '방패가 내려간 순간에만 쏘세요! 피버 중 사격과 액티브 스킬은 방패를 뚫습니다. 개체마다 방패 타이밍이 달라 다른 오비를 먼저 노리는 것도 방법입니다.',
+    tip: '방패가 내려간 순간에만 쏘세요! 액티브 스킬은 방패를 뚫습니다. 개체마다 방패 타이밍이 달라 다른 오비를 먼저 노리는 것도 방법입니다.',
     imageSrc: '/docs/screens/monster-03-obi.png',
   },
   hanmac: {
@@ -335,7 +335,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   • <strong>GREAT (오차 55% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+100 PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
                   • <strong>GOOD (오차 100% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
                   • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {Math.round(GAME_TUNING.fire.reloadScale)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
-                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르거나 피버 자동 발사를 노리세요.
+                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르세요.
                 </div>
               </div>
 
@@ -632,14 +632,14 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
                     • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림!)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 연사 & 2배 데미지 폭딜!)<br />
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 점수 1.5배!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
                     • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> <strong>R 키</strong> 또는 <strong>마우스 우클릭</strong><br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 연사 & 2배 데미지)
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 탄창 자동 연사 & 점수 1.5배)
                   </div>
                 </div>
               </div>

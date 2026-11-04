@@ -60,3 +60,13 @@ describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
     expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].skillCooldownMs).toBe(35000);
   });
 });
+
+describe('fever only lifts the ammo limit', () => {
+  it('keeps the weapon fire interval during fever', () => {
+    const ws = new WeaponSystem();
+    const interval = ws.getFireIntervalMs('press');
+    expect(ws.consumeShot(1000, true, 'fever').fired).toBe(true);
+    expect(ws.canFire(1000 + interval - 1, true, 'fever')).toBe(false);
+    expect(ws.canFire(1000 + interval, true, 'fever')).toBe(true);
+  });
+});

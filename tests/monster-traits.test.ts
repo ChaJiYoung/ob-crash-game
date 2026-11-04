@@ -210,13 +210,13 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       expect(t.hp).toBeLessThan(2);
     });
 
-    it('fever shots and skills pierce the shield', () => {
+    it('fever shots are blocked by the shield, skills pierce it', () => {
       engine.scoreManager.forceSetFeverGauge(100);
       engine.scoreManager.activateFever(UP - 100);
       const t = guarded(0);
       const res = shoot(engine, t, UP, 'fever');
-      expect(res.shieldBlocked).toBeUndefined();
-      expect(t.hp).toBeLessThan(2);
+      expect(res.shieldBlocked).toBe(true);
+      expect(t.hp).toBe(2);
 
       const e2 = new BeerCrusherEngine();
       e2.startGame({ withWeaponSelect: false });

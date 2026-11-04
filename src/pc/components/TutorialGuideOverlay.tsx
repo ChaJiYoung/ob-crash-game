@@ -75,7 +75,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
             <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>
               {step === 1 && '🎯 STEP 1. 정밀 조준 배율(2.0x/1.0x/0.5x) & 원샷'}
               {step === 2 && '💥 STEP 2. 홀드 자동 연발(투두두두) & 100% 체력 게이지'}
-              {step === 3 && '🔥 STEP 3. 피버 모드 & 2배 화력 대폭발'}
+              {step === 3 && '🔥 STEP 3. 피버 모드 & 무제한 탄창'}
               {step === 'COMPLETED' && '🎉 훈련 수료 완료!'}
             </span>
           </div>
@@ -110,10 +110,10 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
-                      🔥 4초 초고밀도 피버 버스트 발동 중! 무제한 무한 연사 & 2배 데미지 폭딜!
+                      🔥 4초 피버 발동 중! 무한 탄창 자동 연사 & 점수 1.5배!
                     </span>
                   ) : (
-                    <span>💡 PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%)로 충전되며, 발동 시 4초간 무한 연사 & 2배 화력으로 폭딜을 쏟아붓습니다!</span>
+                    <span>💡 PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%)로 충전되며, 발동 시 4초간 무한 탄창 자동 연사 & 점수 1.5배!</span>
                   )}
                 </div>
               </>
@@ -270,7 +270,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
           }}
         >
           {isFeverActive
-            ? '🔥 FEVER ACTIVE (무한 연사 & 2배 데미지)'
+            ? '🔥 FEVER ACTIVE (무한 탄창 & 점수 1.5배)'
             : isFeverReady
             ? '🔥 FEVER READY! [Space / 모바일 더블탭]'
             : 'FEVER GAUGE 준비 중'}
