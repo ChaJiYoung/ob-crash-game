@@ -56,6 +56,18 @@ export const GAME_TUNING = {
     hitZoneScale: 0.6,
     kingScale: 1.5,
     coolerSpreadRad: 0.34,
+    summonIntervalMs: 8000,
+    summonCount: 4,
+    summonMaxActive: 7,
+    firstSummonDelayMs: 2500,
+    shieldReleaseKills: 6,
+    shieldHpThresholds: [2 / 3, 1 / 3],
+    movement: {
+      singleAmplitudeRad: 0.32, singleSpeed: 0.9,
+      crossAmplitudeRad: 0.34, crossSpeed: 0.8,
+      kingAmplitudeRad: 0.12, kingSpeed: 0.5,
+      withKingOffsetRad: 0.34, withKingWobbleRad: 0.1,
+    },
   },
   /**
    * 웨이브 표. kinds / summonKinds는 이 파일이 다른 파일을 import하지 않으므로 문자열 리터럴이며,

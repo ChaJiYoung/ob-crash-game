@@ -171,4 +171,223 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     engine.startWave(1);
     expect(engine.getWaveProgress().cardKillTarget).toBeNull();
   });
+
+  describe('boss patterns (P04-T04)', () => {
+    const run = (e: BeerCrusherEngine, fromMs: number, toMs: number, stepMs = 50) => {
+      let now = fromMs;
+      while (now < toMs) {
+        now += stepMs;
+        e.update(now, stepMs / 1000);
+      }
+      return now;
+    };
+
+    it('a single cooler sweeps side to side while holding the stop distance', () => {
+      finishMiniWave(engine, 3, 1000);
+      const b = bosses(engine)[0];
+      const xs: number[] = [];
+      let now = 1000;
+      for (let i = 0; i < 400; i++) {
+        now += 50;
+        engine.update(now, 0.05);
+        xs.push(b.x);
+      }
+      expect(Math.max(...xs)).toBeGreaterThan(1);
+      expect(Math.min(...xs)).toBeLessThan(-1);
+      expect(b.radiusM).toBe(GAME_TUNING.boss.stopRadiusM);
+    });
+
+    it('two coolers move in opposite directions', () => {
+      finishMiniWave(engine, 5, 1000);
+      const [a, c] = bosses(engine);
+      let now = 1000;
+      let opposite = 0;
+      for (let i = 0; i < 300; i++) {
+        now += 50;
+        engine.update(now, 0.05);
+        if (Math.abs(a.thetaRad) > 0.05 && a.thetaRad * c.thetaRad < 0) opposite++;
+      }
+      expect(opposite).toBeGreaterThan(100);
+    });
+
+    it('summons 4 minions every 8s (first after 2.5s), once per encounter even with two bosses', () => {
+      finishMiniWave(engine, 5, 100_000);
+      const minions = () => engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_'));
+      // bosses start at 16m and need to walk to <= 12.5m first
+      let now = 100_000;
+      const seenAt: number[] = [];
+      let prev = (engine as any).lastBossSummonTimeMs; // the encounter's initial timer value is not a summon
+      for (let i = 0; i < 1000; i++) {
+        now += 50;
+        engine.update(now, 0.05);
+        engine.activeTargets = engine.activeTargets.filter((t) => !t.id.startsWith('boss_minion_') && !t.isProjectile);
+        const total = (engine as any).lastBossSummonTimeMs;
+        if (total !== prev && total > 0) {
+          seenAt.push(total);
+          prev = total;
+        }
+      }
+      expect(minions().length).toBeGreaterThanOrEqual(0);
+      expect(seenAt.length).toBeGreaterThanOrEqual(5);
+      for (let i = 1; i < seenAt.length; i++) {
+        expect(seenAt[i] - seenAt[i - 1]).toBeGreaterThanOrEqual(GAME_TUNING.boss.summonIntervalMs - 60);
+        expect(seenAt[i] - seenAt[i - 1]).toBeLessThan(GAME_TUNING.boss.summonIntervalMs + 200);
+      }
+    });
+
+    it('does not summon while 7 or more minions are on the field, and general spawns do not restart', () => {
+      finishMiniWave(engine, 5, 100_000);
+      const b = bosses(engine);
+      b.forEach((x) => {
+        x.radiusM = 10;
+        x.z = -10;
+      });
+      (engine as any).lastBossSummonTimeMs = 0;
+      const fillers = Array.from({ length: 7 }, (_, i) => ({
+        id: `f${i}`, kind: 'obi' as const, hp: 2, maxHp: 2, radiusM: 9, thetaRad: 0.01 * i, x: 0, z: -9, speedMps: 0,
+        hitRadiusM: 1, killBonusScore: 1, breached: false,
+      }));
+      engine.activeTargets.push(...fillers);
+      engine.update(100_100, 0.05);
+      expect(engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_')).length).toBe(0);
+
+      const spawnedBefore = (engine as any).spawnedInWave;
+      run(engine, 100_100, 120_000);
+      expect((engine as any).spawnedInWave).toBe(spawnedBefore); // no regular spawns during the boss fight
+    });
+
+    it('two coolers fire projectiles in turn from their own positions; one left fires only from it', () => {
+      finishMiniWave(engine, 5, 100_000);
+      const [a, c] = bosses(engine);
+      const who: string[] = [];
+      let now = 100_000;
+      const collect = (into: string[], steps: number) => {
+        for (let i = 0; i < steps; i++) {
+          now += 50;
+          (engine as any).lastBossSummonTimeMs = now; // keep summons out of the way
+          engine.update(now, 0.05);
+          engine.activeTargets
+            .filter((t) => t.isProjectile && !(t as any).seen)
+            .forEach((t) => {
+              (t as any).seen = true;
+              // The projectile starts exactly at one cooler's current position
+              const fromA = Math.abs((t.initialThetaRad ?? 99) - a.thetaRad) < 1e-9;
+              const fromC = Math.abs((t.initialThetaRad ?? 99) - c.thetaRad) < 1e-9;
+              into.push(fromA && fromC ? 'both' : fromA ? 'A' : fromC ? 'C' : 'none');
+            });
+          engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile);
+        }
+      };
+      collect(who, 1400);
+      expect(who.length).toBeGreaterThanOrEqual(4);
+      expect(who.every((w) => w === 'A' || w === 'C')).toBe(true);
+      for (let i = 1; i < who.length; i++) expect(who[i]).not.toBe(who[i - 1]);
+
+      // Kill cooler A: cooler C fires alone
+      engine.activeTargets = engine.activeTargets.filter((t) => t !== a);
+      const after: string[] = [];
+      collect(after, 500);
+      expect(after.length).toBeGreaterThanOrEqual(2);
+      expect(after.every((w) => w === 'C')).toBe(true);
+    });
+
+    describe('king shield', () => {
+      const kingFight = () => {
+        finishMiniWave(engine, 7, 100_000);
+        const king = bosses(engine).find((x) => x.bossRole === 'king')!;
+        const coolers = bosses(engine).filter((x) => x.bossRole === 'cooler');
+        king.radiusM = 10;
+        king.z = -10;
+        return { king, coolers };
+      };
+      const aimShot = (t: ActiveTargetEntity, now: number, source: 'press' | 'fever' = 'press') => {
+        engine.weaponSystem.selectWeapon('revolver', 1);
+        const p = engine.computeTargetAimCoords(t);
+        return engine.shootAt(p.targetNormX, p.targetNormY, now, source);
+      };
+
+      it('starts shielded: shots are blocked with no score, fever or damage', () => {
+        const { king } = kingFight();
+        expect(king.isShielded).toBe(true);
+        king.thetaRad = 0;
+        king.x = 0;
+        const res = aimShot(king, 101_000);
+        expect(res.shieldBlocked).toBe(true);
+        expect(res.killed).toBe(false);
+        expect(king.hp).toBe(king.maxHp);
+        expect(engine.scoreManager.getState().totalScore).toBe(0);
+        expect(engine.scoreManager.getState().feverGauge).toBe(0);
+      });
+
+      it('fever does not pierce the king shield', () => {
+        const { king } = kingFight();
+        engine.scoreManager.forceSetFeverGauge(100);
+        engine.scoreManager.activateFever(100_900);
+        const res = aimShot(king, 101_000, 'fever');
+        expect(res.shieldBlocked).toBe(true);
+        expect(king.hp).toBe(king.maxHp);
+      });
+
+      it('skills do not damage a shielded king', () => {
+        const { king } = kingFight();
+        engine.weaponSystem.selectWeapon('shotgun', 1);
+        expect(engine.triggerWeaponSkill(101_000).activated).toBe(true);
+        expect(king.hp).toBe(king.maxHp);
+      });
+
+      it('six minion kills release the shield', () => {
+        const { king } = kingFight();
+        for (let i = 0; i < 5; i++) {
+          (engine as any).handleMonsterKilled(
+            { id: `m${i}`, kind: 'obi', hp: 0, maxHp: 2, radiusM: 9, thetaRad: 0, x: 0, z: -9, speedMps: 1, hitRadiusM: 1, killBonusScore: 1, breached: false },
+            101_000
+          );
+        }
+        expect(king.isShielded).toBe(true);
+        (engine as any).handleMonsterKilled(
+          { id: 'm6', kind: 'obi', hp: 0, maxHp: 2, radiusM: 9, thetaRad: 0, x: 0, z: -9, speedMps: 1, hitRadiusM: 1, killBonusScore: 1, breached: false },
+          101_000
+        );
+        expect(king.isShielded).toBe(false);
+      });
+
+      it('killing a cooler releases the shield; hp thresholds raise it again', () => {
+        const { king, coolers } = kingFight();
+        killBoss(engine, coolers[0], 101_000);
+        expect(king.isShielded).toBe(false);
+
+        king.hp = king.maxHp * (2 / 3) - 1;
+        engine.update(101_500, 0.016);
+        expect(king.isShielded).toBe(true);
+
+        (engine as any).releaseKingShield();
+        king.hp = king.maxHp * (1 / 3) - 1;
+        engine.update(102_000, 0.016);
+        expect(king.isShielded).toBe(true);
+        expect((engine as any).shieldThresholdIndex).toBe(2);
+      });
+
+      it('a shielded king can still be dealt with: the encounter never deadlocks', () => {
+        const { king, coolers } = kingFight();
+        coolers.forEach((c, i) => killBoss(engine, c, 101_000 + i * 700));
+        expect(king.isShielded).toBe(false);
+        expect(engine.gamePhase).toBe('PLAYING');
+        king.hp = 0.1;
+        king.thetaRad = 0;
+        king.x = 0;
+        const res = aimShot(king, 105_000);
+        expect(res.killed).toBe(true);
+        expect(engine.gamePhase).toBe('VICTORY');
+      });
+    });
+
+    it('bosses do not move while cards are pending', () => {
+      finishMiniWave(engine, 3, 100_000);
+      const b = bosses(engine)[0];
+      engine.spawnWaveRewardCards(100_500, false);
+      const before = b.thetaRad;
+      run(engine, 100_500, 105_000, 100);
+      expect(b.thetaRad).toBe(before);
+    });
+  });
 });

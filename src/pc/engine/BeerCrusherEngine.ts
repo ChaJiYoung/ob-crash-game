@@ -51,6 +51,8 @@ export interface ActiveTargetEntity {
   isGuarding?: boolean;
   isSplitChild?: boolean;
   modelScaleMult?: number;
+  // Boss king shield (invulnerable)
+  isShielded?: boolean;
   // Roguelike & Gimmick extensions
   stunUntilMs?: number;
   slowUntilMs?: number;
@@ -166,6 +168,9 @@ export class BeerCrusherEngine {
   public bossSummonActionUntilMs = 0;
   public lastBossSummonTimeMs = 0;
   public lastBossSummonHpThreshold = 45;
+  private bossShooterIndex = 0;
+  private shieldKillCount = 0;
+  private shieldThresholdIndex = 0;
 
   // Wave definitions
   private waveDefinitions: Record<number, WaveDefinition> = Object.fromEntries(
@@ -941,7 +946,7 @@ export class BeerCrusherEngine {
     this.weaponSystem.shiftReloadTimer(deltaMs);
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
-    if (this.lastBossSummonTimeMs > 0) this.lastBossSummonTimeMs += deltaMs;
+    if (this.lastBossSummonTimeMs !== 0) this.lastBossSummonTimeMs += deltaMs;
     for (const target of this.activeTargets) {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
@@ -975,6 +980,8 @@ export class BeerCrusherEngine {
     }
 
     this.updateGuards(nowMs);
+    this.updateBossMovement(nowMs);
+    this.updateKingShield();
 
     // Clean expired buffs
     for (const [kind, untilMs] of this.activeBuffUntilMs.entries()) {
@@ -1164,33 +1171,32 @@ export class BeerCrusherEngine {
     // Periodic projectile spawn from the boss (hanmac fires on its own timer in the movement loop)
     const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
     if (hasBossShooter && nowMs - this.lastProjectileSpawnTimeMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
-      this.spawnMonsterProjectile(nowMs, 'boss');
+      // Living coolers fire in turns from their own position; the king fires only if no cooler is left
+      const bosses = this.getBossEntities();
+      const coolers = bosses.filter((b) => b.bossRole !== 'king');
+      const shooters = coolers.length > 0 ? coolers : bosses;
+      const shooter = shooters[this.bossShooterIndex % shooters.length];
+      this.bossShooterIndex += 1;
+      this.spawnMonsterProjectile(nowMs, 'boss', { thetaRad: shooter.thetaRad, radiusM: shooter.radiusM });
     }
 
-    // Boss summon action (rules are reworked in P04-T04)
+    // Boss encounter: one shared summon timer for the whole fight (no charging; bosses summon minions instead)
     if (this.isBossEncounterActive) {
-      const boss = this.getBossEntity();
-      if (boss && boss.hp > 0 && boss.radiusM <= GAME_TUNING.boss.summonRadiusM) {
-        const timeTrigger = this.lastBossSummonTimeMs === 0 || nowMs - this.lastBossSummonTimeMs >= 9000;
-        const hpTrigger = this.lastBossSummonHpThreshold > 0 && boss.hp <= this.lastBossSummonHpThreshold;
+      const inRange = this.getBossEntities().some((b) => b.radiusM <= GAME_TUNING.boss.summonRadiusM);
+      if (inRange && nowMs - this.lastBossSummonTimeMs >= GAME_TUNING.boss.summonIntervalMs) {
+        const activeMinions = this.activeTargets.filter(
+          (t) =>
+            !t.isItem &&
+            !t.isProjectile &&
+            !t.isGoldenCan &&
+            !t.weaponSelectKind &&
+            !t.rewardCardKind &&
+            t.kind !== 'boss'
+        ).length;
 
-        if (timeTrigger || hpTrigger) {
-          if (hpTrigger) {
-            this.lastBossSummonHpThreshold -= 15;
-          }
-          const activeMinions = this.activeTargets.filter(
-            (t) =>
-              !t.isItem &&
-              !t.isProjectile &&
-              !t.isGoldenCan &&
-              !t.weaponSelectKind &&
-              !t.rewardCardKind &&
-              t.kind !== 'boss'
-          ).length;
-
-          if (activeMinions < 7) {
-            this.spawnBossMinionWave(nowMs, 4);
-          }
+        // Too many minions: skip now and check again next frame
+        if (activeMinions < GAME_TUNING.boss.summonMaxActive) {
+          this.spawnBossMinionWave(nowMs, GAME_TUNING.boss.summonCount);
         }
       }
     }
@@ -1261,6 +1267,52 @@ export class BeerCrusherEngine {
     }
   }
 
+  /** 보스 좌우 이동. theta만 바꾸면 이동 루프가 x, z를 다시 계산한다. */
+  private updateBossMovement(nowMs: number): void {
+    if (!this.isBossEncounterActive) return;
+    const bosses = this.getBossEntities();
+    if (bosses.length === 0) return;
+    const m = GAME_TUNING.boss.movement;
+    const t = nowMs / 1000;
+    const hasKing = bosses.some((b) => b.bossRole === 'king');
+    const coolers = bosses.filter((b) => b.bossRole !== 'king');
+    const totalCoolersAtStart = this.waveDefinitions[this.currentWave]?.boss?.coolerHp.length ?? coolers.length;
+
+    for (const b of bosses) {
+      const side = (b.bossBaseThetaRad ?? 0) < 0 ? -1 : 1;
+      if (b.bossRole === 'king') {
+        b.thetaRad = m.kingAmplitudeRad * Math.sin(t * m.kingSpeed);
+      } else if (hasKing) {
+        b.thetaRad = side * (m.withKingOffsetRad + m.withKingWobbleRad * Math.sin(t * m.crossSpeed));
+      } else if (totalCoolersAtStart >= 2) {
+        // Crossing paths; a surviving cooler keeps its own pattern
+        b.thetaRad = side * m.crossAmplitudeRad * Math.sin(t * m.crossSpeed);
+      } else {
+        b.thetaRad = m.singleAmplitudeRad * Math.sin(t * m.singleSpeed);
+      }
+    }
+  }
+
+  /** 대왕 쉴드: 체력이 2/3, 1/3 아래로 내려가면 다시 켜진다. */
+  private updateKingShield(): void {
+    if (!this.isBossEncounterActive) return;
+    const king = this.getBossEntities().find((b) => b.bossRole === 'king');
+    if (!king || king.isShielded) return;
+    const thresholds = GAME_TUNING.boss.shieldHpThresholds;
+    const threshold = thresholds[this.shieldThresholdIndex];
+    if (threshold !== undefined && king.hp <= king.maxHp * threshold) {
+      king.isShielded = true;
+      this.shieldThresholdIndex += 1;
+      this.shieldKillCount = 0;
+    }
+  }
+
+  private releaseKingShield(): void {
+    const king = this.activeTargets.find((t) => t.kind === 'boss' && t.bossRole === 'king');
+    if (king) king.isShielded = false;
+    this.shieldKillCount = 0;
+  }
+
   /** 방패 병: 2초 올리고 1초 내리기를 반복한다. 기절하면 방패가 내려간다. */
   private updateGuards(nowMs: number): void {
     const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
@@ -1311,8 +1363,11 @@ export class BeerCrusherEngine {
     if (!waveDef?.boss) return;
     this.bossSpawned = true;
     this.isBossEncounterActive = true;
-    this.lastBossSummonTimeMs = 0;
+    this.lastBossSummonTimeMs = nowMs - GAME_TUNING.boss.summonIntervalMs + GAME_TUNING.boss.firstSummonDelayMs;
     this.lastBossSummonHpThreshold = 0;
+    this.bossShooterIndex = 0;
+    this.shieldKillCount = 0;
+    this.shieldThresholdIndex = 0;
 
     const spec = TARGET_SPECS.boss;
     const { coolerHp, kingHp } = waveDef.boss;
@@ -1351,7 +1406,9 @@ export class BeerCrusherEngine {
       this.activeTargets.push(make('cooler', hp, thetas[i], spec.hitRadiusM));
     });
     if (kingHp !== null) {
-      this.activeTargets.push(make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale));
+      const king = make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
+      king.isShielded = true;
+      this.activeTargets.push(king);
     }
     this.lastSpawnTimeMs = nowMs;
   }
@@ -1401,6 +1458,7 @@ export class BeerCrusherEngine {
     }
 
     if (target.kind === 'boss') {
+      if (target.bossRole === 'cooler') this.releaseKingShield();
       if (this.getBossEntities().length > 0) return; // other bosses remain
       this.isBossEncounterActive = false;
       this.activeTargets = [];
@@ -1413,6 +1471,11 @@ export class BeerCrusherEngine {
     }
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
+      if (this.isBossEncounterActive) {
+        this.shieldKillCount += 1;
+        if (this.shieldKillCount >= GAME_TUNING.boss.shieldReleaseKills) this.releaseKingShield();
+      }
+
       if (!this.isTutorialMode && !this.isSandboxMode) {
         if (target.kind === 'bottle' && !target.isSplitChild) {
           this.splitBottle(target);
@@ -1663,6 +1726,20 @@ export class BeerCrusherEngine {
         };
       }
 
+      // King shield: invulnerable until minions or a cooler fall (fever does not help).
+      if (target.isShielded) {
+        return {
+          fired: true,
+          grade: result.grade,
+          target,
+          hitTargets: [target],
+          killed: false,
+          shieldBlocked: true,
+          weaponKind,
+          weaponLevel,
+        };
+      }
+
       // Obi shield: blocks damage while raised. Fever shots and skills pierce it.
       if (target.isGuarding && !isFever) {
         return {
@@ -1716,6 +1793,7 @@ export class BeerCrusherEngine {
                 !t.isProjectile &&
                 !t.isGoldenCan &&
                 (!t.isGuarding || isFever) &&
+                !t.isShielded &&
                 t.radiusM > target.radiusM &&
                 Math.abs(t.thetaRad - target.thetaRad) <= 0.16
             )
@@ -1837,7 +1915,7 @@ export class BeerCrusherEngine {
       for (let i = activeMonsters.length - 1; i >= 0; i--) {
         const monster = activeMonsters[i];
         const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-        monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
+        if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
         monster.stunUntilMs = nowMs + levelSpec.skillStunMs;
         monster.stuckPlungerCount = 2;
         affectedTargets.push(monster);
@@ -1865,7 +1943,7 @@ export class BeerCrusherEngine {
       for (let i = activeMonsters.length - 1; i >= 0; i--) {
         const monster = activeMonsters[i];
         const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-        monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
+        if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
         monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
         monster.slowRatio = levelSpec.skillSlowRatio;
         affectedTargets.push(monster);
@@ -1894,7 +1972,7 @@ export class BeerCrusherEngine {
         const monster = activeMonsters[i];
         if (Math.abs(monster.thetaRad) <= halfArcRad) {
           const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-          monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
+          if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
           if (monster.kind !== 'boss') {
             monster.radiusM = Math.min(16.0, monster.radiusM + levelSpec.skillKnockbackM);
           }

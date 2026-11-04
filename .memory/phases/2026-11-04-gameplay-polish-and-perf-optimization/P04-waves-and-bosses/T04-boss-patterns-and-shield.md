@@ -1,6 +1,6 @@
 # Task: T04 Boss Patterns and Shield
 
-## Status: pending
+## Status: done
 
 ## Goal
 가운데만 쏴서는 보스를 잡을 수 없게 한다. 보스가 좌우로 움직이고, 뒤로 갈수록 패턴이 추가되며, 부하를 잡아야 대왕 쉴드가 풀린다.
@@ -135,10 +135,10 @@
 - 카드 대기 중 보스가 움직이지 않는다.
 
 ## Acceptance Criteria
-- [ ] 첫 보스가 좌우로 움직여 조준을 따라가야 한다.
-- [ ] 두 번째 보스전에서 타깃을 바꿔야 한다.
-- [ ] 대왕이 쉴드로 막히고, 부하를 잡으면 풀린다.
-- [ ] 판이 끝나지 않는 상황이 없다.
+- [x] 첫 보스가 좌우로 움직여 조준을 따라가야 한다.
+- [x] 두 번째 보스전에서 타깃을 바꿔야 한다.
+- [x] 대왕이 쉴드로 막히고, 부하를 잡으면 풀린다.
+- [x] 판이 끝나지 않는 상황이 없다.
 
 ## Validation
 - `npx vitest run tests/boss-encounters.test.ts tests/gameplay-polish.test.ts` — 통과
@@ -159,6 +159,6 @@ Task: T04-boss-patterns-and-shield
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(boss): add boss movement, shared summons, and king shield
