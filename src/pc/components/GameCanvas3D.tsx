@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 import { computeRenderPixelRatio } from '../three/renderBudget';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
@@ -73,6 +73,8 @@ export function disposeSceneGroup(group: THREE.Group): void {
 export interface GameCanvas3DHandle {
   setAim: (aimX: number, aimY: number, immediate?: boolean) => void;
   triggerSkillEffect?: (kind: WeaponKind, level?: WeaponLevel) => void;
+  /** 사격 직후 동기로 호출한다. 렌더 루프가 죽은 대상의 메시를 지우기 전에 폭발을 보장하기 위해서다. */
+  playShotFx: (result: EngineShootResult) => void;
 }
 
 export interface RenderPerformanceMetrics {
@@ -89,8 +91,6 @@ export interface GameCanvas3DProps {
   onAimChange?: (aimX: number, aimY: number) => void;
   onShoot?: (result: EngineShootResult) => void;
   soundSynth: SoundSynthesizer;
-  lastShootResult?: { result: EngineShootResult; key: number };
-  lastSkillTriggered?: { kind: WeaponKind; level?: WeaponLevel; key: number };
   onMonsterProjectionsUpdate?: (projections: MonsterHudProjection[]) => void;
   onRenderMetrics?: (metrics: RenderPerformanceMetrics) => void;
 }
@@ -103,8 +103,6 @@ export const GameCanvas3D = React.memo(
     onAimChange,
     onShoot,
     soundSynth,
-    lastShootResult,
-    lastSkillTriggered,
     onMonsterProjectionsUpdate,
     onRenderMetrics,
   }, ref) => {
@@ -126,6 +124,80 @@ export const GameCanvas3D = React.memo(
     const stageRigRef = useRef<BreweryStageRig | null>(null);
     const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
 
+    // Trigger 3D visual FX (tracer beam, recoil, hit flash, particles) for ANY shot.
+    // Shoot sound is played once by the page (PCGamePage.handleShootEvent), not here.
+    const playShotFx = useCallback(
+      (result: EngineShootResult) => {
+        if (!result.fired) return;
+
+        // Trigger defense line heal shockwave pulse if bar repair item was activated
+        if (result.activatedItem === 'bar_repair' && stageRigRef.current) {
+          stageRigRef.current.triggerHealPulse();
+        }
+
+        const isFever = engine.scoreManager.getState().isFeverActive;
+        const isPower = engine.isBuffActive('power_shot');
+        const isFeverOrPower = isFever || isPower;
+
+        if (tapGunRef.current) {
+          tapGunRef.current.triggerRecoil(isFeverOrPower);
+        }
+
+        if (particlesRef.current && tapGunRef.current && cameraRef.current) {
+          const muzzlePos = tapGunRef.current.getMuzzleWorldPosition(cameraRef.current);
+          const curAim = targetAimRef.current;
+
+          let targetPos: THREE.Vector3;
+          let beamColor = isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8';
+          const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
+          const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
+
+          const weaponState = engine.weaponSystem.getState();
+
+          if (result.grade !== 'MISS' && result.target) {
+            const mesh = targetMeshMapRef.current.get(result.target.id);
+            if (mesh) {
+              targetPos = projectedAimPoint.clone().lerp(mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)), 0.35);
+              applyTargetHitFlash3D(mesh, performance.now() / 1000);
+
+              const hitColor = result.target.isItem && result.target.itemKind
+                ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
+                : TARGET_SPECS[result.target.kind]?.brandColorHex || '#fbbf24';
+
+              if (result.killed) {
+                if (result.target.kind === 'bottle') {
+                  soundSynth.playBottleShatterSound();
+                  particlesRef.current.triggerBottleCrash(targetPos);
+                } else if (result.target.kind === 'boss') {
+                  soundSynth.playBossExplosionSound();
+                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.boss);
+                } else {
+                  soundSynth.playCanCrushSound();
+                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
+                }
+              } else {
+                soundSynth.playMetallicHitSound();
+                particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.hit);
+              }
+
+              if (result.target.isItem && result.target.itemKind) {
+                particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
+              }
+            } else {
+              targetPos = projectedAimPoint;
+            }
+          } else {
+            // Miss shot: tracer shoots straight through the crosshair unprojected ray
+            targetPos = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, 16);
+          }
+
+          // Spawn 3D Flying Projectile according to weapon archetype
+          particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel);
+        }
+      },
+      [engine, soundSynth]
+    );
+
     useImperativeHandle(
       ref,
       () => ({
@@ -142,94 +214,11 @@ export const GameCanvas3D = React.memo(
             .map((t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z));
           const actualLevel = level ?? engine.weaponSystem.getState().weaponLevel;
           particlesRef.current.spawnSkillEffect(kind, actualLevel, monsterPositions);
-          soundSynth.playSkillActivation(kind);
         },
+        playShotFx,
       }),
-      [engine, soundSynth]
+      [engine, playShotFx]
     );
-
-    useEffect(() => {
-      if (!lastSkillTriggered || !particlesRef.current) return;
-      const monsterPositions = engine.activeTargets
-        .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind)
-        .map((t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z));
-      const level = lastSkillTriggered.level ?? engine.weaponSystem.getState().weaponLevel;
-      particlesRef.current.spawnSkillEffect(lastSkillTriggered.kind, level, monsterPositions);
-      soundSynth.playSkillActivation(lastSkillTriggered.kind);
-    }, [lastSkillTriggered, engine, soundSynth]);
-
-    // Trigger 3D visual FX (tracer beam, recoil, hit flash, particles) for ANY shot
-    useEffect(() => {
-      if (!lastShootResult || lastShootResult.key === 0) return;
-      const { result } = lastShootResult;
-      if (!result.fired) return;
-
-      // Trigger defense line heal shockwave pulse if bar repair item was activated
-      if (result.activatedItem === 'bar_repair' && stageRigRef.current) {
-        stageRigRef.current.triggerHealPulse();
-      }
-
-      const isFever = engine.scoreManager.getState().isFeverActive;
-      const isPower = engine.isBuffActive('power_shot');
-      const isFeverOrPower = isFever || isPower;
-
-      if (tapGunRef.current) {
-        tapGunRef.current.triggerRecoil(isFeverOrPower);
-      }
-
-      if (particlesRef.current && tapGunRef.current && cameraRef.current) {
-        const muzzlePos = tapGunRef.current.getMuzzleWorldPosition(cameraRef.current);
-        const curAim = targetAimRef.current;
-
-        let targetPos: THREE.Vector3;
-        let beamColor = isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8';
-        const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
-        const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
-
-        const weaponState = engine.weaponSystem.getState();
-
-        if (result.grade !== 'MISS' && result.target) {
-          const mesh = targetMeshMapRef.current.get(result.target.id);
-          if (mesh) {
-            targetPos = projectedAimPoint.clone().lerp(mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)), 0.35);
-            applyTargetHitFlash3D(mesh, performance.now() / 1000);
-
-            const hitColor = result.target.isItem && result.target.itemKind
-              ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
-              : TARGET_SPECS[result.target.kind]?.brandColorHex || '#fbbf24';
-
-            if (result.killed) {
-              if (result.target.kind === 'bottle') {
-                soundSynth.playBottleShatterSound();
-                particlesRef.current.triggerBottleCrash(targetPos);
-              } else if (result.target.kind === 'boss') {
-                soundSynth.playBossExplosionSound();
-                particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.boss);
-              } else {
-                soundSynth.playCanCrushSound();
-                particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
-              }
-            } else {
-              soundSynth.playMetallicHitSound();
-              particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.hit);
-            }
-
-            if (result.target.isItem && result.target.itemKind) {
-              particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
-            }
-          } else {
-            targetPos = projectedAimPoint;
-          }
-        } else {
-          // Miss shot: tracer shoots straight through the crosshair unprojected ray
-          targetPos = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, 16);
-        }
-
-        // Spawn 3D Flying Projectile according to weapon archetype
-        particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel);
-        soundSynth.playWeaponShoot(weaponState.weaponKind, isFever);
-      }
-    }, [lastShootResult, engine, soundSynth]);
 
     useEffect(() => {
       const container = mountRef.current;

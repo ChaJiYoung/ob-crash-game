@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { BeerCrusherEngine, EngineShootResult, WaveProgressInfo } from './engine/BeerCrusherEngine';
+import { BeerCrusherEngine, EngineShootResult } from './engine/BeerCrusherEngine';
 import { GameCanvas3D, GameCanvas3DHandle, RenderPerformanceMetrics } from './components/GameCanvas3D';
 import { ArcadeOverlayHUD, MonsterHudProjection } from './components/ArcadeOverlayHUD';
+import { MonsterHpBarLayer, MonsterHpBarLayerHandle } from './components/MonsterHpBarLayer';
+import { HudSnapshot, buildHudSnapshot, isHudSnapshotEqual } from './hudSnapshot';
 import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
-import { JudgmentBanner } from './components/JudgmentBanner';
+import { JudgmentBanner, JudgmentBannerHandle } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
@@ -94,42 +96,31 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const canvasRef = useRef<GameCanvas3DHandle>(null);
   const crosshairRef = useRef<CrosshairOverlayHandle>(null);
 
-  const [lastJudgment, setLastJudgment] = useState<{ grade: JudgmentGrade; key: number }>({
+  const judgmentRef = useRef<JudgmentBannerHandle>(null);
+  const hpLayerRef = useRef<MonsterHpBarLayerHandle>(null);
+  // Only the sandbox lab panel displays the last judgment; other phases use the imperative banner.
+  const [sandboxJudgment, setSandboxJudgment] = useState<{ grade: JudgmentGrade; key: number }>({
     grade: 'GOOD',
     key: 0,
   });
-  const [lastShootResult, setLastShootResult] = useState<
-    { result: EngineShootResult; key: number } | undefined
-  >();
   const [isGoldenCanAlertActive, setIsGoldenCanAlertActive] = useState<boolean>(false);
   const [interceptedBannerKey, setInterceptedBannerKey] = useState<number>(0);
   const lastGoldenCanActiveRef = useRef<boolean>(false);
 
-  // Snapshot for HUD
-  const [hudState, setHudState] = useState({
-    score: 0,
-    combo: 0,
-    comboMultiplier: 1.0,
-    lives: STAGE_CONSTANTS.PLAYER_MAX_LIVES as number,
-    wave: 1,
-    ammo: 10,
-    maxAmmo: 10,
-    isReloading: false,
-    feverGauge: 0,
-    isFeverReady: false,
-    isFeverActive: false,
-    activeBuffs: [] as ActiveBuffState[],
-    isWideScopeActive: false,
-    isPowerShotActive: false,
-    waveProgress: undefined as WaveProgressInfo | undefined,
-    weaponKind: 'shotgun' as WeaponKind,
-    weaponLevel: 1 as WeaponLevel,
-    skillStock: 1,
-    maxSkillStock: 1,
-    skillCooldownRemainingMs: 0,
-  });
+  // Snapshot for HUD: only replaced when a displayed value changes.
+  const [hudState, setHudState] = useState<HudSnapshot>(() => buildHudSnapshot(engine, performance.now()));
 
-  const [monsterProjections, setMonsterProjections] = useState<MonsterHudProjection[]>([]);
+  const handleProjections = useCallback((projections: MonsterHudProjection[]) => {
+    hpLayerRef.current?.update(projections);
+  }, []);
+
+  const handleAimChange = useCallback(
+    (x: number, y: number) => {
+      updateAimDirect(x, y, true);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const wsRef = useRef<WebSocket | null>(null);
   const rapidFireTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -182,22 +173,27 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [checkResultButtonHover]);
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {
-    if (result.fired) {
-      const isFever = engine.scoreManager.getState().isFeverActive;
-      const currentWeapon = result.weaponKind || engine.weaponSystem.getState().weaponKind;
-      soundSynth.playWeaponShoot(currentWeapon, isFever);
+    if (!result.fired) return;
+    const isFever = engine.scoreManager.getState().isFeverActive;
+    const currentWeapon = result.weaponKind || engine.weaponSystem.getState().weaponKind;
+    soundSynth.playWeaponShoot(currentWeapon, isFever);
 
-      if (result.grade !== 'MISS') {
-        soundSynth.playHit(result.grade);
-        setLastJudgment({ grade: result.grade, key: Date.now() });
+    if (result.grade !== 'MISS') {
+      soundSynth.playHit(result.grade);
+      judgmentRef.current?.show(result.grade);
+      if (gamePhaseRef.current === 'SANDBOX') {
+        setSandboxJudgment({ grade: result.grade, key: Date.now() });
       }
-
-      if (result.interceptedProjectile) {
-        soundSynth.playInterceptSound();
-        setInterceptedBannerKey(Date.now());
-      }
-      setLastShootResult({ result, key: Date.now() });
     }
+
+    if (result.interceptedProjectile) {
+      soundSynth.playInterceptSound();
+      setInterceptedBannerKey(Date.now());
+    }
+
+    // Must run synchronously right after shootAt, before the render loop removes dead target meshes.
+    canvasRef.current?.playShotFx(result);
+    crosshairRef.current?.kick();
   }, [engine, soundSynth]);
 
   const executeSkill = useCallback(() => {
@@ -482,32 +478,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       const feverState = engine.scoreManager.getState();
       const weaponState = engine.weaponSystem.getState();
       const now = performance.now();
-      const activeBuffs = engine.getActiveBuffs(now);
-      const isWideScopeActive = engine.isBuffActive('wide_scope', now);
-      const isPowerShotActive = engine.isBuffActive('power_shot', now);
 
-      setHudState({
-        score: feverState.totalScore,
-        combo: feverState.combo,
-        comboMultiplier: feverState.comboMultiplier,
-        lives: engine.lives,
-        wave: engine.currentWave,
-        ammo: weaponState.ammo,
-        maxAmmo: weaponState.maxAmmo,
-        isReloading: weaponState.isReloading,
-        feverGauge: feverState.feverGauge,
-        isFeverReady: feverState.isFeverReady,
-        isFeverActive: feverState.isFeverActive,
-        activeBuffs,
-        isWideScopeActive,
-        isPowerShotActive,
-        waveProgress: engine.getWaveProgress(),
-        weaponKind: weaponState.weaponKind,
-        weaponLevel: weaponState.weaponLevel,
-        skillStock: weaponState.skillStock,
-        maxSkillStock: weaponState.maxSkillStock,
-        skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
-      });
+      const nextHud = buildHudSnapshot(engine, now);
+      setHudState((prev) => (isHudSnapshotEqual(prev, nextHud) ? prev : nextHud));
 
       // Golden Can Spawn alert check
       const hasGoldenCan = engine.activeTargets.some((t) => t.isGoldenCan);
@@ -585,7 +558,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         soundSynth.playFeverStart();
         submitScore(feverState.totalScore, STAGE_CONSTANTS.TOTAL_WAVES, feverState.maxCombo);
       }
-    }, 50);
+    }, 100);
 
     return () => clearInterval(interval);
   }, [engine, gamePhase, soundSynth]);
@@ -794,13 +767,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         engine={engine}
         aimX={0}
         aimY={0}
-        onAimChange={(x, y) => {
-          updateAimDirect(x, y, true);
-        }}
+        onAimChange={handleAimChange}
         onShoot={handleShootEvent}
         soundSynth={soundSynth}
-        lastShootResult={lastShootResult}
-        onMonsterProjectionsUpdate={setMonsterProjections}
+        onMonsterProjectionsUpdate={handleProjections}
         onRenderMetrics={handleRenderMetrics}
       />
 
@@ -905,6 +875,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               </span>
             </div>
           )}
+          <MonsterHpBarLayer ref={hpLayerRef} />
           <ArcadeOverlayHUD
             player={pairedPlayer}
             score={hudState.score}
@@ -923,7 +894,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             bossEntity={bossEntity}
             activeBuffs={hudState.activeBuffs}
             waveProgress={hudState.waveProgress}
-            monsterProjections={monsterProjections}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
             skillStock={hudState.skillStock}
@@ -942,9 +912,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isAimLocked={isAimLocked}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
-            shotTriggerKey={lastShootResult?.key || 0}
           />
-          <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
+          <JudgmentBanner ref={judgmentRef} />
         </>
       )}
 
@@ -972,9 +941,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isAimLocked={isAimLocked}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
-            shotTriggerKey={lastShootResult?.key || 0}
           />
-          <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
+          <JudgmentBanner ref={judgmentRef} />
         </>
       )}
 
@@ -996,7 +964,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverReady={hudState.isFeverReady}
             isFeverActive={hudState.isFeverActive}
             activeBuffs={hudState.activeBuffs}
-            lastJudgment={lastJudgment}
+            lastJudgment={sandboxJudgment}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
             onSelectWeapon={(k) => engine.weaponSystem.selectWeapon(k)}
@@ -1055,9 +1023,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isAimLocked={isAimLocked}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
-            shotTriggerKey={lastShootResult?.key || 0}
           />
-          <JudgmentBanner grade={lastJudgment.grade} triggerKey={lastJudgment.key} />
+          <JudgmentBanner ref={judgmentRef} />
         </>
       )}
 
@@ -1085,7 +1052,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 isWideScopeActive={false}
                 isPowerShotActive={false}
                 isAimLocked={isAimLocked}
-                shotTriggerKey={0}
               />
             </div>
           )}
@@ -1153,8 +1119,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               isWideScopeActive={false}
               isPowerShotActive={false}
               isAimLocked={isAimLocked}
-              shotTriggerKey={lastShootResult?.key || 0}
-            />
+              />
           </div>
         </>
       )}

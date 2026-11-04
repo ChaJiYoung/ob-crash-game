@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { JudgmentGrade } from '../../shared/types';
 
 export function getJudgmentBannerSpec(grade: JudgmentGrade): {
@@ -39,28 +39,45 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
   }
 }
 
-export interface JudgmentBannerProps {
-  grade: JudgmentGrade;
-  triggerKey: number;
+export interface JudgmentBannerHandle {
+  show(grade: JudgmentGrade): void;
 }
 
-export const JudgmentBanner: React.FC<JudgmentBannerProps> = ({ grade, triggerKey }) => {
-  const [visible, setVisible] = useState(false);
-  const spec = getJudgmentBannerSpec(grade);
+/** 판정 배너. 부모를 다시 그리지 않고 `show()`로 직접 띄운다. */
+export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => {
+  const [shown, setShown] = useState<{ grade: JudgmentGrade; key: number } | null>(null);
+  const keyRef = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (triggerKey === 0) return;
-    setVisible(true);
-    const timer = setTimeout(() => {
-      setVisible(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [triggerKey]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      show(grade: JudgmentGrade) {
+        keyRef.current += 1;
+        setShown({ grade, key: keyRef.current });
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+          timerRef.current = null;
+          setShown(null);
+        }, 600);
+      },
+    }),
+    []
+  );
 
-  if (!visible) return null;
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    []
+  );
+
+  if (!shown) return null;
+  const spec = getJudgmentBannerSpec(shown.grade);
 
   return (
     <div
+      key={shown.key}
       style={{
         position: 'absolute',
         top: '38%',
@@ -101,4 +118,4 @@ export const JudgmentBanner: React.FC<JudgmentBannerProps> = ({ grade, triggerKe
       </div>
     </div>
   );
-};
+});

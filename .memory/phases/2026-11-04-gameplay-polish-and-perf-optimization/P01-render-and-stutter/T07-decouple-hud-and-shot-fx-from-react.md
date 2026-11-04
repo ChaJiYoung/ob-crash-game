@@ -1,6 +1,6 @@
 # Task: T07 Decouple HUD and Shot FX from React
 
-## Status: pending
+## Status: done
 
 ## Goal
 페이지 전체 리렌더를 초당 약 25~50회에서 크게 줄이고, 사격 이펙트와 소리를 React state 없이 바로 실행한다. 메인 스레드 여유를 만들고, 처치 폭발이 빠지는 경우와 효과음 중복을 없앤다.
@@ -123,11 +123,11 @@
 - `PCGamePage.tsx`에서 `playWeaponShoot`, `playSkillActivation`이 각각 한 번만 나온다.
 
 ## Acceptance Criteria
-- [ ] 발사음과 스킬음이 한 번씩만 들린다.
-- [ ] 처치 폭발이 빠지지 않는다.
-- [ ] HP바가 몬스터를 부드럽게 따라간다.
-- [ ] 판정 배너와 크로스헤어 반동이 그대로 동작한다.
-- [ ] 전투 중 React 커밋이 크게 줄어든다(T08에서 측정).
+- [x] 발사음과 스킬음이 한 번씩만 들린다.
+- [x] 처치 폭발이 빠지지 않는다.
+- [x] HP바가 몬스터를 부드럽게 따라간다.
+- [x] 판정 배너와 크로스헤어 반동이 그대로 동작한다.
+- [x] 전투 중 React 커밋이 크게 줄어든다(T08에서 측정).
 
 ## Validation
 - `npx vitest run tests/hud-snapshot.test.ts tests/hud-render-cost.test.ts tests/pc-hud-and-banner.test.ts` — 통과
@@ -150,6 +150,6 @@ Task: T07-decouple-hud-and-shot-fx-from-react
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: perf(pc): decouple HUD ticks and shot effects from React renders

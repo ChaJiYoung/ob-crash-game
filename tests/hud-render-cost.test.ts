@@ -22,4 +22,20 @@ describe('combat HUD compositing cost (gameplay-polish P01-T06)', () => {
       expect(line).not.toMatch(/,\s*0\s/);
     });
   });
+
+  it('PCGamePage no longer drives shot FX or HP bars through React state', () => {
+    const src = read('src/pc/PCGamePage.tsx');
+    expect(src).not.toContain('setLastShootResult');
+    expect(src).not.toContain('setMonsterProjections');
+  });
+
+  it('plays the shoot and skill sounds exactly once (in the page, not the canvas)', () => {
+    const canvas = read('src/pc/components/GameCanvas3D.tsx');
+    expect(canvas).not.toContain('playWeaponShoot');
+    expect(canvas).not.toContain('playSkillActivation');
+
+    const page = read('src/pc/PCGamePage.tsx');
+    expect(page.match(/playWeaponShoot/g)?.length).toBe(1);
+    expect(page.match(/playSkillActivation/g)?.length).toBe(1);
+  });
 });

@@ -161,7 +161,6 @@ export interface ArcadeOverlayHUDProps {
   bossEntity?: ActiveTargetEntity;
   activeBuffs?: ActiveBuffState[];
   waveProgress?: WaveProgressInfo;
-  monsterProjections?: MonsterHudProjection[];
   weaponKind?: WeaponKind;
   weaponLevel?: WeaponLevel;
   skillStock?: number;
@@ -189,7 +188,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   bossEntity,
   activeBuffs = [],
   waveProgress,
-  monsterProjections = [],
   weaponKind = 'shotgun',
   weaponLevel = 1,
   skillStock = 1,
@@ -223,93 +221,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         userSelect: 'none',
       }}
     >
-      {/* 3D TRACKING MONSTER 100% CONTINUOUS HP GAUGE BARS */}
-      {monsterProjections.map((proj) => {
-        if (!shouldRenderMonsterHpBar(proj.maxHp, proj.isItem, proj.isProjectile, proj.hp)) return null;
-        if (proj.leftPercent < -5 || proj.leftPercent > 105 || proj.topPercent < -5 || proj.topPercent > 105) return null;
-
-        const safeMaxHp = Math.max(0.001, proj.maxHp);
-        const hpRatio = Math.max(0, Math.min(1, proj.hp / safeMaxHp));
-        const color = hpRatio > 0.5 ? '#10b981' : hpRatio > 0.25 ? '#f59e0b' : '#ef4444';
-
-        return (
-          <div
-            key={proj.id}
-            style={{
-              position: 'absolute',
-              left: `${proj.leftPercent}%`,
-              top: `${proj.topPercent}%`,
-              transform: 'translate(-50%, -100%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '2px',
-              pointerEvents: 'none',
-              zIndex: 10,
-            }}
-          >
-            {/* Status tags */}
-            {(proj.isStunned || proj.isSlowed) && (
-              <div style={{ display: 'flex', gap: '3px', marginBottom: '1px' }}>
-                {proj.isStunned && (
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      fontWeight: 900,
-                      color: '#111827',
-                      background: '#fbbf24',
-                      padding: '1px 4px',
-                      borderRadius: '4px',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    ⚡STUN
-                  </span>
-                )}
-                {proj.isSlowed && (
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      fontWeight: 900,
-                      color: '#111827',
-                      background: '#67e8f9',
-                      padding: '1px 4px',
-                      borderRadius: '4px',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    ❄️SLOW
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* 100% Continuous HP Gauge Bar */}
-            <div
-              style={{
-                width: '44px',
-                height: '6px',
-                background: 'rgba(15, 23, 42, 0.96)',
-                borderRadius: '3px',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                overflow: 'hidden',
-                padding: '1px',
-                boxSizing: 'content-box',
-              }}
-            >
-              <div
-                style={{
-                  width: `${proj.hp > 0 ? Math.max(2, Math.round(hpRatio * 100)) : 0}%`,
-                  height: '100%',
-                  borderRadius: '2px',
-                  background: color,
-                  transition: 'width 0.12s ease-out',
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
       {/* TOP BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         {/* TOP-LEFT: Player Badge, Score, Combo, Lives */}

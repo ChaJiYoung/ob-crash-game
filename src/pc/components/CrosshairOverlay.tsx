@@ -114,6 +114,8 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
 
 export interface CrosshairOverlayHandle {
   updatePosition: (aimX: number, aimY: number, immediate?: boolean) => void;
+  /** 발사 반동 연출(120ms). 부모 리렌더 없이 직접 호출한다. */
+  kick: () => void;
 }
 
 export interface CrosshairOverlayProps {
@@ -125,7 +127,6 @@ export interface CrosshairOverlayProps {
   isAimLocked?: boolean;
   weaponKind?: WeaponKind;
   weaponLevel?: WeaponLevel;
-  shotTriggerKey?: number;
 }
 
 export const CrosshairOverlay = React.memo(
@@ -138,7 +139,6 @@ export const CrosshairOverlay = React.memo(
     isAimLocked = false,
     weaponKind = 'shotgun',
     weaponLevel = 1,
-    shotTriggerKey = 0,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const targetPosRef = useRef({ x: aimX, y: aimY });
@@ -157,6 +157,9 @@ export const CrosshairOverlay = React.memo(
       weaponLevel,
     });
 
+    const [isKicking, setIsKicking] = useState(false);
+    const kickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const applyDomPosition = useCallback((curX: number, curY: number) => {
       if (containerRef.current) {
         const pos = aimToViewportPercent(curX, curY);
@@ -168,6 +171,14 @@ export const CrosshairOverlay = React.memo(
     useImperativeHandle(
       ref,
       () => ({
+        kick() {
+          setIsKicking(true);
+          if (kickTimerRef.current) clearTimeout(kickTimerRef.current);
+          kickTimerRef.current = setTimeout(() => {
+            kickTimerRef.current = null;
+            setIsKicking(false);
+          }, 120);
+        },
         updatePosition(nextAimX: number, nextAimY: number, immediate = true) {
           targetPosRef.current = { x: nextAimX, y: nextAimY };
 
@@ -222,22 +233,13 @@ export const CrosshairOverlay = React.memo(
 
     useEffect(() => {
       return () => {
+        if (kickTimerRef.current) clearTimeout(kickTimerRef.current);
         if (rafIdRef.current !== null && typeof window !== 'undefined') {
           window.cancelAnimationFrame(rafIdRef.current);
           rafIdRef.current = null;
         }
       };
     }, []);
-
-    const [isKicking, setIsKicking] = useState(false);
-
-    useEffect(() => {
-      if (shotTriggerKey > 0) {
-        setIsKicking(true);
-        const timer = setTimeout(() => setIsKicking(false), 120);
-        return () => clearTimeout(timer);
-      }
-    }, [shotTriggerKey]);
 
     const cornerSize = spec.sizePx * 0.22;
 
