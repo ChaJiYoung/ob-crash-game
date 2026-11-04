@@ -108,6 +108,8 @@ export interface WaveDefinition {
   totalSpawns: number;
   maxSimultaneous: number;
   spawnIntervalMs: number;
+  /** Par clear time in seconds: the time bonus is full at or under it and reaches 0 at zeroAtParMult x par. */
+  parTimeSec: number;
   kinds: TargetKind[];
   allowedItems: ItemBuffKind[];
   boss: { coolerHp: readonly number[]; kingHp: number | null; summonKinds: readonly TargetKind[] } | null;
@@ -152,6 +154,10 @@ export class BeerCrusherEngine {
   private pausedAtMs: number | null = null;
 
   public readonly scoreManager = new ScoreAndFeverManager();
+  /** Game-clock start of the current wave; null until the wave's first running tick (shifted by freezeTimers). */
+  private waveStartMs: number | null = null;
+  public waveTimeBonusTotal = 0;
+  public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
   private shotStats: Record<'PERFECT' | 'GREAT' | 'GOOD' | 'MISS', number> = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
   private precisionBonusApplied = 0;
   public readonly weaponSystem = new WeaponSystem();
@@ -185,6 +191,7 @@ export class BeerCrusherEngine {
         totalSpawns: w.totalSpawns,
         maxSimultaneous: w.maxSimultaneous,
         spawnIntervalMs: w.spawnIntervalMs,
+        parTimeSec: w.parTimeSec,
         kinds: [...w.kinds] as TargetKind[],
         allowedItems: [],
         boss: w.boss
@@ -318,6 +325,9 @@ export class BeerCrusherEngine {
     this.scoreManager.reset();
     this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
     this.precisionBonusApplied = 0;
+    this.waveStartMs = null;
+    this.waveTimeBonusTotal = 0;
+    this.lastWaveClear = null;
     this.weaponSystem.reset();
     this.resetCardStacks();
     this.activeBuffUntilMs.clear();
@@ -349,6 +359,7 @@ export class BeerCrusherEngine {
     this.bossSummonActionUntilMs = 0;
     this.lastBossSummonTimeMs = 0;
     this.lastBossSummonHpThreshold = 45;
+    this.waveStartMs = null;
   }
 
   public spawnWeaponSelectTargets(nowMs = 0): void {
@@ -962,6 +973,7 @@ export class BeerCrusherEngine {
     }
     this.scoreManager.shiftFeverTimer(deltaMs);
     this.weaponSystem.shiftReloadTimer(deltaMs);
+    if (this.waveStartMs !== null) this.waveStartMs += deltaMs;
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
     if (this.lastBossProjectileMs > 0) this.lastBossProjectileMs += deltaMs;
@@ -997,6 +1009,8 @@ export class BeerCrusherEngine {
       this.freezeTimers(realElapsedMs);
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
+
+    if (this.waveStartMs === null && this.gamePhase === 'PLAYING') this.waveStartMs = nowMs;
 
     this.updateGuards(nowMs);
     this.updateBossMovement(nowMs);
@@ -1233,6 +1247,7 @@ export class BeerCrusherEngine {
         return { breaches, phaseChanged: false, reloadedJustNow };
       }
 
+      this.awardWaveTimeBonus(nowMs);
       this.activeTargets = [];
       // Between waves: Spawn Shoot-to-Select Reward Cards (the last wave always ends with its boss fight)
       this.spawnWaveRewardCards(nowMs, true);
@@ -1492,6 +1507,7 @@ export class BeerCrusherEngine {
       this.activeTargets = [];
       this.isRewardCardPending = false;
       if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
+        this.awardWaveTimeBonus(nowMs);
         this.declareVictory();
       }
       // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
@@ -1620,6 +1636,7 @@ export class BeerCrusherEngine {
 
       if (this.pendingWaveAdvance || (remainingSpawns === 0 && remainingMonsters === 0)) {
         if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
+          this.awardWaveTimeBonus(nowMs);
           this.declareVictory();
         } else {
           this.startWave(this.currentWave + 1);
@@ -1652,6 +1669,35 @@ export class BeerCrusherEngine {
       this.shotStats[result.shieldBlocked ? 'MISS' : result.grade] += 1;
     }
     return result;
+  }
+
+  /** Linear time bonus: full at or under par, 0 at zeroAtParMult x par; boss waves are weighted. */
+  public computeWaveTimeBonus(wave: number, elapsedSec: number): number {
+    const cfg = GAME_TUNING.score.timeBonus;
+    const def = this.waveDefinitions[wave];
+    if (!def) return 0;
+    const par = def.parTimeSec;
+    const zero = par * cfg.zeroAtParMult;
+    const ratio = zero > par ? Math.min(1, Math.max(0, (zero - elapsedSec) / (zero - par))) : elapsedSec <= par ? 1 : 0;
+    const weight = def.boss ? cfg.bossWaveWeight : 1;
+    return Math.round(cfg.maxPerWave * weight * ratio);
+  }
+
+  /** Pays the current wave's time bonus once (not in the tutorial or sandbox). */
+  private awardWaveTimeBonus(nowMs: number): void {
+    if (this.isTutorialMode || this.isSandboxMode || this.waveStartMs === null) return;
+    if (this.lastWaveClear && this.lastWaveClear.wave === this.currentWave) return;
+    const seconds = Math.max(0, (nowMs - this.waveStartMs) / 1000);
+    const bonus = this.scoreManager.addBonusScore(this.computeWaveTimeBonus(this.currentWave, seconds));
+    this.waveTimeBonusTotal += bonus;
+    this.lastWaveClear = { wave: this.currentWave, seconds, bonus, atMs: nowMs };
+  }
+
+  public getScoreBreakdown(): { total: number; timeBonus: number; precisionBonus: number; base: number } {
+    const total = this.scoreManager.getState().totalScore;
+    const timeBonus = this.waveTimeBonusTotal;
+    const precisionBonus = this.precisionBonusApplied;
+    return { total, timeBonus, precisionBonus, base: total - timeBonus - precisionBonus };
   }
 
   /** Weighted accuracy of this run (0..1) and the bonus it earns at VICTORY. */

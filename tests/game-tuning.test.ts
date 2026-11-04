@@ -70,3 +70,13 @@ describe('fever only lifts the ammo limit', () => {
     expect(ws.canFire(1000 + interval, true, 'fever')).toBe(true);
   });
 });
+
+describe('wave time bonus tuning', () => {
+  it('has a positive par time for every wave and a sane bonus table', () => {
+    for (const w of GAME_TUNING.waves as readonly any[]) expect(w.parTimeSec).toBeGreaterThan(0);
+    const t = GAME_TUNING.score.timeBonus;
+    expect(t.maxPerWave).toBeGreaterThan(0);
+    expect(t.bossWaveWeight).toBeGreaterThanOrEqual(1);
+    expect(t.zeroAtParMult).toBeGreaterThan(1);
+  });
+});
