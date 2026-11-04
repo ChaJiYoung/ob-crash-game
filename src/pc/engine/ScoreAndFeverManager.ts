@@ -1,6 +1,11 @@
 import { JudgmentGrade } from '../../shared/types';
 import { FEVER_CONSTANTS, JUDGMENT_SPECS } from '../../shared/constants';
 
+export interface HitScoreOptions {
+  scoreMultiplier?: number;
+  feverMultiplier?: number;
+}
+
 export class ScoreAndFeverManager {
   private totalScore = 0;
   private combo = 0;
@@ -19,7 +24,8 @@ export class ScoreAndFeverManager {
   public registerHit(
     grade: Exclude<JudgmentGrade, 'MISS'>,
     killBonusScore = 0,
-    killed = false
+    killed = false,
+    options?: HitScoreOptions
   ): {
     earnedScore: number;
     totalScore: number;
@@ -37,11 +43,16 @@ export class ScoreAndFeverManager {
     const spec = JUDGMENT_SPECS[grade];
     const mult = this.getComboMultiplier();
     const feverBonusMult = this.isFeverActive ? 1.5 : 1.0;
-    const earnedScore = Math.round(spec.baseScore * mult * feverBonusMult) + killBonusScore;
+    const scoreMult = options?.scoreMultiplier ?? 1.0;
+    const feverMult = options?.feverMultiplier ?? 1.0;
+
+    const earnedScore = Math.round(spec.baseScore * mult * feverBonusMult * scoreMult) + killBonusScore;
     this.totalScore += earnedScore;
 
     if (!this.isFeverActive) {
-      const delta = spec.feverDelta + (killed ? FEVER_CONSTANTS.KILL_FEVER_DELTA : 0);
+      const baseFeverDelta = Math.round(spec.feverDelta * feverMult);
+      const killFeverDelta = killed ? Math.round(FEVER_CONSTANTS.KILL_FEVER_DELTA * feverMult) : 0;
+      const delta = baseFeverDelta + killFeverDelta;
       this.feverGauge = Math.min(FEVER_CONSTANTS.MAX_GAUGE, this.feverGauge + delta);
       if (this.feverGauge >= FEVER_CONSTANTS.MAX_GAUGE) {
         this.feverGauge = FEVER_CONSTANTS.MAX_GAUGE;
