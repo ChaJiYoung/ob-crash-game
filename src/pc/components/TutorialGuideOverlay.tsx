@@ -72,7 +72,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               TRAINING MODE
             </span>
             <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>
-              {step === 1 && '🎯 STEP 1. 정밀 조준 배율(1.5x/1.0x/0.8x) & 원샷'}
+              {step === 1 && '🎯 STEP 1. 정밀 조준 배율(2.0x/1.0x/0.5x) & 원샷'}
               {step === 2 && '💥 STEP 2. 홀드 자동 연발(투두두두) & 100% 체력 게이지'}
               {step === 3 && '🔥 STEP 3. 피버 모드 & 2배 화력 대폭발'}
               {step === 'COMPLETED' && '🎉 훈련 수료 완료!'}
@@ -84,7 +84,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               <>
                 스마트폰을 모니터로 겨누고 <strong>화면을 톡 탭(탕! 발사)</strong>하여 정지된 <strong>연습 캔 3개</strong>를 맞히세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 <strong>PERFECT(1.5배)·GREAT(1.0배)</strong> 명중 시 1HP 캔 한 방 격파! <strong>GOOD(0.8배)</strong> 스침 시 잔여 체력 게이지가 표시됩니다. (MISS 페널티 없음 / 남은 표적:{' '}
+                  💡 <strong>PERFECT(2.0배)·GREAT(1.0배)</strong> 명중 시 1HP 캔 한 방 격파! <strong>GOOD(0.5배)</strong> 스침 시 잔여 체력 게이지가 표시됩니다. (MISS 페널티 없음 / 남은 표적:{' '}
                   <span style={{ color: '#fbbf24', fontWeight: 800 }}>{targetsRemaining}개</span>)
                 </div>
               </>

@@ -1,6 +1,6 @@
 # Task: T02 Sync Guides and Docs
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 내 안내와 문서가 실제 동작과 다르지 않게 한다. 플레이어가 "빗나가도 부담 없이 난사하세요" 같은 낡은 안내를 보지 않게 하기 위해서다.
@@ -81,10 +81,10 @@ grep -rnE "INTERCEPTED|5웨이브|5단계|1\.5배|0\.8배|1\.5x|0\.8x|바 카운
 의도적으로 남긴 항목이 있으면 이유를 Task에 적는다.
 
 ## Acceptance Criteria
-- [ ] 게임 안내와 튜토리얼의 배율이 실제와 같다.
-- [ ] 문서가 7웨이브, 보스 3회, 카드 9종 기준이다.
-- [ ] 난사를 권장하는 문구가 없다.
-- [ ] 누락 검사 결과에 낡은 사양이 없다.
+- [x] 게임 안내와 튜토리얼의 배율이 실제와 같다.
+- [x] 문서가 7웨이브, 보스 3회, 카드 9종 기준이다.
+- [x] 난사를 권장하는 문구가 없다.
+- [x] 누락 검사 결과에 낡은 사양이 없다.
 
 ## Validation
 - `npx vitest run tests/tutorial-and-guide.test.ts tests/pc-modals-and-pairing.test.ts` — 통과
@@ -106,6 +106,6 @@ Task: T02-sync-guides-and-docs
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: docs(game): align guides and documents with the new game rules

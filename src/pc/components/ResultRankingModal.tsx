@@ -77,7 +77,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '6px' }}>
             {isVictory
               ? '생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!'
-              : '맥주 몬스터들의 거센 공세에 바 카운터가 무너졌습니다.'}
+              : '맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다.'}
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TARGET_SPECS, ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS, REWARD_CARD_SPECS } from '../../shared/constants';
 import { TargetKind, ItemBuffKind } from '../../shared/types';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface GuideModalProps {
   isOpen: boolean;
@@ -22,45 +23,45 @@ const MONSTER_DETAILS: Record<
   }
 > = {
   pilgood: {
-    role: '공중 유영형 · S자 회피 비행 (1HP)',
-    speedText: '2.6 m/s',
-    description: '부드러운 곡선 S자 유영 궤적으로 좌우로 흔들리며 날아오는 고래 캐릭터 알루미늄 캔.',
-    tip: '체력 1이므로 곡선 유영 중심을 예측 조준하여 신속하게 요격하세요.',
+    role: '지상 돌격형 · 가까워지면 가속 (1HP)',
+    speedText: `2.6 m/s (${GAME_TUNING.monsters.pilgood.chargeRadiusM}m 안에서 ×${GAME_TUNING.monsters.pilgood.chargeSpeedMult})`,
+    description: '땅 위를 굴러 달려오는 고래 캐릭터 알루미늄 캔. 방어선 12m 안으로 들어오면 갑자기 빨라집니다.',
+    tip: '체력 1! 멀리서 미리 잡으세요. 가까워지면 속도가 올라 조준할 시간이 부족합니다.',
     imageSrc: '/docs/screens/monster-01-pilgood.png',
   },
   caslight: {
-    role: '공중 비행형 · 날개 펄럭임 & 고속 회피 (1HP)',
+    role: '유일한 공중 비행형 · 크게 흔들리는 회피 비행 (1HP)',
     speedText: '2.4 m/s',
-    description: '양 측면 반투명 시안 날개를 펄럭이며 날렵한 곡선 지그재그 궤적으로 날아오는 라이트 캔.',
-    tip: '체력 1! 지상 표적보다 조준선을 약간 높여 공중 회피 각도로 조준하세요.',
+    description: '양 측면 반투명 시안 날개를 펄럭이며 좌우로 크게 흔들리며 날아오는 라이트 캔. 공중에 떠 있는 몬스터는 이 캔뿐입니다.',
+    tip: '체력 1! 흔들림의 가장자리에서 방향을 바꾸는 순간을 노리세요. 조준선을 지상 표적보다 높게 잡아야 합니다.',
     imageSrc: '/docs/screens/monster-02-caslight.png',
   },
   obi: {
-    role: '지상 바운스 · 랄라베어 정통 보병 (2HP)',
+    role: '지상 방패병 · 방패를 들었다 내리는 타이밍형 (2HP)',
     speedText: '1.9 m/s',
-    description: '왕관을 쓴 오비 랄라베어 마스코트가 그려진 앰버 골드 캔. 바닥을 안정적으로 전진합니다.',
-    tip: '체력 2! 머리 위에 100% 연속 슬림 체력바가 표시됩니다. 2연타 사격이나 샷건 산탄으로 제압하세요.',
+    description: `푸른 방패를 ${GAME_TUNING.monsters.obi.guardUpMs / 1000}초 들고 ${GAME_TUNING.monsters.obi.guardDownMs / 1000}초 내리기를 반복합니다. 방패가 올라가 있으면 총알이 튕겨 나가고(점수·피버 없음) 탄약만 소모됩니다.`,
+    tip: '방패가 내려간 순간에만 쏘세요! 피버 중 사격과 액티브 스킬은 방패를 뚫습니다. 개체마다 방패 타이밍이 달라 다른 오비를 먼저 노리는 것도 방법입니다.',
     imageSrc: '/docs/screens/monster-03-obi.png',
   },
   hanmac: {
-    role: '지상 돌진형 · 버서커 가속 & 투사체 발사 (3HP)',
-    speedText: '2.0 m/s',
-    description: '100% 국산 쌀 벼 이삭 크레스트가 새겨진 딥 에메랄드 캔. 3HP로 강화되었습니다.',
-    tip: '피격 시 분노하여 속도가 30% 증가하며, 전방으로 거품 투사체를 날립니다! 투사체를 요격하고 처치하세요.',
+    role: '지상 포격형 · 멈춰 서서 투사체 발사 (3HP)',
+    speedText: `2.0 m/s (${GAME_TUNING.monsters.hanmac.stopRadiusM}m에서 정지)`,
+    description: `100% 국산 쌀 벼 이삭 크레스트가 새겨진 딥 에메랄드 캔. ${GAME_TUNING.monsters.hanmac.stopRadiusM}m에서 멈춰 서서 ${GAME_TUNING.monsters.hanmac.fireIntervalMs / 1000}초마다 자기 위치에서 거품 투사체를 날립니다.`,
+    tip: '투사체를 요격하면 터지며 점수를 줍니다. 한맥은 방어선을 넘지 않으니 투사체가 날아오기 전에 우선 처치하세요.',
     imageSrc: '/docs/screens/monster-04-hanmac.png',
   },
   bottle: {
-    role: '지상 대형 탱커 · 카스 500ml 투명병 (4HP)',
+    role: '지상 대형 탱커 · 깨지면 작은 병 2마리로 분열 (4HP)',
     speedText: '1.5 m/s',
-    description: '2.45배 대형화된 압도적 크기와 좌우 통통 튀며 바운스 전진하는 4HP 엘리트 탱커.',
-    tip: '체력 4! 100% 연속 슬림 체력바를 확인하며 관통 리볼버나 샷건 넉백을 적극 활용하세요.',
+    description: '대형 카스 500ml 투명병. 깨지는 순간 작고 빠른 병 2마리(체력 1)로 갈라져 양옆에서 달려옵니다. 작은 병은 다시 나뉘지 않습니다.',
+    tip: '체력 4! 큰 병을 깬 뒤 양옆으로 갈라지는 작은 병을 바로 이어서 잡으세요. 작은 병까지 잡아야 웨이브가 끝납니다.',
     imageSrc: '/docs/screens/monster-05-cass-bottle.png',
   },
   boss: {
-    role: '최종 레이드 보스 · 업소용 냉각기 (60HP)',
-    speedText: '0.85 m/s (10m 안전 정지)',
-    description: '스테인리스 캐비닛, 듀얼 골드 탭, 디지털 온도계를 장착한 60HP 보스. 방어선 전방 10m에 안전 정지하며 탭 레버를 당겨 부하 맥주 미니웨이브를 주기적으로 소환합니다.',
-    tip: '전방 10m에 멈추므로 방어선 즉사는 없습니다! 탭 레버 액션과 함께 소환되는 부하들을 처치해 아이템과 피버를 얻고 4초 피버 2배 난사로 보스를 격파하세요. 보스 격파 시 즉시 승리합니다!',
+    role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
+    speedText: '0.85 m/s (10m 정지, 좌우 이동)',
+    description: '스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 8초마다 소환하고 투사체를 쏩니다. 넉백이 통하지 않습니다.',
+    tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 대왕의 쉴드는 부하 6마리 또는 냉각기 1대를 처치하면 풀리고, 체력이 2/3·1/3 아래로 내려가면 다시 켜집니다. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
 };
@@ -172,7 +173,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
               📖 비어 크러셔 로그라이크 무기 & 기믹 도감
             </div>
             <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-              3종 무기 & 스냅 액티브 스킬, 6종 몬스터 체력바 & 요격 기믹, 사격 선택 카드
+              3종 무기 & 스냅 액티브 스킬, 몬스터 5종 + 보스 3회(7웨이브), 9종 사격 선택 카드
             </div>
           </div>
           <button
@@ -302,10 +303,11 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   🎯 명중 정밀도 데미지 배율 & 노-미스(No-Miss) 아케이드 판정
                 </div>
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
-                  • <strong>PERFECT (중심 75% 이내):</strong> <strong>1.5배 데미지</strong> 폭딜 (+150 PTS & 피버 +8% 충전)<br />
-                  • <strong>GREAT (중심 100% 이내):</strong> <strong>1.0배 정타 데미지</strong> (+100 PTS) — 1레벨 모든 무기로 기본 캔(1HP) 원샷 제압!<br />
-                  • <strong>GOOD (외곽 125% 이내):</strong> <strong>0.8배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
-                  • <strong>MISS 페널티 완전 폐지:</strong> 빗나가도 콤보 초기화 페널티 없이 호쾌하고 통쾌하게 난사할 수 있습니다!
+                  • <strong>PERFECT (중심 75% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+150 PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
+                  • <strong>GREAT (중심 100% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+100 PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
+                  • <strong>GOOD (외곽 125% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
+                  • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {Math.round(GAME_TUNING.fire.reloadScale)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
+                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르거나 피버 자동 발사를 노리세요.
                 </div>
               </div>
 
@@ -348,7 +350,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 리얼 고무 벨 뚫어뻥 장착 ➔ Lv.2 듀얼 고압관 ➔ Lv.3 호박색 맥주관 순환 ➔ Lv.4 쿼드 배럴 + 둔화 파동<br />
-                  • <strong>성능:</strong> Lv.1(0.35×3=1.05 DMG) ➔ Lv.2(1.60 DMG + 0.3m 넉백) ➔ Lv.3(2.50 DMG) ➔ MAX(0.60×6=3.60 DMG + 둔화)<br />
+                  • <strong>성능:</strong> Lv.1(0.42×3=1.26 DMG) ➔ Lv.2(0.48×4=1.92 DMG + 0.3m 넉백) ➔ Lv.3(0.60×5=3.00 DMG) ➔ MAX(0.72×6=4.32 DMG + 둔화) · 보스는 넉백 면역<br />
                   • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 화면 8방향에서 12~22개의 미니 뚫어뻥이 포물선으로 날아가 몬스터를 1.0~2.0초간 부착 기절(Stun)시킵니다! (빗나간 탄은 바닥에서 통통 튕김)
                 </div>
               </div>
@@ -436,7 +438,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크<br />
-                  • <strong>성능:</strong> Lv.1(0.25 DMG, 18발, 150ms) ➔ Lv.2(0.32 DMG, 22발) ➔ Lv.3(0.40 DMG, 28발) ➔ MAX(0.50 DMG, 35발, 83ms)<br />
+                  • <strong>성능:</strong> Lv.1(0.50 DMG, 13발, 105ms) ➔ Lv.2(0.64 DMG, 15발) ➔ Lv.3(0.80 DMG, 20발) ➔ MAX(1.00 DMG, 25발, 58ms)<br />
                   • <strong>⚡ 전용 액티브 스킬 [거품 해일 160도 오버히트]:</strong> 160도 부채꼴 각도로 반투명 거품 해일이 밀려나가며 전방의 모든 몬스터를 1.0~1.4m 뒤로 밀어내고 둔화시킵니다.
                 </div>
               </div>
@@ -463,8 +465,8 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
                   • <strong>100% 비례 슬림 게이지 체력바:</strong> 모든 몬스터는 100% 비례 연속 게이지 바로 체력이 표시됩니다. 1HP 캔(필굿, 카스라이트)도 스쳐 맞았을 때(hp &lt; maxHp) 즉시 머리 위에 잔여 체력바가 나타납니다!<br />
-                  • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +500점 및 액티브 스킬과 피버 게이지가 즉시 100% 충전됩니다.<br />
-                  • <strong>🫧 거품/병뚜껑 투사체 요격:</strong> 한맥과 보스가 플레이어를 향해 날리는 투사체를 공중에서 사격하여 격추하세요! 방어선 통과 시 바 생명이 1 차감됩니다.
+                  • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +500점과 함께 액티브 스킬 1회 충전, 피버 게이지 +{GAME_TUNING.goldenCan.feverGain}%를 받습니다.<br />
+                  • <strong>🫧 거품/병뚜껑 투사체 요격:</strong> 한맥과 보스가 날리는 투사체를 공중에서 사격하면 몬스터처럼 터지며 요격음과 점수를 얻습니다. 놓쳐서 방어선을 통과하면 바 생명이 1 차감됩니다.
                 </div>
               </div>
 
@@ -552,7 +554,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   🃏 킬 게이지 보상 카드 (Shoot-to-Select & 전장 일시정지)
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  웨이브 진행 중 킬 게이지(10/14/18/20/15 KILL)를 채울 때마다 전장이 즉시 일시정지(Combat Freeze)되며 펍 공간에 3장의 3D 홀로그램 카드가 소환됩니다. 원하는 카드에 조준선을 맞추고 <strong>직접 사격</strong>하여 획득하세요!
+                  웨이브를 클리어할 때, 그리고 4웨이브(22킬)·6웨이브(26킬) 중간에 전장이 즉시 일시정지(Combat Freeze)되며 <strong>9종 중 무작위 3장</strong>의 3D 홀로그램 카드가 소환됩니다. 이미 최대치인 카드는 나오지 않고, 무기 레벨 상한은 1웨이브 Lv.2 · 2~4웨이브 Lv.3 · 5웨이브부터 MAX입니다. 카드를 고르는 동안 피버·버프·쿨다운 시간은 모두 멈추고, <strong>누르고 있던 입력은 무시</strong>되니 버튼을 뗐다가 새로 눌러 <strong>직접 사격</strong>하여 획득하세요! (카드 등장 후 0.8초는 입력 잠금)
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {Object.entries(REWARD_CARD_SPECS).map(([rk, cspec]) => (
@@ -602,14 +604,14 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
                     • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림!)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+8%) 및 몬스터 처치(+12%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 연사 & 2배 데미지 폭딜!)<br />
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 연사 & 2배 데미지 폭딜!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
                     • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> <strong>R 키</strong> 또는 <strong>마우스 우클릭</strong><br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+8%) 및 몬스터 처치(+12%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 연사 & 2배 데미지)
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 연사 & 2배 데미지)
                   </div>
                 </div>
               </div>
