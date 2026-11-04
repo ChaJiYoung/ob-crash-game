@@ -1,16 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Fix Start Card Visibility & Remove Amber Box](./plans/2026-11-04-fix-start-card-visibility-and-remove-amber-box.md)
+[Gameplay Polish and Performance Optimization](./plans/2026-11-04-gameplay-polish-and-perf-optimization.md)
 
 ## Active Phase
-[P01 Cleanup & Card Rendering](./phases/2026-11-04-fix-start-card-visibility-and-remove-amber-box/P01-cleanup-and-card-rendering/phase.md)
+[P01 Render and Stutter](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/phase.md)
 
 ## Active Task
-[T02 Fix rAF Cancel & Card Scene Sync](./phases/2026-11-04-fix-start-card-visibility-and-remove-amber-box/P01-cleanup-and-card-rendering/T02-fix-raf-cancel-and-card-scene-sync.md)
+[T01 Fix Muzzle Flash and Soften Stage Pulses](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/T01-fix-muzzle-flash-and-soften-stage-pulses.md)
 
 ## Status
-- Plan 전체 완료 (P01-T01, P01-T02 완료 ✅)
+- T01 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-모든 계획된 Task가 성공적으로 구현 및 검증되었습니다.
+T01 청사진을 읽고 `src/pc/three/ParticleEffects3D.ts` 파일 구현 시작
