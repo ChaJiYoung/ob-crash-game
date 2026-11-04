@@ -250,6 +250,12 @@ export const GameCanvas3D = React.memo(
       cameraRef.current = camera;
       engine.aspect = width / height;
 
+      if (typeof window !== 'undefined') {
+        (window as any).__scene = scene;
+        (window as any).__camera = camera;
+        (window as any).__targetMeshMap = targetMeshMapRef.current;
+      }
+
       let renderer: THREE.WebGLRenderer | null = null;
       let composer: EffectComposer | null = null;
 
@@ -514,7 +520,7 @@ export const GameCanvas3D = React.memo(
           let baseY = (target as any).customBaseY;
           if (baseY === undefined) {
             if (target.weaponSelectKind || target.rewardCardKind) {
-              baseY = 1.48; // 1인칭 총기에 가려지지 않도록 1.48m로 상향
+              baseY = 1.50; // 1인칭 총기 및 바 카운터에 가려지지 않도록 1.50m로 상향
             } else {
               baseY = getTargetBaseY(target.kind, target.isItem);
             }
@@ -530,8 +536,8 @@ export const GameCanvas3D = React.memo(
             mesh.rotation.x += dtSec * 10;
             mesh.rotation.y += dtSec * 14;
           } else if (target.weaponSelectKind || target.rewardCardKind) {
-            mesh.rotation.y = Math.atan2(-target.x, -target.z) + Math.sin(time / 300) * 0.12;
-            mesh.position.y = baseY + Math.sin(time / 250) * 0.08;
+            mesh.rotation.y = Math.atan2(-target.x, 2.2 - target.z) + Math.sin(time / 300) * 0.08;
+            mesh.position.y = baseY + Math.sin(time / 250) * 0.06;
           } else {
             // Face player yaw
             mesh.rotation.y = Math.atan2(-target.x, -target.z);

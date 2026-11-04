@@ -184,7 +184,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (result.fired) {
       const isFever = engine.scoreManager.getState().isFeverActive;
-      soundSynth.playShoot(isFever);
+      const currentWeapon = result.weaponKind || engine.weaponSystem.getState().weaponKind;
+      soundSynth.playWeaponShoot(currentWeapon, isFever);
 
       if (result.grade !== 'MISS') {
         soundSynth.playHit(result.grade);

@@ -12,12 +12,12 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
   });
 
   describe('D03 & D07: Reward Card Grace Period & Card Upscaling', () => {
-    it('should upscale card placement to z=-5.0m and hitRadiusM to 1.75m', () => {
+    it('should upscale card placement to z=-3.5m and hitRadiusM to 1.75m', () => {
       engine.spawnWaveRewardCards(1000);
       expect(engine.activeTargets.length).toBe(3);
 
       const firstCard = engine.activeTargets[0];
-      expect(firstCard.z).toBe(-5.0);
+      expect(firstCard.z).toBe(-3.5);
       expect(firstCard.hitRadiusM).toBe(1.75);
     });
 

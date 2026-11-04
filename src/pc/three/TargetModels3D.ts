@@ -1141,6 +1141,7 @@ export function createCardTargetMesh3D(
 
     canvasTexture = new THREE.CanvasTexture(canvas);
     canvasTexture.colorSpace = THREE.SRGBColorSpace;
+    canvasTexture.needsUpdate = true;
   }
 
   const cardMat = new THREE.MeshStandardMaterial({
@@ -1171,7 +1172,7 @@ export function createCardTargetMesh3D(
   borderGroup.add(topBar, btmBar, leftBar, rightBar);
   inner.add(borderGroup);
 
-  // Card Front Face
+  // Card Front Face (z = 0.048 to prevent z-fighting with cardFrame)
   const frontPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(1.74, 2.34),
     new THREE.MeshBasicMaterial({
@@ -1181,14 +1182,16 @@ export function createCardTargetMesh3D(
       color: canvasTexture ? 0xffffff : new THREE.Color(colorHex),
     })
   );
-  frontPlane.position.z = 0.045;
+  frontPlane.position.z = 0.048;
   inner.add(frontPlane);
+
+  inner.scale.set(1.12, 1.12, 1.12); // 12% scale boost for superior readability
 
   root.userData = {
     isCard: true,
     hasNeonFrame: true,
     inner,
-    baseScale: 1.0,
+    baseScale: 1.12,
     hitRadiusM: 1.75,
   };
 
