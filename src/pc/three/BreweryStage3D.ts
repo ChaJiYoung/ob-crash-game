@@ -345,9 +345,9 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
     // Pulse neon lights
     if (isFeverActive) {
       amberNeon.color.setHex(0xffd700);
-      amberNeon.intensity = 4.2 + Math.sin(elapsedSec * 12) * 1.8;
+      amberNeon.intensity = 2.8 + Math.sin(elapsedSec * 4) * 0.4;
       cyanNeon.color.setHex(0xf59e0b);
-      cyanNeon.intensity = 3.6;
+      cyanNeon.intensity = 2.8;
     } else {
       amberNeon.color.setHex(0xf59e0b);
       amberNeon.intensity = 2.4 + Math.sin(elapsedSec * 2) * 0.5;
@@ -356,9 +356,9 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
     }
 
     if (dangerAlert) {
-      alertLight.intensity = 3.6 + Math.sin(elapsedSec * 16) * 2.4;
+      alertLight.intensity = 2.0 + Math.sin(elapsedSec * 6) * 0.6;
       neonRimMat.color.setHex(0xef4444);
-      neonRimMat.opacity = Math.min(1.0, 0.85 + Math.sin(elapsedSec * 16) * 0.25);
+      neonRimMat.opacity = 0.85 + Math.sin(elapsedSec * 6) * 0.1;
     } else {
       alertLight.intensity = 0.6;
       neonRimMat.color.setHex(isFeverActive ? 0xffd700 : 0xf59e0b);

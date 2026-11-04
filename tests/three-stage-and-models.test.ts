@@ -483,6 +483,24 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(poolStats.pooledTracers).toBeLessThanOrEqual(24);
   });
 
+  it('should keep muzzle flash small instead of covering the screen (gameplay-polish P01-T01)', () => {
+    const fx = new ParticleEffects3D();
+    const origin = new THREE.Vector3(0, 0, 0);
+    const target = new THREE.Vector3(0, 0, -10);
+
+    fx.spawnTracerBeam(origin, target, '#00f5d4', false);
+    fx.update(0.016);
+    const normalScales = fx.getActiveFlashScales();
+    expect(normalScales.length).toBe(1);
+    expect(normalScales[0]).toBeLessThan(0.15);
+
+    fx.spawnTracerBeam(origin, target, '#00f5d4', true);
+    fx.update(0.016);
+    const scales = fx.getActiveFlashScales();
+    expect(scales.length).toBe(2);
+    scales.forEach((s) => expect(s).toBeLessThan(0.2));
+  });
+
   it('should reuse cached geometries across 30 spawned monsters and preserve shared resources on dispose (P02-T02, T03)', () => {
     const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss'];
 

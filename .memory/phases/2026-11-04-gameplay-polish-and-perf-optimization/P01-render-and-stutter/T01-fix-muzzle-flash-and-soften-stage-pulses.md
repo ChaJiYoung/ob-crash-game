@@ -1,6 +1,6 @@
 # Task: T01 Fix Muzzle Flash and Soften Stage Pulses
 
-## Status: pending
+## Status: done
 
 ## Goal
 사격할 때 총구 플래시가 화면 대부분을 덮지 않게 하고, 피버·위기 조명의 빠른 깜빡임을 줄인다. 사용자가 "배경 전체가 번쩍거린다"고 지적한 문제의 직접 원인을 제거한다.
@@ -66,9 +66,9 @@
 - `isFeverOrPower = true`에서도 0.2 미만인지 함께 확인한다.
 
 ## Acceptance Criteria
-- [ ] 한 발 쏜 뒤 플래시가 총구 주변에만 보이고 화면을 덮지 않는다.
-- [ ] 트레이서 빔은 그대로 보인다.
-- [ ] 피버와 위험 상태에서 조명이 빠르게 깜빡이지 않는다.
+- [x] 한 발 쏜 뒤 플래시가 총구 주변에만 보이고 화면을 덮지 않는다.
+- [x] 트레이서 빔은 그대로 보인다.
+- [x] 피버와 위험 상태에서 조명이 빠르게 깜빡이지 않는다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts` — 새 테스트 포함 통과
@@ -89,6 +89,6 @@ Task: T01-fix-muzzle-flash-and-soften-stage-pulses
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: fix(render): stop muzzle flash from covering the whole screen

@@ -14,9 +14,12 @@ interface ParticleItem {
 interface TracerBeamItem {
   beamMesh: THREE.Mesh;
   flashMesh: THREE.Mesh;
+  flashBaseRadius: number;
   lifeSec: number;
   maxLifeSec: number;
 }
+
+const FLASH_MAX_OPACITY = 0.55;
 
 export interface FloatingLabelItem {
   sprite: THREE.Sprite;
@@ -327,6 +330,7 @@ export class ParticleEffects3D {
     return {
       beamMesh,
       flashMesh,
+      flashBaseRadius: 0.07,
       lifeSec: 0,
       maxLifeSec: 0.14,
     };
@@ -379,9 +383,10 @@ export class ParticleEffects3D {
     const midPoint = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
 
     const radius = isFeverOrPower ? 0.045 : 0.024;
-    const flashRadius = isFeverOrPower ? 0.16 : 0.11;
+    const flashRadius = isFeverOrPower ? 0.10 : 0.07;
 
     const item = this.acquireTracerItem(colorHex);
+    item.flashBaseRadius = flashRadius;
     item.beamMesh.scale.set(radius, radius, distance);
     item.beamMesh.position.copy(midPoint);
     item.beamMesh.lookAt(toPos);
@@ -390,7 +395,7 @@ export class ParticleEffects3D {
 
     item.flashMesh.scale.setScalar(flashRadius);
     item.flashMesh.position.copy(fromPos);
-    (item.flashMesh.material as THREE.MeshBasicMaterial).opacity = 0.95;
+    (item.flashMesh.material as THREE.MeshBasicMaterial).opacity = FLASH_MAX_OPACITY;
     item.flashMesh.visible = true;
 
     item.lifeSec = 0;
@@ -761,8 +766,8 @@ export class ParticleEffects3D {
 
       const fade = 1.0 - tb.lifeSec / tb.maxLifeSec;
       (tb.beamMesh.material as THREE.MeshBasicMaterial).opacity = fade * 0.95;
-      (tb.flashMesh.material as THREE.MeshBasicMaterial).opacity = fade * 0.95;
-      tb.flashMesh.scale.set(1.0 + (1.0 - fade) * 0.5, 1.0 + (1.0 - fade) * 0.5, 1.0 + (1.0 - fade) * 0.5);
+      (tb.flashMesh.material as THREE.MeshBasicMaterial).opacity = fade * FLASH_MAX_OPACITY;
+      tb.flashMesh.scale.setScalar(tb.flashBaseRadius * (1.0 + (1.0 - fade) * 0.5));
     }
 
     // 3. Update floating combat labels
@@ -875,6 +880,10 @@ export class ParticleEffects3D {
       disposeObject3D(fx.group);
     });
     this.skillEffects = [];
+  }
+
+  public getActiveFlashScales(): number[] {
+    return this.tracerBeams.map((tb) => tb.flashMesh.scale.x);
   }
 
   public getPoolStats(): ParticlePoolStats {
