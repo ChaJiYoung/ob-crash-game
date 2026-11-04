@@ -294,7 +294,11 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   // 6. Upgraded Stage Lights & Directional Shadows
   const neonLights: THREE.PointLight[] = [];
 
-  const ambientLight = new THREE.AmbientLight(0xfff0d8, 1.15);
+  // Soft Dual-tone Hemisphere Light (Warm ceiling sky, dark pub floor)
+  const hemiLight = new THREE.HemisphereLight(0xfff0d8, 0x1e293b, 0.85);
+  root.add(hemiLight);
+
+  const ambientLight = new THREE.AmbientLight(0xfff0d8, 0.70);
   root.add(ambientLight);
 
   const mainDirLight = new THREE.DirectionalLight(0xfff5e4, 1.75);
@@ -310,20 +314,34 @@ export function buildBreweryStage3D(scene: THREE.Scene): BreweryStageRig {
   mainDirLight.shadow.camera.bottom = -20;
   root.add(mainDirLight);
 
-  // Amber Neon Sign Light
-  const amberNeon = new THREE.PointLight(0xf59e0b, 2.6, 35);
+  // Amber Neon Sign Mesh + Point Light (Optimized radius 15m)
+  const amberNeon = new THREE.PointLight(0xf59e0b, 2.6, 15);
   amberNeon.position.set(0, 6, -14);
   root.add(amberNeon);
   neonLights.push(amberNeon);
 
-  // Cyan Neon Side Light
-  const cyanNeon = new THREE.PointLight(0x06b6d4, 2.2, 30);
+  const amberSignMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(4.2, 0.8, 0.1),
+    new THREE.MeshBasicMaterial({ color: 0xf59e0b })
+  );
+  amberSignMesh.position.set(0, 6, -14.05);
+  root.add(amberSignMesh);
+
+  // Cyan Neon Side Light (Optimized radius 12m)
+  const cyanNeon = new THREE.PointLight(0x06b6d4, 2.2, 12);
   cyanNeon.position.set(-10, 5, -8);
   root.add(cyanNeon);
   neonLights.push(cyanNeon);
 
-  // Red/Gold Defense Alert Light
-  const alertLight = new THREE.PointLight(0xef4444, 1.4, 20);
+  const cyanTubeMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.06, 0.06, 3.2, 8),
+    new THREE.MeshBasicMaterial({ color: 0x06b6d4 })
+  );
+  cyanTubeMesh.position.set(-10, 5, -8);
+  root.add(cyanTubeMesh);
+
+  // Red/Gold Defense Alert Light (Optimized radius 8m)
+  const alertLight = new THREE.PointLight(0xef4444, 1.4, 8);
   alertLight.position.set(0, 3, -2);
   root.add(alertLight);
   neonLights.push(alertLight);

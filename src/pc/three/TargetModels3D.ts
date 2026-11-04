@@ -6,6 +6,41 @@ import { createRealisticPlungerMesh } from './DraftTapGun3D';
 const labelTextureCache = new Map<string, THREE.Texture>();
 let officialCassTexture: THREE.Texture | null = null;
 
+const targetGeometryCache = new Map<string, THREE.BufferGeometry>();
+const targetMaterialCache = new Map<string, THREE.Material>();
+
+export function getCachedGeometry<T extends THREE.BufferGeometry>(key: string, factory: () => T): T {
+  let geo = targetGeometryCache.get(key) as T;
+  if (!geo) {
+    geo = factory();
+    geo.userData.isShared = true;
+    targetGeometryCache.set(key, geo);
+  }
+  return geo;
+}
+
+export function getCachedMaterial<T extends THREE.Material>(key: string, factory: () => T): T {
+  let mat = targetMaterialCache.get(key) as T;
+  if (!mat) {
+    mat = factory();
+    mat.userData.isShared = true;
+    targetMaterialCache.set(key, mat);
+  }
+  return mat;
+}
+
+export function getSharedTargetResourceStats(): {
+  cachedGeometries: number;
+  cachedMaterials: number;
+  cachedTextures: number;
+} {
+  return {
+    cachedGeometries: targetGeometryCache.size,
+    cachedMaterials: targetMaterialCache.size,
+    cachedTextures: labelTextureCache.size + itemBillboardCache.size + (officialCassTexture ? 1 : 0),
+  };
+}
+
 export function getOrCreateOfficialCassTexture(): THREE.Texture {
   if (officialCassTexture) {
     return officialCassTexture;
@@ -210,13 +245,19 @@ export function getTargetBaseY(kind: TargetKind, isItem?: boolean): number {
 }
 
 function createFloorShadowMesh(radius: number): THREE.Mesh {
-  const shadowGeo = new THREE.CircleGeometry(radius, 24);
-  shadowGeo.rotateX(-Math.PI / 2);
-  const shadowMat = new THREE.MeshBasicMaterial({
-    color: 0x000000,
-    transparent: true,
-    opacity: 0.42,
-    depthWrite: false,
+  const rounded = radius.toFixed(2);
+  const shadowGeo = getCachedGeometry(`shadow-geo-${rounded}`, () => {
+    const geo = new THREE.CircleGeometry(radius, 24);
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  });
+  const shadowMat = getCachedMaterial('shadow-mat', () => {
+    return new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+    });
   });
   const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
   shadowMesh.name = 'DropShadow';
@@ -241,16 +282,20 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   shadowMesh.position.y = -baseY + 0.01;
   root.add(shadowMesh);
 
-  const capMat = new THREE.MeshStandardMaterial({
-    color: 0xd1d5db,
-    metalness: 0.88,
-    roughness: 0.18,
+  const capMat = getCachedMaterial('target-cap-mat', () => {
+    return new THREE.MeshStandardMaterial({
+      color: 0xd1d5db,
+      metalness: 0.88,
+      roughness: 0.18,
+    });
   });
 
-  const goldMat = new THREE.MeshStandardMaterial({
-    color: 0xd4af37,
-    metalness: 0.92,
-    roughness: 0.15,
+  const goldMat = getCachedMaterial('target-gold-mat', () => {
+    return new THREE.MeshStandardMaterial({
+      color: 0xd4af37,
+      metalness: 0.92,
+      roughness: 0.15,
+    });
   });
 
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
@@ -259,7 +304,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
     const cassTexture = getOrCreateOfficialCassTexture();
-    const billboardGeo = new THREE.PlaneGeometry(0.277, 1.02);
+    const billboardGeo = getCachedGeometry('cass-billboard-geo', () => new THREE.PlaneGeometry(0.277, 1.02));
     const billboardMat = new THREE.MeshBasicMaterial({
       map: cassTexture,
       transparent: true,
@@ -272,25 +317,31 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     inner.add(billboardMesh);
 
     // Silver metallic crown cap marker/anchor for 3D explosion particles
-    const capMat = new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      metalness: 0.95,
-      roughness: 0.18,
-      transparent: true,
-      opacity: 0.0, // Visual cap is rendered by high-res PNG; anchor keeps 3D break particle physics
+    const capMatShared = getCachedMaterial('crown-cap-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        metalness: 0.95,
+        roughness: 0.18,
+        transparent: true,
+        opacity: 0.0,
+      });
     });
-    const crownCap = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.02, 12), capMat);
+    const capGeo = getCachedGeometry('crown-cap-geo', () => new THREE.CylinderGeometry(0.065, 0.065, 0.02, 12));
+    const crownCap = new THREE.Mesh(capGeo, capMatShared);
     crownCap.name = 'crownCap';
     crownCap.position.y = 0.55;
     inner.add(crownCap);
 
     // Neck anchor for status effects & test compatibility
-    const neckMat = new THREE.MeshStandardMaterial({
-      color: 0x002855,
-      transparent: true,
-      opacity: 0.0,
+    const neckMat = getCachedMaterial('neck-label-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0x002855,
+        transparent: true,
+        opacity: 0.0,
+      });
     });
-    const neckLabelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 12), neckMat);
+    const neckGeo = getCachedGeometry('neck-label-geo', () => new THREE.CylinderGeometry(0.05, 0.05, 0.02, 12));
+    const neckLabelMesh = new THREE.Mesh(neckGeo, neckMat);
     neckLabelMesh.name = 'neckLabel';
     neckLabelMesh.position.y = 0.38;
     inner.add(neckLabelMesh);
@@ -311,39 +362,43 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
       roughness: 0.3,
     });
 
-    // Main steel cabinet
+    const cabinetGeo = getCachedGeometry('boss-cabinet-geo', () => new THREE.BoxGeometry(r * 1.8, h * 0.82, r * 1.4));
     const cabinet = new THREE.Mesh(
-      new THREE.BoxGeometry(r * 1.8, h * 0.82, r * 1.4),
+      cabinetGeo,
       [bodyMat, bodyMat, capMat, bodyMat, panelMat, bodyMat]
     );
     inner.add(cabinet);
 
     // Louver grille on front bottom
-    const grille = new THREE.Mesh(
-      new THREE.BoxGeometry(r * 1.5, h * 0.22, 0.06),
-      new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.95 })
-    );
+    const grilleGeo = getCachedGeometry('boss-grille-geo', () => new THREE.BoxGeometry(r * 1.5, h * 0.22, 0.06));
+    const grilleMat = getCachedMaterial('boss-grille-mat', () => new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.95 }));
+    const grille = new THREE.Mesh(grilleGeo, grilleMat);
     grille.position.set(0, -h * 0.24, r * 0.71);
     inner.add(grille);
 
     // Top Chrome Draft Tower
-    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.55, 18), capMat);
+    const towerGeo = getCachedGeometry('boss-tower-geo', () => new THREE.CylinderGeometry(0.18, 0.22, 0.55, 18));
+    const tower = new THREE.Mesh(towerGeo, capMat);
     tower.position.set(0, h * 0.41 + 0.26, 0);
     inner.add(tower);
 
     // Dual Gold Beer Tap Spouts & Handles
     const handles: THREE.Mesh[] = [];
     bossTapHandles = handles;
+    const spoutGeo = getCachedGeometry('boss-spout-geo', () => {
+      const g = new THREE.CylinderGeometry(0.035, 0.035, 0.24, 12);
+      g.rotateX(Math.PI / 2);
+      return g;
+    });
+    const handleGeo = getCachedGeometry('boss-handle-geo', () => new THREE.CylinderGeometry(0.026, 0.018, 0.28, 12));
+    const handleMat = getCachedMaterial('boss-handle-mat', () => new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.2 }));
+
     [-0.14, 0.14].forEach((tapX) => {
-      const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.24, 12), goldMat);
-      tapSpout.rotation.x = Math.PI / 2;
+      const tapSpout = new THREE.Mesh(spoutGeo, goldMat);
       tapSpout.position.set(tapX, h * 0.41 + 0.38, 0.17);
       inner.add(tapSpout);
 
-      const tapHandle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.026, 0.018, 0.28, 12),
-        new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.2 })
-      );
+      const tapHandle = new THREE.Mesh(handleGeo, handleMat);
       tapHandle.position.set(tapX, h * 0.41 + 0.53, 0.23);
       tapHandle.rotation.x = -0.22;
       inner.add(tapHandle);
@@ -351,15 +406,19 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     });
 
     // 4 Caster Wheels
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 });
+    const wheelMat = getCachedMaterial('boss-wheel-mat', () => new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 }));
+    const wheelGeo = getCachedGeometry('boss-wheel-geo', () => {
+      const g = new THREE.CylinderGeometry(0.08, 0.08, 0.09, 14);
+      g.rotateZ(Math.PI / 2);
+      return g;
+    });
     [
       [-r * 0.75, -r * 0.55],
       [r * 0.75, -r * 0.55],
       [-r * 0.75, r * 0.55],
       [r * 0.75, r * 0.55],
     ].forEach(([wx, wz]) => {
-      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.09, 14), wheelMat);
-      wheel.rotation.z = Math.PI / 2;
+      const wheel = new THREE.Mesh(wheelGeo, wheelMat);
       wheel.position.set(wx, -h * 0.41 - 0.05, wz);
       inner.add(wheel);
     });
@@ -378,33 +437,35 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     });
 
     // Can body
-    const canBody = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.96, r, h, 28), [
-      sideMat,
-      capMat,
-      capMat,
-    ]);
+    const canGeo = getCachedGeometry('can-body-geo', () => new THREE.CylinderGeometry(r * 0.96, r, h, 28));
+    const canBody = new THREE.Mesh(canGeo, [sideMat, capMat, capMat]);
     inner.add(canBody);
 
     // Tapered neck & rim
-    const lid = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.82, r * 0.96, h * 0.07, 28), capMat);
+    const lidGeo = getCachedGeometry('can-lid-geo', () => new THREE.CylinderGeometry(r * 0.82, r * 0.96, h * 0.07, 28));
+    const lid = new THREE.Mesh(lidGeo, capMat);
     lid.position.y = h / 2 + h * 0.035;
     inner.add(lid);
 
     // Aluminum pull tab
-    const tab = new THREE.Mesh(new THREE.BoxGeometry(r * 0.45, h * 0.025, r * 0.3), capMat);
+    const tabGeo = getCachedGeometry('can-tab-geo', () => new THREE.BoxGeometry(r * 0.45, h * 0.025, r * 0.3));
+    const tab = new THREE.Mesh(tabGeo, capMat);
     tab.position.y = h / 2 + h * 0.075;
     inner.add(tab);
 
     // Condensation water droplets (8 tiny glassy beads)
-    const dropletMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.85,
-      roughness: 0.04,
-      ior: 1.33,
+    const dropletGeo = getCachedGeometry('can-droplet-geo', () => new THREE.SphereGeometry(0.012, 6, 6));
+    const dropletMat = getCachedMaterial('can-droplet-mat', () => {
+      return new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.85,
+        roughness: 0.04,
+        ior: 1.33,
+      });
     });
     for (let i = 0; i < 8; i++) {
-      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), dropletMat);
+      const drop = new THREE.Mesh(dropletGeo, dropletMat);
       const angle = (i * Math.PI) / 4 + 0.2;
       const dropY = -h * 0.3 + (i % 4) * 0.2;
       drop.position.set(Math.cos(angle) * (r + 0.006), dropY, Math.sin(angle) * (r + 0.006));
@@ -413,10 +474,9 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
 
     // Foam crown on top for pilgood & hanmac
     if (kind === 'pilgood' || kind === 'hanmac') {
-      const topFoam = new THREE.Mesh(
-        new THREE.SphereGeometry(r * 0.65, 12, 8),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 })
-      );
+      const foamGeo = getCachedGeometry('top-foam-geo', () => new THREE.SphereGeometry(r * 0.65, 12, 8));
+      const foamMat = getCachedMaterial('top-foam-mat', () => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
+      const topFoam = new THREE.Mesh(foamGeo, foamMat);
       topFoam.scale.set(1, 0.45, 1);
       topFoam.position.y = h / 2 + 0.08;
       inner.add(topFoam);
@@ -424,28 +484,39 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
 
     // Airborne jet plume for pilgood & caslight
     if (kind === 'pilgood' || kind === 'caslight') {
-      const jetMat = new THREE.MeshBasicMaterial({
-        color: 0xe0f2fe,
-        transparent: true,
-        opacity: 0.7,
+      const jetGeo = getCachedGeometry('jet-plume-geo', () => new THREE.CylinderGeometry(r * 0.3, r * 0.7, 0.22, 12));
+      const jetMat = getCachedMaterial('jet-plume-mat', () => {
+        return new THREE.MeshBasicMaterial({
+          color: 0xe0f2fe,
+          transparent: true,
+          opacity: 0.7,
+        });
       });
-      const jetPlume = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.3, r * 0.7, 0.22, 12), jetMat);
+      const jetPlume = new THREE.Mesh(jetGeo, jetMat);
       jetPlume.position.y = -h / 2 - 0.11;
       inner.add(jetPlume);
     }
 
     // Wings for caslight
     if (kind === 'caslight') {
-      const wingMat = new THREE.MeshBasicMaterial({
-        color: 0x7dd3fc,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.85,
+      const wingMat = getCachedMaterial('caslight-wing-mat', () => {
+        return new THREE.MeshBasicMaterial({
+          color: 0x7dd3fc,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.85,
+        });
       });
-      const gl = new THREE.PlaneGeometry(0.52, 0.3);
-      gl.translate(-0.26, 0, 0);
-      const gr = new THREE.PlaneGeometry(0.52, 0.3);
-      gr.translate(0.26, 0, 0);
+      const gl = getCachedGeometry('caslight-wing-l-geo', () => {
+        const g = new THREE.PlaneGeometry(0.52, 0.3);
+        g.translate(-0.26, 0, 0);
+        return g;
+      });
+      const gr = getCachedGeometry('caslight-wing-r-geo', () => {
+        const g = new THREE.PlaneGeometry(0.52, 0.3);
+        g.translate(0.26, 0, 0);
+        return g;
+      });
 
       const wl = new THREE.Mesh(gl, wingMat);
       const wr = new THREE.Mesh(gr, wingMat);
@@ -458,13 +529,18 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   }
 
   // Holographic Lock-on Targeting Marker on top (+0.9m)
-  const lockOnGeo = new THREE.TorusGeometry(0.35, 0.02, 8, 24);
-  lockOnGeo.rotateX(Math.PI / 2);
-  const lockOnMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8,
-    transparent: true,
-    opacity: 0.85,
-    depthWrite: false,
+  const lockOnGeo = getCachedGeometry('lockon-geo', () => {
+    const g = new THREE.TorusGeometry(0.35, 0.02, 8, 24);
+    g.rotateX(Math.PI / 2);
+    return g;
+  });
+  const lockOnMat = getCachedMaterial('lockon-mat', () => {
+    return new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false,
+    });
   });
   const lockOnMarker = new THREE.Mesh(lockOnGeo, lockOnMat);
   lockOnMarker.position.set(0, 0.9, 0);
@@ -472,14 +548,19 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   root.add(lockOnMarker);
 
   // Frost freeze ice ring at monster ground level
-  const frostRingGeo = new THREE.RingGeometry(spec.hitRadiusM * 0.75, spec.hitRadiusM * 1.15, 24);
-  frostRingGeo.rotateX(-Math.PI / 2);
-  const frostRingMat = new THREE.MeshBasicMaterial({
-    color: 0x60a5fa,
-    transparent: true,
-    opacity: 0.65,
-    depthWrite: false,
-    side: THREE.DoubleSide,
+  const frostRingGeo = getCachedGeometry(`frost-ring-geo-${spec.hitRadiusM.toFixed(2)}`, () => {
+    const g = new THREE.RingGeometry(spec.hitRadiusM * 0.75, spec.hitRadiusM * 1.15, 24);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  });
+  const frostRingMat = getCachedMaterial('frost-ring-mat', () => {
+    return new THREE.MeshBasicMaterial({
+      color: 0x60a5fa,
+      transparent: true,
+      opacity: 0.65,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
   });
   const frostRing = new THREE.Mesh(frostRingGeo, frostRingMat);
   frostRing.position.set(0, 0.025, 0);
@@ -558,11 +639,13 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
   root.add(shadowMesh);
 
   // Rotating glowing aura torus ring
-  const auraGeo = new THREE.TorusGeometry(0.58, 0.035, 12, 32);
-  const auraMat = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(spec.auraColorHex),
-    transparent: true,
-    opacity: 0.88,
+  const auraGeo = getCachedGeometry('item-aura-geo', () => new THREE.TorusGeometry(0.58, 0.035, 12, 32));
+  const auraMat = getCachedMaterial(`item-aura-mat-${spec.auraColorHex}`, () => {
+    return new THREE.MeshBasicMaterial({
+      color: new THREE.Color(spec.auraColorHex),
+      transparent: true,
+      opacity: 0.88,
+    });
   });
   const auraRing = new THREE.Mesh(auraGeo, auraMat);
   auraRing.name = 'AuraRing';
@@ -570,88 +653,108 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
 
   if (itemKind === 'power_shot') {
     // 💥 Golden Bottle Opener (Handle + Ring Head)
-    const goldMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      metalness: 0.92,
-      roughness: 0.15,
+    const goldMat = getCachedMaterial('item-gold-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        metalness: 0.92,
+        roughness: 0.15,
+      });
     });
-    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.48, 0.04), goldMat);
+    const handleGeo = getCachedGeometry('opener-handle-geo', () => new THREE.BoxGeometry(0.12, 0.48, 0.04));
+    const handle = new THREE.Mesh(handleGeo, goldMat);
     handle.position.y = -0.12;
     inner.add(handle);
 
-    const openerRing = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.04, 10, 20), goldMat);
+    const ringGeo = getCachedGeometry('opener-ring-geo', () => new THREE.TorusGeometry(0.16, 0.04, 10, 20));
+    const openerRing = new THREE.Mesh(ringGeo, goldMat);
     openerRing.position.y = 0.22;
     inner.add(openerRing);
   } else if (itemKind === 'wide_scope') {
     // 🎯 OB Beer Coaster Target Disc
-    const coasterGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.035, 32);
-    const coasterMat = new THREE.MeshStandardMaterial({
-      color: 0x0284c7,
-      metalness: 0.3,
-      roughness: 0.4,
+    const coasterGeo = getCachedGeometry('coaster-geo', () => new THREE.CylinderGeometry(0.38, 0.38, 0.035, 32));
+    const coasterMat = getCachedMaterial('coaster-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        metalness: 0.3,
+        roughness: 0.4,
+      });
     });
     const coaster = new THREE.Mesh(coasterGeo, coasterMat);
     coaster.rotation.x = Math.PI / 4;
     inner.add(coaster);
 
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
-    const innerRing = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.02, 8, 24), ringMat);
+    const ringMat = getCachedMaterial('coaster-ring-mat', () => new THREE.MeshBasicMaterial({ color: 0xfde047 }));
+    const ringGeo = getCachedGeometry('coaster-ring-geo', () => new THREE.TorusGeometry(0.24, 0.02, 8, 24));
+    const innerRing = new THREE.Mesh(ringGeo, ringMat);
     innerRing.rotation.x = Math.PI / 4;
     inner.add(innerRing);
 
-    const bullseye = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), ringMat);
+    const bullseyeGeo = getCachedGeometry('bullseye-geo', () => new THREE.SphereGeometry(0.06, 12, 12));
+    const bullseye = new THREE.Mesh(bullseyeGeo, ringMat);
     bullseye.position.set(0, 0, 0.02);
     inner.add(bullseye);
   } else if (itemKind === 'ice_freeze') {
     // 🧊 Silver Ice Bucket with Ice Cubes
-    const bucketMat = new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      metalness: 0.88,
-      roughness: 0.18,
+    const bucketMat = getCachedMaterial('bucket-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        metalness: 0.88,
+        roughness: 0.18,
+      });
     });
-    const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.34, 18), bucketMat);
+    const bucketGeo = getCachedGeometry('bucket-geo', () => new THREE.CylinderGeometry(0.26, 0.2, 0.34, 18));
+    const bucket = new THREE.Mesh(bucketGeo, bucketMat);
     inner.add(bucket);
 
-    const iceMat = new THREE.MeshPhysicalMaterial({
-      color: 0x93c5fd,
-      transparent: true,
-      opacity: 0.75,
-      roughness: 0.05,
-      ior: 1.31,
+    const iceMat = getCachedMaterial('ice-mat', () => {
+      return new THREE.MeshPhysicalMaterial({
+        color: 0x93c5fd,
+        transparent: true,
+        opacity: 0.75,
+        roughness: 0.05,
+        ior: 1.31,
+      });
     });
+    const cubeGeo = getCachedGeometry('ice-cube-geo', () => new THREE.BoxGeometry(0.11, 0.11, 0.11));
     [
       [-0.08, 0.14, -0.06],
       [0.08, 0.15, 0.05],
       [0, 0.18, 0],
     ].forEach(([ix, iy, iz]) => {
-      const iceCube = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.11), iceMat);
+      const iceCube = new THREE.Mesh(cubeGeo, iceMat);
       iceCube.position.set(ix, iy, iz);
       iceCube.rotation.set(0.3, 0.4, 0.2);
       inner.add(iceCube);
     });
   } else if (itemKind === 'bar_repair') {
     // 🍺 Fresh Green Hop Cones Cluster + Golden Ribbon
-    const hopMat = new THREE.MeshStandardMaterial({
-      color: 0x10b981,
-      roughness: 0.65,
+    const hopMat = getCachedMaterial('hop-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        roughness: 0.65,
+      });
     });
+    const coneGeo = getCachedGeometry('hop-cone-geo', () => new THREE.ConeGeometry(0.12, 0.26, 8));
     [
       [-0.1, 0, -0.05],
       [0.1, 0, -0.05],
       [0, 0.12, 0.05],
     ].forEach(([hx, hy, hz]) => {
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.26, 8), hopMat);
+      const cone = new THREE.Mesh(coneGeo, hopMat);
       cone.position.set(hx, hy, hz);
       cone.rotation.x = Math.PI;
       inner.add(cone);
     });
 
-    const ribbonMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      metalness: 0.8,
-      roughness: 0.2,
+    const ribbonMat = getCachedMaterial('hop-ribbon-mat', () => {
+      return new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        metalness: 0.8,
+        roughness: 0.2,
+      });
     });
-    const ribbon = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.02, 8, 16), ribbonMat);
+    const ribbonGeo = getCachedGeometry('hop-ribbon-geo', () => new THREE.TorusGeometry(0.16, 0.02, 8, 16));
+    const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
     ribbon.position.y = -0.08;
     ribbon.rotation.x = Math.PI / 2;
     inner.add(ribbon);
@@ -868,22 +971,27 @@ export function createGoldenCanMesh3D(): THREE.Group {
   const inner = new THREE.Group();
   root.add(inner);
 
-  const goldMat = new THREE.MeshStandardMaterial({
-    color: 0xfbbf24,
-    emissive: 0xd97706,
-    emissiveIntensity: 0.6,
-    metalness: 0.95,
-    roughness: 0.15,
+  const goldMat = getCachedMaterial('goldencan-gold-mat', () => {
+    return new THREE.MeshStandardMaterial({
+      color: 0xfbbf24,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.6,
+      metalness: 0.95,
+      roughness: 0.15,
+    });
   });
 
-  const can = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 1.15, 20), goldMat);
+  const canGeo = getCachedGeometry('goldencan-can-geo', () => new THREE.CylinderGeometry(0.38, 0.38, 1.15, 20));
+  const can = new THREE.Mesh(canGeo, goldMat);
   inner.add(can);
 
-  const auraRing = new THREE.Mesh(
-    new THREE.TorusGeometry(0.55, 0.035, 12, 28),
-    new THREE.MeshBasicMaterial({ color: 0xfef08a })
-  );
-  auraRing.rotation.x = Math.PI / 2;
+  const auraGeo = getCachedGeometry('goldencan-aura-geo', () => {
+    const g = new THREE.TorusGeometry(0.55, 0.035, 12, 28);
+    g.rotateX(Math.PI / 2);
+    return g;
+  });
+  const auraMat = getCachedMaterial('goldencan-aura-mat', () => new THREE.MeshBasicMaterial({ color: 0xfef08a }));
+  const auraRing = new THREE.Mesh(auraGeo, auraMat);
   inner.add(auraRing);
 
   const shadowMesh = createFloorShadowMesh(0.65);
@@ -912,20 +1020,25 @@ export function createProjectileMesh3D(): THREE.Group {
   const inner = new THREE.Group();
   root.add(inner);
 
-  const orbMat = new THREE.MeshStandardMaterial({
-    color: 0xf43f5e,
-    emissive: 0xe11d48,
-    emissiveIntensity: 0.8,
-    roughness: 0.2,
+  const orbMat = getCachedMaterial('projectile-orb-mat', () => {
+    return new THREE.MeshStandardMaterial({
+      color: 0xf43f5e,
+      emissive: 0xe11d48,
+      emissiveIntensity: 0.8,
+      roughness: 0.2,
+    });
   });
-  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), orbMat);
+  const orbGeo = getCachedGeometry('projectile-orb-geo', () => new THREE.SphereGeometry(0.28, 16, 16));
+  const orb = new THREE.Mesh(orbGeo, orbMat);
   inner.add(orb);
 
-  const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(0.32, 0.04, 10, 20),
-    new THREE.MeshBasicMaterial({ color: 0xfef08a })
-  );
-  rim.rotation.x = Math.PI / 2;
+  const rimGeo = getCachedGeometry('projectile-rim-geo', () => {
+    const g = new THREE.TorusGeometry(0.32, 0.04, 10, 20);
+    g.rotateX(Math.PI / 2);
+    return g;
+  });
+  const rimMat = getCachedMaterial('projectile-rim-mat', () => new THREE.MeshBasicMaterial({ color: 0xfef08a }));
+  const rim = new THREE.Mesh(rimGeo, rimMat);
   inner.add(rim);
 
   root.userData = {

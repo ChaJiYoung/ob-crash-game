@@ -36,19 +36,35 @@ export function computeAimWorldPoint(
   return camera.position.clone().addScaledVector(dir, distanceM);
 }
 
-function disposeGroup(group: THREE.Group): void {
+export function disposeSceneGroup(group: THREE.Group): void {
   group.traverse((obj) => {
     const mesh = obj as THREE.Mesh;
     if (mesh.isMesh) {
-      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.geometry && !mesh.geometry.userData?.isShared) {
+        mesh.geometry.userData.disposed = true;
+        mesh.geometry.dispose();
+      }
       if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((m) => m.dispose());
-      } else if (mesh.material) {
+        mesh.material.forEach((m) => {
+          if (!m.userData?.isShared) {
+            m.userData.disposed = true;
+            if ('map' in m && (m as any).map && !(m as any).map.userData?.isShared) {
+              (m as any).map.dispose();
+            }
+            m.dispose();
+          }
+        });
+      } else if (mesh.material && !mesh.material.userData?.isShared) {
+        mesh.material.userData.disposed = true;
+        if ('map' in mesh.material && (mesh.material as any).map && !(mesh.material as any).map.userData?.isShared) {
+          (mesh.material as any).map.dispose();
+        }
         mesh.material.dispose();
       }
     } else if ((obj as any).isSprite) {
       const sprite = obj as THREE.Sprite;
-      if (sprite.material) {
+      if (sprite.material && !sprite.material.userData?.isShared) {
+        sprite.material.userData.disposed = true;
         sprite.material.dispose();
       }
     }
@@ -238,6 +254,8 @@ export const GameCanvas3D = React.memo(
         renderer.toneMappingExposure = 1.32;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.autoUpdate = false;
+        renderer.shadowMap.needsUpdate = true;
         container.appendChild(renderer.domElement);
 
         // UnrealBloomPass Post-Processing
@@ -267,6 +285,23 @@ export const GameCanvas3D = React.memo(
       const particles = new ParticleEffects3D();
       particlesRef.current = particles;
       scene.add(particles.group);
+
+      // Pre-warm shaders to prevent first-spawn and first-shot compilation stutter
+      if (renderer && typeof renderer.compile === 'function') {
+        try {
+          const warmupGroup = new THREE.Group();
+          warmupGroup.position.set(0, -999, 0);
+          const sampleMonster = createTargetMesh3D('pilgood');
+          const sampleItem = createItemMesh3D('power_shot');
+          warmupGroup.add(sampleMonster, sampleItem);
+          scene.add(warmupGroup);
+          renderer.compile(scene, camera);
+          scene.remove(warmupGroup);
+          disposeSceneGroup(warmupGroup);
+        } catch {
+          // Headless / unsupported WebGL context fallback
+        }
+      }
 
       // 3. Target meshes map
       const targetMeshMap = targetMeshMapRef.current;
@@ -395,7 +430,7 @@ export const GameCanvas3D = React.memo(
         targetMeshMap.forEach((mesh, id) => {
           if (!activeIds.has(id)) {
             scene.remove(mesh);
-            disposeGroup(mesh);
+            disposeSceneGroup(mesh);
             targetMeshMap.delete(id);
           }
         });
@@ -587,7 +622,7 @@ export const GameCanvas3D = React.memo(
         // Clean up target meshes
         targetMeshMap.forEach((mesh) => {
           scene.remove(mesh);
-          disposeGroup(mesh);
+          disposeSceneGroup(mesh);
         });
         targetMeshMap.clear();
 
