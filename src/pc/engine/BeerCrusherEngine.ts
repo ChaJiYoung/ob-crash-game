@@ -1176,6 +1176,10 @@ export class BeerCrusherEngine {
   }
 
   private handleMonsterKilled(target: ActiveTargetEntity, nowMs: number): void {
+    if (this.gamePhase === 'VICTORY' || this.gamePhase === 'GAMEOVER') {
+      return;
+    }
+
     if (target.kind === 'boss') {
       this.activeTargets = [];
       this.isRewardCardPending = false;
@@ -1301,6 +1305,18 @@ export class BeerCrusherEngine {
           return { fired: true, grade: 'MISS' };
         }
         selectedCard = target.rewardCardKind;
+
+        // Compensate fever & buff timers for mid-wave freeze duration
+        if (this.rewardCardsSpawnTimeMs > 0 && !this.pendingWaveAdvance) {
+          const freezeDurationMs = Math.max(0, nowMs - this.rewardCardsSpawnTimeMs);
+          for (const [buffKind, until] of this.activeBuffUntilMs.entries()) {
+            this.activeBuffUntilMs.set(buffKind, until + freezeDurationMs);
+          }
+          this.scoreManager.shiftFeverTimer(freezeDurationMs);
+          this.weaponSystem.shiftReloadTimer(freezeDurationMs);
+          this.lastSpawnTimeMs += freezeDurationMs;
+        }
+
         this.applyRewardCard(selectedCard, nowMs);
         this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
         this.isRewardCardPending = false;
