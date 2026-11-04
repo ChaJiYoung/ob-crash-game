@@ -87,6 +87,9 @@ async function captureWeaponsAndSkills() {
     const eng = window.__engine;
     if (eng) {
       eng.activeTargets = [];
+      // Pending card flags gate shooting, skills and fever; clear them together with the cards
+      eng.isWeaponSelectPending = false;
+      eng.isRewardCardPending = false;
       eng.weaponSystem.selectWeapon('shotgun', 3);
       eng.weaponSystem.refillSkillInstant();
       const now = performance.now();
@@ -109,6 +112,8 @@ async function captureWeaponsAndSkills() {
     const eng = window.__engine;
     if (eng) {
       eng.activeTargets = [];
+      eng.isWeaponSelectPending = false;
+      eng.isRewardCardPending = false;
       eng.weaponSystem.selectWeapon('revolver', 3);
       eng.weaponSystem.refillSkillInstant();
       const now = performance.now();
@@ -130,6 +135,8 @@ async function captureWeaponsAndSkills() {
     const eng = window.__engine;
     if (eng) {
       eng.activeTargets = [];
+      eng.isWeaponSelectPending = false;
+      eng.isRewardCardPending = false;
       eng.weaponSystem.selectWeapon('gatling', 4);
       eng.weaponSystem.refillSkillInstant();
       const now = performance.now();

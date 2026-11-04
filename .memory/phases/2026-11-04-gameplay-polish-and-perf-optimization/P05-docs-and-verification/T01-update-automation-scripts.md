@@ -1,6 +1,6 @@
 # Task: T01 Update Automation Scripts
 
-## Status: pending
+## Status: done
 
 ## Goal
 `scripts/`의 자동 플레이·캡처 스크립트가 새 게임 구조에서 끝까지 실행되게 한다. 이후 검증과 스크린샷 재촬영(P05-T05)이 이 스크립트에 의존한다.
@@ -60,9 +60,9 @@ git checkout -- docs/screens
 ```
 
 ## Acceptance Criteria
-- [ ] 5개 스크립트가 오류 없이 끝난다.
-- [ ] 자동 플레이 봇이 무기 선택, 카드 선택, 보스전 승리까지 진행한다.
-- [ ] 봇 출력의 탄약과 점수가 `undefined`가 아니다.
+- [x] 5개 스크립트가 오류 없이 끝난다.
+- [x] 자동 플레이 봇이 무기 선택, 카드 선택, 보스전 승리까지 진행한다.
+- [x] 봇 출력의 탄약과 점수가 `undefined`가 아니다.
 
 ## Validation
 - 위 I03 명령 — 모두 종료 코드 0
@@ -83,6 +83,6 @@ Task: T01-update-automation-scripts
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: chore(scripts): update automation for the new game flow

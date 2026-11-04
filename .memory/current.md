@@ -7,10 +7,10 @@
 [P05 Docs and Verification](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P05-docs-and-verification/phase.md)
 
 ## Active Task
-[T01 Update Automation Scripts](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P05-docs-and-verification/T01-update-automation-scripts.md)
+[T02 Sync Guides and Docs](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P05-docs-and-verification/T02-sync-guides-and-docs.md)
 
 ## Status
-- T06 완료, T01 구현 시작 준비 완료
+- T01 완료, T02 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 구현 시작
+T02 청사진을 읽고 구현 시작

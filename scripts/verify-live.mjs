@@ -108,7 +108,7 @@ async function testGame() {
   const afterShotEngine = await page.evaluate(() => {
     const engine = window.__engine;
     return {
-      ammo: engine.weaponSystem.ammo,
+      ammo: engine.weaponSystem.getState().ammo,
       totalScore: engine.scoreManager.getState().totalScore
     };
   });
