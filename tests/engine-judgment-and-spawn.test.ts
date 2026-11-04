@@ -234,11 +234,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(engine.activeTargets.length).toBeGreaterThan(0);
 
     const firstTarget = engine.activeTargets[0];
-    // Shoot near target
-    const hHalfFov = computeHorizontalHalfFovRad(52, 16 / 9);
-    const targetNormX = firstTarget.thetaRad / (hHalfFov * 0.92);
+    // Shoot exactly at the target's projected aim point (hit zones are narrower and aspect-corrected now)
+    const aim = engine.computeTargetAimCoords(firstTarget);
 
-    const hitResult = engine.shootAt(targetNormX, 0, now + 150);
+    const hitResult = engine.shootAt(aim.targetNormX, aim.targetNormY, now + 150);
     expect(hitResult.fired).toBe(true);
     expect(hitResult.grade).not.toBe('MISS');
 
