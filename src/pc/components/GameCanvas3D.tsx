@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, forwardRef, useImperativeHandle 
 import * as THREE from 'three';
 import { computeRenderPixelRatio } from '../three/renderBudget';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
-import { BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
+import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
   createTargetMesh3D,
@@ -22,6 +22,12 @@ import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
+
+export function resolveHitFxColor(target: ActiveTargetEntity): string {
+  if (target.isProjectile) return '#f87171';
+  if (target.isItem && target.itemKind) return ITEM_BUFF_SPECS[target.itemKind].auraColorHex;
+  return TARGET_SPECS[target.kind]?.brandColorHex || '#fbbf24';
+}
 
 export function computeAimWorldPoint(
   camera: THREE.PerspectiveCamera,
@@ -160,12 +166,14 @@ export const GameCanvas3D = React.memo(
               targetPos = projectedAimPoint.clone().lerp(mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)), 0.35);
               applyTargetHitFlash3D(mesh, performance.now() / 1000);
 
-              const hitColor = result.target.isItem && result.target.itemKind
-                ? ITEM_BUFF_SPECS[result.target.itemKind].auraColorHex
-                : TARGET_SPECS[result.target.kind]?.brandColorHex || '#fbbf24';
+              const hitColor = resolveHitFxColor(result.target);
 
               if (result.killed) {
-                if (result.target.kind === 'bottle') {
+                if (result.target.isProjectile) {
+                  // Intercepted projectiles burst like monsters; the intercept sound is played by the page.
+                  // (A projectile's kind is 'pilgood', so it must not fall through to the can-crush sound.)
+                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
+                } else if (result.target.kind === 'bottle') {
                   soundSynth.playBottleShatterSound();
                   particlesRef.current.triggerBottleCrash(targetPos);
                 } else if (result.target.kind === 'boss') {

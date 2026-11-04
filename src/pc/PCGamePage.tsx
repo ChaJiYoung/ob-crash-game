@@ -104,7 +104,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     key: 0,
   });
   const [isGoldenCanAlertActive, setIsGoldenCanAlertActive] = useState<boolean>(false);
-  const [interceptedBannerKey, setInterceptedBannerKey] = useState<number>(0);
   const lastGoldenCanActiveRef = useRef<boolean>(false);
 
   // Snapshot for HUD: only replaced when a displayed value changes.
@@ -192,7 +191,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
     if (result.interceptedProjectile) {
       soundSynth.playInterceptSound();
-      setInterceptedBannerKey(Date.now());
     }
 
     // Must run synchronously right after shootAt, before the render loop removes dead target meshes.
@@ -806,41 +804,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }}
           >
             🪙 GOLDEN CAN DETECTED!
-          </div>
-        </div>
-      )}
-
-      {/* Projectile Intercepted Arcade Floating Banner */}
-      {interceptedBannerKey > 0 && (
-        <div
-          key={interceptedBannerKey}
-          style={{
-            position: 'absolute',
-            top: '32%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            pointerEvents: 'none',
-            zIndex: 130,
-            animation: 'fadeUp 1.2s ease-out forwards',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '26px',
-              fontWeight: 900,
-              color: '#10b981',
-              textShadow: '0 0 16px rgba(16, 185, 129, 0.9), 0 2px 4px #000',
-              letterSpacing: '2px',
-              background: 'rgba(0, 0, 0, 0.8)',
-              padding: '8px 24px',
-              borderRadius: '30px',
-              border: '2px solid #10b981',
-            }}
-          >
-            🛡️ INTERCEPTED! +50
           </div>
         </div>
       )}

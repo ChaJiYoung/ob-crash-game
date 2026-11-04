@@ -38,4 +38,12 @@ describe('combat HUD compositing cost (gameplay-polish P01-T06)', () => {
     expect(page.match(/playWeaponShoot/g)?.length).toBe(1);
     expect(page.match(/playSkillActivation/g)?.length).toBe(1);
   });
+
+  it('PCGamePage has no INTERCEPTED banner (gameplay-polish P02-T02)', () => {
+    const src = read('src/pc/PCGamePage.tsx');
+    expect(src).not.toContain('INTERCEPTED');
+    expect(src).not.toContain('interceptedBannerKey');
+    expect(src).not.toContain('fadeUp');
+    expect(src).toContain('playInterceptSound');
+  });
 });

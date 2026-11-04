@@ -1,6 +1,6 @@
 # Task: T02 Remove Intercept Banner
 
-## Status: pending
+## Status: done
 
 ## Goal
 계속 떠 있던 INTERCEPTED 배너를 없애고, 요격한 투사체를 몬스터처럼 터뜨린다.
@@ -60,9 +60,9 @@
 - `PCGamePage.tsx`에 `INTERCEPTED`, `interceptedBannerKey`, `fadeUp`이 없는지 확인한다.
 
 ## Acceptance Criteria
-- [ ] 투사체를 맞히면 배너 없이 터지고 요격음이 들린다.
-- [ ] 점수가 그대로 오른다.
-- [ ] 화면에 남아 있는 문구가 없다.
+- [x] 투사체를 맞히면 배너 없이 터지고 요격음이 들린다.
+- [x] 점수가 그대로 오른다.
+- [x] 화면에 남아 있는 문구가 없다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts tests/hud-render-cost.test.ts` — 통과
@@ -83,6 +83,6 @@ Task: T02-remove-intercept-banner
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: fix(pc): replace intercept banner with a projectile burst

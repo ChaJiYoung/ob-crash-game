@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as THREE from 'three';
 import { ItemBuffKind, TargetKind } from '../src/shared/types';
+import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../src/shared/constants';
 import { buildBreweryStage3D } from '../src/pc/three/BreweryStage3D';
 import {
   createTargetMesh3D,
@@ -19,7 +20,7 @@ import { buildShaderAnchorGroup } from '../src/pc/three/ShaderWarmup';
 import { DraftTapGun3D, createRealisticPlungerMesh } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
-import { computeAimWorldPoint, disposeSceneGroup } from '../src/pc/components/GameCanvas3D';
+import { computeAimWorldPoint, disposeSceneGroup, resolveHitFxColor } from '../src/pc/components/GameCanvas3D';
 import { aimToNdc } from '../src/pc/components/CrosshairOverlay';
 
 describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
@@ -244,6 +245,15 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(rail).toBe(0);
     // Only the neon defense line and the heal pulse remain
     expect(rings).toBe(2);
+  });
+
+  it('should resolve hit FX colors for projectiles, items and monsters (gameplay-polish P02-T02)', () => {
+    const base = { id: 't', hp: 1, maxHp: 1, radiusM: 5, thetaRad: 0, x: 0, z: -5, speedMps: 1, hitRadiusM: 1, killBonusScore: 0, breached: false };
+    expect(resolveHitFxColor({ ...base, kind: 'pilgood', isProjectile: true })).toBe('#f87171');
+    expect(resolveHitFxColor({ ...base, kind: 'pilgood', isItem: true, itemKind: 'power_shot' })).toBe(
+      ITEM_BUFF_SPECS.power_shot.auraColorHex
+    );
+    expect(resolveHitFxColor({ ...base, kind: 'obi' })).toBe(TARGET_SPECS.obi.brandColorHex);
   });
 
   it('should handle DraftTapGun3D center mount, recoil, and aim updates', () => {

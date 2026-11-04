@@ -7,10 +7,10 @@
 [P02 Stage and Input](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P02-stage-and-input/phase.md)
 
 ## Active Task
-[T02 Remove Intercept Banner](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P02-stage-and-input/T02-remove-intercept-banner.md)
+[T03 Card Select Input Gate and Freeze](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P02-stage-and-input/T03-card-select-input-gate-and-freeze.md)
 
 ## Status
-- T01 완료, T02 구현 시작 준비 완료
+- T02 완료, T03 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 구현 시작
+T03 청사진을 읽고 구현 시작
