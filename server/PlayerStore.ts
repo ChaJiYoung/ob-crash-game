@@ -1,14 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { PlayerProfile } from '../src/shared/types';
+import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface PlayerStoreData {
+  /** 파일에 없으면 1(이전 5웨이브 규칙)로 본다. */
+  rulesetVersion?: number;
   players: Record<string, PlayerProfile>;
 }
 
 export class PlayerStore {
   private filePath: string;
-  private data: PlayerStoreData = { players: {} };
+  private data: PlayerStoreData = { rulesetVersion: RANKING_RULESET_VERSION, players: {} };
 
   constructor(filePath?: string) {
     this.filePath = filePath || path.resolve(process.cwd(), 'data', 'players.json');
@@ -16,6 +19,7 @@ export class PlayerStore {
   }
 
   private load(): void {
+    let fileMissing = false;
     try {
       if (fs.existsSync(this.filePath)) {
         const raw = fs.readFileSync(this.filePath, 'utf-8');
@@ -26,14 +30,47 @@ export class PlayerStore {
           parsed.players !== null &&
           !Array.isArray(parsed.players)
         ) {
-          this.data = parsed;
+          this.data = this.migrateRuleset(parsed, raw);
           return;
         }
+      } else {
+        fileMissing = true;
       }
     } catch {
       // If reading fails or file is malformed, start with empty store
     }
-    this.data = { players: {} };
+    this.data = { rulesetVersion: RANKING_RULESET_VERSION, players: {} };
+    if (fileMissing) this.save();
+  }
+
+  /**
+   * 규칙 버전이 다르면 원본을 그대로 백업한 뒤 점수만 초기화한다(닉네임과 기기 연결은 유지).
+   * 백업이 실패하면 아무것도 지우지 않는다.
+   */
+  private migrateRuleset(parsed: PlayerStoreData, raw: string): PlayerStoreData {
+    const oldVersion = parsed.rulesetVersion ?? 1;
+    if (oldVersion === RANKING_RULESET_VERSION) {
+      return parsed;
+    }
+
+    const backupPath = `${this.filePath}.ruleset-${oldVersion}.bak`;
+    try {
+      if (!fs.existsSync(backupPath)) {
+        fs.writeFileSync(backupPath, raw, 'utf-8');
+      }
+    } catch (err) {
+      console.error('Ranking backup failed; keeping existing scores untouched:', backupPath, err);
+      return parsed;
+    }
+
+    for (const profile of Object.values(parsed.players)) {
+      profile.bestScore = 0;
+      profile.totalGames = 0;
+    }
+    parsed.rulesetVersion = RANKING_RULESET_VERSION;
+    this.data = parsed;
+    this.save();
+    return parsed;
   }
 
   private save(): void {

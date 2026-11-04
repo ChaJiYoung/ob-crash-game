@@ -2,6 +2,12 @@
  * 난이도 수치를 한 곳에 모은다. 직접 플레이하면서 이 파일만 고쳐 조정한다.
  * 다른 파일을 import하지 않는다(순환 참조 방지).
  */
+/**
+ * 랭킹 규칙 버전. 점수가 서로 비교되지 않을 만큼 규칙이 크게 바뀌면 올린다.
+ * 서버는 시작할 때 버전이 다른 `players.json`을 백업한 뒤 점수만 초기화한다. (v2: 7웨이브 보스 러시)
+ */
+export const RANKING_RULESET_VERSION = 2;
+
 export const GAME_TUNING = {
   fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50 },
   judgment: { perfectDamage: 2.0, greatDamage: 1.0, goodDamage: 0.5 },

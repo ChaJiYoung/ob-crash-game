@@ -1,6 +1,6 @@
 # Task: T03 Reset Rankings for New Rules
 
-## Status: pending
+## Status: done
 
 ## Goal
 규칙이 달라진 뒤 이전 점수와 새 점수가 한 랭킹에서 비교되지 않게 한다. 이전 기록은 지우지 않고 백업한다.
@@ -59,9 +59,9 @@
 - 현재 버전 파일은 변경되지 않는다.
 
 ## Acceptance Criteria
-- [ ] 첫 서버 실행 때 이전 점수가 백업되고 랭킹이 비워진다.
-- [ ] 플레이어가 닉네임을 다시 입력하지 않아도 된다.
-- [ ] 두 번째 실행부터는 점수가 유지된다.
+- [x] 첫 서버 실행 때 이전 점수가 백업되고 랭킹이 비워진다.
+- [x] 플레이어가 닉네임을 다시 입력하지 않아도 된다.
+- [x] 두 번째 실행부터는 점수가 유지된다.
 
 ## Validation
 - `npx vitest run tests/server-session.test.ts` — 통과
@@ -83,6 +83,6 @@ Task: T03-reset-rankings-for-new-rules
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(server): back up and reset rankings when game rules change

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -6,6 +6,7 @@ import { WebSocket } from 'ws';
 import { PlayerStore } from '../server/PlayerStore';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { ServerToClientMessage } from '../src/shared/types';
+import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 describe('PlayerStore & WebSocket Server', () => {
   let tempDir: string;
@@ -25,6 +26,93 @@ describe('PlayerStore & WebSocket Server', () => {
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  describe('ranking ruleset migration (gameplay-polish P05-T03)', () => {
+    const oldFile = () =>
+      JSON.stringify(
+        {
+          players: {
+            'device-1': { deviceId: 'device-1', nickname: '맥주고수', bestScore: 9000, totalGames: 7, lastPlayedAt: '2026-10-01T00:00:00.000Z' },
+            'device-2': { deviceId: 'device-2', nickname: '필굿요정', bestScore: 4000, totalGames: 2, lastPlayedAt: '2026-10-02T00:00:00.000Z' },
+          },
+        },
+        null,
+        2
+      );
+
+    it('backs up a versionless file byte for byte, then resets scores but keeps nicknames', () => {
+      const original = oldFile();
+      fs.writeFileSync(testStorePath, original, 'utf-8');
+
+      const store = new PlayerStore(testStorePath);
+      const backupPath = `${testStorePath}.ruleset-1.bak`;
+      expect(fs.existsSync(backupPath)).toBe(true);
+      expect(fs.readFileSync(backupPath, 'utf-8')).toBe(original);
+
+      const p1 = store.findByDeviceId('device-1')!;
+      expect(p1.nickname).toBe('맥주고수');
+      expect(p1.bestScore).toBe(0);
+      expect(p1.totalGames).toBe(0);
+      expect(p1.lastPlayedAt).toBe('2026-10-01T00:00:00.000Z');
+      expect(store.getTopRankings(5).every((p) => p.bestScore === 0)).toBe(true);
+
+      const saved = JSON.parse(fs.readFileSync(testStorePath, 'utf-8'));
+      expect(saved.rulesetVersion).toBe(RANKING_RULESET_VERSION);
+    });
+
+    it('keeps new scores and the first backup on later loads', () => {
+      const original = oldFile();
+      fs.writeFileSync(testStorePath, original, 'utf-8');
+      const first = new PlayerStore(testStorePath);
+      first.recordGameScore('device-1', 3210);
+
+      const second = new PlayerStore(testStorePath);
+      expect(second.findByDeviceId('device-1')?.bestScore).toBe(3210);
+      expect(second.findByDeviceId('device-1')?.totalGames).toBe(1);
+      expect(fs.readFileSync(`${testStorePath}.ruleset-1.bak`, 'utf-8')).toBe(original);
+    });
+
+    it('does not reset anything when the backup cannot be written', () => {
+      fs.writeFileSync(testStorePath, oldFile(), 'utf-8');
+      const realWrite = fs.writeFileSync;
+      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const spy = vi.spyOn(fs, 'writeFileSync').mockImplementation(((file: any, ...rest: any[]) => {
+        if (String(file).endsWith('.bak')) throw new Error('disk full');
+        return (realWrite as any)(file, ...rest);
+      }) as any);
+
+      try {
+        const store = new PlayerStore(testStorePath);
+        expect(store.findByDeviceId('device-1')?.bestScore).toBe(9000);
+        expect(fs.existsSync(`${testStorePath}.ruleset-1.bak`)).toBe(false);
+        expect(JSON.parse(fs.readFileSync(testStorePath, 'utf-8')).rulesetVersion).toBeUndefined();
+      } finally {
+        spy.mockRestore();
+        errSpy.mockRestore();
+      }
+    });
+
+    it('leaves a current-version file untouched', () => {
+      const current = JSON.stringify(
+        {
+          rulesetVersion: RANKING_RULESET_VERSION,
+          players: { 'device-1': { deviceId: 'device-1', nickname: '맥주고수', bestScore: 777, totalGames: 3, lastPlayedAt: '2026-11-01T00:00:00.000Z' } },
+        },
+        null,
+        2
+      );
+      fs.writeFileSync(testStorePath, current, 'utf-8');
+      const store = new PlayerStore(testStorePath);
+      expect(store.findByDeviceId('device-1')?.bestScore).toBe(777);
+      expect(fs.readdirSync(tempDir).filter((f) => f.endsWith('.bak'))).toEqual([]);
+      expect(fs.readFileSync(testStorePath, 'utf-8')).toBe(current);
+    });
+
+    it('writes the current version when the store file does not exist yet', () => {
+      new PlayerStore(testStorePath);
+      expect(JSON.parse(fs.readFileSync(testStorePath, 'utf-8')).rulesetVersion).toBe(RANKING_RULESET_VERSION);
+    });
   });
 
   it('should handle PlayerStore registration, score recording, and ranking', () => {
