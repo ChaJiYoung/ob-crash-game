@@ -179,6 +179,8 @@ export const MobileControllerPage: React.FC = () => {
         payload: {
           aimX: aim.aimX,
           aimY: aim.aimY,
+          rawAimX: aim.rawAimX,
+          rawAimY: aim.rawAimY,
           pitchDeg: aim.pitchDeg,
           yawDeg: aim.yawDeg,
           rollDeg: aim.rollDeg,

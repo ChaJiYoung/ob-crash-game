@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WEAPON_CONSTANTS } from '../../shared/constants';
+import { OneEuroFilter, OneEuroFilterConfig, SENSOR_PRESETS } from './OneEuroFilter';
 
 export interface EulerOrientation {
   alpha: number; // 0 ~ 360
@@ -17,6 +18,8 @@ export interface LinearAccelerationSample {
 export interface AimResult {
   aimX: number;
   aimY: number;
+  rawAimX: number;
+  rawAimY: number;
   yawDeg: number;
   pitchDeg: number;
   rollDeg: number;
@@ -53,6 +56,11 @@ export class GunGripTracker {
   private smoothedAimY = 0;
   private hasSmoothedSample = false;
   private lockedAim: AimResult | null = null;
+
+  // Adaptive 1€ Filter for Galaxy A series or user-selected stabilization
+  private isStabilizedMode = false;
+  private filterX = new OneEuroFilter(SENSOR_PRESETS.stabilized);
+  private filterY = new OneEuroFilter(SENSOR_PRESETS.stabilized);
 
   private config: AimCalibrationConfig = {
     yawHalfRangeDeg: 25,
@@ -112,6 +120,8 @@ export class GunGripTracker {
     this.smoothedAimY = 0;
     this.hasSmoothedSample = false;
     this.lockedAim = null;
+    this.filterX.reset();
+    this.filterY.reset();
   }
 
   public lockAim(sample: EulerOrientation): AimResult {
@@ -221,10 +231,35 @@ export class GunGripTracker {
     return { yawDeg, pitchDeg, rollDeg };
   }
 
-  public computeAim(sample: EulerOrientation, smoothingAlpha = 0.92): AimResult {
+  public setStabilizedMode(enabled: boolean): void {
+    this.isStabilizedMode = enabled;
+  }
+
+  public isStabilized(): boolean {
+    return this.isStabilizedMode;
+  }
+
+  public setFilterConfig(config: Partial<OneEuroFilterConfig>): void {
+    this.filterX.setConfig(config);
+    this.filterY.setConfig(config);
+  }
+
+  public getFilterConfig(): OneEuroFilterConfig {
+    return this.filterX.getConfig();
+  }
+
+  public applyPreset(presetKey: 'balanced' | 'stabilized'): void {
+    this.setFilterConfig(SENSOR_PRESETS[presetKey]);
+  }
+
+  public computeAim(
+    sample: EulerOrientation,
+    smoothingAlpha = 0.92,
+    timestampMs?: number
+  ): AimResult {
     if (!this.isCalibrated) {
       this.calibrateZero(sample);
-      return { aimX: 0, aimY: 0, yawDeg: 0, pitchDeg: 0, rollDeg: 0 };
+      return { aimX: 0, aimY: 0, rawAimX: 0, rawAimY: 0, yawDeg: 0, pitchDeg: 0, rollDeg: 0 };
     }
 
     if (this.isMeasuringRange) {
@@ -244,6 +279,23 @@ export class GunGripTracker {
       Math.min(1, (signedPitch / this.config.pitchHalfRangeDeg) * this.config.sensitivityY)
     );
 
+    // [분기 1: 안정화 모드 (Galaxy A15 등 가상 자이로 노이즈 차단)]
+    if (this.isStabilizedMode) {
+      const nowMs = timestampMs ?? performance.now();
+      const aimX = this.filterX.filter(rawAimX, nowMs);
+      const aimY = this.filterY.filter(rawAimY, nowMs);
+      return {
+        aimX,
+        aimY,
+        rawAimX,
+        rawAimY,
+        yawDeg,
+        pitchDeg,
+        rollDeg,
+      };
+    }
+
+    // [분기 2: 기본 모드 (아이폰 13 미니 기존 손맛 100% 보존)]
     const delta = Math.hypot(rawAimX - this.smoothedAimX, rawAimY - this.smoothedAimY);
     const effectiveAlpha = !this.hasSmoothedSample || delta > 0.15 ? 1.0 : smoothingAlpha;
     this.smoothedAimX += (rawAimX - this.smoothedAimX) * effectiveAlpha;
@@ -253,6 +305,8 @@ export class GunGripTracker {
     return {
       aimX: this.smoothedAimX,
       aimY: this.smoothedAimY,
+      rawAimX,
+      rawAimY,
       yawDeg,
       pitchDeg,
       rollDeg,

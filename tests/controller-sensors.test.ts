@@ -397,4 +397,32 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     expect(syncMsg.skillStock).toBe(1);
     expect(syncMsg.weaponLevel).toBe(2);
   });
+
+  it('should return rawAimX, rawAimY and toggle adaptive 1€ Filter stabilized mode', () => {
+    const tracker = new GunGripTracker();
+    const zeroPose = { alpha: 180, beta: 0, gamma: -85 };
+    tracker.calibrateZero(zeroPose);
+
+    // Default mode: isStabilizedMode is false (iPhone 13 mini original behavior preserved)
+    expect(tracker.isStabilized()).toBe(false);
+
+    const aimDefault = tracker.computeAim({ alpha: 170, beta: 5, gamma: -85 });
+    expect(typeof aimDefault.rawAimX).toBe('number');
+    expect(typeof aimDefault.rawAimY).toBe('number');
+    expect(typeof aimDefault.aimX).toBe('number');
+    expect(typeof aimDefault.aimY).toBe('number');
+
+    // Enable stabilized mode (Galaxy A series)
+    tracker.setStabilizedMode(true);
+    expect(tracker.isStabilized()).toBe(true);
+
+    tracker.applyPreset('stabilized');
+    const cfg = tracker.getFilterConfig();
+    expect(cfg.minCutoff).toBe(0.4);
+
+    // Compute aim in stabilized mode with timestamp
+    const aimStabilized = tracker.computeAim({ alpha: 170.2, beta: 5.1, gamma: -85 }, 0.92, 1016);
+    expect(aimStabilized.aimX).toBeDefined();
+    expect(aimStabilized.rawAimX).toBeDefined();
+  });
 });

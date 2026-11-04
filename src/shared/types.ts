@@ -98,6 +98,8 @@ export interface PlayerProfile {
 export interface SensorFramePayload {
   aimX: number; // -1.0 ~ +1.0 (정면 영점 대비 수평 조준)
   aimY: number; // -1.0 ~ +1.0 (정면 영점 대비 수직 조준)
+  rawAimX?: number; // 필터링 이전 원시 조준 좌표 (-1.0 ~ 1.0)
+  rawAimY?: number; // 필터링 이전 원시 조준 좌표 (-1.0 ~ 1.0)
   pitchDeg: number;
   yawDeg: number;
   rollDeg: number;
