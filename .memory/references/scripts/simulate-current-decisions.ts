@@ -61,6 +61,7 @@ interface GameResult {
   bossDur: Record<number, number>;
   timedOut: boolean;
   endWave: number;
+  score: number;
 }
 
 function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
@@ -190,6 +191,7 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
 
   return {
     endWave: e.currentWave,
+    score: sm.getState().totalScore,
     result: e.gamePhase,
     dur: now / 1000,
     lives: e.lives,
@@ -228,6 +230,7 @@ for (const k of WEAPONS) {
     console.log(
       `${k.padEnd(9)}${b.name.padEnd(16)} 클리어 ${f((100 * wins.length) / N).padStart(3)}%${to ? `(초과${f((100 * to) / N)})` : ''}` +
         ` | 승리체력 ${wins.length ? f(avg(wins.map((r) => r.lives)), 1) : '-'} | ${m((r) => r.dur)}s` +
+        ` | 점수 클리어 ${wins.length ? f(avg(wins.map((r) => r.score))) : '-'} / 전체 ${m((r) => r.score)}` +
         ` | 피버 ${f(avg(rs.filter((r) => r.gapN).map((r) => r.gapSum / r.gapN)))}s간격 | 스킬 ${m((r) => r.skills, 1)}` +
         ` | 카드 ${m((r) => r.cards, 1)} | MAX ${f((100 * rs.filter((r) => r.maxWave !== null).length) / N)}%` +
         ` | 보스 ${bossAvg(3)}/${bossAvg(5)}/${bossAvg(7)}s` +
