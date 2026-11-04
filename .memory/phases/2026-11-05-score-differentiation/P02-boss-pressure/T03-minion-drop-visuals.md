@@ -1,6 +1,6 @@
 # Task: T03 Minion Drop Visuals
 
-## Status: todo
+## Status: done
 
 ## Goal
 낙하 중인 부하를 위에서 떨어지는 모습으로 그리고, 착지 위치에 표식을 보여 준다. 낙하 중에는 체력바를 숨긴다.
@@ -45,9 +45,9 @@
 
 
 ## Acceptance Criteria
-- [ ] 부하가 위에서 떨어지고 착지 위치가 미리 보인다.
-- [ ] 낙하 중에는 체력바가 보이지 않는다.
-- [ ] 보스 소환 구간에서 `linkProgram` 0회, JS 막힘 프레임이 늘지 않는다.
+- [x] 부하가 위에서 떨어지고 착지 위치가 미리 보인다.
+- [x] 낙하 중에는 체력바가 보이지 않는다.
+- [x] 보스 소환 구간에서 `linkProgram` 0회, JS 막힘 프레임이 늘지 않는다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts tests/render-budget.test.ts` — 통과
@@ -69,6 +69,6 @@ Task: T03-minion-drop-visuals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
