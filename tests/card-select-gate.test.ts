@@ -127,4 +127,60 @@ describe('card selection input gate and freeze (gameplay-polish P02-T03)', () =>
     expect(engine.triggerWeaponSkill(SPAWN_MS + 1000).activated).toBe(false);
     expect(engine.weaponSystem.getState().skillStock).toBeGreaterThan(0);
   });
+
+  it('keeps fever and buffs alive across a single long frame (hidden tab) while cards are pending', () => {
+    engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.activeTargets = [];
+    const t0 = 5_000;
+    engine.scoreManager.forceSetFeverGauge(100);
+    engine.activateFever(t0);
+    engine.activateItemBuff('power_shot', t0);
+    engine.update(t0 + 16, 0.016);
+    engine.spawnWaveRewardCards(t0 + 16, false);
+
+    // One 20s frame whose dt is capped at 0.1s by the caller
+    engine.update(t0 + 20_016, 0.1);
+
+    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+    expect(engine.getActiveBuffs(t0 + 20_016).some((b) => b.kind === 'power_shot')).toBe(true);
+  });
+
+  it('freezes stun and slow timers of monsters left on the field', () => {
+    engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.activeTargets = [];
+    const t0 = 5_000;
+    engine.activeTargets.push({
+      id: 'm1', kind: 'obi', hp: 2, maxHp: 2, radiusM: 10, thetaRad: 0, x: 0, z: -10, speedMps: 1,
+      hitRadiusM: 1, killBonusScore: 0, breached: false, stunUntilMs: t0 + 1500, slowUntilMs: t0 + 2000,
+    } as any);
+    engine.update(t0 + 16, 0.016);
+    engine.spawnWaveRewardCards(t0 + 16, false);
+    for (let i = 1; i <= 50; i++) engine.update(t0 + 16 + i * 100, 0.1);
+
+    const m = engine.activeTargets.find((t) => t.id === 'm1')!;
+    expect(m.stunUntilMs! - (t0 + 16 + 5000)).toBeGreaterThan(1000);
+    expect(m.slowUntilMs! - (t0 + 16 + 5000)).toBeGreaterThan(1500);
+  });
+
+  it('resets pending card flags when starting a new game, tutorial or sandbox', () => {
+    engine.startGame({ withWeaponSelect: false });
+    expect(engine.isCardSelectPending).toBe(false);
+    engine.isRewardCardPending = true;
+    engine.startSandboxMode();
+    expect(engine.isCardSelectPending).toBe(false);
+    engine.isWeaponSelectPending = true;
+    engine.startTutorialMode();
+    expect(engine.isCardSelectPending).toBe(false);
+  });
+
+  it("only forwards 'hold' / 'fever' from the auto-fire loops (source check)", async () => {
+    const fs = await import('node:fs');
+    const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    const canvas = fs.readFileSync('src/pc/components/GameCanvas3D.tsx', 'utf8');
+    expect(page).toContain("performance.now(), 'hold')");
+    expect(page).toContain("performance.now(), 'fever')");
+    expect(canvas).toContain("executeShot('hold')");
+  });
 });

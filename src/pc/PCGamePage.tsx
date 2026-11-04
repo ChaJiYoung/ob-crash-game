@@ -377,6 +377,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             const aimLocked = Boolean(p.isCocked && !isFever && !p.rapidFireHold);
             setIsAimLocked(aimLocked);
 
+            // A flick that picks a card must not also fire the skill in the same packet.
+            const cardPendingBeforeShot = engine.isCardSelectPending;
             if (p.snapFire) {
               setIsAimLocked(false);
               const curPhase = gamePhaseRef.current;
@@ -434,7 +436,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
 
             if (p.skillSnapTriggered) {
-              const isPendingCard = engine.isWeaponSelectPending || engine.isRewardCardPending;
+              const isPendingCard = cardPendingBeforeShot || engine.isCardSelectPending;
               const inGrace = performance.now() < skillGraceUntilRef.current;
               if (gamePhaseRef.current === 'PLAYING' && !isPendingCard && !inGrace) {
                 executeSkill();

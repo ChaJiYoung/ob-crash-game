@@ -208,6 +208,7 @@ export class BeerCrusherEngine {
   private killedInWave = 0;
   private bossSpawned = false;
   private lastSpawnTimeMs = 0;
+  private lastUpdateNowMs = 0;
   private targetCounter = 0;
 
   // Roguelike card & gimmick flags
@@ -311,6 +312,9 @@ export class BeerCrusherEngine {
     this.scoreManager.reset();
     this.weaponSystem.reset();
     this.activeBuffUntilMs.clear();
+    this.isWeaponSelectPending = false;
+    this.isRewardCardPending = false;
+    this.lastUpdateNowMs = 0;
 
     if (options?.withWeaponSelect) {
       this.spawnWeaponSelectTargets();
@@ -491,6 +495,8 @@ export class BeerCrusherEngine {
   public startTutorialMode(): void {
     this.gamePhase = 'TUTORIAL';
     this.isTutorialMode = true;
+    this.isWeaponSelectPending = false;
+    this.isRewardCardPending = false;
     this.tutorialStep = 1;
     this.tutorialCompleted = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -627,6 +633,8 @@ export class BeerCrusherEngine {
   public startSandboxMode(): void {
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;
+    this.isWeaponSelectPending = false;
+    this.isRewardCardPending = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
     this.scoreManager.reset();
@@ -854,6 +862,10 @@ export class BeerCrusherEngine {
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
     if (this.lastBossSummonTimeMs > 0) this.lastBossSummonTimeMs += deltaMs;
+    for (const target of this.activeTargets) {
+      if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
+      if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
+    }
   }
 
   public update(nowMs: number, dtSec: number): {
@@ -861,6 +873,11 @@ export class BeerCrusherEngine {
     phaseChanged: boolean;
     reloadedJustNow: boolean;
   } {
+    // Real elapsed time since the previous update call. The frame dt is capped by the caller, so a long
+    // frame or a hidden tab must be measured on the real clock when freezing.
+    const prevUpdateNowMs = this.lastUpdateNowMs;
+    this.lastUpdateNowMs = nowMs;
+
     if (this.isPaused) {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
@@ -871,7 +888,8 @@ export class BeerCrusherEngine {
 
     // While cards are pending the whole game clock stops: fever, buffs, skill cooldown, reload, spawns.
     if (!this.isTutorialMode && !this.isSandboxMode && this.isCardSelectPending) {
-      this.freezeTimers(dtSec * 1000);
+      const realElapsedMs = prevUpdateNowMs > 0 ? Math.max(0, nowMs - prevUpdateNowMs) : dtSec * 1000;
+      this.freezeTimers(realElapsedMs);
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
