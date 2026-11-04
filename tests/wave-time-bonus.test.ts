@@ -125,4 +125,75 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
     expect(b.base + b.timeBonus + b.precisionBonus).toBe(b.total);
     expect(b.total).toBe(engine.scoreManager.getState().totalScore);
   });
+
+  describe('real flows (regressions from the P01 review)', () => {
+    it('pays the wave when the last kill also triggers the mid-wave card (waves 4 and 6)', () => {
+      engine.startWave(4);
+      engine.update(1000, 0.016);
+      engine.spawnedInWave = engine.waveDefinitions[4].totalSpawns;
+      engine.activeTargets = [];
+      engine.cardKillCount = 0;
+      // The final kill reaches the card count: the mid-wave cards are dealt before the wave-complete check runs
+      engine.spawnWaveRewardCards(5000, false);
+      expect(engine.isCardSelectPending).toBe(true);
+      expect(engine.lastWaveClear).toBeNull();
+
+      const card = engine.activeTargets.find((t: any) => t.rewardCardKind);
+      const p = engine.computeTargetAimCoords(card);
+      const res = engine.shootAt(p.targetNormX, p.targetNormY, 7000, 'press');
+      expect(res.selectedCard).toBeDefined();
+      expect(engine.currentWave).toBe(5);
+      expect(engine.lastWaveClear).not.toBeNull();
+      expect(engine.lastWaveClear.wave).toBe(4);
+      expect(engine.lastWaveClear.bonus).toBeGreaterThan(0);
+      expect(engine.waveTimeBonusTotal).toBe(engine.lastWaveClear.bonus);
+    });
+
+    it('does not count time spent choosing the card', () => {
+      engine.startWave(4);
+      engine.spawnedInWave = engine.waveDefinitions[4].totalSpawns;
+      // One idle monster keeps the wave open for 4s of play
+      engine.activeTargets = [
+        { id: 'idle', kind: 'pilgood', hp: 1, maxHp: 1, radiusM: 20, thetaRad: 0, x: 0, z: -20, speedMps: 0, hitRadiusM: 1, killBonusScore: 0, breached: false },
+      ];
+      for (let t = 1000; t <= 5000; t += 100) engine.update(t, 0.016); // 4s of play
+      expect(engine.lastWaveClear).toBeNull();
+      engine.activeTargets = [];
+      engine.spawnWaveRewardCards(5000, false);
+      // 20s of card selection passes in real update ticks
+      for (let t = 5100; t <= 25_000; t += 100) engine.update(t, 0.016);
+      const card = engine.activeTargets.find((t: any) => t.rewardCardKind);
+      const p = engine.computeTargetAimCoords(card);
+      engine.shootAt(p.targetNormX, p.targetNormY, 25_000, 'press');
+      expect(engine.lastWaveClear.seconds).toBeCloseTo(4, 0);
+    });
+
+    it('pays nothing in the sandbox or the tutorial', () => {
+      engine.startSandboxMode();
+      engine.update(1000, 0.016);
+      engine.spawnedInWave = 999;
+      engine.activeTargets = [];
+      engine.update(9000, 0.016);
+      expect(engine.lastWaveClear).toBeNull();
+      expect(engine.waveTimeBonusTotal).toBe(0);
+
+      const tutorial: any = new BeerCrusherEngine();
+      tutorial.startTutorialMode();
+      tutorial.update(1000, 0.016);
+      tutorial.update(9000, 0.016);
+      expect(tutorial.lastWaveClear).toBeNull();
+      expect(tutorial.waveTimeBonusTotal).toBe(0);
+    });
+
+    it('excludes paused time through the real pause API', () => {
+      engine.update(1000, 0.016);
+      engine.setPaused(true, 2000);
+      engine.setPaused(false, 22_000); // 20s paused
+      engine.spawnedInWave = engine.waveDefinitions[1].totalSpawns;
+      engine.activeTargets = [];
+      engine.bossSpawned = true;
+      engine.update(26_000, 0.016);
+      expect(engine.lastWaveClear.seconds).toBeLessThan(10);
+    });
+  });
 });

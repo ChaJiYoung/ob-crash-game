@@ -1639,6 +1639,8 @@ export class BeerCrusherEngine {
           this.awardWaveTimeBonus(nowMs);
           this.declareVictory();
         } else {
+          // A mid-wave card can arrive with the wave's last kill: pay the wave here (no-op if already paid)
+          this.awardWaveTimeBonus(nowMs);
           this.startWave(this.currentWave + 1);
         }
       }
