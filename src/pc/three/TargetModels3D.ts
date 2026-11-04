@@ -307,6 +307,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
 
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
+  let obiShield: THREE.Mesh | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -463,6 +464,19 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     tab.position.y = h / 2 + h * 0.075;
     inner.add(tab);
 
+    // Obi guard shield: raised for 2s, lowered for 1s (see updateTargetAnimation3D)
+    if (kind === 'obi') {
+      const shieldGeo = getCachedGeometry('obi-shield-geo', () => new THREE.BoxGeometry(0.62, 0.9, 0.06));
+      const shieldMat = getCachedMaterial('obi-shield-mat', () =>
+        new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75 })
+      );
+      obiShield = new THREE.Mesh(shieldGeo, shieldMat);
+      obiShield.name = 'guardShield';
+      obiShield.position.set(0, 0, r + 0.1);
+      obiShield.visible = false;
+      inner.add(obiShield);
+    }
+
     // Foam crown on top for pilgood & hanmac
     if (kind === 'pilgood' || kind === 'hanmac') {
       const foamGeo = getCachedGeometry('top-foam-geo', () => new THREE.SphereGeometry(r * 0.65, 12, 8));
@@ -614,6 +628,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     frostRing,
     plungerStuckGroup,
     bodyMaterials,
+    guardShieldMesh: obiShield || undefined,
     baseScale,
     hitFlashUntilSec: 0,
   };
@@ -795,6 +810,7 @@ export interface TargetAnimationOptions {
   isSlowed?: boolean;
   stuckPlungerCount?: number;
   isBossSummoning?: boolean;
+  isGuarding?: boolean;
 }
 
 const FROST_TINT_COLOR = new THREE.Color(0x93c5fd);
@@ -817,6 +833,12 @@ export function updateTargetAnimation3D(
   const isIceFreeze = Boolean(options?.isIceFreeze || options?.isSlowed);
   const isWideScope = Boolean(options?.isWideScope);
   const isStunned = Boolean(options?.isStunned);
+
+  // Obi shield visibility
+  const guardShield = root.userData.guardShieldMesh as THREE.Mesh | undefined;
+  if (guardShield) {
+    guardShield.visible = Boolean(options?.isGuarding);
+  }
 
   // Stunned Plunger Status
   const plungerStuckGroup = root.userData.plungerStuckGroup as THREE.Group | undefined;

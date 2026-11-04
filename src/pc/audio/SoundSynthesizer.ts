@@ -353,6 +353,29 @@ export class SoundSynthesizer {
     clickOsc.stop(now + 0.025);
   }
 
+  /** 방패에 막혔을 때: 짧고 높은 금속성 "팅". 일반 타격음(playMetallicHitSound)과 구분된다. */
+  public playShieldBlockSound(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(2600, now);
+    osc.frequency.exponentialRampToValueAtTime(2100, now + 0.12);
+
+    gain.gain.setValueAtTime(0.28, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
+
   public playMetallicHitSound(): void {
     const ctx = this.ensureContext();
     if (!ctx) return;

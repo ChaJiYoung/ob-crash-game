@@ -181,7 +181,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     const currentWeapon = result.weaponKind || engine.weaponSystem.getState().weaponKind;
     soundSynth.playWeaponShoot(currentWeapon, isFever);
 
-    if (result.grade !== 'MISS') {
+    if (result.shieldBlocked) {
+      // Blocked by an obi shield: only the "ting", no hit sound or judgment banner
+      soundSynth.playShieldBlockSound();
+    } else if (result.grade !== 'MISS') {
       soundSynth.playHit(result.grade);
       judgmentRef.current?.show(result.grade);
       if (gamePhaseRef.current === 'SANDBOX') {

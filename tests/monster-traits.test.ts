@@ -165,4 +165,191 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     const h = mk('hanmac', 14);
     expect((h as unknown as { isEnraged?: boolean }).isEnraged).toBeUndefined();
   });
+
+  describe('obi shield', () => {
+    const guarded = (guardPhaseMs: number): ActiveTargetEntity =>
+      mk('obi', 9, { guardPhaseMs, hp: 2, maxHp: 2 });
+
+    // With guardPhase 0 the shield is up for t in [0,2000) and down for [2000,3000) of each 3s cycle
+    const UP = 3000 * 5 + 500; // 15500: shield up
+    const DOWN = 3000 * 5 + 2500; // 17500: shield down
+
+    const shoot = (e: BeerCrusherEngine, t: ActiveTargetEntity, now: number, source: 'press' | 'fever' = 'press') => {
+      e.activeTargets = [t];
+      (e as any).updateGuards(now);
+      const p = e.computeTargetAimCoords(t);
+      return e.shootAt(p.targetNormX, p.targetNormY, now, source);
+    };
+
+    it('blocks damage while raised: hp unchanged, no score or fever, ammo is spent', () => {
+      const e = engine;
+      const t = guarded(0);
+      const ammo = e.weaponSystem.getState().ammo;
+      const res = shoot(e, t, UP);
+      expect(res.shieldBlocked).toBe(true);
+      expect(res.killed).toBe(false);
+      expect(t.hp).toBe(2);
+      expect(e.scoreManager.getState().totalScore).toBe(0);
+      expect(e.scoreManager.getState().feverGauge).toBe(0);
+      expect(e.weaponSystem.getState().ammo).toBe(ammo - 1);
+    });
+
+    it('takes damage while lowered', () => {
+      const t = guarded(0);
+      const res = shoot(engine, t, DOWN);
+      expect(res.shieldBlocked).toBeUndefined();
+      expect(t.hp).toBeLessThan(2);
+    });
+
+    it('fever shots and skills pierce the shield', () => {
+      engine.scoreManager.forceSetFeverGauge(100);
+      engine.scoreManager.activateFever(UP - 100);
+      const t = guarded(0);
+      const res = shoot(engine, t, UP, 'fever');
+      expect(res.shieldBlocked).toBeUndefined();
+      expect(t.hp).toBeLessThan(2);
+
+      const e2 = new BeerCrusherEngine();
+      e2.startGame({ withWeaponSelect: false });
+      e2.weaponSystem.selectWeapon('shotgun', 1);
+      const t2 = guarded(0);
+      e2.activeTargets = [t2];
+      (e2 as any).updateGuards(UP);
+      expect(t2.isGuarding).toBe(true);
+      expect(e2.triggerWeaponSkill(UP).activated).toBe(true);
+      expect(t2.hp).toBeLessThan(2);
+    });
+
+    it('a stunned obi lowers its shield', () => {
+      const t = guarded(0);
+      t.stunUntilMs = UP + 5000;
+      engine.activeTargets = [t];
+      (engine as any).updateGuards(UP);
+      expect(t.isGuarding).toBe(false);
+    });
+
+    it('spawned obis get different guard phases; cards and hand-made obis have none', () => {
+      const seq = [0.0, 0.34, 0.9];
+      let n = 0;
+      engine.dropRng = () => seq[n++ % seq.length];
+      const obis = [mk('obi', 9), mk('obi', 9), mk('obi', 9)];
+      obis.forEach((o) => (engine as any).applyMonsterTraits(o));
+      const cycle = GAME_TUNING.monsters.obi.guardUpMs + GAME_TUNING.monsters.obi.guardDownMs;
+      expect(obis.map((o) => o.guardPhaseMs)).toEqual(seq.map((v) => v * cycle));
+      expect(new Set(obis.map((o) => o.guardPhaseMs)).size).toBe(3);
+
+      // Hand-made obis and reward cards (kind 'obi') have no phase, so they are never shielded
+      expect(mk('obi', 9).guardPhaseMs).toBeUndefined();
+      engine.spawnWaveRewardCards(2000, false);
+      (engine as any).updateGuards(3000);
+      engine.activeTargets
+        .filter((t) => t.rewardCardKind)
+        .forEach((c) => {
+          expect(c.guardPhaseMs).toBeUndefined();
+          expect(c.isGuarding).toBeFalsy();
+        });
+    });
+
+    it('revolver pierce skips a guarding obi behind the target', () => {
+      engine.weaponSystem.selectWeapon('revolver', 3);
+      const front = mk('bottle', 6, { hp: 10, maxHp: 10 });
+      const rear = guarded(0);
+      rear.radiusM = 9;
+      rear.z = -9;
+      engine.activeTargets = [front, rear];
+      (engine as any).updateGuards(UP);
+      expect(rear.isGuarding).toBe(true);
+      const p = engine.computeTargetAimCoords(front);
+      engine.shootAt(p.targetNormX, p.targetNormY, UP);
+      expect(rear.hp).toBe(2);
+    });
+  });
+
+  describe('bottle split', () => {
+    const bigBottle = () => mk('bottle', 10, { thetaRad: 0.1, initialThetaRad: 0.1, x: Math.sin(0.1) * 10, z: -Math.cos(0.1) * 10, hp: 0.1, maxHp: 4 });
+
+    const shootKill = (e: BeerCrusherEngine, t: ActiveTargetEntity, now: number) => {
+      e.weaponSystem.selectWeapon('revolver', 1);
+      const p = e.computeTargetAimCoords(t);
+      return e.shootAt(p.targetNormX, p.targetNormY, now);
+    };
+
+    it('splits into two small bottles on both sides with the configured stats', () => {
+      const b = bigBottle();
+      engine.activeTargets = [b];
+      const res = shootKill(engine, b, 1000);
+      expect(res.killed).toBe(true);
+      const kids = engine.activeTargets.filter((t) => t.isSplitChild);
+      expect(kids.length).toBe(2);
+      const cfg = GAME_TUNING.monsters.bottle;
+      expect(kids.map((k) => k.thetaRad).sort()).toEqual([0.1 - cfg.splitOffsetRad, 0.1 + cfg.splitOffsetRad].sort());
+      kids.forEach((k) => {
+        expect(k.hp).toBe(cfg.childHp);
+        expect(k.speedMps).toBeCloseTo(cfg.childSpeedMps * 1, 5);
+        expect(k.modelScaleMult).toBe(cfg.childScale);
+        expect(k.customBaseY).toBe(cfg.childBaseY);
+        expect(k.radiusM).toBe(10);
+      });
+    });
+
+    it('children do not split again, but killing them counts toward kills', () => {
+      const b = bigBottle();
+      engine.activeTargets = [b];
+      shootKill(engine, b, 1000);
+      const kid = engine.activeTargets.find((t) => t.isSplitChild)!;
+      kid.hp = 0.1;
+      shootKill(engine, kid, 2000);
+      expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(1);
+    });
+
+    it('a skill kill also splits a big bottle', () => {
+      const b = bigBottle();
+      b.thetaRad = 0;
+      engine.activeTargets = [b];
+      engine.weaponSystem.selectWeapon('shotgun', 4);
+      expect(engine.triggerWeaponSkill(1000).activated).toBe(true);
+      expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(2);
+    });
+
+    it('the wave only ends after the children are cleared', () => {
+      engine.startWave(4);
+      // @ts-expect-error private test setup
+      engine.spawnedInWave = GAME_TUNING.waves[3].totalSpawns;
+      const b = bigBottle();
+      engine.activeTargets = [b];
+      shootKill(engine, b, 1000);
+      engine.update(1100, 0.016);
+      expect(engine.isRewardCardPending).toBe(false);
+      engine.activeTargets = engine.activeTargets.filter((t) => !t.isSplitChild);
+      engine.update(1200, 0.016);
+      expect(engine.isRewardCardPending).toBe(true);
+    });
+
+    it('does not split in the sandbox or tutorial', () => {
+      for (const mode of ['sandbox', 'tutorial'] as const) {
+        const e = new BeerCrusherEngine();
+        if (mode === 'sandbox') e.startSandboxMode();
+        else e.startTutorialMode();
+        const b = bigBottle();
+        e.activeTargets = [b];
+        shootKill(e, b, 1000);
+        expect(e.activeTargets.filter((t) => t.isSplitChild).length).toBe(0);
+      }
+    });
+
+    it('wave progress never goes negative or above 100% when children are killed', () => {
+      engine.startWave(4);
+      // @ts-expect-error private test setup
+      engine.killedInWave = GAME_TUNING.waves[3].totalSpawns + 3;
+      const p = engine.getWaveProgress();
+      expect(p.remainingInWave).toBe(0);
+      expect(p.progressPercent).toBe(100);
+    });
+
+    it('big bottles get the 1.2x model scale hook at spawn', () => {
+      const big = mk('bottle', 10);
+      (engine as any).applyMonsterTraits(big);
+      expect(big.modelScaleMult).toBe(GAME_TUNING.monsters.bottle.bigScale);
+    });
+  });
 });

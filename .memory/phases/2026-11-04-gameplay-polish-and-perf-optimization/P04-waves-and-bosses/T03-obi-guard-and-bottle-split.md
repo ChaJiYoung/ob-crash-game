@@ -1,6 +1,6 @@
 # Task: T03 Obi Guard and Bottle Split
 
-## Status: pending
+## Status: done
 
 ## Goal
 오비를 타이밍을 노려 쏘는 방패병으로, 병맥주를 깨면 작은 병 2마리로 나뉘는 탱커로 만든다.
@@ -161,11 +161,11 @@
 - 작은 병의 모델 크기가 큰 병보다 작다(`createTargetMesh3D` + 배율 적용 함수 분리 시 테스트).
 
 ## Acceptance Criteria
-- [ ] 오비가 방패를 들었다 내렸다 하고, 내렸을 때만 피해가 들어간다.
-- [ ] 막히면 "팅" 소리와 불꽃으로 바로 알 수 있다.
-- [ ] 피버와 스킬은 방패를 뚫는다.
-- [ ] 큰 병을 깨면 작은 병 2마리가 나와 달려온다.
-- [ ] 큰 병이 전보다 눈에 잘 보인다.
+- [x] 오비가 방패를 들었다 내렸다 하고, 내렸을 때만 피해가 들어간다.
+- [x] 막히면 "팅" 소리와 불꽃으로 바로 알 수 있다.
+- [x] 피버와 스킬은 방패를 뚫는다.
+- [x] 큰 병을 깨면 작은 병 2마리가 나와 달려온다.
+- [x] 큰 병이 전보다 눈에 잘 보인다.
 
 ## Validation
 - `npx vitest run tests/monster-traits.test.ts tests/three-stage-and-models.test.ts tests/tutorial-and-guide.test.ts` — 통과
@@ -188,6 +188,6 @@ Task: T03-obi-guard-and-bottle-split
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(monsters): add obi shield timing and bottle splitting

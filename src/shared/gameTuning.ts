@@ -34,6 +34,18 @@ export const GAME_TUNING = {
     pilgood: { chargeRadiusM: 12, chargeSpeedMult: 2 },
     caslight: { swayAmplitudeRad: 0.25, swayFrequency: 0.004 },
     hanmac: { stopRadiusM: 11, fireIntervalMs: 3000, firstShotDelayMs: 1000 },
+    obi: { guardUpMs: 2000, guardDownMs: 1000 },
+    bottle: {
+      bigScale: 1.2,
+      splitCount: 2,
+      splitOffsetRad: 0.1,
+      childHp: 1,
+      childSpeedMps: 2.2,
+      childHitRadiusM: 0.85,
+      childScale: 0.5,
+      childKillBonus: 40,
+      childBaseY: 0.35,
+    },
   },
   /** 웨이브당 일반 몬스터 속도 증가율(체력은 웨이브별로 올리지 않는다). */
   speedPerWave: 0.04,

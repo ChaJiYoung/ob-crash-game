@@ -46,6 +46,11 @@ export interface ActiveTargetEntity {
   // Hanmac artillery
   hanmacArrivedAtMs?: number;
   lastFireMs?: number;
+  // Obi shield / bottle split
+  guardPhaseMs?: number;
+  isGuarding?: boolean;
+  isSplitChild?: boolean;
+  modelScaleMult?: number;
   // Roguelike & Gimmick extensions
   stunUntilMs?: number;
   slowUntilMs?: number;
@@ -83,6 +88,7 @@ export interface EngineShootResult {
   selectedCard?: RewardCardKind;
   interceptedProjectile?: boolean;
   goldenCanKilled?: boolean;
+  shieldBlocked?: boolean;
 }
 
 export interface SkillExecuteResult {
@@ -919,6 +925,7 @@ export class BeerCrusherEngine {
         killBonusScore: spec.killBonusScore,
         breached: false,
       };
+      this.applyMonsterTraits(entity);
       this.activeTargets.push(entity);
       spawned.push(entity);
     }
@@ -966,6 +973,8 @@ export class BeerCrusherEngine {
       this.freezeTimers(realElapsedMs);
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
+
+    this.updateGuards(nowMs);
 
     // Clean expired buffs
     for (const [kind, untilMs] of this.activeBuffUntilMs.entries()) {
@@ -1235,9 +1244,60 @@ export class BeerCrusherEngine {
       breached: false,
     };
 
+    this.applyMonsterTraits(entity);
     this.activeTargets.push(entity);
     this.spawnedInWave += 1;
     this.lastSpawnTimeMs = nowMs;
+  }
+
+  /** 종류별 개체 특성(오비 방패 위상, 큰 병 크기). 웨이브 몬스터와 보스 소환 부하에 쓴다. */
+  private applyMonsterTraits(entity: ActiveTargetEntity): void {
+    if (entity.kind === 'obi') {
+      const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
+      entity.guardPhaseMs = this.dropRng() * (guardUpMs + guardDownMs);
+      entity.isGuarding = false;
+    } else if (entity.kind === 'bottle') {
+      entity.modelScaleMult = GAME_TUNING.monsters.bottle.bigScale;
+    }
+  }
+
+  /** 방패 병: 2초 올리고 1초 내리기를 반복한다. 기절하면 방패가 내려간다. */
+  private updateGuards(nowMs: number): void {
+    const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
+    const cycle = guardUpMs + guardDownMs;
+    for (const t of this.activeTargets) {
+      if (t.guardPhaseMs === undefined) continue;
+      const stunned = t.stunUntilMs !== undefined && t.stunUntilMs > nowMs;
+      t.isGuarding = !stunned && (nowMs + t.guardPhaseMs) % cycle < guardUpMs;
+    }
+  }
+
+  /** 큰 병맥주가 깨지면 작은 병 두 마리로 나뉜다. 작은 병은 다시 나뉘지 않는다. */
+  private splitBottle(parent: ActiveTargetEntity): void {
+    const cfg = GAME_TUNING.monsters.bottle;
+    for (let i = 0; i < cfg.splitCount; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const thetaRad = parent.thetaRad + side * cfg.splitOffsetRad;
+      this.targetCounter += 1;
+      this.activeTargets.push({
+        id: `bottle_child_${this.targetCounter}`,
+        kind: 'bottle',
+        hp: cfg.childHp,
+        maxHp: cfg.childHp,
+        radiusM: parent.radiusM,
+        thetaRad,
+        initialThetaRad: thetaRad,
+        x: Math.sin(thetaRad) * parent.radiusM,
+        z: -Math.cos(thetaRad) * parent.radiusM,
+        speedMps: cfg.childSpeedMps * this.getWaveSpeedMultiplier(),
+        hitRadiusM: cfg.childHitRadiusM,
+        killBonusScore: cfg.childKillBonus,
+        breached: false,
+        isSplitChild: true,
+        modelScaleMult: cfg.childScale,
+        customBaseY: cfg.childBaseY,
+      });
+    }
   }
 
   /** 일반 몬스터 속도 배율: 웨이브마다 +4%. 보스·아이템·금색 캔·투사체에는 쓰지 않는다. */
@@ -1354,6 +1414,10 @@ export class BeerCrusherEngine {
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
       if (!this.isTutorialMode && !this.isSandboxMode) {
+        if (target.kind === 'bottle' && !target.isSplitChild) {
+          this.splitBottle(target);
+        }
+
         // 1. 적 처치 랜덤 아이템 드롭 (필드 위 아이템 2개 미만 시)
         const currentItemCount = this.activeTargets.filter((t) => t.isItem).length;
         if (currentItemCount < 2) {
@@ -1599,6 +1663,20 @@ export class BeerCrusherEngine {
         };
       }
 
+      // Obi shield: blocks damage while raised. Fever shots and skills pierce it.
+      if (target.isGuarding && !isFever) {
+        return {
+          fired: true,
+          grade: result.grade,
+          target,
+          hitTargets: [target],
+          killed: false,
+          shieldBlocked: true,
+          weaponKind,
+          weaponLevel,
+        };
+      }
+
       // 5. Standard Monster Damage & Weapon Ballistics
       const powerMult = isPowerShot ? 2.0 : 1.0;
       const feverMult = isFever ? 2.0 : 1.0;
@@ -1637,6 +1715,7 @@ export class BeerCrusherEngine {
                 !t.isItem &&
                 !t.isProjectile &&
                 !t.isGoldenCan &&
+                (!t.isGuarding || isFever) &&
                 t.radiusM > target.radiusM &&
                 Math.abs(t.thetaRad - target.thetaRad) <= 0.16
             )

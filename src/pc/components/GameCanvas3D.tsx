@@ -164,32 +164,41 @@ export const GameCanvas3D = React.memo(
             const mesh = targetMeshMapRef.current.get(result.target.id);
             if (mesh) {
               targetPos = projectedAimPoint.clone().lerp(mesh.position.clone().add(new THREE.Vector3(0, 0.35, 0)), 0.35);
-              applyTargetHitFlash3D(mesh, performance.now() / 1000);
 
-              const hitColor = resolveHitFxColor(result.target);
-
-              if (result.killed) {
-                if (result.target.isProjectile) {
-                  // Intercepted projectiles burst like monsters; the intercept sound is played by the page.
-                  // (A projectile's kind is 'pilgood', so it must not fall through to the can-crush sound.)
-                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
-                } else if (result.target.kind === 'bottle') {
-                  soundSynth.playBottleShatterSound();
-                  particlesRef.current.triggerBottleCrash(targetPos);
-                } else if (result.target.kind === 'boss') {
-                  soundSynth.playBossExplosionSound();
-                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.boss);
-                } else {
-                  soundSynth.playCanCrushSound();
-                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
-                }
+              if (result.shieldBlocked) {
+                // Blocked by the obi shield: a quick spark only (the page plays the "ting"); no flash, no hit sound
+                particlesRef.current.spawnHitEffect(targetPos, '#e2e8f0', 2);
               } else {
-                soundSynth.playMetallicHitSound();
-                particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.hit);
-              }
+                applyTargetHitFlash3D(mesh, performance.now() / 1000);
 
-              if (result.target.isItem && result.target.itemKind) {
-                particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
+                const hitColor = resolveHitFxColor(result.target);
+
+                if (result.killed) {
+                  if (result.target.isProjectile) {
+                    // Intercepted projectiles burst like monsters; the intercept sound is played by the page.
+                    // (A projectile's kind is 'pilgood', so it must not fall through to the can-crush sound.)
+                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
+                  } else if (result.target.kind === 'bottle' && result.target.isSplitChild) {
+                    soundSynth.playCanCrushSound();
+                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
+                  } else if (result.target.kind === 'bottle') {
+                    soundSynth.playBottleShatterSound();
+                    particlesRef.current.triggerBottleCrash(targetPos);
+                  } else if (result.target.kind === 'boss') {
+                    soundSynth.playBossExplosionSound();
+                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.boss);
+                  } else {
+                    soundSynth.playCanCrushSound();
+                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
+                  }
+                } else {
+                  soundSynth.playMetallicHitSound();
+                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.hit);
+                }
+
+                if (result.target.isItem && result.target.itemKind) {
+                  particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
+                }
               }
             } else {
               targetPos = projectedAimPoint;
@@ -515,6 +524,12 @@ export const GameCanvas3D = React.memo(
               mesh = createItemMesh3D(target.itemKind);
             } else {
               mesh = createTargetMesh3D(target.kind);
+              if (target.modelScaleMult) {
+                // Big bottle (x1.2) and split children (x0.5); the boss king uses the same hook
+                const innerGroup = mesh.userData.inner as THREE.Group;
+                innerGroup.scale.multiplyScalar(target.modelScaleMult);
+                mesh.userData.baseScale *= target.modelScaleMult;
+              }
             }
             targetMeshMap.set(target.id, mesh);
           }
@@ -558,6 +573,7 @@ export const GameCanvas3D = React.memo(
               isSlowed,
               stuckPlungerCount: target.stuckPlungerCount ?? 0,
               isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
+              isGuarding: Boolean(target.isGuarding),
             });
           }
         });
