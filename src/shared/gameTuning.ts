@@ -30,6 +30,11 @@ export const GAME_TUNING = {
   },
   /** 웨이브별 무기 레벨 상한. 무기 MAX(Lv.4)는 5웨이브부터. */
   weaponLevelCapByWave: { 1: 2, 2: 3, 3: 3, 4: 3, 5: 4, 6: 4, 7: 4 },
+  monsters: {
+    pilgood: { chargeRadiusM: 12, chargeSpeedMult: 2 },
+    caslight: { swayAmplitudeRad: 0.25, swayFrequency: 0.004 },
+    hanmac: { stopRadiusM: 11, fireIntervalMs: 3000, firstShotDelayMs: 1000 },
+  },
   /** 웨이브당 일반 몬스터 속도 증가율(체력은 웨이브별로 올리지 않는다). */
   speedPerWave: 0.04,
   boss: {

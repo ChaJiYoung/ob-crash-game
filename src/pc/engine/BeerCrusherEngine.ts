@@ -43,7 +43,9 @@ export interface ActiveTargetEntity {
   customNormY?: number;
   customBaseY?: number;
   initialThetaRad?: number;
-  isEnraged?: boolean;
+  // Hanmac artillery
+  hanmacArrivedAtMs?: number;
+  lastFireMs?: number;
   // Roguelike & Gimmick extensions
   stunUntilMs?: number;
   slowUntilMs?: number;
@@ -109,7 +111,6 @@ export interface SandboxSpawnOptions {
   customNormY?: number;
   customBaseY?: number;
   initialThetaRad?: number;
-  isEnraged?: boolean;
 }
 
 export interface WaveProgressInfo {
@@ -512,15 +513,27 @@ export class BeerCrusherEngine {
     return entity;
   }
 
-  public spawnMonsterProjectile(nowMs: number, sourceKind: 'hanmac' | 'boss'): ActiveTargetEntity {
+  public spawnMonsterProjectile(
+    nowMs: number,
+    sourceKind: 'hanmac' | 'boss',
+    origin?: { thetaRad: number; radiusM: number }
+  ): ActiveTargetEntity {
     this.lastProjectileSpawnTimeMs = nowMs;
     this.targetCounter += 1;
     const existingAngles = this.activeTargets.map((t) => t.thetaRad);
-    const pt = sampleFanSpawnPoint({
+    const sampled = sampleFanSpawnPoint({
       vFovDeg: this.vFovDeg,
       aspect: this.aspect,
       existingAnglesRad: existingAngles,
     });
+    const pt = origin
+      ? {
+          thetaRad: origin.thetaRad,
+          radiusM: origin.radiusM,
+          x: Math.sin(origin.thetaRad) * origin.radiusM,
+          z: -Math.cos(origin.thetaRad) * origin.radiusM,
+        }
+      : sampled;
 
     const entity: ActiveTargetEntity = {
       id: `proj_${this.targetCounter}_${sourceKind}`,
@@ -538,6 +551,7 @@ export class BeerCrusherEngine {
       breached: false,
       isProjectile: true,
       customNormY: 0.1,
+      customBaseY: 1.45, // Projectile kind is 'pilgood' (now ground); keep the mesh at the aimed height
     };
     this.activeTargets.push(entity);
     return entity;
@@ -751,7 +765,6 @@ export class BeerCrusherEngine {
       breached: false,
       customNormY: options.customNormY,
       customBaseY: options.customBaseY,
-      isEnraged: options.isEnraged,
     };
     this.activeTargets.push(entity);
     return entity;
@@ -925,6 +938,7 @@ export class BeerCrusherEngine {
     for (const target of this.activeTargets) {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
+      if (target.lastFireMs !== undefined) target.lastFireMs += deltaMs;
     }
   }
 
@@ -996,18 +1010,24 @@ export class BeerCrusherEngine {
         if (isSlowed) {
           effectiveSpeed *= (1 - (target.slowRatio ?? 0.4));
         }
-        if (target.kind === 'hanmac' && target.isEnraged) {
-          effectiveSpeed *= 1.3;
-        }
       }
 
-      // S-curve flight trajectory for airborne targets
-      if (!target.isItem && !target.isGoldenCan && (target.kind === 'pilgood' || target.kind === 'caslight') && target.initialThetaRad !== undefined) {
-        if (target.kind === 'pilgood') {
-          target.thetaRad = target.initialThetaRad + Math.sin(nowMs * 0.003 + target.radiusM * 0.4) * 0.08;
-        } else if (target.kind === 'caslight') {
-          target.thetaRad = target.initialThetaRad + Math.sin(nowMs * 0.006 + target.radiusM * 0.7) * 0.06;
-        }
+      const isRegularPlay = !this.isTutorialMode && !this.isSandboxMode;
+      const isPlainMonster = !target.isItem && !target.isProjectile && !target.isGoldenCan;
+
+      // Pilgood: ground rocket can that charges once it gets close to the defense line
+      if (
+        target.kind === 'pilgood' && isPlainMonster && isRegularPlay && !isStunned &&
+        target.radiusM <= GAME_TUNING.monsters.pilgood.chargeRadiusM
+      ) {
+        effectiveSpeed *= GAME_TUNING.monsters.pilgood.chargeSpeedMult;
+      }
+
+      // Caslight: the only airborne monster; it sways widely to dodge aim
+      if (target.kind === 'caslight' && isPlainMonster && target.initialThetaRad !== undefined) {
+        const { swayAmplitudeRad, swayFrequency } = GAME_TUNING.monsters.caslight;
+        target.thetaRad =
+          target.initialThetaRad + Math.sin(nowMs * swayFrequency + target.radiusM * 0.7) * swayAmplitudeRad;
       }
 
       // Fast horizontal crossing for Golden Can
@@ -1033,6 +1053,27 @@ export class BeerCrusherEngine {
           target.x = next.x;
           target.z = next.z;
           target.breached = false;
+        }
+      } else if (target.kind === 'hanmac' && isRegularPlay && isPlainMonster && next.radiusM <= GAME_TUNING.monsters.hanmac.stopRadiusM) {
+        // Hanmac stops at range and bombards from its own position
+        const stopRadiusM = GAME_TUNING.monsters.hanmac.stopRadiusM;
+        target.radiusM = stopRadiusM;
+        target.x = Math.sin(target.thetaRad) * stopRadiusM;
+        target.z = -Math.cos(target.thetaRad) * stopRadiusM;
+        target.breached = false;
+        if (target.hanmacArrivedAtMs === undefined) {
+          target.hanmacArrivedAtMs = nowMs;
+          target.lastFireMs =
+            nowMs - GAME_TUNING.monsters.hanmac.fireIntervalMs + GAME_TUNING.monsters.hanmac.firstShotDelayMs;
+        }
+        const fieldHasRoom = this.activeTargets.length < (this.waveDefinitions[this.currentWave]?.maxSimultaneous ?? 6) + 2;
+        if (
+          !isStunned &&
+          fieldHasRoom &&
+          nowMs - (target.lastFireMs ?? nowMs) >= GAME_TUNING.monsters.hanmac.fireIntervalMs
+        ) {
+          target.lastFireMs = nowMs;
+          this.spawnMonsterProjectile(nowMs, 'hanmac', { thetaRad: target.thetaRad, radiusM: target.radiusM });
         }
       } else {
         target.radiusM = next.radiusM;
@@ -1111,11 +1152,10 @@ export class BeerCrusherEngine {
       }
     }
 
-    // Periodic projectile spawn if Hanmac or Boss on field
-    const hasShooter = this.activeTargets.some((t) => t.kind === 'hanmac' || t.kind === 'boss');
-    if (hasShooter && nowMs - this.lastProjectileSpawnTimeMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
-      const shooter = this.activeTargets.find((t) => t.kind === 'boss') ? 'boss' : 'hanmac';
-      this.spawnMonsterProjectile(nowMs, shooter);
+    // Periodic projectile spawn from the boss (hanmac fires on its own timer in the movement loop)
+    const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
+    if (hasBossShooter && nowMs - this.lastProjectileSpawnTimeMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
+      this.spawnMonsterProjectile(nowMs, 'boss');
     }
 
     // Boss summon action (rules are reworked in P04-T04)
@@ -1625,10 +1665,6 @@ export class BeerCrusherEngine {
       target.hp = Number(Math.max(0, target.hp - damage).toFixed(3));
       const killed = target.hp <= 0;
       let activatedItem: ItemBuffKind | undefined;
-
-      if (!killed && target.kind === 'hanmac') {
-        target.isEnraged = true;
-      }
 
       if (killed && target.isItem && target.itemKind) {
         this.activateItemBuff(target.itemKind, nowMs);

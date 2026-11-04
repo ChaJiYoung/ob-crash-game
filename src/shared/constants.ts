@@ -22,7 +22,7 @@ export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
     killBonusScore: 30,
     brandColorHex: '#00a8e8',
     accentColorHex: '#ffd100',
-    isAirborne: true,
+    isAirborne: false,
     modelScale: 1.85,
   },
   caslight: {

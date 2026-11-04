@@ -98,8 +98,8 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
   });
 
   it('should calculate ground vs airborne altitudes with getTargetBaseY', () => {
-    expect(getTargetBaseY('pilgood')).toBe(1.45);
-    expect(getTargetBaseY('caslight')).toBe(1.45);
+    expect(getTargetBaseY('pilgood')).toBe(0.55); // pilgood runs on the ground now
+    expect(getTargetBaseY('caslight')).toBe(1.45); // caslight is the only airborne monster
     expect(getTargetBaseY('boss')).toBe(1.15);
     expect(getTargetBaseY('bottle')).toBe(0.55);
     expect(getTargetBaseY('obi')).toBe(0.55);

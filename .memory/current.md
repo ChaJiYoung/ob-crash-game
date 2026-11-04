@@ -7,10 +7,10 @@
 [P04 Waves and Bosses](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/phase.md)
 
 ## Active Task
-[T02 Monster Movement and Artillery](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/T02-monster-movement-and-artillery.md)
+[T03 Obi Guard and Bottle Split](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P04-waves-and-bosses/T03-obi-guard-and-bottle-split.md)
 
 ## Status
-- T01 완료, T02 구현 시작 준비 완료
+- T02 완료, T03 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 구현 시작
+T03 청사진을 읽고 구현 시작

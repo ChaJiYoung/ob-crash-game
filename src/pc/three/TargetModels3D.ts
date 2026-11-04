@@ -242,8 +242,8 @@ export function getTargetBaseY(kind: TargetKind, isItem?: boolean): number {
   if (isItem) {
     return 1.15; // Mid-air floating altitude for shootable item drops
   }
-  if (kind === 'pilgood' || kind === 'caslight') {
-    return 1.45; // Airborne gliding flight altitude
+  if (kind === 'caslight') {
+    return 1.45; // The only airborne monster: gliding flight altitude
   }
   if (kind === 'boss') {
     return 1.15; // Ground-standing heavy commercial cabinet center
@@ -484,7 +484,13 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
         });
       });
       const jetPlume = new THREE.Mesh(jetGeo, jetMat);
-      jetPlume.position.y = -h / 2 - 0.11;
+      if (kind === 'pilgood') {
+        // Ground rocket can: exhaust points backwards (away from the player) instead of into the floor
+        jetPlume.rotation.x = Math.PI / 2;
+        jetPlume.position.set(0, -h * 0.2, -r * 1.2);
+      } else {
+        jetPlume.position.y = -h / 2 - 0.11;
+      }
       inner.add(jetPlume);
     }
 
@@ -859,7 +865,7 @@ export function updateTargetAnimation3D(
     });
   }
 
-  const isGround = kind === 'bottle' || kind === 'obi' || kind === 'hanmac' || kind === 'boss';
+  const isGround = kind === 'bottle' || kind === 'obi' || kind === 'hanmac' || kind === 'boss' || kind === 'pilgood';
 
   if (isGround) {
     // Ground monsters contact bounce & limited rotation so label stays visible

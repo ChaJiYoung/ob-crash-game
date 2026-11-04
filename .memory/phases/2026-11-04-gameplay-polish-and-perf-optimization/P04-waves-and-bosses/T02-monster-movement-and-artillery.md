@@ -1,6 +1,6 @@
 # Task: T02 Monster Movement and Artillery
 
-## Status: pending
+## Status: done
 
 ## Goal
 필굿, 카스 라이트, 한맥의 행동을 서로 다르게 만든다. 지금은 필굿과 카스 라이트가 사실상 같고, 한맥의 투사체도 한맥과 무관한 곳에서 나온다.
@@ -134,11 +134,11 @@ target.thetaRad = target.initialThetaRad +
   - 튜토리얼과 샌드박스의 한맥은 멈추지 않는다.
 
 ## Acceptance Criteria
-- [ ] 필굿이 땅에서 달려오다 가까워지면 빨라진다.
-- [ ] 공중에 뜬 몬스터는 카스 라이트뿐이고 크게 흔들린다.
-- [ ] 한맥이 멈춰 서서 자기 위치에서 투사체를 쏜다.
-- [ ] 아이템, 투사체, 금색 캔의 높이와 판정이 그대로다.
-- [ ] 튜토리얼이 정상 진행된다.
+- [x] 필굿이 땅에서 달려오다 가까워지면 빨라진다.
+- [x] 공중에 뜬 몬스터는 카스 라이트뿐이고 크게 흔들린다.
+- [x] 한맥이 멈춰 서서 자기 위치에서 투사체를 쏜다.
+- [x] 아이템, 투사체, 금색 캔의 높이와 판정이 그대로다.
+- [x] 튜토리얼이 정상 진행된다.
 
 ## Validation
 - `npx vitest run tests/monster-traits.test.ts tests/three-stage-and-models.test.ts tests/engine-judgment-and-spawn.test.ts tests/tutorial-and-guide.test.ts` — 통과
@@ -161,6 +161,6 @@ Task: T02-monster-movement-and-artillery
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: feat(monsters): add charging pilgood, evasive caslight, and hanmac artillery

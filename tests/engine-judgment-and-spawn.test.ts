@@ -330,10 +330,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const engine = new BeerCrusherEngine();
     engine.startGame();
 
-    // 1. Airborne target (pilgood) -> higher visual center (targetNormY > 0)
+    // 1. Airborne target (caslight) -> higher visual center (targetNormY > 0)
     const airTarget = {
       id: 'air_1',
-      kind: 'pilgood' as const,
+      kind: 'caslight' as const,
       hp: 1,
       maxHp: 1,
       radiusM: 8.0,
