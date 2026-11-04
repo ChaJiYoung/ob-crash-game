@@ -318,6 +318,7 @@ export class BeerCrusherEngine {
     this.lastBossSummonHpThreshold = 45;
     this.scoreManager.reset();
     this.weaponSystem.reset();
+    this.resetCardStacks();
     this.activeBuffUntilMs.clear();
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
@@ -409,7 +410,7 @@ export class BeerCrusherEngine {
     const pool = this.buildRewardCardPool();
     // Fisher-Yates shuffle with the injectable RNG
     for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(this.dropRng() * (i + 1));
+      const j = Math.min(i, Math.floor(this.dropRng() * (i + 1)));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
     const picked = pool.slice(0, count);
@@ -570,6 +571,7 @@ export class BeerCrusherEngine {
     this.activeTargets = [];
     this.scoreManager.reset();
     this.weaponSystem.reset();
+    this.resetCardStacks();
     this.activeBuffUntilMs.clear();
 
     const angles = [-0.22, 0.0, 0.22];
@@ -706,6 +708,7 @@ export class BeerCrusherEngine {
     this.activeTargets = [];
     this.scoreManager.reset();
     this.weaponSystem.reset();
+    this.resetCardStacks();
     this.activeBuffUntilMs.clear();
     this.infiniteAmmo = true;
     this.weaponSystem.setInfiniteAmmo(true);
@@ -1479,7 +1482,9 @@ export class BeerCrusherEngine {
       const target = this.activeTargets[i];
       const proj = this.computeTargetAimCoords(target, wideScopeMult);
       // Aim x spans half the screen width per unit, so convert to the vertical unit to get a round zone.
-      const dx = (aimX - proj.targetNormX) * this.aspect;
+      // The tutorial and sandbox keep the legacy (uncorrected) zone their guidance assumes.
+      const aspectFactor = this.isTutorialMode || this.isSandboxMode ? 1.0 : this.aspect;
+      const dx = (aimX - proj.targetNormX) * aspectFactor;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
         : (aimY - proj.targetNormY) * verticalScale;
@@ -1549,7 +1554,10 @@ export class BeerCrusherEngine {
       const judgmentMult = result.damageMultiplier;
       const weaponBonusMult = this.weaponSystem.getDamageBonusMultiplier();
       // Held rapid fire is weaker than tapping; fever auto-fire is exempt.
-      const holdMult = source === 'hold' && !isFever ? GAME_TUNING.fire.holdDamageByWeapon[weaponKind] : 1.0;
+      const holdMult =
+        source === 'hold' && !isFever && !this.isTutorialMode && !this.isSandboxMode
+          ? GAME_TUNING.fire.holdDamageByWeapon[weaponKind]
+          : 1.0;
       const totalMult = powerMult * feverMult * judgmentMult * weaponBonusMult * holdMult;
       let damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
 

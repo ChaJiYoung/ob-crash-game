@@ -407,7 +407,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }
             }
 
-            // Rapid fire hold using live aim coordinates (20ms polling interval to respect fast fire rates like gatling 83ms without quantization loss)
+            // Rapid fire hold using live aim coordinates (5ms polling interval to respect fast fire rates like gatling 58ms without quantization loss)
             if (p.rapidFireHold) {
               if (!rapidFireTimerRef.current) {
                 rapidFireTimerRef.current = setInterval(() => {
@@ -416,7 +416,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   if (res.fired) {
                     handleShootEvent(res);
                   }
-                }, 20);
+                }, 5);
               }
             } else {
               if (rapidFireTimerRef.current) {

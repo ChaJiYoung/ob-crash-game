@@ -162,4 +162,43 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
     ['damage_up', 'skill_cooldown', 'fever_extend', 'hit_zone_up'].forEach((k) => expect(pool).toContain(k));
     expect(ALL.length).toBe(9);
   });
+
+  it('resets card stacks when entering the sandbox or tutorial', () => {
+    engine.applyRewardCard('damage_up', 0);
+    engine.applyRewardCard('hit_zone_up', 0);
+    engine.startSandboxMode();
+    expect(engine.weaponSystem.getDamageBonusMultiplier()).toBe(1);
+    expect(engine.buildRewardCardPool()).toContain('damage_up');
+
+    engine.applyRewardCard('skill_cooldown', 0);
+    engine.startTutorialMode();
+    expect(engine.buildRewardCardPool()).toContain('skill_cooldown');
+  });
+
+  it('never deals an undefined card even if the RNG returns exactly 1', () => {
+    engine.dropRng = () => 1;
+    engine.spawnWaveRewardCards(1000, false);
+    const cards = cardsOnField();
+    expect(cards.length).toBe(3);
+    cards.forEach((c) => expect(c).toBeDefined());
+  });
+
+  it('ignores fever gauge gains while fever is active (no ready flag mid-fever)', () => {
+    engine.scoreManager.forceSetFeverGauge(100);
+    engine.scoreManager.activateFever(0);
+    engine.scoreManager.updateFeverTimer(1000); // gauge shows the countdown
+    const before = engine.scoreManager.getState().feverGauge;
+    engine.scoreManager.addFeverGauge(30);
+    const after = engine.scoreManager.getState();
+    expect(after.feverGauge).toBe(before);
+    expect(after.isFeverReady).toBe(false);
+  });
+
+  it('wave-clear cards use the cap of the wave being cleared', () => {
+    engine.weaponSystem.selectWeapon('shotgun', 2);
+    engine.startWave(1);
+    expect(engine.buildRewardCardPool()).not.toContain('weapon_level_up');
+    engine.startWave(2);
+    expect(engine.buildRewardCardPool()).toContain('weapon_level_up');
+  });
 });

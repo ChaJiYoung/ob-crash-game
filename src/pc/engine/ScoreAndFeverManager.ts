@@ -138,6 +138,8 @@ export class ScoreAndFeverManager {
   }
 
   public addFeverGauge(delta: number): void {
+    // While fever runs the gauge is the countdown display; a gain would corrupt it and flag "ready" mid-fever.
+    if (this.isFeverActive) return;
     this.forceSetFeverGauge(this.feverGauge + delta);
   }
 

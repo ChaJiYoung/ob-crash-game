@@ -102,4 +102,15 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     const unscaledCard = engine.computeTargetAimCoords({ ...card, rewardCardKind: undefined, weaponSelectKind: undefined } as ActiveTargetEntity);
     expect(cardRadius).toBeGreaterThan(unscaledCard.apparentHitRadius);
   });
+
+  it('keeps the legacy (non aspect-corrected) zone in the sandbox', () => {
+    engine.startSandboxMode();
+    engine.weaponSystem.selectWeapon('shotgun', 1);
+    const t = makeTarget('s');
+    engine.activeTargets.push(t);
+    const p = engine.computeTargetAimCoords(t);
+    // Offset that would miss with aspect correction (x1.78) but sits inside the legacy circle
+    const res = engine.shootAt(p.targetNormX + p.apparentHitRadius * 0.9, p.targetNormY, 1000, 'hold');
+    expect(res.grade).not.toBe('MISS');
+  });
 });

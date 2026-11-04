@@ -390,7 +390,7 @@ export const GameCanvas3D = React.memo(
           stopMouseHold();
           mouseHoldInterval = setInterval(() => {
             executeShot('hold');
-          }, 20);
+          }, 5);
         }
       };
 
