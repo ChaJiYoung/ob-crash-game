@@ -23,6 +23,7 @@ export const MobileControllerPage: React.FC = () => {
   const [isGameWaiting, setIsGameWaiting] = useState<boolean>(true);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const [isCockedState, setIsCockedState] = useState<boolean>(false);
+  const [isStabilizedMode, setIsStabilizedMode] = useState<boolean>(false);
   const [skillState, setSkillState] = useState<{
     weaponKind: WeaponKind;
     weaponLevel: WeaponLevel;
@@ -122,6 +123,23 @@ export const MobileControllerPage: React.FC = () => {
           case 'GAME_COUNTDOWN_START':
             startCountdownRef.current(msg.sec || 3);
             break;
+
+          case 'SENSOR_CONFIG_UPDATE' as any: {
+            const cfg = (msg as any).config;
+            if (cfg) {
+              if (typeof cfg.isStabilizedMode === 'boolean') {
+                tracker.setStabilizedMode(cfg.isStabilizedMode);
+                setIsStabilizedMode(cfg.isStabilizedMode);
+              }
+              tracker.setFilterConfig(cfg);
+              tracker.setCalibrationConfig({
+                sensitivityX: cfg.sensitivityX,
+                sensitivityY: cfg.sensitivityY,
+                invertY: cfg.invertY,
+              });
+            }
+            break;
+          }
 
           case 'ERROR':
             if (msg.code === 'PC_DISCONNECTED') {
@@ -307,6 +325,12 @@ export const MobileControllerPage: React.FC = () => {
   );
   startCountdownRef.current = startCountdown;
 
+  const handleToggleStabilizedMode = useCallback(() => {
+    const next = !tracker.isStabilized();
+    tracker.setStabilizedMode(next);
+    setIsStabilizedMode(next);
+  }, [tracker]);
+
   const handleStartRangeMeasure = () => {
     tracker.startRangeMeasurement();
   };
@@ -412,6 +436,8 @@ export const MobileControllerPage: React.FC = () => {
           }}
           isFeverReady={isFeverReady}
           skillState={skillState}
+          isStabilizedMode={isStabilizedMode}
+          onToggleStabilizedMode={handleToggleStabilizedMode}
         />
       )}
 

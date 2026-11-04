@@ -22,6 +22,8 @@ export interface GunGripPadProps {
   isFeverReady?: boolean;
   isCocked?: boolean;
   skillState?: GunGripSkillInfo;
+  isStabilizedMode?: boolean;
+  onToggleStabilizedMode?: () => void;
 }
 
 export const GunGripPad: React.FC<GunGripPadProps> = ({
@@ -33,6 +35,8 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
   isFeverReady = false,
   isCocked: isCockedProp,
   skillState,
+  isStabilizedMode = false,
+  onToggleStabilizedMode,
 }) => {
   const [internalCocked, setInternalCocked] = useState(false);
   const isCocked = isCockedProp !== undefined ? isCockedProp : internalCocked;
@@ -119,32 +123,61 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
           boxSizing: 'border-box',
         }}
       >
-        <button
-          onClick={() => {
-            triggerHaptic([40, 60]);
-            onRecalibrateZero();
-          }}
-          style={{
-            height: '100%',
-            width: '100%',
-            maxWidth: '360px',
-            borderRadius: '12px',
-            border: '2px solid #f59e0b',
-            background: 'linear-gradient(180deg, rgba(245, 158, 11, 0.25), rgba(19, 26, 41, 0.95))',
-            color: '#fbbf24',
-            fontSize: '15px',
-            fontWeight: 900,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            boxShadow: '0 0 16px rgba(245, 158, 11, 0.2)',
-          }}
-        >
-          <span>🎯</span>
-          <span>정면 영점 맞추기 (모니터 겨누고 탭)</span>
-        </button>
+        <div style={{ display: 'flex', width: '100%', maxWidth: '390px', gap: '8px', height: '100%' }}>
+          <button
+            onClick={() => {
+              triggerHaptic([40, 60]);
+              onRecalibrateZero();
+            }}
+            style={{
+              height: '100%',
+              flex: 1,
+              borderRadius: '12px',
+              border: '2px solid #f59e0b',
+              background: 'linear-gradient(180deg, rgba(245, 158, 11, 0.25), rgba(19, 26, 41, 0.95))',
+              color: '#fbbf24',
+              fontSize: '14px',
+              fontWeight: 900,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: '0 0 16px rgba(245, 158, 11, 0.2)',
+            }}
+          >
+            <span>🎯</span>
+            <span>정면 영점 (모니터 겨누고 탭)</span>
+          </button>
+
+          {onToggleStabilizedMode && (
+            <button
+              onClick={() => {
+                triggerHaptic(50);
+                onToggleStabilizedMode();
+              }}
+              style={{
+                height: '100%',
+                minWidth: '108px',
+                borderRadius: '12px',
+                border: isStabilizedMode ? '2px solid #10b981' : '1px solid rgba(255, 255, 255, 0.2)',
+                background: isStabilizedMode
+                  ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.3), rgba(19, 26, 41, 0.95))'
+                  : 'rgba(255, 255, 255, 0.08)',
+                color: isStabilizedMode ? '#34d399' : '#94a3b8',
+                fontSize: '13px',
+                fontWeight: 900,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              <span>{isStabilizedMode ? '🛡️ 안정화 ON' : '📱 기본 모드'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2. REAR 85% UNIFIED ACTION TOUCH PAD (Towards Body) */}
