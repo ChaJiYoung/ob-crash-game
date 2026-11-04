@@ -1,6 +1,6 @@
 # Task: T04 Final Verification and Playtest
 
-## Status: pending
+## Status: in_progress (사용자 직접 플레이 대기)
 
 ## Goal
 전체 자동 검증을 통과시키고, 사용자가 폰과 마우스로 직접 플레이해 최종 수치를 정한다. 봇으로는 "아슬아슬함"을 판단할 수 없기 때문이다.
@@ -100,6 +100,9 @@ Task: T04-final-verification-and-playtest
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] I01 자동 검증 통과 (npm test 235, npm run build, 밸런스 시뮬레이션, 렌더 프로파일)
+- [x] I02 체크리스트 문서 작성: `.memory/references/playtest-2026-11-04.md`
+- [ ] I02 사용자 직접 플레이 (폰 자이로·마우스) — **사람이 해야 하며 실행 주체가 대신 통과 처리하지 않는다**
+- [ ] I03 피드백 반영
+- [ ] I04 결정 문서의 [초안]을 최종값으로 확정, 계획 완료 표시
 - commit: pending
