@@ -1,6 +1,6 @@
 # Task: T02 Remove Bloom and Cap Render Pixels
 
-## Status: pending
+## Status: done
 
 ## Goal
 후처리를 없애고 렌더 버퍼를 300만 픽셀로 제한해 GPU 부담을 줄인다. 3440×1440 기준 37 FPS를 약 93 FPS까지 끌어올리는 가장 큰 개선이다.
@@ -67,9 +67,9 @@
 - `fs.readFileSync('src/pc/components/GameCanvas3D.tsx', 'utf8')`에 `UnrealBloomPass`, `EffectComposer`가 없고 `computeRenderPixelRatio`가 있는지 확인한다.
 
 ## Acceptance Criteria
-- [ ] 게임 화면에 후처리 없이 정상 렌더링된다.
-- [ ] 창 크기를 바꿔도 비율이 다시 계산되고 화면이 늘어나지 않는다.
-- [ ] 3440×1440에서 렌더 버퍼가 약 2677×1120이다.
+- [x] 게임 화면에 후처리 없이 정상 렌더링된다.
+- [x] 창 크기를 바꿔도 비율이 다시 계산되고 화면이 늘어나지 않는다.
+- [x] 3440×1440에서 렌더 버퍼가 약 2677×1120이다.
 
 ## Validation
 - `npx vitest run tests/render-budget.test.ts` — 통과
@@ -91,6 +91,6 @@ Task: T02-remove-bloom-and-cap-render-pixels
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: perf(render): remove bloom and cap render buffer at 3M pixels

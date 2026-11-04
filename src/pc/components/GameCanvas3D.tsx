@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { computeRenderPixelRatio } from '../three/renderBudget';
 import { BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
@@ -257,7 +255,6 @@ export const GameCanvas3D = React.memo(
       }
 
       let renderer: THREE.WebGLRenderer | null = null;
-      let composer: EffectComposer | null = null;
 
       try {
         renderer = new THREE.WebGLRenderer({
@@ -265,8 +262,8 @@ export const GameCanvas3D = React.memo(
           alpha: false,
           powerPreference: 'high-performance',
         });
+        renderer.setPixelRatio(computeRenderPixelRatio(width, height, window.devicePixelRatio));
         renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.32;
         renderer.shadowMap.enabled = true;
@@ -274,21 +271,8 @@ export const GameCanvas3D = React.memo(
         renderer.shadowMap.autoUpdate = false;
         renderer.shadowMap.needsUpdate = true;
         container.appendChild(renderer.domElement);
-
-        // UnrealBloomPass Post-Processing
-        composer = new EffectComposer(renderer);
-        const renderPass = new RenderPass(scene, camera);
-        composer.addPass(renderPass);
-
-        const bloomPass = new UnrealBloomPass(
-          new THREE.Vector2(width, height),
-          0.48, // strength
-          0.32, // radius
-          0.82  // threshold
-        );
-        composer.addPass(bloomPass);
       } catch (e) {
-        console.warn('WebGL or EffectComposer initialization failed:', e);
+        console.warn('WebGL initialization failed:', e);
       }
 
       // 2. Add Brewery Stage, Gun, and Particle pool
@@ -331,10 +315,8 @@ export const GameCanvas3D = React.memo(
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         engine.aspect = w / h;
+        renderer.setPixelRatio(computeRenderPixelRatio(w, h, window.devicePixelRatio));
         renderer.setSize(w, h);
-        if (composer) {
-          composer.setSize(w, h);
-        }
       };
       window.addEventListener('resize', handleResize);
 
@@ -627,11 +609,7 @@ export const GameCanvas3D = React.memo(
         // Update particles and tracer beams
         particles.update(dtSec);
 
-        if (composer) {
-          composer.render();
-        } else if (renderer) {
-          renderer.render(scene, camera);
-        }
+        if (renderer) renderer.render(scene, camera);
 
         // Periodic render performance reporting (~250ms throttled)
         fpsFrameCount++;

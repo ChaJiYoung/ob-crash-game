@@ -7,10 +7,10 @@
 [P01 Render and Stutter](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/phase.md)
 
 ## Active Task
-[T02 Remove Bloom and Cap Render Pixels](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/T02-remove-bloom-and-cap-render-pixels.md)
+[T03 Keep Shaders and Shared Textures Alive](./phases/2026-11-04-gameplay-polish-and-perf-optimization/P01-render-and-stutter/T03-keep-shaders-and-shared-textures-alive.md)
 
 ## Status
-- T01 완료, T02 구현 시작 준비 완료
+- T02 완료, T03 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 구현 시작
+T03 청사진을 읽고 구현 시작
