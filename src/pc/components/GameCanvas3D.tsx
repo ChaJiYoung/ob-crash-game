@@ -10,6 +10,9 @@ import {
   createGoldenCanMesh3D,
   createProjectileMesh3D,
   createCardTargetMesh3D,
+  createLandingMarker3D,
+  updateLandingMarker3D,
+  MINION_DROP_HEIGHT_M,
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
@@ -20,6 +23,7 @@ import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../three/ParticleEffects
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
+import { GAME_TUNING } from '../../shared/gameTuning';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
 
@@ -348,6 +352,17 @@ export const GameCanvas3D = React.memo(
       // 3. Target meshes map
       const targetMeshMap = targetMeshMapRef.current;
 
+      // Landing markers for falling boss minions (pooled: a summon drops at most ~7 at once)
+      const dropMarkers = new Map<string, THREE.Mesh>();
+      const markerPool: THREE.Mesh[] = [];
+      const releaseMarker = (id: string) => {
+        const marker = dropMarkers.get(id);
+        if (!marker) return;
+        scene.remove(marker);
+        dropMarkers.delete(id);
+        markerPool.push(marker);
+      };
+
       // 4. Resize handler
       const handleResize = () => {
         if (!container || !renderer) return;
@@ -476,6 +491,9 @@ export const GameCanvas3D = React.memo(
             targetMeshMap.delete(id);
           }
         });
+        dropMarkers.forEach((_marker, id) => {
+          if (!activeIds.has(id)) releaseMarker(id);
+        });
 
         // Add & update active target meshes (monsters, items, golden cans, projectiles, cards)
         engine.activeTargets.forEach((target) => {
@@ -577,6 +595,23 @@ export const GameCanvas3D = React.memo(
               isShielded: Boolean(target.isShielded),
             });
           }
+
+          // Boss minion drop: fall in from above with a landing ring on the floor
+          if (target.dropLandAtMs !== undefined && time < target.dropLandAtMs) {
+            const remaining = (target.dropLandAtMs - time) / GAME_TUNING.boss.minionDrop.dropMs;
+            mesh.position.y += MINION_DROP_HEIGHT_M * remaining * remaining;
+            let marker = dropMarkers.get(target.id);
+            if (!marker) {
+              marker = markerPool.pop() ?? createLandingMarker3D();
+              dropMarkers.set(target.id, marker);
+              scene.add(marker);
+            }
+            marker.position.x = target.x;
+            marker.position.z = target.z;
+            updateLandingMarker3D(marker, remaining, target.hitRadiusM || 0.8);
+          } else if (dropMarkers.has(target.id)) {
+            releaseMarker(target.id);
+          }
         });
 
         // Sync weapon 3D model archetype and level
@@ -609,6 +644,7 @@ export const GameCanvas3D = React.memo(
 
           engine.activeTargets.forEach((target) => {
             if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile, target.hp)) return;
+            if (target.dropLandAtMs !== undefined && time < target.dropLandAtMs) return; // still falling in
             const mesh = targetMeshMap.get(target.id);
             if (!mesh) return;
 
@@ -686,6 +722,13 @@ export const GameCanvas3D = React.memo(
           disposeSceneGroup(mesh);
         });
         targetMeshMap.clear();
+        dropMarkers.forEach((marker) => {
+          scene.remove(marker);
+          disposeSceneGroup(marker as unknown as THREE.Group);
+        });
+        dropMarkers.clear();
+        markerPool.forEach((marker) => disposeSceneGroup(marker as unknown as THREE.Group));
+        markerPool.length = 0;
 
         if (shaderAnchors) {
           disposeSceneGroup(shaderAnchors);

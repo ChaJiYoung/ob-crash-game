@@ -9,6 +9,9 @@ import {
   createGoldenCanMesh3D,
   createProjectileMesh3D,
   createCardTargetMesh3D,
+  createLandingMarker3D,
+  updateLandingMarker3D,
+  MINION_DROP_HEIGHT_M,
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
@@ -765,5 +768,57 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(cardMesh.parent).toBe(scene2);
     expect(scene1.children.includes(cardMesh)).toBe(false);
     expect(scene2.children.includes(cardMesh)).toBe(true);
+  });
+
+  describe('boss minion drop visuals (score-differentiation P02-T03)', () => {
+    it('builds a flat landing ring that shares geometry and shader program with every other marker', () => {
+      const a = createLandingMarker3D();
+      const b = createLandingMarker3D();
+      expect(a.geometry).toBe(b.geometry);
+      expect(a.geometry.userData.isShared).toBe(true);
+      // Own material per marker (own opacity) but never flagged as the shared one, so it is disposed with the marker
+      expect(a.material).not.toBe(b.material);
+      expect((a.material as THREE.Material).userData.isShared).toBe(false);
+      expect((a.material as THREE.MeshBasicMaterial).type).toBe('MeshBasicMaterial');
+      expect(a.position.y).toBeGreaterThan(0);
+    });
+
+    it('shrinks onto the hit zone and brightens as the minion lands', () => {
+      const m = createLandingMarker3D();
+      updateLandingMarker3D(m, 1, 1);
+      const farScale = m.scale.x;
+      const farOpacity = (m.material as THREE.MeshBasicMaterial).opacity;
+      updateLandingMarker3D(m, 0, 1);
+      expect(m.scale.x).toBeLessThan(farScale);
+      expect((m.material as THREE.MeshBasicMaterial).opacity).toBeGreaterThan(farOpacity);
+      expect((m.material as THREE.MeshBasicMaterial).opacity).toBeLessThanOrEqual(1);
+      // never collapses to nothing, even for tiny hit radii
+      updateLandingMarker3D(m, 0, 0);
+      expect(m.scale.x).toBeGreaterThan(0.5);
+    });
+
+    it('keeps the shared geometry alive when a marker is disposed', () => {
+      const m = createLandingMarker3D();
+      const geo = m.geometry;
+      const mat = m.material as THREE.Material;
+      const geoSpy = vi.spyOn(geo, 'dispose');
+      const matSpy = vi.spyOn(mat, 'dispose');
+      disposeSceneGroup(m as unknown as THREE.Group);
+      expect(geoSpy).not.toHaveBeenCalled();
+      expect(matSpy).toHaveBeenCalled();
+    });
+
+    it('includes a landing marker in the shader anchor group so the first drop does not compile a program', () => {
+      const anchors = buildShaderAnchorGroup(new ParticleEffects3D());
+      let found = false;
+      anchors.traverse((o) => {
+        if (o.name === 'landingMarker') found = true;
+      });
+      expect(found).toBe(true);
+    });
+
+    it('falls from a positive height', () => {
+      expect(MINION_DROP_HEIGHT_M).toBeGreaterThan(2);
+    });
   });
 });

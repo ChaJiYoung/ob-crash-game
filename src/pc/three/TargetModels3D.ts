@@ -1285,3 +1285,39 @@ export function createCardTargetMesh3D(
 
   return root;
 }
+
+// ---------------------------------------------------------------------------
+// Boss minion drop: landing marker + fall height
+// ---------------------------------------------------------------------------
+
+/** Height (m) a summoned minion falls from; the fall accelerates (remaining^2). */
+export const MINION_DROP_HEIGHT_M = 8;
+
+/** Flat ring on the floor where a falling minion will land. */
+export function createLandingMarker3D(): THREE.Mesh {
+  const geo = getCachedGeometry('landing-marker-geo', () => {
+    const g = new THREE.RingGeometry(0.62, 0.9, 32);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  });
+  const base = getCachedMaterial(
+    'landing-marker-mat',
+    () => new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.8, depthWrite: false })
+  );
+  // A clone per marker keeps its own opacity but reuses the already compiled shader program
+  const mat = base.clone();
+  mat.userData.isShared = false;
+  const marker = new THREE.Mesh(geo, mat);
+  marker.name = 'landingMarker';
+  marker.renderOrder = 2;
+  marker.position.y = 0.06;
+  return marker;
+}
+
+/** remaining01: 1 right after the summon, 0 on landing. The ring shrinks onto the hit zone and brightens. */
+export function updateLandingMarker3D(marker: THREE.Mesh, remaining01: number, hitRadiusM: number): void {
+  const r = Math.min(1, Math.max(0, remaining01));
+  const s = Math.max(0.6, hitRadiusM) * (1 + 1.2 * r);
+  marker.scale.set(s, 1, s);
+  (marker.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.6 * (1 - r);
+}

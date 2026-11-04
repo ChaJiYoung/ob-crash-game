@@ -5,6 +5,7 @@ import {
   createGoldenCanMesh3D,
   createProjectileMesh3D,
   createCardTargetMesh3D,
+  createLandingMarker3D,
 } from './TargetModels3D';
 import { DraftTapGun3D } from './DraftTapGun3D';
 import { ParticleEffects3D } from './ParticleEffects3D';
@@ -28,6 +29,7 @@ export function buildShaderAnchorGroup(particles: ParticleEffects3D): THREE.Grou
   group.add(createGoldenCanMesh3D());
   group.add(createProjectileMesh3D());
   group.add(createCardTargetMesh3D('warmup', 'warmup', '#ffffff', '🃏'));
+  group.add(createLandingMarker3D());
 
   WARMUP_WEAPON_KINDS.forEach((kind) => {
     const gun = new DraftTapGun3D();
