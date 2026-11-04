@@ -254,6 +254,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   });
 
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
+  let bossTapHandles: THREE.Mesh[] | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -331,6 +332,8 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     inner.add(tower);
 
     // Dual Gold Beer Tap Spouts & Handles
+    const handles: THREE.Mesh[] = [];
+    bossTapHandles = handles;
     [-0.14, 0.14].forEach((tapX) => {
       const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.24, 12), goldMat);
       tapSpout.rotation.x = Math.PI / 2;
@@ -344,6 +347,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
       tapHandle.position.set(tapX, h * 0.41 + 0.53, 0.23);
       tapHandle.rotation.x = -0.22;
       inner.add(tapHandle);
+      handles.push(tapHandle);
     });
 
     // 4 Caster Wheels
@@ -522,6 +526,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     hitRadiusM: spec.hitRadiusM,
     inner,
     wings,
+    bossTapHandles: bossTapHandles || undefined,
     shadowMesh,
     lockOnMarker,
     frostRing,
@@ -685,6 +690,7 @@ export interface TargetAnimationOptions {
   isStunned?: boolean;
   isSlowed?: boolean;
   stuckPlungerCount?: number;
+  isBossSummoning?: boolean;
 }
 
 const FROST_TINT_COLOR = new THREE.Color(0x93c5fd);
@@ -760,6 +766,22 @@ export function updateTargetAnimation3D(
   if (isGround) {
     // Ground monsters contact bounce & limited rotation so label stays visible
     if (kind === 'boss') {
+      const isSummoning = Boolean(options?.isBossSummoning);
+      const bossTapHandles = root.userData.bossTapHandles as THREE.Mesh[] | undefined;
+      if (bossTapHandles && Array.isArray(bossTapHandles)) {
+        bossTapHandles.forEach((handle) => {
+          handle.rotation.x = isSummoning ? 0.65 : -0.22;
+        });
+      }
+
+      if (isSummoning) {
+        inner.position.x = Math.sin(elapsedSec * 38) * 0.08;
+        const base = (root.userData.baseScale as number) || 1.85;
+        inner.scale.set(base * 1.06, base * 1.06, base * 1.06);
+      } else {
+        inner.position.x = 0;
+      }
+
       const bounce = Math.abs(Math.sin(elapsedSec * 3.0)) * 0.04;
       inner.position.y = bounce;
       inner.rotation.y = Math.sin(elapsedSec * 1.5) * 0.12;
@@ -1019,13 +1041,6 @@ export function createCardTargetMesh3D(
   );
   frontPlane.position.z = 0.045;
   inner.add(frontPlane);
-
-  const borderRing = new THREE.Mesh(
-    new THREE.TorusGeometry(1.15, 0.035, 8, 32),
-    new THREE.MeshBasicMaterial({ color: new THREE.Color(colorHex) })
-  );
-  borderRing.position.z = 0.05;
-  inner.add(borderRing);
 
   root.userData = {
     isCard: true,

@@ -162,8 +162,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       if (result.grade !== 'MISS') {
         soundSynth.playHit(result.grade);
         setLastJudgment({ grade: result.grade, key: Date.now() });
-      } else if (!isFever) {
-        setLastJudgment({ grade: 'MISS', key: Date.now() });
       }
 
       if (result.interceptedProjectile) {
@@ -729,7 +727,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             combo={hudState.combo}
             comboMultiplier={hudState.comboMultiplier}
             lives={hudState.lives}
-            maxLives={STAGE_CONSTANTS.PLAYER_MAX_LIVES}
+            maxLives={engine.maxLives}
             wave={hudState.wave}
             totalWaves={STAGE_CONSTANTS.TOTAL_WAVES}
             ammo={hudState.ammo}

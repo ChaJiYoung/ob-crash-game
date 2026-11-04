@@ -19,16 +19,19 @@ export interface MonsterHudProjection {
 }
 
 /**
- * D03 Specification:
- * - 1HP air cans ('pilgood', 'caslight') and items/projectiles return false to reduce HUD clutter
+ * D03 & D06 Specification:
+ * - 1HP air cans ('pilgood', 'caslight') and items/projectiles return false by default to reduce HUD clutter
+ * - If a 1HP can took damage (currentHp < maxHp && currentHp > 0), return true immediately so player sees remaining health
  * - Multi-hit monsters with maxHp >= 2 ('obi: 2', 'hanmac: 3', 'bottle: 4', 'boss: 60') return true
  */
 export function shouldRenderMonsterHpBar(
   maxHp: number,
   isItem?: boolean,
-  isProjectile?: boolean
+  isProjectile?: boolean,
+  currentHp?: number
 ): boolean {
   if (isItem || isProjectile) return false;
+  if (currentHp !== undefined && currentHp < maxHp && currentHp > 0) return true;
   return maxHp >= 2;
 }
 
@@ -99,7 +102,7 @@ export function formatFeverStatusBadge(
 } {
   if (isFeverActive) {
     return {
-      label: '🔥 FEVER MODE ACTIVE (무한 연사 & 2배 데미지)',
+      label: '🔥 FEVER ACTIVE (무한 연사·2배 화력)',
       isLocked: false,
       accentColor: '#f59e0b',
     };
@@ -218,15 +221,14 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         userSelect: 'none',
       }}
     >
-      {/* 3D TRACKING MONSTER NEON DOT HP BARS */}
+      {/* 3D TRACKING MONSTER 100% CONTINUOUS HP GAUGE BARS */}
       {monsterProjections.map((proj) => {
-        if (!shouldRenderMonsterHpBar(proj.maxHp, proj.isItem, proj.isProjectile)) return null;
+        if (!shouldRenderMonsterHpBar(proj.maxHp, proj.isItem, proj.isProjectile, proj.hp)) return null;
         if (proj.leftPercent < -5 || proj.leftPercent > 105 || proj.topPercent < -5 || proj.topPercent > 105) return null;
 
-        const hpRatio = Math.max(0, Math.min(1, proj.hp / proj.maxHp));
+        const safeMaxHp = Math.max(0.001, proj.maxHp);
+        const hpRatio = Math.max(0, Math.min(1, proj.hp / safeMaxHp));
         const color = hpRatio > 0.5 ? '#10b981' : hpRatio > 0.25 ? '#f59e0b' : '#ef4444';
-        const segments = Math.min(10, Math.ceil(proj.maxHp));
-        const currentSegments = Math.round(hpRatio * segments);
 
         return (
           <div
@@ -281,33 +283,29 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               </div>
             )}
 
-            {/* Neon Segments Dot Bar */}
+            {/* 100% Continuous HP Gauge Bar */}
             <div
               style={{
-                display: 'flex',
-                gap: '2.5px',
-                background: 'rgba(15, 23, 42, 0.85)',
-                padding: '2px 4px',
-                borderRadius: '5px',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
+                width: '44px',
+                height: '6px',
+                background: 'rgba(15, 23, 42, 0.88)',
+                borderRadius: '3px',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                overflow: 'hidden',
+                padding: '1px',
+                boxSizing: 'content-box',
               }}
             >
-              {Array.from({ length: segments }).map((_, segIdx) => {
-                const filled = segIdx < currentSegments;
-                return (
-                  <div
-                    key={segIdx}
-                    style={{
-                      width: segments <= 4 ? '10px' : '7px',
-                      height: '5px',
-                      borderRadius: '2px',
-                      background: filled ? color : 'rgba(255, 255, 255, 0.15)',
-                      boxShadow: filled ? `0 0 6px ${color}` : 'none',
-                      transition: 'background 0.1s',
-                    }}
-                  />
-                );
-              })}
+              <div
+                style={{
+                  width: `${Math.round(hpRatio * 100)}%`,
+                  height: '100%',
+                  borderRadius: '2px',
+                  background: color,
+                  boxShadow: `0 0 6px ${color}`,
+                  transition: 'width 0.12s ease-out',
+                }}
+              />
             </div>
           </div>
         );
@@ -350,19 +348,19 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             <span style={{ fontSize: '32px', fontWeight: 900, letterSpacing: '1px' }}>
               {score.toString().padStart(6, '0')}
             </span>
-            {combo > 0 && (
+            {waveProgress && waveProgress.luckyDropMultiplier > 1 && (
               <span
                 style={{
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: 800,
-                  color: '#fbbf24',
-                  background: 'rgba(245, 158, 11, 0.2)',
+                  color: '#c084fc',
+                  background: 'rgba(168, 85, 247, 0.2)',
                   padding: '3px 8px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(251, 191, 36, 0.4)',
+                  border: '1px solid rgba(168, 85, 247, 0.4)',
                 }}
               >
-                {combo} COMBO ({comboMultiplier.toFixed(1)}x)
+                🍀 아이템 드롭 {waveProgress.luckyDropMultiplier}배
               </span>
             )}
           </div>
@@ -438,7 +436,8 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 }}
               >
                 <span>🎯 웨이브 토벌 {waveProgress.killedInWave}/{waveProgress.totalSpawns}</span>
-                <span>{waveProgress.progressPercent}% (남은 적 {waveProgress.remainingInWave})</span>
+                <span>🃏 카드: {waveProgress.cardKillCount}/{waveProgress.cardKillTarget} KILL</span>
+                <span>{waveProgress.progressPercent}%</span>
               </div>
               <div
                 style={{
@@ -487,7 +486,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               >
                 <span>🧊 BOSS: 업소용 생맥주 냉각기</span>
                 <span>
-                  HP {bossEntity.hp} / {bossEntity.maxHp}
+                  HP {Math.ceil(bossEntity.hp)} / {bossEntity.maxHp}
                 </span>
               </div>
               <div

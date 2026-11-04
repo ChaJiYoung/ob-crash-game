@@ -432,24 +432,24 @@ export class ParticleEffects3D {
         },
       });
     } else {
-      // 3. gatling: 거품 해일 160도 오버히트: 75+ Huge Creamy Foam Wave Spheres
+      // 3. gatling: 거품 해일 160도 오버히트: 반투명 크리미 폼 웨이브
       const waveGroup = new THREE.Group();
       const halfArc = ((spec.skillArcDeg / 2) * Math.PI) / 180;
-      const foamCount = 75;
+      const foamCount = 50;
 
       for (let k = 0; k < foamCount; k++) {
-        const radius = 0.28 + Math.random() * 0.28;
+        const radius = 0.15 + Math.random() * 0.14;
         const fMat = new THREE.MeshBasicMaterial({
           color: k % 3 === 0 ? 0xffffff : k % 3 === 1 ? 0xe0f2fe : 0x7dd3fc,
           transparent: true,
-          opacity: 0.88,
+          opacity: 0.42,
         });
         const fMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 10), fMat);
         const theta = (Math.random() * 2 - 1) * halfArc;
         fMesh.userData.theta = theta;
         fMesh.userData.speed = 10.0 + Math.random() * 5.0;
         fMesh.userData.dist = 0.6 + Math.random() * 0.6;
-        fMesh.userData.initY = 1.15 + (Math.random() - 0.5) * 0.55;
+        fMesh.userData.initY = 0.75 + (Math.random() - 0.5) * 0.45;
         waveGroup.add(fMesh);
       }
       this.group.add(waveGroup);

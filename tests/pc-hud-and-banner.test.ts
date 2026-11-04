@@ -86,19 +86,23 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
   it('should return correct specs for all judgment grades', () => {
     const perfect = getJudgmentBannerSpec('PERFECT');
     expect(perfect.title).toBe('PERFECT!');
+    expect(perfect.subtitle).toContain('1.5x 데미지');
     expect(perfect.colorHex).toBe('#fbbf24');
     expect(perfect.scale).toBeGreaterThan(1.2);
 
     const great = getJudgmentBannerSpec('GREAT');
     expect(great.title).toBe('GREAT!');
+    expect(great.subtitle).toContain('1.0x 데미지');
     expect(great.colorHex).toBe('#38bdf8');
 
     const good = getJudgmentBannerSpec('GOOD');
     expect(good.title).toBe('GOOD!');
+    expect(good.subtitle).toContain('0.8x 데미지');
     expect(good.colorHex).toBe('#4ade80');
 
     const miss = getJudgmentBannerSpec('MISS');
     expect(miss.title).toBe('MISS...');
+    expect(miss.subtitle).toBe('빗나감');
     expect(miss.colorHex).toBe('#f87171');
   });
 
@@ -140,17 +144,22 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     expect(mouseRightAim.aimX).toBeCloseTo(1.0, 2);
   });
 
-  it('should filter monster HP bar visibility with shouldRenderMonsterHpBar according to D03 spec', () => {
-    // 1HP Air cans (pilgood, caslight) should NOT show HP bar (reduces clutter)
+  it('should filter monster HP bar visibility with shouldRenderMonsterHpBar according to D03 & D06 spec', () => {
+    // 1HP Air cans (pilgood, caslight) should NOT show HP bar when full health (reduces clutter)
     expect(shouldRenderMonsterHpBar(1)).toBe(false);
+    expect(shouldRenderMonsterHpBar(1, false, false, 1.0)).toBe(false);
 
-    // Items and Projectiles should NOT show HP bar
+    // Damaged 1HP air cans (hp < maxHp) MUST show HP bar so player sees remaining health
+    expect(shouldRenderMonsterHpBar(1, false, false, 0.2)).toBe(true);
+
+    // Items and Projectiles should NOT show HP bar even if damaged
     expect(shouldRenderMonsterHpBar(1, true, false)).toBe(false);
-    expect(shouldRenderMonsterHpBar(4, true, false)).toBe(false);
+    expect(shouldRenderMonsterHpBar(4, true, false, 2)).toBe(false);
     expect(shouldRenderMonsterHpBar(1, false, true)).toBe(false);
 
     // Multi-hit monsters (obi: 2, hanmac: 3, bottle: 4, boss: 60) MUST show HP bar
     expect(shouldRenderMonsterHpBar(2)).toBe(true);
+    expect(shouldRenderMonsterHpBar(2, false, false, 2)).toBe(true);
     expect(shouldRenderMonsterHpBar(3)).toBe(true);
     expect(shouldRenderMonsterHpBar(4)).toBe(true);
     expect(shouldRenderMonsterHpBar(60)).toBe(true);

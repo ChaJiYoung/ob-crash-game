@@ -11,28 +11,28 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
     case 'PERFECT':
       return {
         title: 'PERFECT!',
-        subtitle: '+150 PTS (피버 +30%)',
+        subtitle: '1.5x 데미지 (+150 PTS)',
         colorHex: '#fbbf24',
         scale: 1.3,
       };
     case 'GREAT':
       return {
         title: 'GREAT!',
-        subtitle: '+100 PTS (피버 +20%)',
+        subtitle: '1.0x 데미지 (+100 PTS)',
         colorHex: '#38bdf8',
         scale: 1.15,
       };
     case 'GOOD':
       return {
         title: 'GOOD!',
-        subtitle: '+50 PTS (피버 +10%)',
+        subtitle: '0.8x 데미지 (+50 PTS)',
         colorHex: '#4ade80',
         scale: 1.0,
       };
     case 'MISS':
       return {
         title: 'MISS...',
-        subtitle: '콤보 초기화',
+        subtitle: '빗나감',
         colorHex: '#f87171',
         scale: 0.9,
       };

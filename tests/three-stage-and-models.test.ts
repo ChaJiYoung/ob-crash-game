@@ -54,6 +54,18 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       if (kind === 'boss') {
         // Boss should have more than 8 parts (cabinet, grille, draft tower, dual taps, wheels)
         expect(inner.children.length).toBeGreaterThanOrEqual(8);
+        expect(mesh.userData.bossTapHandles).toBeDefined();
+        const tapHandles = mesh.userData.bossTapHandles as THREE.Mesh[];
+        expect(tapHandles.length).toBe(2);
+
+        // When summoning minions, tap levers pull forward (+0.65 rad)
+        updateTargetAnimation3D(mesh, 'boss', 1.0, 1.0, { isBossSummoning: true });
+        expect(tapHandles[0].rotation.x).toBeCloseTo(0.65, 2);
+        expect(tapHandles[1].rotation.x).toBeCloseTo(0.65, 2);
+
+        // At rest, tap levers restore to -0.22 rad
+        updateTargetAnimation3D(mesh, 'boss', 2.0, 1.0, { isBossSummoning: false });
+        expect(tapHandles[0].rotation.x).toBeCloseTo(-0.22, 2);
       }
 
       // Update animation and flash
@@ -303,6 +315,12 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     const card = createCardTargetMesh3D('LEVEL UP', '무기 레벨업', '#fbbf24');
     expect(card).toBeInstanceOf(THREE.Group);
     expect(card.userData.isCard).toBe(true);
+    // Torus ring should be removed to not obstruct card text
+    const innerCard = card.userData.inner as THREE.Group;
+    const hasTorusRing = innerCard.children.some(
+      (c) => (c as THREE.Mesh).geometry instanceof THREE.TorusGeometry
+    );
+    expect(hasTorusRing).toBe(false);
 
     // 4. Stunned Plunger Status on Target Models
     const monster = createTargetMesh3D('bottle');

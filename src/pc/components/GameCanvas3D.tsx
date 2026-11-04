@@ -439,7 +439,7 @@ export const GameCanvas3D = React.memo(
                 ico = '⚡';
               } else if (rk === 'bar_repair') {
                 title = '바리케이드 수리';
-                sub = '펍 바 방어선 생명 +1 복구\n카운터 체력 즉시 회복';
+                sub = '방어선 체력 100% 전체 회복!\n최대 체력 상한 +1 영구 확장';
                 col = '#10b981';
                 ico = '🍺';
               } else if (rk === 'fever_boost') {
@@ -447,6 +447,11 @@ export const GameCanvas3D = React.memo(
                 sub = '피버 게이지 +50% 즉시 충전\n초고밀도 버스트 가속';
                 col = '#f43f5e';
                 ico = '🔥';
+              } else if (rk === 'lucky_drop') {
+                title = '행운의 보급품';
+                sub = `아이템 드롭 빈도 ${engine.getNextLuckyDropMultiplier()}배 증가!\n처치 시 보급품 출현 대폭 상승`;
+                col = '#a855f7';
+                ico = '🍀';
               }
               mesh = createCardTargetMesh3D(title, sub, col, ico);
             } else if (target.isItem && target.itemKind) {
@@ -461,7 +466,7 @@ export const GameCanvas3D = React.memo(
           let baseY = (target as any).customBaseY;
           if (baseY === undefined) {
             if (target.weaponSelectKind || target.rewardCardKind) {
-              baseY = 1.15; // 공중 눈높이 부유
+              baseY = 1.48; // 1인칭 총기에 가려지지 않도록 1.48m로 상향
             } else {
               baseY = getTargetBaseY(target.kind, target.isItem);
             }
@@ -492,6 +497,7 @@ export const GameCanvas3D = React.memo(
               isStunned,
               isSlowed,
               stuckPlungerCount: target.stuckPlungerCount ?? 0,
+              isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
             });
           }
         });
@@ -525,7 +531,7 @@ export const GameCanvas3D = React.memo(
           const projections: MonsterHudProjection[] = [];
 
           engine.activeTargets.forEach((target) => {
-            if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile)) return;
+            if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile, target.hp)) return;
             const mesh = targetMeshMap.get(target.id);
             if (!mesh) return;
 
