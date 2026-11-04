@@ -1,6 +1,6 @@
 # Task: T03 Card Select Input Gate and Freeze
 
-## Status: pending
+## Status: done
 
 ## Goal
 카드 선택 중에는 연사와 피버 자동 발사가 카드를 고르지 못하게 하고, 게임 시간 전체를 멈춘다.
@@ -111,10 +111,10 @@
 - `tests/engine-judgment-and-spawn.test.ts`의 `earlyShot.fired`를 `false`로 바꾼다.
 
 ## Acceptance Criteria
-- [ ] 마우스나 폰을 누른 채 카드가 떠도 저절로 선택되지 않는다.
-- [ ] 피버 중 카드가 떠도 자동 발사로 선택되지 않고, 고른 뒤 남은 피버가 이어진다.
-- [ ] 뗐다가 다시 누르면 선택된다.
-- [ ] 카드를 고르는 동안 쿨다운과 버프가 줄지 않는다.
+- [x] 마우스나 폰을 누른 채 카드가 떠도 저절로 선택되지 않는다.
+- [x] 피버 중 카드가 떠도 자동 발사로 선택되지 않고, 고른 뒤 남은 피버가 이어진다.
+- [x] 뗐다가 다시 누르면 선택된다.
+- [x] 카드를 고르는 동안 쿨다운과 버프가 줄지 않는다.
 
 ## Validation
 - `npx vitest run tests/card-select-gate.test.ts tests/gameplay-polish.test.ts tests/engine-judgment-and-spawn.test.ts` — 통과
@@ -135,6 +135,6 @@ Task: T03-card-select-input-gate-and-freeze
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: fix(engine): gate card selection to fresh presses and freeze all timers

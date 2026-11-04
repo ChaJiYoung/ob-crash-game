@@ -59,6 +59,9 @@ export interface TargetAimProjection {
   apparentHitRadius: number;
 }
 
+/** 발사 입력 종류: 새로 누름 / 누른 채 연사 / 피버 자동 발사. 카드 선택은 'press'만 허용한다. */
+export type ShotSource = 'press' | 'hold' | 'fever';
+
 export interface EngineShootResult {
   fired: boolean;
   grade: JudgmentGrade;
@@ -210,6 +213,10 @@ export class BeerCrusherEngine {
   // Roguelike card & gimmick flags
   public isWeaponSelectPending = false;
   public isRewardCardPending = false;
+
+  public get isCardSelectPending(): boolean {
+    return this.isWeaponSelectPending || this.isRewardCardPending;
+  }
   public rewardCardsSpawnTimeMs = 0;
   private goldenCanSpawnedInWave = false;
   private lastProjectileSpawnTimeMs = 0;
@@ -695,6 +702,7 @@ export class BeerCrusherEngine {
   }
 
   public activateFever(nowMs: number): boolean {
+    if (this.isCardSelectPending) return false;
     const activated = this.scoreManager.activateFever(nowMs);
     if (activated) {
       this.weaponSystem.refillAmmoOnFever();
@@ -836,6 +844,18 @@ export class BeerCrusherEngine {
     return spawned;
   }
 
+  private freezeTimers(deltaMs: number): void {
+    if (deltaMs <= 0) return;
+    for (const [kind, until] of this.activeBuffUntilMs.entries()) {
+      this.activeBuffUntilMs.set(kind, until + deltaMs);
+    }
+    this.scoreManager.shiftFeverTimer(deltaMs);
+    this.weaponSystem.shiftReloadTimer(deltaMs);
+    if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
+    if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
+    if (this.lastBossSummonTimeMs > 0) this.lastBossSummonTimeMs += deltaMs;
+  }
+
   public update(nowMs: number, dtSec: number): {
     breaches: ActiveTargetEntity[];
     phaseChanged: boolean;
@@ -846,6 +866,12 @@ export class BeerCrusherEngine {
     }
 
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
+    }
+
+    // While cards are pending the whole game clock stops: fever, buffs, skill cooldown, reload, spawns.
+    if (!this.isTutorialMode && !this.isSandboxMode && this.isCardSelectPending) {
+      this.freezeTimers(dtSec * 1000);
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
@@ -864,11 +890,6 @@ export class BeerCrusherEngine {
       if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
         this.advanceTutorialStep('COMPLETED');
       }
-    }
-
-    // Freeze active monsters and projectiles while card/weapon selection is pending
-    if (!this.isTutorialMode && !this.isSandboxMode && (this.isWeaponSelectPending || this.isRewardCardPending)) {
-      return { breaches: [], phaseChanged: false, reloadedJustNow };
     }
 
     const breaches: ActiveTargetEntity[] = [];
@@ -1210,13 +1231,131 @@ export class BeerCrusherEngine {
     }
   }
 
-  public shootAt(aimX: number, aimY: number, nowMs: number): EngineShootResult {
+  private getWeaponHitToleranceMult(weaponKind: WeaponKind): number {
+    return weaponKind === 'shotgun' ? 1.55 : weaponKind === 'gatling' ? 1.05 : 0.95; // revolver
+  }
+
+  /**
+   * 카드 선택 사격. 새로 누른 한 발만 카드를 고를 수 있고, 카드 밖 사격이나 입력 잠금 중 사격은
+   * 탄약을 쓰지 않는다(fired: false).
+   */
+  private shootCardSelect(aimX: number, aimY: number, nowMs: number): EngineShootResult {
+    if (this.rewardCardsSpawnTimeMs > 0 && nowMs - this.rewardCardsSpawnTimeMs < 800) {
+      return { fired: false, grade: 'MISS' };
+    }
+
+    const isFever = this.scoreManager.getState().isFeverActive;
+    const isPowerShot = this.isBuffActive('power_shot', nowMs);
+    const isWideScope = this.isBuffActive('wide_scope', nowMs);
+    const wideScopeMult = isWideScope ? 1.6 : 1.0;
+    const weaponKind = this.weaponSystem.getState().weaponKind;
+    const weaponHitToleranceMult = this.getWeaponHitToleranceMult(weaponKind);
+    const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
+
+    let bestHit: { target: ActiveTargetEntity; result: HitJudgmentResult } | undefined;
+    let minError = Infinity;
+
+    for (const target of this.activeTargets) {
+      if (!target.weaponSelectKind && !target.rewardCardKind) continue;
+      const proj = this.computeTargetAimCoords(target, wideScopeMult);
+      const dx = aimX - proj.targetNormX;
+      const dy = target.customNormY !== undefined
+        ? (aimY - proj.targetNormY)
+        : (aimY - proj.targetNormY) * verticalScale;
+      const dist = Math.hypot(dx, dy);
+      const effectiveHitRadius = proj.apparentHitRadius * weaponHitToleranceMult;
+      if (dist > effectiveHitRadius) continue;
+
+      const judgment = evaluateHitJudgment(dist, effectiveHitRadius, {
+        isFeverActive: isFever,
+        isPowerShotActive: isPowerShot,
+        isWideScopeActive: isWideScope,
+      });
+      if (judgment.grade !== 'MISS' && judgment.errorRatio < minError) {
+        minError = judgment.errorRatio;
+        bestHit = { target, result: judgment };
+      }
+    }
+
+    if (!bestHit) {
+      return { fired: false, grade: 'MISS' };
+    }
+
+    const { target, result } = bestHit;
+    let selectedWeapon: WeaponKind | undefined;
+    let selectedCard: RewardCardKind | undefined;
+
+    // 1. Shoot-to-Select Weapon Target
+    if (target.weaponSelectKind) {
+      selectedWeapon = target.weaponSelectKind;
+      this.weaponSystem.selectWeapon(selectedWeapon, 1);
+      this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind);
+      this.isWeaponSelectPending = false;
+      return {
+        fired: true,
+        grade: result.grade,
+        target,
+        killed: true,
+        selectedWeapon,
+        weaponKind: this.weaponSystem.getState().weaponKind,
+        weaponLevel: this.weaponSystem.getState().weaponLevel,
+      };
+    }
+
+    // 2. Shoot-to-Select Reward Card Target
+    if (target.rewardCardKind) {
+      selectedCard = target.rewardCardKind;
+
+      this.applyRewardCard(selectedCard, nowMs);
+      this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
+      this.isRewardCardPending = false;
+
+      const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
+      const monsterTargets = this.activeTargets.filter(
+        (t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind
+      );
+      const remainingMonsters = monsterTargets.length;
+      const remainingSpawns = Math.max(0, waveDef.totalSpawns - this.spawnedInWave);
+
+      if (this.pendingWaveAdvance || (remainingSpawns === 0 && remainingMonsters === 0)) {
+        if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
+          this.gamePhase = 'VICTORY';
+        } else {
+          this.startWave(this.currentWave + 1);
+        }
+      }
+
+      return {
+        fired: true,
+        grade: result.grade,
+        target,
+        killed: true,
+        selectedCard,
+        weaponKind: this.weaponSystem.getState().weaponKind,
+        weaponLevel: this.weaponSystem.getState().weaponLevel,
+      };
+    }
+    return { fired: false, grade: 'MISS' };
+  }
+
+  public shootAt(
+    aimX: number,
+    aimY: number,
+    nowMs: number,
+    source: ShotSource = 'press'
+  ): EngineShootResult {
     if (this.isPaused) {
       return { fired: false, grade: 'MISS' };
     }
 
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
       return { fired: false, grade: 'MISS' };
+    }
+
+    // Card selection: only a fresh press may pick a card (hold / fever auto-fire never selects one).
+    if (this.isCardSelectPending) {
+      if (source !== 'press') return { fired: false, grade: 'MISS' };
+      return this.shootCardSelect(aimX, aimY, nowMs);
     }
 
     const isFever = this.scoreManager.getState().isFeverActive;
@@ -1235,10 +1374,7 @@ export class BeerCrusherEngine {
     const levelSpec = this.weaponSystem.getCurrentLevelSpec();
 
     // Weapon-specific hit tolerance multiplier
-    const weaponHitToleranceMult =
-      weaponKind === 'shotgun' ? 1.55 :
-      weaponKind === 'gatling' ? 1.05 :
-      0.95; // revolver
+    const weaponHitToleranceMult = this.getWeaponHitToleranceMult(weaponKind);
 
     const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
 
@@ -1278,74 +1414,6 @@ export class BeerCrusherEngine {
       let selectedCard: RewardCardKind | undefined;
       let interceptedProjectile = false;
       let goldenCanKilled = false;
-
-      // 1. Shoot-to-Select Weapon Target
-      if (target.weaponSelectKind) {
-        if (this.rewardCardsSpawnTimeMs > 0 && nowMs - this.rewardCardsSpawnTimeMs < 800) {
-          return { fired: true, grade: 'MISS' };
-        }
-        selectedWeapon = target.weaponSelectKind;
-        this.weaponSystem.selectWeapon(selectedWeapon, 1);
-        this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind);
-        this.isWeaponSelectPending = false;
-        return {
-          fired: true,
-          grade: result.grade,
-          target,
-          killed: true,
-          selectedWeapon,
-          weaponKind: this.weaponSystem.getState().weaponKind,
-          weaponLevel: this.weaponSystem.getState().weaponLevel,
-        };
-      }
-
-      // 2. Shoot-to-Select Reward Card Target
-      if (target.rewardCardKind) {
-        if (this.rewardCardsSpawnTimeMs > 0 && nowMs - this.rewardCardsSpawnTimeMs < 800) {
-          return { fired: true, grade: 'MISS' };
-        }
-        selectedCard = target.rewardCardKind;
-
-        // Compensate fever & buff timers for mid-wave freeze duration
-        if (this.rewardCardsSpawnTimeMs > 0 && !this.pendingWaveAdvance) {
-          const freezeDurationMs = Math.max(0, nowMs - this.rewardCardsSpawnTimeMs);
-          for (const [buffKind, until] of this.activeBuffUntilMs.entries()) {
-            this.activeBuffUntilMs.set(buffKind, until + freezeDurationMs);
-          }
-          this.scoreManager.shiftFeverTimer(freezeDurationMs);
-          this.weaponSystem.shiftReloadTimer(freezeDurationMs);
-          this.lastSpawnTimeMs += freezeDurationMs;
-        }
-
-        this.applyRewardCard(selectedCard, nowMs);
-        this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
-        this.isRewardCardPending = false;
-
-        const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[5];
-        const monsterTargets = this.activeTargets.filter(
-          (t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind
-        );
-        const remainingMonsters = monsterTargets.length;
-        const remainingSpawns = Math.max(0, waveDef.totalSpawns - this.spawnedInWave);
-
-        if (this.pendingWaveAdvance || (remainingSpawns === 0 && remainingMonsters === 0)) {
-          if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
-            this.gamePhase = 'VICTORY';
-          } else {
-            this.startWave(this.currentWave + 1);
-          }
-        }
-
-        return {
-          fired: true,
-          grade: result.grade,
-          target,
-          killed: true,
-          selectedCard,
-          weaponKind: this.weaponSystem.getState().weaponKind,
-          weaponLevel: this.weaponSystem.getState().weaponLevel,
-        };
-      }
 
       // 3. Projectile Interception
       if (target.isProjectile) {
@@ -1522,7 +1590,7 @@ export class BeerCrusherEngine {
     const weaponLevel = weaponState.weaponLevel;
     const levelSpec = this.weaponSystem.getCurrentLevelSpec();
 
-    if (!this.weaponSystem.consumeSkill(nowMs)) {
+    if (this.isCardSelectPending || !this.weaponSystem.consumeSkill(nowMs)) {
       return {
         activated: false,
         weaponKind,

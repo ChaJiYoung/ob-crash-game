@@ -28,7 +28,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
 
       // Shot at 1400ms (400ms after spawn) -> Ignored by grace period
       const earlyShot = engine.shootAt(proj.targetNormX, proj.targetNormY, 1400);
-      expect(earlyShot.fired).toBe(true);
+      expect(earlyShot.fired).toBe(false);
       expect(earlyShot.selectedCard).toBeUndefined();
       expect(engine.isRewardCardPending).toBe(true);
       expect(engine.activeTargets.length).toBe(3);

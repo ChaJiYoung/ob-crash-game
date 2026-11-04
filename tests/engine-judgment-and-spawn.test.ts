@@ -665,7 +665,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const projCard = engine.computeTargetAimCoords(lvlUpCard);
     // Within 800ms grace period (2100 - 2000 = 100ms): shot should be ignored to prevent spam misclicks
     const earlyShot = engine.shootAt(projCard.targetNormX, projCard.targetNormY, 2100);
-    expect(earlyShot.fired).toBe(true);
+    expect(earlyShot.fired).toBe(false);
     expect(earlyShot.selectedCard).toBeUndefined();
     expect(engine.isRewardCardPending).toBe(true);
 

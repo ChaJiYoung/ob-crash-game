@@ -400,7 +400,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   soundSynth.playHit('MISS');
                 }
               } else {
-                const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now());
+                const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now(), 'press');
                 handleShootEvent(res);
               }
             }
@@ -410,7 +410,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               if (!rapidFireTimerRef.current) {
                 rapidFireTimerRef.current = setInterval(() => {
                   const curAim = latestAimRef.current;
-                  const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now());
+                  const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now(), 'hold');
                   if (res.fired) {
                     handleShootEvent(res);
                   }
@@ -494,11 +494,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       lastGoldenCanActiveRef.current = hasGoldenCan;
 
       // 100% Auto-Rapid-Fire loop during active Fever mode
-      if (feverState.isFeverActive && !engine.isPaused && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
+      if (feverState.isFeverActive && !engine.isPaused && !engine.isCardSelectPending && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
         if (!feverAutoFireTimerRef.current) {
           feverAutoFireTimerRef.current = setInterval(() => {
             const curAim = latestAimRef.current;
-            const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now());
+            const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now(), 'fever');
             handleShootEvent(res);
           }, WEAPON_CONSTANTS.FEVER_AUTO_FIRE_INTERVAL_MS);
         }
@@ -956,7 +956,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               const res = engine.shootAt(
                 latestAimRef.current.aimX,
                 latestAimRef.current.aimY,
-                performance.now()
+                performance.now(),
+                'press'
               );
               handleShootEvent(res);
             }}

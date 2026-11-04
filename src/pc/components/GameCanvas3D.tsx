@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, forwardRef, useImperativeHandle 
 import * as THREE from 'three';
 import { computeRenderPixelRatio } from '../three/renderBudget';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
-import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
+import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult, ShotSource } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
   createTargetMesh3D,
@@ -365,10 +365,10 @@ export const GameCanvas3D = React.memo(
         }
       };
 
-      const executeShot = () => {
+      const executeShot = (source: ShotSource) => {
         const now = performance.now();
         const curAim = targetAimRef.current;
-        const result = engine.shootAt(curAim.aimX, curAim.aimY, now);
+        const result = engine.shootAt(curAim.aimX, curAim.aimY, now, source);
 
         if (onShootRef.current) {
           onShootRef.current(result);
@@ -386,10 +386,10 @@ export const GameCanvas3D = React.memo(
 
       const handleMouseDown = (e: MouseEvent) => {
         if (e.button === 0) {
-          executeShot();
+          executeShot('press');
           stopMouseHold();
           mouseHoldInterval = setInterval(() => {
-            executeShot();
+            executeShot('hold');
           }, 20);
         }
       };
