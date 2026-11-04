@@ -457,6 +457,12 @@ export const GameCanvas3D = React.memo(
         // Add & update active target meshes (monsters, items, golden cans, projectiles, cards)
         engine.activeTargets.forEach((target) => {
           let mesh = targetMeshMap.get(target.id);
+          const needsAdd = !mesh || mesh.parent !== scene;
+
+          if (mesh && mesh.parent && mesh.parent !== scene) {
+            mesh.parent.remove(mesh);
+          }
+
           if (!mesh) {
             if (target.isGoldenCan) {
               mesh = createGoldenCanMesh3D();
@@ -513,8 +519,11 @@ export const GameCanvas3D = React.memo(
             } else {
               mesh = createTargetMesh3D(target.kind);
             }
-            scene.add(mesh);
             targetMeshMap.set(target.id, mesh);
+          }
+
+          if (needsAdd) {
+            scene.add(mesh);
           }
 
           let baseY = (target as any).customBaseY;
@@ -646,7 +655,10 @@ export const GameCanvas3D = React.memo(
       animId = requestAnimationFrame(animate);
 
       return () => {
-        animId = 0;
+        if (animId) {
+          cancelAnimationFrame(animId);
+          animId = 0;
+        }
         stopMouseHold();
         window.removeEventListener('resize', handleResize);
         container.removeEventListener('mousemove', handleMouseMove);

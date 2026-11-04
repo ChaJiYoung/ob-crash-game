@@ -1081,6 +1081,21 @@ export function createCardTargetMesh3D(
     canvas.height = 680;
     const ctx = canvas.getContext('2d');
     if (ctx) {
+      const safeRoundRect = (
+        context: CanvasRenderingContext2D,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        r: number
+      ) => {
+        if (typeof context.roundRect === 'function') {
+          context.roundRect(x, y, w, h, r);
+        } else {
+          context.rect(x, y, w, h);
+        }
+      };
+
       // Card background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, 680);
       bgGrad.addColorStop(0, '#0f172a');
@@ -1088,7 +1103,7 @@ export function createCardTargetMesh3D(
       bgGrad.addColorStop(1, '#090d16');
       ctx.fillStyle = bgGrad;
       ctx.beginPath();
-      ctx.roundRect(16, 16, 480, 648, 28);
+      safeRoundRect(ctx, 16, 16, 480, 648, 28);
       ctx.fill();
 
       // Neon Border
@@ -1131,7 +1146,7 @@ export function createCardTargetMesh3D(
       btnGrad.addColorStop(1, '#0284c7');
       ctx.fillStyle = btnGrad;
       ctx.beginPath();
-      ctx.roundRect(48, 500, 416, 96, 24);
+      safeRoundRect(ctx, 48, 500, 416, 96, 24);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';

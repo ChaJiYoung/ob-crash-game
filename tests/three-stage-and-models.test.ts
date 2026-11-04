@@ -540,4 +540,33 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       });
     });
   });
+
+  it('should re-parent cached target meshes to active scene when scene instance changes (D02, T02)', () => {
+    const scene1 = new THREE.Scene();
+    const scene2 = new THREE.Scene();
+    const targetMeshMap = new Map<string, THREE.Group>();
+
+    const targetId = 'weapon_select_shotgun';
+    const cardMesh = createCardTargetMesh3D('맥주관 뚫어뻥', '산탄', '#f59e0b', '🪠');
+
+    // Simulate Mount 1: mesh added to scene1
+    scene1.add(cardMesh);
+    targetMeshMap.set(targetId, cardMesh);
+    expect(cardMesh.parent).toBe(scene1);
+
+    // Simulate Mount 2 (StrictMode or re-mount): sync loop in scene2
+    const mesh = targetMeshMap.get(targetId);
+    const needsAdd = !mesh || mesh.parent !== scene2;
+    if (mesh && mesh.parent && mesh.parent !== scene2) {
+      mesh.parent.remove(mesh);
+    }
+    if (needsAdd && mesh) {
+      scene2.add(mesh);
+    }
+
+    // Verify mesh is now properly detached from scene1 and attached to scene2
+    expect(cardMesh.parent).toBe(scene2);
+    expect(scene1.children.includes(cardMesh)).toBe(false);
+    expect(scene2.children.includes(cardMesh)).toBe(true);
+  });
 });

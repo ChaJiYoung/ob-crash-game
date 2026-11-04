@@ -1,6 +1,6 @@
 # Task: T02 Fix rAF Cancel & Card Scene Sync
 
-## Status: pending
+## Status: done
 
 ## Goal
 `GameCanvas3D` 컴포넌트 클린업 시 `cancelAnimationFrame`을 호출하여 React StrictMode 및 컴포넌트 재마운트 시 백그라운드에 남는 좀비 애니메이션 루프를 원천 제거하고, 활성 씬과 타겟 메쉬 간의 부모-자식 관계(`mesh.parent === scene`)를 보장하여 3D 시작 카드 3장 및 웨이브 보상 카드가 화면에 항상 100% 정상 노출되도록 복원한다.
@@ -118,6 +118,6 @@ Task: T02-fix-raf-cancel-and-card-scene-sync
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
