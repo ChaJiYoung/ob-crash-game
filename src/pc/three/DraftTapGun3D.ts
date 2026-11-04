@@ -4,69 +4,99 @@ import { WeaponKind, WeaponLevel } from '../../shared/types';
 /**
  * Procedural Realistic 3D Plunger Mesh
  * 3-stage rubber bell dome + bottom suction rim torus + wooden stick
+ * Cached geometries and materials with isShared protection
  */
+let cachedPlungerGeos: {
+  handleGeo: THREE.CylinderGeometry;
+  handleCapGeo: THREE.SphereGeometry;
+  neckGeo: THREE.CylinderGeometry;
+  bellGeo: THREE.CylinderGeometry;
+  rimGeo: THREE.TorusGeometry;
+} | null = null;
+
+let cachedPlungerMats: {
+  woodMat: THREE.MeshStandardMaterial;
+  rubberRedMat: THREE.MeshStandardMaterial;
+  rubberDarkRimMat: THREE.MeshStandardMaterial;
+} | null = null;
+
+export function getSharedPlungerResources() {
+  if (!cachedPlungerGeos) {
+    const handleGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.55, 12);
+    handleGeo.rotateX(Math.PI / 2);
+    handleGeo.userData.isShared = true;
+
+    const handleCapGeo = new THREE.SphereGeometry(0.02 * 1.15, 10, 8);
+    handleCapGeo.userData.isShared = true;
+
+    const neckGeo = new THREE.CylinderGeometry(0.035, 0.045, 0.08, 16);
+    neckGeo.rotateX(Math.PI / 2);
+    neckGeo.userData.isShared = true;
+
+    const bellGeo = new THREE.CylinderGeometry(0.045, 0.14, 0.14, 18, 1, true);
+    bellGeo.rotateX(Math.PI / 2);
+    bellGeo.userData.isShared = true;
+
+    const rimGeo = new THREE.TorusGeometry(0.14, 0.022, 10, 24);
+    rimGeo.userData.isShared = true;
+
+    cachedPlungerGeos = { handleGeo, handleCapGeo, neckGeo, bellGeo, rimGeo };
+  }
+  if (!cachedPlungerMats) {
+    const woodMat = new THREE.MeshStandardMaterial({
+      color: 0xc89666,
+      roughness: 0.7,
+      metalness: 0.05,
+    });
+    woodMat.userData.isShared = true;
+
+    const rubberRedMat = new THREE.MeshStandardMaterial({
+      color: 0xdc2626,
+      roughness: 0.55,
+      metalness: 0.1,
+    });
+    rubberRedMat.userData.isShared = true;
+
+    const rubberDarkRimMat = new THREE.MeshStandardMaterial({
+      color: 0xb91c1c,
+      roughness: 0.6,
+      metalness: 0.15,
+    });
+    rubberDarkRimMat.userData.isShared = true;
+
+    cachedPlungerMats = { woodMat, rubberRedMat, rubberDarkRimMat };
+  }
+  return { geos: cachedPlungerGeos, mats: cachedPlungerMats };
+}
+
 export function createRealisticPlungerMesh(scale = 1.0): THREE.Group {
+  const { geos, mats } = getSharedPlungerResources();
   const plungerGroup = new THREE.Group();
   plungerGroup.name = 'RealisticPlunger';
 
-  const woodMat = new THREE.MeshStandardMaterial({
-    color: 0xc89666,
-    roughness: 0.7,
-    metalness: 0.05,
-  });
-  const rubberRedMat = new THREE.MeshStandardMaterial({
-    color: 0xdc2626,
-    roughness: 0.55,
-    metalness: 0.1,
-  });
-  const rubberDarkRimMat = new THREE.MeshStandardMaterial({
-    color: 0xb91c1c,
-    roughness: 0.6,
-    metalness: 0.15,
-  });
-
-  const handleLength = 0.55 * scale;
-  const handleRadius = 0.02 * scale;
-  const handle = new THREE.Mesh(
-    new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 12),
-    woodMat
-  );
-  handle.rotation.x = Math.PI / 2;
-  handle.position.z = handleLength / 2;
+  const handle = new THREE.Mesh(geos.handleGeo, mats.woodMat);
+  handle.position.z = 0.55 / 2;
   plungerGroup.add(handle);
 
-  const handleCap = new THREE.Mesh(
-    new THREE.SphereGeometry(handleRadius * 1.15, 10, 8),
-    woodMat
-  );
-  handleCap.position.z = handleLength;
+  const handleCap = new THREE.Mesh(geos.handleCapGeo, mats.woodMat);
+  handleCap.position.z = 0.55;
   plungerGroup.add(handleCap);
 
   const cupGroup = new THREE.Group();
-  const neck = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.035 * scale, 0.045 * scale, 0.08 * scale, 16),
-    rubberRedMat
-  );
-  neck.rotation.x = Math.PI / 2;
-  neck.position.z = 0.04 * scale;
+  const neck = new THREE.Mesh(geos.neckGeo, mats.rubberRedMat);
+  neck.position.z = 0.04;
   cupGroup.add(neck);
 
-  const bell = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.045 * scale, 0.14 * scale, 0.14 * scale, 18, 1, true),
-    rubberRedMat
-  );
-  bell.rotation.x = Math.PI / 2;
-  bell.position.z = -0.05 * scale;
+  const bell = new THREE.Mesh(geos.bellGeo, mats.rubberRedMat);
+  bell.position.z = -0.05;
   cupGroup.add(bell);
 
-  const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(0.14 * scale, 0.022 * scale, 10, 24),
-    rubberDarkRimMat
-  );
-  rim.position.z = -0.12 * scale;
+  const rim = new THREE.Mesh(geos.rimGeo, mats.rubberDarkRimMat);
+  rim.position.z = -0.12;
   cupGroup.add(rim);
 
   plungerGroup.add(cupGroup);
+  plungerGroup.scale.setScalar(scale);
   return plungerGroup;
 }
 

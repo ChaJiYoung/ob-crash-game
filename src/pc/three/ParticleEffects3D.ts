@@ -31,6 +31,7 @@ export interface ProjectileItem {
   targetPos: THREE.Vector3;
   speed: number;
   progress: number;
+  weaponKind?: WeaponKind;
   isStuck?: boolean;
   stuckTargetPos?: THREE.Vector3;
   velocity?: THREE.Vector3;
@@ -47,16 +48,25 @@ export interface SkillEffectItem {
   updateFn: (dt: number, life: number) => boolean; // returns true when finished
 }
 
+export interface ParticlePoolStats {
+  activeProjectiles: number;
+  pooledProjectiles: number;
+  activeTracers: number;
+  pooledTracers: number;
+}
+
 function disposeObject3D(root: THREE.Object3D): void {
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh;
-    if (mesh.geometry) {
+    if (mesh.geometry && !mesh.geometry.userData?.isShared) {
       mesh.geometry.dispose();
     }
     if (mesh.material) {
       if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((m) => m.dispose());
-      } else {
+        mesh.material.forEach((m) => {
+          if (!m.userData?.isShared) m.dispose();
+        });
+      } else if (!mesh.material.userData?.isShared) {
         mesh.material.dispose();
       }
     }
@@ -98,9 +108,33 @@ export class ParticleEffects3D {
   private foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
   private matCache = new Map<string, THREE.MeshBasicMaterial>();
 
+  // Object Pools
+  private tracerPool: TracerBeamItem[] = [];
+  private projectilePools: Map<WeaponKind, THREE.Group[]> = new Map([
+    ['shotgun', []],
+    ['revolver', []],
+    ['gatling', []],
+  ]);
+
+  // Shared Geometries & Materials
+  private unitTracerGeo: THREE.CylinderGeometry;
+  private unitFlashGeo: THREE.SphereGeometry;
+  private revolverBoltGeo: THREE.CylinderGeometry;
+  private gatlingBubbleGeo: THREE.SphereGeometry;
+  private bottleCapGeo: THREE.CylinderGeometry;
+  private beerDropGeo: THREE.SphereGeometry;
+
+  private revolverMat: THREE.MeshStandardMaterial;
+  private gatlingMat: THREE.MeshBasicMaterial;
+  private bottleCapMat: THREE.MeshBasicMaterial;
+  private beerMat: THREE.MeshBasicMaterial;
+
   constructor() {
     this.group = new THREE.Group();
     this.group.name = 'ParticleEffects3D';
+
+    this.foamGeo.userData.isShared = true;
+    this.foamMat.userData.isShared = true;
 
     const verts = new Float32Array([
       -0.08, -0.06, 0,
@@ -108,6 +142,53 @@ export class ParticleEffects3D {
       0, 0.09, 0,
     ]);
     this.shardGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    this.shardGeo.userData.isShared = true;
+
+    // Unit length cylinder (length = 1.0 along Z axis)
+    this.unitTracerGeo = new THREE.CylinderGeometry(1, 1, 1, 8);
+    this.unitTracerGeo.rotateX(Math.PI / 2);
+    this.unitTracerGeo.userData.isShared = true;
+
+    this.unitFlashGeo = new THREE.SphereGeometry(1, 8, 8);
+    this.unitFlashGeo.userData.isShared = true;
+
+    this.revolverBoltGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.04, 12);
+    this.revolverBoltGeo.rotateX(Math.PI / 2);
+    this.revolverBoltGeo.userData.isShared = true;
+
+    this.gatlingBubbleGeo = new THREE.SphereGeometry(0.065, 10, 10);
+    this.gatlingBubbleGeo.userData.isShared = true;
+
+    this.bottleCapGeo = new THREE.CylinderGeometry(0.125, 0.125, 0.04, 16);
+    this.bottleCapGeo.userData.isShared = true;
+
+    this.beerDropGeo = new THREE.SphereGeometry(0.06, 6, 6);
+    this.beerDropGeo.userData.isShared = true;
+
+    this.revolverMat = new THREE.MeshStandardMaterial({
+      color: 0xfbbf24,
+      emissive: 0xd97706,
+      metalness: 0.9,
+    });
+    this.revolverMat.userData.isShared = true;
+
+    this.gatlingMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.9,
+    });
+    this.gatlingMat.userData.isShared = true;
+
+    this.bottleCapMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
+    this.bottleCapMat.userData.isShared = true;
+
+    this.beerMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#f59e0b'),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9,
+    });
+    this.beerMat.userData.isShared = true;
   }
 
   private getMaterial(colorHex: string): THREE.MeshBasicMaterial {
@@ -209,6 +290,84 @@ export class ParticleEffects3D {
     return this.floatingLabels;
   }
 
+  private acquireTracerItem(colorHex: string): TracerBeamItem {
+    // If active tracers >= 24, recycle oldest
+    if (this.tracerBeams.length >= 24) {
+      const oldest = this.tracerBeams.shift()!;
+      this.group.remove(oldest.beamMesh);
+      this.group.remove(oldest.flashMesh);
+      this.tracerPool.push(oldest);
+    }
+
+    if (this.tracerPool.length > 0) {
+      const item = this.tracerPool.pop()!;
+      (item.beamMesh.material as THREE.MeshBasicMaterial).color.set(colorHex);
+      (item.flashMesh.material as THREE.MeshBasicMaterial).color.set(colorHex);
+      return item;
+    }
+
+    const beamMesh = new THREE.Mesh(
+      this.unitTracerGeo,
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(colorHex),
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+      })
+    );
+    const flashMesh = new THREE.Mesh(
+      this.unitFlashGeo,
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(colorHex),
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+      })
+    );
+    return {
+      beamMesh,
+      flashMesh,
+      lifeSec: 0,
+      maxLifeSec: 0.14,
+    };
+  }
+
+  private acquireProjectileGroup(kind: WeaponKind): THREE.Group {
+    const pool = this.projectilePools.get(kind)!;
+    if (pool.length > 0) {
+      const grp = pool.pop()!;
+      grp.visible = true;
+      return grp;
+    }
+
+    if (kind === 'shotgun') {
+      return createRealisticPlungerMesh(0.28);
+    } else if (kind === 'revolver') {
+      const boltGroup = new THREE.Group();
+      const boltMesh = new THREE.Mesh(this.revolverBoltGeo, this.revolverMat);
+      boltGroup.add(boltMesh);
+      return boltGroup;
+    } else {
+      const bubbleGroup = new THREE.Group();
+      const bMesh = new THREE.Mesh(this.gatlingBubbleGeo, this.gatlingMat);
+      bubbleGroup.add(bMesh);
+      return bubbleGroup;
+    }
+  }
+
+  private releaseProjectile(pj: ProjectileItem): void {
+    this.group.remove(pj.group);
+    pj.group.visible = false;
+    if (pj.weaponKind) {
+      const pool = this.projectilePools.get(pj.weaponKind);
+      if (pool && pool.length < 32) {
+        pool.push(pj.group);
+        return;
+      }
+    }
+    disposeObject3D(pj.group);
+  }
+
   public spawnTracerBeam(
     fromPos: THREE.Vector3,
     toPos: THREE.Vector3,
@@ -220,38 +379,26 @@ export class ParticleEffects3D {
     const midPoint = new THREE.Vector3().addVectors(fromPos, toPos).multiplyScalar(0.5);
 
     const radius = isFeverOrPower ? 0.045 : 0.024;
-    const beamGeo = new THREE.CylinderGeometry(radius, radius, distance, 8);
-    beamGeo.rotateX(Math.PI / 2);
-
-    const beamMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(colorHex),
-      transparent: true,
-      opacity: 0.95,
-      depthWrite: false,
-    });
-    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
-    beamMesh.position.copy(midPoint);
-    beamMesh.lookAt(toPos);
-    this.group.add(beamMesh);
-
     const flashRadius = isFeverOrPower ? 0.16 : 0.11;
-    const flashGeo = new THREE.SphereGeometry(flashRadius, 8, 8);
-    const flashMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(colorHex),
-      transparent: true,
-      opacity: 0.95,
-      depthWrite: false,
-    });
-    const flashMesh = new THREE.Mesh(flashGeo, flashMat);
-    flashMesh.position.copy(fromPos);
-    this.group.add(flashMesh);
 
-    this.tracerBeams.push({
-      beamMesh,
-      flashMesh,
-      lifeSec: 0,
-      maxLifeSec: 0.14,
-    });
+    const item = this.acquireTracerItem(colorHex);
+    item.beamMesh.scale.set(radius, radius, distance);
+    item.beamMesh.position.copy(midPoint);
+    item.beamMesh.lookAt(toPos);
+    (item.beamMesh.material as THREE.MeshBasicMaterial).opacity = 0.95;
+    item.beamMesh.visible = true;
+
+    item.flashMesh.scale.setScalar(flashRadius);
+    item.flashMesh.position.copy(fromPos);
+    (item.flashMesh.material as THREE.MeshBasicMaterial).opacity = 0.95;
+    item.flashMesh.visible = true;
+
+    item.lifeSec = 0;
+    item.maxLifeSec = 0.14;
+
+    this.group.add(item.beamMesh);
+    this.group.add(item.flashMesh);
+    this.tracerBeams.push(item);
   }
 
   /**
@@ -265,10 +412,19 @@ export class ParticleEffects3D {
   ): void {
     const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
 
+    // Throttle max active projectiles to avoid runaway memory
+    if (this.projectiles.length >= 32) {
+      const oldestIdx = this.projectiles.findIndex((p) => !p.velocity);
+      if (oldestIdx !== -1) {
+        const oldest = this.projectiles.splice(oldestIdx, 1)[0];
+        this.releaseProjectile(oldest);
+      }
+    }
+
     if (kind === 'shotgun') {
       const pelletCount = spec.pelletCount;
       for (let i = 0; i < pelletCount; i++) {
-        const miniPlunger = createRealisticPlungerMesh(0.28);
+        const miniPlunger = this.acquireProjectileGroup('shotgun');
         miniPlunger.position.copy(origin);
         this.group.add(miniPlunger);
 
@@ -281,22 +437,14 @@ export class ParticleEffects3D {
           targetPos: spreadTarget,
           speed: 28.0 + Math.random() * 4.0,
           progress: 0,
+          weaponKind: 'shotgun',
           lifeSec: 0,
           maxLifeSec: 0.45,
         });
       }
       this.spawnTracerBeam(origin, targetPos, '#ef4444', false);
     } else if (kind === 'revolver') {
-      const boltGroup = new THREE.Group();
-      const capGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.04, 12);
-      const capMat = new THREE.MeshStandardMaterial({
-        color: 0xfbbf24,
-        emissive: 0xd97706,
-        metalness: 0.9,
-      });
-      const boltMesh = new THREE.Mesh(capGeo, capMat);
-      boltMesh.rotation.x = Math.PI / 2;
-      boltGroup.add(boltMesh);
+      const boltGroup = this.acquireProjectileGroup('revolver');
       boltGroup.position.copy(origin);
       this.group.add(boltGroup);
 
@@ -306,6 +454,7 @@ export class ParticleEffects3D {
         targetPos: targetPos.clone(),
         speed: 45.0,
         progress: 0,
+        weaponKind: 'revolver',
         lifeSec: 0,
         maxLifeSec: 0.35,
       });
@@ -313,15 +462,7 @@ export class ParticleEffects3D {
       this.spawnTracerBeam(origin, targetPos, '#f59e0b', true);
     } else {
       // gatling
-      const bubbleGroup = new THREE.Group();
-      const bubbleGeo = new THREE.SphereGeometry(0.065, 10, 10);
-      const bubbleMat = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
-        transparent: true,
-        opacity: 0.9,
-      });
-      const bMesh = new THREE.Mesh(bubbleGeo, bubbleMat);
-      bubbleGroup.add(bMesh);
+      const bubbleGroup = this.acquireProjectileGroup('gatling');
       bubbleGroup.position.copy(origin);
       this.group.add(bubbleGroup);
 
@@ -331,6 +472,7 @@ export class ParticleEffects3D {
         targetPos: targetPos.clone(),
         speed: 38.0,
         progress: 0,
+        weaponKind: 'gatling',
         lifeSec: 0,
         maxLifeSec: 0.35,
       });
@@ -507,9 +649,7 @@ export class ParticleEffects3D {
   }
 
   public triggerBottleCrash(origin: THREE.Vector3, count = 16): void {
-    const capGeo = new THREE.CylinderGeometry(0.125, 0.125, 0.04, 16);
-    const capMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
-    const capMesh = new THREE.Mesh(capGeo, capMat);
+    const capMesh = new THREE.Mesh(this.bottleCapGeo, this.bottleCapMat);
     capMesh.position.copy(origin).add(new THREE.Vector3(0, 0.8, 0));
     this.group.add(capMesh);
 
@@ -552,9 +692,8 @@ export class ParticleEffects3D {
       });
     }
 
-    const beerMat = this.getMaterial('#f59e0b');
     for (let i = 0; i < 14; i++) {
-      const beerDrop = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), beerMat);
+      const beerDrop = new THREE.Mesh(this.beerDropGeo, this.beerMat);
       beerDrop.position.copy(origin).add(new THREE.Vector3(0, 0.35, 0));
 
       const speed = 3.0 + Math.random() * 3.5;
@@ -607,10 +746,16 @@ export class ParticleEffects3D {
       if (tb.lifeSec >= tb.maxLifeSec) {
         this.group.remove(tb.beamMesh);
         this.group.remove(tb.flashMesh);
-        tb.beamMesh.geometry.dispose();
-        (tb.beamMesh.material as THREE.Material).dispose();
-        tb.flashMesh.geometry.dispose();
-        (tb.flashMesh.material as THREE.Material).dispose();
+        tb.beamMesh.visible = false;
+        tb.flashMesh.visible = false;
+        if (this.tracerPool.length < 24) {
+          this.tracerPool.push(tb);
+        } else {
+          tb.beamMesh.geometry.dispose();
+          (tb.beamMesh.material as THREE.Material).dispose();
+          tb.flashMesh.geometry.dispose();
+          (tb.flashMesh.material as THREE.Material).dispose();
+        }
         this.tracerBeams.splice(i, 1);
         continue;
       }
@@ -644,8 +789,7 @@ export class ParticleEffects3D {
       pj.lifeSec += dtSec;
 
       if (pj.lifeSec >= pj.maxLifeSec) {
-        this.group.remove(pj.group);
-        disposeObject3D(pj.group);
+        this.releaseProjectile(pj);
         this.projectiles.splice(i, 1);
         continue;
       }
@@ -681,8 +825,7 @@ export class ParticleEffects3D {
         pj.progress += (pj.speed * dtSec) / Math.max(0.1, dist);
 
         if (pj.progress >= 1.0) {
-          this.group.remove(pj.group);
-          disposeObject3D(pj.group);
+          this.releaseProjectile(pj);
           this.projectiles.splice(i, 1);
           continue;
         }
@@ -712,10 +855,11 @@ export class ParticleEffects3D {
     this.tracerBeams.forEach((tb) => {
       this.group.remove(tb.beamMesh);
       this.group.remove(tb.flashMesh);
-      tb.beamMesh.geometry.dispose();
-      (tb.beamMesh.material as THREE.Material).dispose();
-      tb.flashMesh.geometry.dispose();
-      (tb.flashMesh.material as THREE.Material).dispose();
+      tb.beamMesh.visible = false;
+      tb.flashMesh.visible = false;
+      if (this.tracerPool.length < 24) {
+        this.tracerPool.push(tb);
+      }
     });
     this.tracerBeams = [];
     this.floatingLabels.forEach((fl) => {
@@ -724,8 +868,7 @@ export class ParticleEffects3D {
     });
     this.floatingLabels = [];
     this.projectiles.forEach((pj) => {
-      this.group.remove(pj.group);
-      disposeObject3D(pj.group);
+      this.releaseProjectile(pj);
     });
     this.projectiles = [];
     this.skillEffects.forEach((fx) => {
@@ -733,5 +876,18 @@ export class ParticleEffects3D {
       disposeObject3D(fx.group);
     });
     this.skillEffects = [];
+  }
+
+  public getPoolStats(): ParticlePoolStats {
+    let pooledProjectiles = 0;
+    this.projectilePools.forEach((pool) => {
+      pooledProjectiles += pool.length;
+    });
+    return {
+      activeProjectiles: this.projectiles.length,
+      pooledProjectiles,
+      activeTracers: this.tracerBeams.length,
+      pooledTracers: this.tracerPool.length,
+    };
   }
 }
