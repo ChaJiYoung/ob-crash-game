@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 주황색 상자 메쉬 삭제, rAF 캔슬 누락 수정 및 3D 카드 씬 동기화 보장 | [P01](../phases/2026-11-04-fix-start-card-visibility-and-remove-amber-box/P01-cleanup-and-card-rendering/phase.md) |
+| P01 | `done` | 주황색 상자 메쉬 삭제, rAF 캔슬 누락 수정 및 3D 카드 씬 동기화 보장 | [P01](../phases/2026-11-04-fix-start-card-visibility-and-remove-amber-box/P01-cleanup-and-card-rendering/phase.md) |

@@ -1,17 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Gatling Gun Balance & Score Normalization](./plans/2026-11-04-gatling-balance.md)
+[Fix Start Card Visibility & Remove Amber Box](./plans/2026-11-04-fix-start-card-visibility-and-remove-amber-box.md)
 
 ## Active Phase
-[P01 Engine Balance Core (Completed)](./phases/2026-11-04-gatling-balance/P01-engine-balance-core/phase.md)
+[P01 Cleanup & Card Rendering](./phases/2026-11-04-fix-start-card-visibility-and-remove-amber-box/P01-cleanup-and-card-rendering/phase.md)
 
 ## Active Task
-[T02 Weapon Specs, Hit Tolerance & Engine Wiring (Completed)](./phases/2026-11-04-gatling-balance/P01-engine-balance-core/T02-weapon-specs-and-engine-wiring.md)
+[T02 Fix rAF Cancel & Card Scene Sync](./phases/2026-11-04-fix-start-card-visibility-and-remove-amber-box/P01-cleanup-and-card-rendering/T02-fix-raf-cancel-and-card-scene-sync.md)
 
 ## Status
-- Plan 'Gatling Gun Balance & Score Normalization' 모든 Task 완료 (P01-T01, P01-T02)
-- 최종 커밋: 4cce93a
+- Plan 전체 완료 (P01-T01, P01-T02 완료 ✅)
 
 ## Next Step (IMPORTANT)
-실제 게임플레이 시뮬레이션을 통해 개틀링 사격 시 점수, 피버, 에임 보정 수치 실측 검증
+모든 계획된 Task가 성공적으로 구현 및 검증되었습니다.
