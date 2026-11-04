@@ -13,6 +13,7 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /5단계 (아케이드|테마)/, why: 'the game has 7 waves' },
   { pattern: /카드 5종|5종 보상 카드|보상 카드 5종/, why: 'there are 9 reward cards' },
   { pattern: /MISS 페널티 완전 폐지/, why: 'misses now cost ammo and reload time' },
+  { pattern: /\+150 PTS|\+100 PTS|\+50 PTS|\+500점|\+1,500점|2배 화력|기본 피해의 3배/, why: 'scores are scaled by GAME_TUNING.score.scale (x0.1) and fever no longer boosts damage' },
 ];
 
 function collect(): string[] {
@@ -87,5 +88,27 @@ describe('player-facing text matches the final spec', () => {
       });
     });
     expect(mismatches).toEqual([]);
+  });
+});
+
+describe('score scale and precision bonus are documented with the tuned numbers', () => {
+  const sc = (n: number) => Math.round(n * GAME_TUNING.score.scale);
+  const readme = fs.readFileSync('README.md', 'utf8');
+  const weaponGuide = fs.readFileSync('docs/무기_및_스킬_가이드.md', 'utf8');
+
+  it('lists the scaled judgment points', () => {
+    for (const doc of [readme, weaponGuide]) {
+      expect(doc).toContain(`+${sc(150)} PTS`);
+      expect(doc).toContain(`+${sc(100)} PTS`);
+      expect(doc).toContain(`+${sc(50)} PTS`);
+    }
+  });
+
+  it('explains the precision bonus with the tuned constant', () => {
+    const k = GAME_TUNING.score.precisionBonus.k.toLocaleString('en-US');
+    for (const doc of [readme, weaponGuide]) {
+      expect(doc).toContain('정밀도 보너스');
+      expect(doc).toContain(`${k}점`);
+    }
   });
 });

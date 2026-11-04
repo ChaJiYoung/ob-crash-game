@@ -8,7 +8,7 @@ import { evaluateHitJudgment } from '../src/pc/engine/HitJudgment';
 import { ScoreAndFeverManager } from '../src/pc/engine/ScoreAndFeverManager';
 import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
-import { STAGE_CONSTANTS } from '../src/shared/constants';
+import { STAGE_CONSTANTS, JUDGMENT_SPECS } from '../src/shared/constants';
 
 describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload', () => {
   it('should calculate horizontal FOV and sample across the fan arc', () => {
@@ -74,11 +74,12 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(miss.feverDelta).toBe(0);
     expect(miss.damageMultiplier).toBe(0);
 
-    // Fever does not touch judgment: the same error grades the same, with normal damage
+    // Fever: any hit inside the target is a GREAT (never PERFECT), at normal damage
     const feverHit = evaluateHitJudgment(0.75, 1.0, true);
-    expect(feverHit.grade).toBe(evaluateHitJudgment(0.75, 1.0).grade);
-    expect(feverHit.grade).not.toBe('PERFECT');
-    expect(feverHit.damage).toBe(1);
+    expect(feverHit.grade).toBe('GREAT');
+    expect(feverHit.damageMultiplier).toBe(JUDGMENT_SPECS.GREAT.damageMultiplier);
+    expect(evaluateHitJudgment(0.05, 1.0, true).grade).toBe('GREAT');
+    expect(evaluateHitJudgment(1.15, 1.0, true).grade).toBe('MISS');
 
     // Power shot buff grants damage 2 even outside fever
     const powerHit = evaluateHitJudgment(0.12, 1.0, { isPowerShotActive: true });

@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
+import { GAME_TUNING } from '../src/shared/gameTuning';
+
+// Scores are scaled by GAME_TUNING.score.scale (point values in comments are at scale 1.0)
+const sc = (n: number) => Math.round(n * GAME_TUNING.score.scale);
 
 describe('Gatling Gun Balance & Score Normalization', () => {
   let engine: BeerCrusherEngine;
@@ -36,7 +40,7 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     expect(gatlingShot.fired).toBe(true);
     expect(gatlingShot.grade).toBe('PERFECT');
     // PERFECT baseScore is 150. With 0.5x multiplier => 75
-    expect(gatlingShot.earnedScore).toBe(75);
+    expect(gatlingShot.earnedScore).toBe(sc(75));
 
     // Reset score manager for isolated revolver comparison
     engine.scoreManager.reset();
@@ -47,7 +51,7 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     expect(revolverShot.fired).toBe(true);
     expect(revolverShot.grade).toBe('PERFECT');
     // PERFECT baseScore is 150. Full 1.0x => 150
-    expect(revolverShot.earnedScore).toBe(150);
+    expect(revolverShot.earnedScore).toBe(sc(150));
   });
 
   it('should charge fever gauge at 0.33x rate for gatling compared to revolver', () => {
@@ -107,6 +111,6 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     const shot = engine.shootAt(proj.targetNormX, proj.targetNormY, 1000);
     expect(shot.killed).toBe(true);
     // Base PERFECT (75) + Kill Bonus (80) = 155
-    expect(shot.earnedScore).toBe(155);
+    expect(shot.earnedScore).toBe(sc(75) + sc(80));
   });
 });

@@ -23,6 +23,7 @@ export function evaluateHitJudgment(
 ): HitJudgmentResult {
   const options: HitJudgmentOptions =
     typeof optionsOrFever === 'boolean' ? { isFeverActive: optionsOrFever } : optionsOrFever;
+  const isFeverActive = Boolean(options.isFeverActive);
   const isPowerShotActive = Boolean(options.isPowerShotActive);
   const isWideScopeActive = Boolean(options.isWideScopeActive);
 
@@ -40,6 +41,21 @@ export function evaluateHitJudgment(
   const effectiveHitRadius = isWideScopeActive ? hitRadiusM * 1.6 : hitRadiusM;
   const errorRatio = distanceToCenterM / effectiveHitRadius;
   const baseDamage = isPowerShotActive ? 2 : 1;
+
+  // Fever: any hit inside the target counts as GREAT (never PERFECT, never lower), so a shaky aim still scores.
+  if (isFeverActive) {
+    if (errorRatio <= 1.0) {
+      return {
+        grade: 'GREAT',
+        errorRatio,
+        baseScore: JUDGMENT_SPECS.GREAT.baseScore,
+        feverDelta: 0,
+        damage: baseDamage,
+        damageMultiplier: JUDGMENT_SPECS.GREAT.damageMultiplier,
+      };
+    }
+    return { grade: 'MISS', errorRatio, baseScore: 0, feverDelta: 0, damage: 0, damageMultiplier: 0 };
+  }
 
   if (errorRatio <= JUDGMENT_SPECS.PERFECT.maxErrorRatio) {
     return {

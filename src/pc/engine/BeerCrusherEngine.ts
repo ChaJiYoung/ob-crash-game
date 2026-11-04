@@ -152,6 +152,8 @@ export class BeerCrusherEngine {
   private pausedAtMs: number | null = null;
 
   public readonly scoreManager = new ScoreAndFeverManager();
+  private shotStats: Record<'PERFECT' | 'GREAT' | 'GOOD' | 'MISS', number> = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+  private precisionBonusApplied = 0;
   public readonly weaponSystem = new WeaponSystem();
 
   private activeBuffUntilMs: Map<ItemBuffKind, number> = new Map();
@@ -314,6 +316,8 @@ export class BeerCrusherEngine {
     this.lastBossSummonTimeMs = 0;
     this.lastBossSummonHpThreshold = 45;
     this.scoreManager.reset();
+    this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+    this.precisionBonusApplied = 0;
     this.weaponSystem.reset();
     this.resetCardStacks();
     this.activeBuffUntilMs.clear();
@@ -1488,7 +1492,7 @@ export class BeerCrusherEngine {
       this.activeTargets = [];
       this.isRewardCardPending = false;
       if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
-        this.gamePhase = 'VICTORY';
+        this.declareVictory();
       }
       // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
       return;
@@ -1616,7 +1620,7 @@ export class BeerCrusherEngine {
 
       if (this.pendingWaveAdvance || (remainingSpawns === 0 && remainingMonsters === 0)) {
         if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
-          this.gamePhase = 'VICTORY';
+          this.declareVictory();
         } else {
           this.startWave(this.currentWave + 1);
         }
@@ -1635,7 +1639,41 @@ export class BeerCrusherEngine {
     return { fired: false, grade: 'MISS' };
   }
 
+  /** Counts real shots (not card picks) for the precision bonus, then delegates to the shot pipeline. */
   public shootAt(
+    aimX: number,
+    aimY: number,
+    nowMs: number,
+    source: ShotSource = 'press'
+  ): EngineShootResult {
+    const counts = this.gamePhase === 'PLAYING' && !this.isPaused && !this.isCardSelectPending;
+    const result = this.shootAtInner(aimX, aimY, nowMs, source);
+    if (counts && result.fired) {
+      this.shotStats[result.shieldBlocked ? 'MISS' : result.grade] += 1;
+    }
+    return result;
+  }
+
+  /** Weighted accuracy of this run (0..1) and the bonus it earns at VICTORY. */
+  public getPrecisionStats(): { shots: number; ratio: number; bonus: number; applied: number } {
+    const cfg = GAME_TUNING.score.precisionBonus;
+    const s = this.shotStats;
+    const shots = s.PERFECT + s.GREAT + s.GOOD + s.MISS;
+    const weighted = s.PERFECT * cfg.weights.PERFECT + s.GREAT * cfg.weights.GREAT + s.GOOD * cfg.weights.GOOD;
+    const ratio = shots > 0 ? weighted / shots : 0;
+    const bonus = shots >= cfg.minShots ? Math.round(cfg.k * Math.pow(ratio, cfg.power)) : 0;
+    return { shots, ratio, bonus, applied: this.precisionBonusApplied };
+  }
+
+  private declareVictory(): void {
+    if (this.gamePhase === 'VICTORY') return;
+    this.gamePhase = 'VICTORY';
+    if (!this.isTutorialMode && !this.isSandboxMode) {
+      this.precisionBonusApplied = this.scoreManager.addBonusScore(this.getPrecisionStats().bonus);
+    }
+  }
+
+  private shootAtInner(
     aimX: number,
     aimY: number,
     nowMs: number,
@@ -1719,14 +1757,14 @@ export class BeerCrusherEngine {
       if (target.isProjectile) {
         interceptedProjectile = true;
         this.activeTargets.splice(index, 1);
-        this.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
+        const interceptInfo = this.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
         return {
           fired: true,
           grade: 'PERFECT',
           target,
           killed: true,
           interceptedProjectile: true,
-          earnedScore: target.killBonusScore,
+          earnedScore: interceptInfo.earnedScore,
           weaponKind,
           weaponLevel,
         };

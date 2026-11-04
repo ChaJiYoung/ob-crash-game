@@ -1,5 +1,9 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { JudgmentGrade } from '../../shared/types';
+import { JUDGMENT_SPECS } from '../../shared/constants';
+import { GAME_TUNING } from '../../shared/gameTuning';
+
+const pts = (grade: 'PERFECT' | 'GREAT' | 'GOOD') => Math.round(JUDGMENT_SPECS[grade].baseScore * GAME_TUNING.score.scale);
 
 export function getJudgmentBannerSpec(grade: JudgmentGrade): {
   title: string;
@@ -11,21 +15,21 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
     case 'PERFECT':
       return {
         title: 'PERFECT!',
-        subtitle: '2.0x 데미지 (+150 PTS)',
+        subtitle: `${JUDGMENT_SPECS.PERFECT.damageMultiplier.toFixed(1)}x 데미지 (+${pts('PERFECT')} PTS)`,
         colorHex: '#fbbf24',
         scale: 1.3,
       };
     case 'GREAT':
       return {
         title: 'GREAT!',
-        subtitle: '1.0x 데미지 (+100 PTS)',
+        subtitle: `${JUDGMENT_SPECS.GREAT.damageMultiplier.toFixed(1)}x 데미지 (+${pts('GREAT')} PTS)`,
         colorHex: '#38bdf8',
         scale: 1.15,
       };
     case 'GOOD':
       return {
         title: 'GOOD!',
-        subtitle: '0.5x 데미지 (+50 PTS)',
+        subtitle: `${JUDGMENT_SPECS.GOOD.damageMultiplier.toFixed(1)}x 데미지 (+${pts('GOOD')} PTS)`,
         colorHex: '#4ade80',
         scale: 1.0,
       };

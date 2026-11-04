@@ -6,11 +6,20 @@
  * 랭킹 규칙 버전. 점수가 서로 비교되지 않을 만큼 규칙이 크게 바뀌면 올린다.
  * 서버는 시작할 때 버전이 다른 `players.json`을 백업한 뒤 점수만 초기화한다. (v2: 7웨이브 보스 러시)
  */
-export const RANKING_RULESET_VERSION = 2;
+export const RANKING_RULESET_VERSION = 3;
 
 export const GAME_TUNING = {
   fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50 },
   judgment: { perfectDamage: 2.0, greatDamage: 1.0, goodDamage: 0.5 },
+  /**
+   * scale: 명중 점수·처치 보너스에 곱하는 전체 점수 단위(표의 기본 점수 150/100/50, 처치 30~1500은 scale 1.0 기준).
+   * 클리어(VICTORY) 시 한 번 더해지는 정밀도 보너스 = k × (가중 판정 비율)^power. k는 최종 점수 단위(scale 적용 후).
+   * 비율은 (PERFECT·GREAT·GOOD 가중 합) ÷ 발사 수(MISS·방패 막힘 포함)라서 많이 쏴도 늘지 않는다.
+   */
+  score: {
+    scale: 0.1,
+    precisionBonus: { k: 12000, power: 2, minShots: 30, weights: { PERFECT: 1.0, GREAT: 0.5, GOOD: 0.2 } },
+  },
   skillCooldownMsByLevel: { 1: 35000, 2: 31000, 3: 27000, 4: 23000 },
   goldenCan: { feverGain: 30, skillStockGain: 1 },
   repairCard: { healAmount: 2 },

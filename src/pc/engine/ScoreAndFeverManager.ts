@@ -1,5 +1,6 @@
 import { JudgmentGrade } from '../../shared/types';
 import { FEVER_CONSTANTS, JUDGMENT_SPECS } from '../../shared/constants';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface HitScoreOptions {
   scoreMultiplier?: number;
@@ -47,7 +48,8 @@ export class ScoreAndFeverManager {
     const scoreMult = options?.scoreMultiplier ?? 1.0;
     const feverMult = options?.feverMultiplier ?? 1.0;
 
-    const earnedScore = Math.round(spec.baseScore * mult * feverBonusMult * scoreMult) + killBonusScore;
+    const scale = GAME_TUNING.score.scale;
+    const earnedScore = Math.round(spec.baseScore * mult * feverBonusMult * scoreMult * scale) + Math.round(killBonusScore * scale);
     this.totalScore += earnedScore;
 
     if (!this.isFeverActive) {
@@ -154,6 +156,13 @@ export class ScoreAndFeverManager {
       feverBaseCombo: this.feverBaseCombo,
       comboMultiplier: this.getComboMultiplier(),
     };
+  }
+
+  /** One-off score outside the hit pipeline (e.g. the end-of-game precision bonus). */
+  public addBonusScore(amount: number): number {
+    const bonus = Math.max(0, Math.round(amount));
+    this.totalScore += bonus;
+    return bonus;
   }
 
   public reset(): void {

@@ -2,7 +2,7 @@
 // Usage: npx tsx .memory/references/scripts/simulate-current-decisions.ts 60 [weapon] [bot-name-substring]
 // All difficulty numbers come from src/shared/gameTuning.ts; edit them there and re-run.
 import { BeerCrusherEngine } from '../../../src/pc/engine/BeerCrusherEngine';
-import { WEAPON_CONSTANTS } from '../../../src/shared/constants';
+import { JUDGMENT_SPECS, WEAPON_CONSTANTS } from '../../../src/shared/constants';
 import { GAME_TUNING } from '../../../src/shared/gameTuning';
 
 // Quick what-if runs without editing gameTuning.ts: TUNE='{"monsters":{"pilgood":{"chargeSpeedMult":1.5}}}'
@@ -14,6 +14,14 @@ const deepMerge = (target: any, patch: any): void => {
   }
 };
 if (process.env.TUNE) deepMerge(GAME_TUNING, JSON.parse(process.env.TUNE));
+// JUDGE='{"perfectMaxError":0.15,"perfectScore":300,"perfectDamage":1.5}' mutates the judgment table at runtime
+if (process.env.JUDGE) {
+  const j = JSON.parse(process.env.JUDGE);
+  if (j.perfectMaxError !== undefined) JUDGMENT_SPECS.PERFECT.maxErrorRatio = j.perfectMaxError;
+  if (j.perfectScore !== undefined) JUDGMENT_SPECS.PERFECT.baseScore = j.perfectScore;
+  if (j.perfectDamage !== undefined) JUDGMENT_SPECS.PERFECT.damageMultiplier = j.perfectDamage;
+  if (j.greatMaxError !== undefined) JUDGMENT_SPECS.GREAT.maxErrorRatio = j.greatMaxError;
+}
 // BOSS_HP="40,35,45,110" -> wave 3 cooler, wave 5 coolers, wave 7 coolers, wave 7 king
 if (process.env.BOSS_HP) {
   const [h3, h5, h7, hk] = process.env.BOSS_HP.split(',').map(Number);
@@ -62,6 +70,9 @@ interface GameResult {
   timedOut: boolean;
   endWave: number;
   score: number;
+  maxCombo: number;
+  hits: number;
+  grades: Record<string, number>;
 }
 
 function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
@@ -69,6 +80,7 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
   e.aspect = 16 / 9;
   e.startGame({ withWeaponSelect: false });
   e.weaponSystem.selectWeapon(kind, 1);
+  if (process.env.INVINCIBLE) e.lives = e.maxLives = 999; // score-vs-skill measurement: everyone finishes the game
   const ws = e.weaponSystem;
   const sm = e.scoreManager;
 
@@ -76,7 +88,7 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
     cards: 0, fevers: 0, skills: 0, maxWave: null as number | null,
     gapSum: 0, gapN: 0, lastReady: null as number | null, prevReady: false,
     bossStart: 0, bossWave: 0, bossDur: {} as Record<number, number>,
-    lastTap: 0, sx: 0, sd: 1, cx: 0, cy: 0,
+    hits: 0, grades: { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0, BLOCK: 0 } as Record<string, number>, lastTap: 0, sx: 0, sd: 1, cx: 0, cy: 0,
   };
 
   let now = 1000;
@@ -147,7 +159,9 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
         if (now - st.lastTap < bot.tap) return;
         st.lastTap = now;
       }
-      e.shootAt(ax, ay, now, source);
+      const r = e.shootAt(ax, ay, now, source);
+      if (r.fired) st.grades[r.shieldBlocked ? 'BLOCK' : r.grade]++;
+      if (r.fired && r.grade !== 'MISS' && !r.shieldBlocked) st.hits++;
     };
 
     // A real player sees raised shields: skip targets that cannot be hurt right now
@@ -192,6 +206,9 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
   return {
     endWave: e.currentWave,
     score: sm.getState().totalScore,
+    maxCombo: sm.getState().maxCombo,
+    hits: st.hits,
+    grades: st.grades,
     result: e.gamePhase,
     dur: now / 1000,
     lives: e.lives,
@@ -213,6 +230,12 @@ const lossHistogram = (rs: GameResult[]) => {
   rs.filter((r) => r.result !== 'VICTORY').forEach((r) => (h[r.endWave] = (h[r.endWave] ?? 0) + 1));
   return Object.keys(h).length ? Object.entries(h).map(([w, c]) => `${w}:${c}`).join(' ') : '-';
 };
+const gradeMix = (rs: GameResult[]) => {
+  const t: Record<string, number> = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+  rs.forEach((r) => Object.keys(t).forEach((k) => (t[k] += r.grades[k])));
+  const sum = t.PERFECT + t.GREAT + t.GOOD + t.MISS || 1;
+  return ['PERFECT', 'GREAT', 'GOOD', 'MISS'].map((k) => Math.round((100 * t[k]) / sum)).join('/') + `% 발사${Math.round(sum / rs.length)}`;
+};
 const N = +(process.argv[2] || 40);
 const onlyWeapon = process.argv[3];
 const onlyBot = process.argv[4];
@@ -231,6 +254,7 @@ for (const k of WEAPONS) {
       `${k.padEnd(9)}${b.name.padEnd(16)} 클리어 ${f((100 * wins.length) / N).padStart(3)}%${to ? `(초과${f((100 * to) / N)})` : ''}` +
         ` | 승리체력 ${wins.length ? f(avg(wins.map((r) => r.lives)), 1) : '-'} | ${m((r) => r.dur)}s` +
         ` | 점수 클리어 ${wins.length ? f(avg(wins.map((r) => r.score))) : '-'} / 전체 ${m((r) => r.score)}` +
+        ` | 최대콤보 ${m((r) => r.maxCombo)} 명중 ${m((r) => r.hits)} P/G/g/M ${gradeMix(rs)}` +
         ` | 피버 ${f(avg(rs.filter((r) => r.gapN).map((r) => r.gapSum / r.gapN)))}s간격 | 스킬 ${m((r) => r.skills, 1)}` +
         ` | 카드 ${m((r) => r.cards, 1)} | MAX ${f((100 * rs.filter((r) => r.maxWave !== null).length) / N)}%` +
         ` | 보스 ${bossAvg(3)}/${bossAvg(5)}/${bossAvg(7)}s` +

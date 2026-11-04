@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ScoreAndFeverManager } from '../src/pc/engine/ScoreAndFeverManager';
 import { JUDGMENT_SPECS, FEVER_CONSTANTS } from '../src/shared/constants';
+import { GAME_TUNING } from '../src/shared/gameTuning';
+
+// Scores are scaled by GAME_TUNING.score.scale (point values in comments are at scale 1.0)
+const sc = (n: number) => Math.round(n * GAME_TUNING.score.scale);
 
 describe('ScoreAndFeverManager Multipliers', () => {
   let manager: ScoreAndFeverManager;
@@ -14,8 +18,8 @@ describe('ScoreAndFeverManager Multipliers', () => {
     const res = manager.registerHit('PERFECT', 100, true);
 
     // Default earnedScore = baseScore (150) + killBonusScore (100) = 250
-    expect(res.earnedScore).toBe(perfectSpec.baseScore + 100);
-    expect(res.totalScore).toBe(250);
+    expect(res.earnedScore).toBe(sc(perfectSpec.baseScore) + sc(100));
+    expect(res.totalScore).toBe(sc(perfectSpec.baseScore) + sc(100));
 
     // Default fever delta = 8 + 12 = 20
     expect(res.feverGauge).toBe(perfectSpec.feverDelta + FEVER_CONSTANTS.KILL_FEVER_DELTA);
@@ -29,8 +33,8 @@ describe('ScoreAndFeverManager Multipliers', () => {
     });
 
     // baseScore: 150 * 0.5 = 75, killBonus: 100 => 175
-    expect(res.earnedScore).toBe(175);
-    expect(res.totalScore).toBe(175);
+    expect(res.earnedScore).toBe(sc(75) + sc(100));
+    expect(res.totalScore).toBe(sc(75) + sc(100));
   });
 
   it('should scale fever delta by feverMultiplier', () => {
@@ -51,7 +55,7 @@ describe('ScoreAndFeverManager Multipliers', () => {
     });
 
     // baseScore: 150 * 0.5 = 75, kill: 50 => earned: 125
-    expect(res.earnedScore).toBe(125);
+    expect(res.earnedScore).toBe(sc(75) + sc(50));
 
     // fever: round(2 * 0.33) = 1 + round(4 * 0.33) = 1 => delta = 2
     expect(res.feverGauge).toBe(2);

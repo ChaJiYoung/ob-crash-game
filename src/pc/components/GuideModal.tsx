@@ -331,9 +331,10 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   🎯 명중 정밀도 데미지 배율 & 노-미스(No-Miss) 아케이드 판정
                 </div>
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
-                  • <strong>PERFECT (오차 25% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+150 PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
-                  • <strong>GREAT (오차 55% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+100 PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
-                  • <strong>GOOD (오차 100% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+50 PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
+                  • <strong>PERFECT (오차 25% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+{Math.round(150 * GAME_TUNING.score.scale)} PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
+                  • <strong>GREAT (오차 55% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+{Math.round(100 * GAME_TUNING.score.scale)} PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
+                  • <strong>GOOD (오차 100% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+{Math.round(50 * GAME_TUNING.score.scale)} PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
+                  • <strong>정밀도 보너스:</strong> 클리어하면 한 판 동안의 판정 비율(PERFECT 100% · GREAT 50% · GOOD 20% 가중, MISS 포함)에 따라 최대 약 {GAME_TUNING.score.precisionBonus.k.toLocaleString()}점이 더해집니다. 많이 쏘는 것보다 정확히 맞히는 것이 랭킹에 유리합니다.<br />
                   • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {Math.round(GAME_TUNING.fire.reloadScale)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
                   • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르세요.
                 </div>
@@ -493,7 +494,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
                   • <strong>100% 비례 슬림 게이지 체력바:</strong> 모든 몬스터는 100% 비례 연속 게이지 바로 체력이 표시됩니다. 1HP 캔(필굿, 카스라이트)도 스쳐 맞았을 때(hp &lt; maxHp) 즉시 머리 위에 잔여 체력바가 나타납니다!<br />
-                  • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +500점과 함께 액티브 스킬 1회 충전, 피버 게이지 +{GAME_TUNING.goldenCan.feverGain}%를 받습니다.<br />
+                  • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +{Math.round(500 * GAME_TUNING.score.scale)}점과 함께 액티브 스킬 1회 충전, 피버 게이지 +{GAME_TUNING.goldenCan.feverGain}%를 받습니다.<br />
                   • <strong>🫧 거품/병뚜껑 투사체 요격:</strong> 한맥과 보스가 날리는 투사체를 공중에서 사격하면 몬스터처럼 터지며 요격음과 점수를 얻습니다. 놓쳐서 방어선을 통과하면 바 생명이 1 차감됩니다.
                 </div>
               </div>
@@ -632,14 +633,14 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
                     • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림!)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 점수 1.5배!)<br />
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 점수 1.5배, 명중은 모두 GREAT 판정!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
                     • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> <strong>R 키</strong> 또는 <strong>마우스 우클릭</strong><br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 탄창 자동 연사 & 점수 1.5배)
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 탄창 자동 연사 & 점수 1.5배, 명중은 모두 GREAT 판정)
                   </div>
                 </div>
               </div>
