@@ -245,7 +245,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               alignItems: 'center',
               gap: '2px',
               pointerEvents: 'none',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))',
               zIndex: 10,
             }}
           >
@@ -290,7 +289,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               style={{
                 width: '44px',
                 height: '6px',
-                background: 'rgba(15, 23, 42, 0.88)',
+                background: 'rgba(15, 23, 42, 0.96)',
                 borderRadius: '3px',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 overflow: 'hidden',
@@ -304,7 +303,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                   height: '100%',
                   borderRadius: '2px',
                   background: color,
-                  boxShadow: `0 0 6px ${color}`,
                   transition: 'width 0.12s ease-out',
                 }}
               />
@@ -317,15 +315,13 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         {/* TOP-LEFT: Player Badge, Score, Combo, Lives */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.8)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(17, 24, 39, 0.96)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '16px',
             padding: '16px 20px',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -376,7 +372,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 style={{
                   fontSize: '20px',
                   opacity: i < lives ? 1 : 0.22,
-                  filter: i < lives ? 'none' : 'grayscale(1)',
                   transition: 'opacity 0.2s',
                 }}
               >
@@ -397,14 +392,13 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         >
           <div
             style={{
-              background: 'rgba(17, 24, 39, 0.88)',
+              background: 'rgba(17, 24, 39, 0.96)',
               border: '2px solid #f59e0b',
               borderRadius: '20px',
               padding: '6px 24px',
               fontWeight: 900,
               fontSize: '17px',
               color: '#f59e0b',
-              boxShadow: '0 0 18px rgba(245, 158, 11, 0.45)',
               letterSpacing: '1px',
             }}
           >
@@ -416,12 +410,10 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             <div
               style={{
                 width: '320px',
-                background: 'rgba(17, 24, 39, 0.88)',
-                backdropFilter: 'blur(8px)',
+                background: 'rgba(17, 24, 39, 0.96)',
                 border: '1px solid rgba(245, 158, 11, 0.4)',
                 borderRadius: '10px',
                 padding: '4px 8px',
-                boxShadow: '0 0 12px rgba(245, 158, 11, 0.25)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '3px',
@@ -455,7 +447,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                     height: '100%',
                     width: `${waveProgress.progressPercent}%`,
                     background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-                    boxShadow: '0 0 8px rgba(245, 158, 11, 0.7)',
                     borderRadius: '4px',
                     transition: 'width 0.25s ease-out',
                   }}
@@ -468,12 +459,10 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             <div
               style={{
                 width: '420px',
-                background: 'rgba(17, 24, 39, 0.88)',
-                backdropFilter: 'blur(8px)',
+                background: 'rgba(17, 24, 39, 0.96)',
                 border: '1px solid rgba(239, 68, 68, 0.7)',
                 borderRadius: '12px',
                 padding: '10px 14px',
-                boxShadow: '0 0 24px rgba(239, 68, 68, 0.35)',
               }}
             >
               <div
@@ -528,8 +517,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 onClick={onOpenSensorLab}
                 style={{
                   pointerEvents: 'auto',
-                  background: 'rgba(17, 24, 39, 0.88)',
-                  backdropFilter: 'blur(8px)',
+                  background: 'rgba(17, 24, 39, 0.96)',
                   border: '1px solid rgba(16, 185, 129, 0.6)',
                   borderRadius: '10px',
                   padding: '6px 14px',
@@ -540,7 +528,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
                 }}
               >
                 🎯 센서 진단
@@ -552,8 +539,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 onClick={onOpenGuide}
                 style={{
                   pointerEvents: 'auto',
-                  background: 'rgba(17, 24, 39, 0.88)',
-                  backdropFilter: 'blur(8px)',
+                  background: 'rgba(17, 24, 39, 0.96)',
                   border: '1px solid rgba(245, 158, 11, 0.6)',
                   borderRadius: '10px',
                   padding: '6px 14px',
@@ -564,7 +550,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
                 }}
               >
                 📖 가이드 & 도감
@@ -578,13 +563,11 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               <div
                 key={buff.kind}
                 style={{
-                  background: 'rgba(17, 24, 39, 0.85)',
-                  backdropFilter: 'blur(8px)',
+                  background: 'rgba(17, 24, 39, 0.96)',
                   border: `1.5px solid ${badge.colorHex}`,
                   borderRadius: '12px',
                   padding: '8px 14px',
                   width: '210px',
-                  boxShadow: `0 0 14px ${badge.colorHex}55`,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '4px',
@@ -626,13 +609,11 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         {/* BOTTOM-LEFT: Weapon Archetype, Dynamic Ammo & Active Skill Badge */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.88)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(17, 24, 39, 0.96)',
             border: '1px solid rgba(255, 255, 255, 0.18)',
             borderRadius: '16px',
             padding: '14px 20px',
             minWidth: '290px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
@@ -685,11 +666,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                           ? '#fbbf24'
                           : skillBadge.accentColor
                         : 'rgba(255, 255, 255, 0.1)',
-                      boxShadow: filled
-                        ? isFeverActive
-                          ? '0 0 8px #fbbf24'
-                          : `0 0 6px ${skillBadge.accentColor}`
-                        : 'none',
                       transition: 'background 0.15s',
                     }}
                   />
@@ -712,7 +688,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                   background: isFeverActive
                     ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
                     : `linear-gradient(90deg, #0284c7, ${skillBadge.accentColor})`,
-                  boxShadow: `0 0 8px ${skillBadge.accentColor}`,
                   transition: 'width 0.08s ease-out',
                 }}
               />
@@ -748,15 +723,11 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         {/* BOTTOM-RIGHT: Fever Gauge & Lock Badge */}
         <div
           style={{
-            background: 'rgba(17, 24, 39, 0.8)',
-            backdropFilter: 'blur(8px)',
+            background: 'rgba(17, 24, 39, 0.96)',
             border: feverBadge.isLocked ? '2px solid #fbbf24' : '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '16px',
             padding: '16px 20px',
             width: '320px',
-            boxShadow: feverBadge.isLocked
-              ? '0 0 24px rgba(251, 191, 36, 0.45)'
-              : '0 8px 24px rgba(0, 0, 0, 0.45)',
           }}
         >
           <div
@@ -790,7 +761,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                   : isFeverActive
                   ? '#ef4444'
                   : 'linear-gradient(90deg, #06b6d4, #38bdf8)',
-                boxShadow: feverBadge.isLocked ? '0 0 12px #fbbf24' : 'none',
                 transition: isFeverActive ? 'none' : 'width 0.25s',
               }}
             />

@@ -811,8 +811,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
-            boxShadow: 'inset 0 0 50px #fbbf24, inset 0 0 25px #f59e0b',
-            border: '3px solid rgba(251, 191, 36, 0.75)',
+            border: '8px solid rgba(251, 191, 36, 0.75)',
             zIndex: 110,
             animation: 'pulse 0.6s ease-in-out infinite alternate',
           }}
@@ -830,7 +829,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               padding: '4px 16px',
               borderRadius: '20px',
               letterSpacing: '1.5px',
-              boxShadow: '0 0 20px #fbbf24',
             }}
           >
             🪙 GOLDEN CAN DETECTED!
@@ -889,7 +887,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 borderRadius: '9999px',
                 background: 'rgba(15, 23, 42, 0.90)',
                 border: '2px solid #06b6d4',
-                boxShadow: '0 0 25px rgba(6, 182, 212, 0.6), inset 0 0 15px rgba(6, 182, 212, 0.25)',
                 color: '#ffffff',
                 fontSize: '18px',
                 fontWeight: 800,
@@ -1106,7 +1103,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: 'rgba(5, 7, 12, 0.78)',
-            backdropFilter: 'blur(10px)',
             zIndex: 150,
             userSelect: 'none',
           }}
@@ -1181,7 +1177,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             right: '20px',
             zIndex: 110,
             background: 'rgba(17, 24, 39, 0.92)',
-            backdropFilter: 'blur(10px)',
             border: '1px solid rgba(16, 185, 129, 0.7)',
             borderRadius: '12px',
             padding: '8px 18px',
@@ -1192,7 +1187,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.25)',
           }}
         >
           <span>🎯</span>

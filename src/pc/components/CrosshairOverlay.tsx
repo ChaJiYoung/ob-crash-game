@@ -278,7 +278,6 @@ export const CrosshairOverlay = React.memo(
                 height: `${spec.ringSizePx}px`,
                 borderRadius: '50%',
                 border: `2px dashed ${spec.primaryColor}`,
-                boxShadow: `0 0 16px ${spec.glowColor}, inset 0 0 10px ${spec.glowColor}`,
                 animation: isFeverActive ? 'spin 2s linear infinite' : undefined,
               }}
             />
@@ -299,7 +298,6 @@ export const CrosshairOverlay = React.memo(
                     height: '6px',
                     borderRadius: '50%',
                     background: spec.primaryColor,
-                    boxShadow: `0 0 8px ${spec.primaryColor}`,
                   }}
                 />
               );
@@ -313,7 +311,6 @@ export const CrosshairOverlay = React.memo(
                 height: '8px',
                 borderRadius: '50%',
                 background: spec.primaryColor,
-                boxShadow: `0 0 12px ${spec.primaryColor}`,
               }}
             />
           </>
@@ -330,7 +327,6 @@ export const CrosshairOverlay = React.memo(
                 height: `${spec.ringSizePx}px`,
                 borderRadius: '50%',
                 border: `1.5px solid ${spec.primaryColor}`,
-                boxShadow: `0 0 12px ${spec.glowColor}`,
               }}
             />
 
@@ -341,7 +337,6 @@ export const CrosshairOverlay = React.memo(
                 height: `${spec.sizePx * 1.5}px`,
                 width: '2px',
                 background: `linear-gradient(180deg, transparent, ${spec.primaryColor}, transparent)`,
-                boxShadow: `0 0 8px ${spec.glowColor}`,
               }}
             />
             {/* Horizontal Hairline */}
@@ -362,7 +357,6 @@ export const CrosshairOverlay = React.memo(
                 height: '4px',
                 borderRadius: '50%',
                 background: '#ffffff',
-                boxShadow: `0 0 8px ${spec.primaryColor}`,
               }}
             />
           </>
@@ -381,7 +375,6 @@ export const CrosshairOverlay = React.memo(
                 border: `2px solid ${spec.primaryColor}`,
                 borderTopColor: 'transparent',
                 borderBottomColor: 'transparent',
-                boxShadow: `0 0 14px ${spec.glowColor}`,
                 animation: isKicking
                   ? 'spin 0.25s linear infinite'
                   : isFeverActive
@@ -425,7 +418,6 @@ export const CrosshairOverlay = React.memo(
                 height: '6px',
                 borderRadius: '50%',
                 background: spec.primaryColor,
-                boxShadow: `0 0 10px ${spec.primaryColor}`,
               }}
             />
           </>
@@ -441,7 +433,6 @@ export const CrosshairOverlay = React.memo(
             height: `${cornerSize}px`,
             borderTop: `3px solid ${spec.primaryColor}`,
             borderLeft: `3px solid ${spec.primaryColor}`,
-            boxShadow: `0 0 8px ${spec.glowColor}`,
           }}
         />
         <div
@@ -453,7 +444,6 @@ export const CrosshairOverlay = React.memo(
             height: `${cornerSize}px`,
             borderTop: `3px solid ${spec.primaryColor}`,
             borderRight: `3px solid ${spec.primaryColor}`,
-            boxShadow: `0 0 8px ${spec.glowColor}`,
           }}
         />
         <div
@@ -465,7 +455,6 @@ export const CrosshairOverlay = React.memo(
             height: `${cornerSize}px`,
             borderBottom: `3px solid ${spec.primaryColor}`,
             borderLeft: `3px solid ${spec.primaryColor}`,
-            boxShadow: `0 0 8px ${spec.glowColor}`,
           }}
         />
         <div
@@ -477,7 +466,6 @@ export const CrosshairOverlay = React.memo(
             height: `${cornerSize}px`,
             borderBottom: `3px solid ${spec.primaryColor}`,
             borderRight: `3px solid ${spec.primaryColor}`,
-            boxShadow: `0 0 8px ${spec.glowColor}`,
           }}
         />
 
@@ -490,7 +478,6 @@ export const CrosshairOverlay = React.memo(
             fontWeight: '900',
             letterSpacing: '1px',
             color: spec.primaryColor,
-            textShadow: `0 0 8px ${spec.primaryColor}`,
             background: 'rgba(0, 0, 0, 0.75)',
             padding: '2px 8px',
             borderRadius: '4px',

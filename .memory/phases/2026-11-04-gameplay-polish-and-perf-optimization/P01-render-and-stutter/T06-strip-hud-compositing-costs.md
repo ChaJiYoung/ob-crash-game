@@ -1,6 +1,6 @@
 # Task: T06 Strip HUD Compositing Costs
 
-## Status: pending
+## Status: done
 
 ## Goal
 전투 HUD의 블러와 그림자를 없애 프레임 튐을 줄인다. 측정에서 느린 쪽 5% 프레임이 28ms에서 14ms로 줄어든 항목이다.
@@ -41,9 +41,9 @@
 - `JudgmentBanner.tsx`에 그림자 값을 쉼표로 이은 다중 `textShadow`가 없는지 확인한다.
 
 ## Acceptance Criteria
-- [ ] 전투 HUD가 불투명 패널로 또렷하게 보인다.
-- [ ] 크로스헤어가 어떤 배경에서도 잘 보인다.
-- [ ] 금색 캔 경고와 카드 안내가 그림자 없이도 눈에 띈다.
+- [x] 전투 HUD가 불투명 패널로 또렷하게 보인다.
+- [x] 크로스헤어가 어떤 배경에서도 잘 보인다.
+- [x] 금색 캔 경고와 카드 안내가 그림자 없이도 눈에 띈다.
 
 ## Validation
 - `npx vitest run tests/hud-render-cost.test.ts` — 통과
@@ -65,6 +65,6 @@ Task: T06-strip-hud-compositing-costs
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: perf(hud): remove blur and shadows from combat overlays

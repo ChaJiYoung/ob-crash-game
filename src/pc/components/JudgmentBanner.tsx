@@ -79,7 +79,7 @@ export const JudgmentBanner: React.FC<JudgmentBannerProps> = ({ grade, triggerKe
           fontSize: '36px',
           fontWeight: 900,
           color: spec.colorHex,
-          textShadow: `0 0 20px ${spec.colorHex}, 0 4px 10px rgba(0,0,0,0.8)`,
+          textShadow: '0 2px 2px #000',
           letterSpacing: '2px',
         }}
       >
