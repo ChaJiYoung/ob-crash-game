@@ -139,12 +139,13 @@ export class GunGripTracker {
 
   public getEffectiveAim(
     sample: EulerOrientation,
-    smoothingAlpha = 0.92
+    smoothingAlpha = 0.92,
+    timestampMs?: number
   ): { aim: AimResult; isLocked: boolean } {
     if (this.lockedAim) {
       return { aim: this.lockedAim, isLocked: true };
     }
-    return { aim: this.computeAim(sample, smoothingAlpha), isLocked: false };
+    return { aim: this.computeAim(sample, smoothingAlpha, timestampMs), isLocked: false };
   }
 
   public getCalibrationConfig(): AimCalibrationConfig {

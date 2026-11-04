@@ -1,6 +1,6 @@
 export interface OneEuroFilterConfig {
   minCutoff: number; // 저속/정지 시 최소 컷오프 주파수 (Hz, 낮을수록 떨림 억제 강함, 기본 1.0)
-  beta: number;      // 속도 가중치 계수 (높을수록 빠른 움직임 시 지연 없음, 기본 0.005)
+  beta: number;      // 속도 가중치 계수 (높을수록 빠른 움직임 시 지연 없음, 정규화 도메인 기본 2.5)
   dCutoff: number;   // 도함수(속도) 필터용 컷오프 주파수 (기본 1.0)
   deadzone: number;  // 정지 상태 미세 떨림 무시 임계값 (좌표 단위 -1~1 기준, 기본 0.005)
 }
@@ -27,16 +27,13 @@ export const SENSOR_PRESETS: SensorPresets = {
 
 
 export class LowPassFilter {
-  private y: number | null = null;
   private s: number | null = null;
 
   public filter(value: number, alpha: number): number {
     if (this.s === null) {
       this.s = value;
-      this.y = value;
       return value;
     }
-    this.y = value;
     this.s = alpha * value + (1 - alpha) * this.s;
     return this.s;
   }
@@ -54,7 +51,6 @@ export class LowPassFilter {
   }
 
   public reset(): void {
-    this.y = null;
     this.s = null;
   }
 }
@@ -105,7 +101,8 @@ export class OneEuroFilter {
   }
 
   private computeAlpha(dt: number, cutoff: number): number {
-    const tau = 1.0 / (2.0 * Math.PI * cutoff);
+    const safeCutoff = Math.max(1e-4, cutoff);
+    const tau = 1.0 / (2.0 * Math.PI * safeCutoff);
     const alpha = 1.0 / (1.0 + tau / dt);
     return Math.max(0, Math.min(1, alpha));
   }
