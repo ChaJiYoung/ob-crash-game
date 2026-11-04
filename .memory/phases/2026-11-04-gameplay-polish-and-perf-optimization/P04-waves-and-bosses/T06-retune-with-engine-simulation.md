@@ -96,3 +96,4 @@ Task: T06-retune-with-engine-simulation
 - [x] 구현 완료
 - [x] 검증 통과
 - commit: balance(game): retune bosses and weapons against the real engine
+- 비고: 클리어율·정확도 목표는 충족, **보스전 시간 목표는 미달**(결정 문서의 '구현 중 조정 기록' 참조). 사용자에게 보고한다.

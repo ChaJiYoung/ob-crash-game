@@ -213,27 +213,29 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
 
     it('summons 4 minions every 8s (first after 2.5s), once per encounter even with two bosses', () => {
       finishMiniWave(engine, 5, 100_000);
-      const minions = () => engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_'));
-      // bosses start at 16m and need to walk to <= 12.5m first
       let now = 100_000;
-      const seenAt: number[] = [];
+      const summons: { at: number; minions: number }[] = [];
       let prev = (engine as any).lastBossSummonTimeMs; // the encounter's initial timer value is not a summon
       for (let i = 0; i < 1000; i++) {
         now += 50;
         engine.update(now, 0.05);
-        engine.activeTargets = engine.activeTargets.filter((t) => !t.id.startsWith('boss_minion_') && !t.isProjectile);
-        const total = (engine as any).lastBossSummonTimeMs;
-        if (total !== prev && total > 0) {
-          seenAt.push(total);
-          prev = total;
+        const t = (engine as any).lastBossSummonTimeMs;
+        if (t !== prev) {
+          // Count the minions that appeared in this very frame (two bosses must still summon only 4)
+          summons.push({ at: t, minions: engine.activeTargets.filter((x) => x.id.startsWith('boss_minion_')).length });
+          prev = t;
         }
+        engine.activeTargets = engine.activeTargets.filter((t2) => !t2.id.startsWith('boss_minion_') && !t2.isProjectile);
       }
-      expect(minions().length).toBeGreaterThanOrEqual(0);
-      expect(seenAt.length).toBeGreaterThanOrEqual(5);
-      for (let i = 1; i < seenAt.length; i++) {
-        expect(seenAt[i] - seenAt[i - 1]).toBeGreaterThanOrEqual(GAME_TUNING.boss.summonIntervalMs - 60);
-        expect(seenAt[i] - seenAt[i - 1]).toBeLessThan(GAME_TUNING.boss.summonIntervalMs + 200);
+      expect(summons.length).toBeGreaterThanOrEqual(5);
+      summons.forEach((sm) => expect(sm.minions).toBe(GAME_TUNING.boss.summonCount));
+      for (let i = 1; i < summons.length; i++) {
+        const gap = summons[i].at - summons[i - 1].at;
+        expect(gap).toBeGreaterThanOrEqual(GAME_TUNING.boss.summonIntervalMs - 60);
+        expect(gap).toBeLessThan(GAME_TUNING.boss.summonIntervalMs + 200);
       }
+      // The very first summon arrives ~2.5s after the encounter spawned (once the bosses are in range)
+      expect(summons[0].at - 100_000).toBeGreaterThanOrEqual(GAME_TUNING.boss.firstSummonDelayMs - 100);
     });
 
     it('does not summon while 7 or more minions are on the field, and general spawns do not restart', () => {
@@ -455,6 +457,90 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(king.hp).toBe(120);
       expect(snap.isBossWarning).toBe(true);
       expect(buildHudSnapshot(engine, 103_000).isBossWarning).toBe(false);
+    });
+
+    it('summoned hanmacs do not starve the bosses of projectile fire', () => {
+      finishMiniWave(engine, 5, 100_000);
+      let now = 100_000;
+      const bossShots: number[] = [];
+      // Park two hanmacs next to the bosses; they fire on their own timer
+      const hans = [0.3, -0.3].map((th, i) => ({
+        id: `han${i}`, kind: 'hanmac' as const, hp: 3, maxHp: 3, radiusM: 11, thetaRad: th, initialThetaRad: th,
+        x: Math.sin(th) * 11, z: -Math.cos(th) * 11, speedMps: 0, hitRadiusM: 1, killBonusScore: 1, breached: false,
+      }));
+      engine.activeTargets.push(...hans);
+      for (let i = 0; i < 800; i++) {
+        now += 50;
+        (engine as any).lastBossSummonTimeMs = now;
+        engine.update(now, 0.05);
+        engine.activeTargets
+          .filter((t) => t.isProjectile && !(t as any).seen)
+          .forEach((t) => {
+            (t as any).seen = true;
+            if (t.id.endsWith('_boss')) bossShots.push(now);
+          });
+        engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile);
+      }
+      // 40s of fight at one boss shot per 3.5s
+      expect(bossShots.length).toBeGreaterThanOrEqual(8);
+    });
+
+    it('does not leak boss state into the sandbox and keeps sandbox bosses harmless', () => {
+      finishMiniWave(engine, 7, 100_000);
+      expect(engine.isBossEncounterActive).toBe(true);
+      engine.startSandboxMode();
+      expect(engine.isBossEncounterActive).toBe(false);
+      expect(engine.currentWave).toBe(1);
+      expect(engine.bossWarningUntilMs).toBe(0);
+
+      const boss = engine.spawnSandboxTarget('boss', { stationary: true, thetaRad: 0.3 });
+      engine.update(1000, 0.1);
+      expect(boss.thetaRad).toBeCloseTo(0.3, 5); // not swept by the encounter movement
+      boss.hp = 0.01;
+      engine.weaponSystem.selectWeapon('revolver', 1);
+      const p = engine.computeTargetAimCoords(boss);
+      engine.shootAt(p.targetNormX, p.targetNormY, 1100);
+      expect(engine.gamePhase).toBe('SANDBOX'); // no VICTORY freeze
+    });
+
+    it('a long pause does not make hanmacs or summons fire on resume', () => {
+      finishMiniWave(engine, 5, 100_000);
+      let now = 100_000;
+      for (let i = 0; i < 100; i++) {
+        now += 50;
+        engine.update(now, 0.05);
+      }
+      const han = { id: 'h', kind: 'hanmac' as const, hp: 3, maxHp: 3, radiusM: 11, thetaRad: 0, initialThetaRad: 0, x: 0, z: -11, speedMps: 0, hitRadiusM: 1, killBonusScore: 1, breached: false } as ActiveTargetEntity;
+      engine.activeTargets.push(han);
+      let hanShots = 0;
+      for (let i = 0; i < 30; i++) {
+        now += 50;
+        engine.update(now, 0.05);
+        hanShots += engine.activeTargets.filter((t) => t.isProjectile).length;
+        // Keep the field uncrowded so the hanmac is never blocked by the field-size limit
+        engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile && !t.id.startsWith('boss_minion_'));
+      }
+      expect(hanShots).toBeGreaterThanOrEqual(1); // it was firing before the pause
+      engine.setPaused(true, now);
+      now += 20_000;
+      engine.setPaused(false, now);
+      engine.update(now + 16, 0.016);
+      expect(engine.activeTargets.some((t) => t.isProjectile)).toBe(false);
+      expect(engine.activeTargets.some((t) => t.id.startsWith('boss_minion_'))).toBe(false);
+    });
+
+    it('resets the boss warning when a new game or wave starts and caps the kill counter', () => {
+      finishMiniWave(engine, 3, 100_000);
+      expect(engine.bossWarningUntilMs).toBeGreaterThan(0);
+      engine.startGame({ withWeaponSelect: false });
+      expect(engine.bossWarningUntilMs).toBe(0);
+
+      engine.startWave(3);
+      // @ts-expect-error private test setup
+      engine.killedInWave = 45;
+      const p = engine.getWaveProgress();
+      expect(p.killedInWave).toBe(GAME_TUNING.waves[2].totalSpawns);
+      expect(p.remainingInWave).toBe(0);
     });
   });
 });

@@ -161,9 +161,18 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     }
   });
 
-  it('removes hanmac enrage entirely', () => {
-    const h = mk('hanmac', 14);
+  it('a hit hanmac is not enraged or sped up anymore', () => {
+    const h = mk('hanmac', 14, { speedMps: 2 });
+    engine.activeTargets = [h];
+    engine.update(1000, 0.0001);
+    engine.weaponSystem.selectWeapon('revolver', 1);
+    const p = engine.computeTargetAimCoords(h);
+    engine.shootAt(p.targetNormX, p.targetNormY, 1100);
+    expect(h.hp).toBeLessThan(3);
     expect((h as unknown as { isEnraged?: boolean }).isEnraged).toBeUndefined();
+    const before = h.radiusM;
+    engine.update(1300, 0.1);
+    expect(before - h.radiusM).toBeCloseTo(2 * 0.1, 3);
   });
 
   describe('obi shield', () => {

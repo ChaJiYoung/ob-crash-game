@@ -222,6 +222,7 @@ export class BeerCrusherEngine {
   public rewardCardsSpawnTimeMs = 0;
   private goldenCanSpawnedInWave = false;
   private lastProjectileSpawnTimeMs = 0;
+  private lastBossProjectileMs = 0;
 
   public aspect = 16 / 9;
   public vFovDeg = STAGE_CONSTANTS.CAMERA_FOV_DEG;
@@ -256,7 +257,8 @@ export class BeerCrusherEngine {
   public getWaveProgress(): WaveProgressInfo {
     const currentDef = this.waveDefinitions[this.currentWave];
     const totalSpawns = currentDef ? currentDef.totalSpawns : 1;
-    const killed = this.killedInWave;
+    // Split bottles, boss minions and bosses are kills too; keep the counter within the wave's spawn count
+    const killed = Math.min(this.killedInWave, totalSpawns);
     const remaining = Math.max(0, totalSpawns - killed);
     const progressPercent = Math.min(100, Math.round((killed / totalSpawns) * 100));
 
@@ -279,12 +281,9 @@ export class BeerCrusherEngine {
       this.pausedAtMs = nowMs;
     } else if (!paused && this.isPaused) {
       const pauseDurationMs = this.pausedAtMs !== null ? Math.max(0, nowMs - this.pausedAtMs) : 0;
-      this.lastSpawnTimeMs += pauseDurationMs;
-      for (const [kind, until] of this.activeBuffUntilMs.entries()) {
-        this.activeBuffUntilMs.set(kind, until + pauseDurationMs);
-      }
-      this.scoreManager.shiftFeverTimer(pauseDurationMs);
-      this.weaponSystem.shiftReloadTimer(pauseDurationMs);
+      // Same set of timers as the card-select freeze: buffs, fever, reload, spawns, boss summon,
+      // projectile timers, hanmac fire, stun and slow
+      this.freezeTimers(pauseDurationMs);
       this.isPaused = false;
       this.pausedAtMs = null;
     }
@@ -304,6 +303,8 @@ export class BeerCrusherEngine {
     this.lastSpawnTimeMs = 0;
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
+    this.lastBossProjectileMs = 0;
+    this.bossWarningUntilMs = 0;
     this.isTutorialMode = false;
     this.isSandboxMode = false;
     this.luckyDropStacks = 0;
@@ -336,6 +337,8 @@ export class BeerCrusherEngine {
     this.lastSpawnTimeMs = 0;
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
+    this.lastBossProjectileMs = 0;
+    this.bossWarningUntilMs = 0;
     this.isRewardCardPending = false;
     this.pendingWaveAdvance = false;
     this.cardKillCount = 0;
@@ -573,6 +576,10 @@ export class BeerCrusherEngine {
   public startTutorialMode(): void {
     this.gamePhase = 'TUTORIAL';
     this.isTutorialMode = true;
+    this.currentWave = 1;
+    this.isBossEncounterActive = false;
+    this.bossSpawned = false;
+    this.bossWarningUntilMs = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.tutorialStep = 1;
@@ -716,6 +723,10 @@ export class BeerCrusherEngine {
   public startSandboxMode(): void {
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;
+    this.currentWave = 1;
+    this.isBossEncounterActive = false;
+    this.bossSpawned = false;
+    this.bossWarningUntilMs = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -949,6 +960,7 @@ export class BeerCrusherEngine {
     this.weaponSystem.shiftReloadTimer(deltaMs);
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
+    if (this.lastBossProjectileMs > 0) this.lastBossProjectileMs += deltaMs;
     if (this.lastBossSummonTimeMs !== 0) this.lastBossSummonTimeMs += deltaMs;
     for (const target of this.activeTargets) {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
@@ -1173,13 +1185,14 @@ export class BeerCrusherEngine {
 
     // Periodic projectile spawn from the boss (hanmac fires on its own timer in the movement loop)
     const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
-    if (hasBossShooter && nowMs - this.lastProjectileSpawnTimeMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
+    if (hasBossShooter && nowMs - this.lastBossProjectileMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
       // Living coolers fire in turns from their own position; the king fires only if no cooler is left
       const bosses = this.getBossEntities();
       const coolers = bosses.filter((b) => b.bossRole !== 'king');
       const shooters = coolers.length > 0 ? coolers : bosses;
       const shooter = shooters[this.bossShooterIndex % shooters.length];
       this.bossShooterIndex += 1;
+      this.lastBossProjectileMs = nowMs; // separate from the hanmac shots so summoned hanmacs cannot starve the bosses
       this.spawnMonsterProjectile(nowMs, 'boss', { thetaRad: shooter.thetaRad, radiusM: shooter.radiusM });
     }
 
@@ -1370,6 +1383,7 @@ export class BeerCrusherEngine {
     this.lastBossSummonTimeMs = nowMs - GAME_TUNING.boss.summonIntervalMs + GAME_TUNING.boss.firstSummonDelayMs;
     this.lastBossSummonHpThreshold = 0;
     this.bossShooterIndex = 0;
+    this.lastBossProjectileMs = nowMs;
     this.shieldKillCount = 0;
     this.shieldThresholdIndex = 0;
 
@@ -1459,6 +1473,11 @@ export class BeerCrusherEngine {
 
   private handleMonsterKilled(target: ActiveTargetEntity, nowMs: number): void {
     if (this.gamePhase === 'VICTORY' || this.gamePhase === 'GAMEOVER') {
+      return;
+    }
+
+    if (target.kind === 'boss' && (this.isSandboxMode || this.isTutorialMode)) {
+      // Sandbox / tutorial bosses are just targets: no encounter flow, no victory
       return;
     }
 
