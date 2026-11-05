@@ -1,6 +1,6 @@
 # Task: T04 Final Verification and Playtest
 
-## Status: todo
+## Status: done
 
 ## Goal
 자동 검증을 모두 통과시키고, 사람이 폰 자이로와 마우스로 직접 플레이해 시간 보너스·보스 압박 수치를 확정한다.
@@ -39,8 +39,8 @@
 
 ## Acceptance Criteria
 - [x] 자동 검증이 모두 통과한다. (결과는 `.memory/references/playtest-2026-11-05.md`)
-- [ ] 사람이 체크리스트를 채웠다(실행 주체가 대신 표시하지 않는다).
-- [ ] 피드백이 있으면 수치 조정과 재검증이 끝났다.
+- [x] 사람이 체크리스트를 채웠다(실행 주체가 대신 표시하지 않는다).
+- [x] 피드백이 있으면 수치 조정과 재검증이 끝났다.
 
 ## Validation
 - `npm test`, `npx tsc --noEmit`, `npm run build` — 모두 통과
@@ -60,6 +60,9 @@ Task: T04-final-verification-and-playtest
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
+
+## 사람 플레이 결과 (2026-11-06)
+사용자가 세 무기를 모두 직접 플레이해 "아슬아슬하게 다 깼다"고 알렸고, 이 플레이 확인을 닫으라고 했다. 값 조정 없음.

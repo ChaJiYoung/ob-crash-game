@@ -10,15 +10,10 @@
 (이 계획의 Task 완료) 사람 플레이 대기
 
 ## Status
-- 플레이 기록과 판별 랭킹 구현, 자동 검증 완료. 게임 서버 재시작과 사람 확인 대기
+- 2026-11-05 계획들의 사람 플레이 확인을 닫음(세 무기 클리어). 열린 활성 Task 없음.
 
 ## Paused Plan
-- `2026-11-05-boss-distance-gatling-hanmac`: 구현 완료, 사람 플레이 느낌 대기.
-- `2026-11-05-playtest-visual-feedback` P03-T02(사람 플레이): 자동 검증 완료, 느낌 확인 대기.
-- `2026-11-05-boss-summon-shell-and-speed` P04-T03(사람 플레이): 사용자 소감은 "거의 비슷했다"이나 **개틀링을 아직 안 해 봐서 다시 알려주기로 함**. 그때까지 닫지 않고 값도 고치지 않는다.
-- 그 플레이로 `2026-11-05-weapon-skill-rework` P04-T03, `2026-11-05-skill-guard-ammo-tuning` P03-T02, `2026-11-05-score-differentiation` P03-T04도 함께 닫는다.
 - `2026-11-04-gameplay-polish-and-perf-optimization` P05-T04·T05: 그대로 남는다.
-- 랭킹 v5 여부는 개틀링 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-사용자가 `npm run server`를 재시작하고 플레이한다. 체크리스트: `.memory/references/playtest-2026-11-05-skill-guard-ammo.md` 끝. 이후 열린 플레이 Task와 랭킹 v5 여부를 묻는다.
+사용자 답 대기: 무기 레벨 보너스 진행 여부(기본 점수·승리 판, 규칙 v5와 랭킹 초기화 포함), 무대 상단 호박색 네온(`amberStrip`) 제거 여부.

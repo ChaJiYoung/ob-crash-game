@@ -1,6 +1,6 @@
 # Task: T02 최종 자동 검증과 직접 플레이 (사람)
 
-## Status: in_progress (자동 검증 완료, 사람 직접 플레이 대기)
+## Status: done
 
 ## Goal
 자동 검증을 모두 돌리고, 사람이 직접 플레이해 이번 피드백 네 가지가 실제로 해결됐는지 확인한다. 점수 차별화 계획의 대기 중인 플레이 확인(P03-T04)도 이때 함께 한다.
@@ -36,7 +36,7 @@
 
 ## Acceptance Criteria
 - [x] `npm test`, `tsc`, `build`, 봇 플레이, 라이브 검증이 통과한다(결과가 `.memory/references/playtest-2026-11-05-skill-guard-ammo.md`에 기록됨).
-- [ ] 사람이 체크리스트를 채우고 피드백이 `gameTuning.ts` 조정으로 반영되거나 "그대로 OK"로 확정된다.
+- [x] 사람이 체크리스트를 채우고 피드백이 `gameTuning.ts` 조정으로 반영되거나 "그대로 OK"로 확정된다.
 
 ## Validation
 - `npm test && npx tsc --noEmit && npm run build` — 모두 통과
@@ -55,5 +55,8 @@ Task: T02-final-verification-and-playtest
 
 ## Progress
 - [x] 구현 완료 (자동 검증·체크리스트 파일 작성)
-- [ ] 검증 통과
+- [x] 검증 통과
 - commit: pending
+
+## 사람 플레이 결과 (2026-11-06)
+사용자가 세 무기를 모두 직접 플레이해 "아슬아슬하게 다 깼다"고 알렸고, 이 플레이 확인을 닫으라고 했다. 값 조정 없음.

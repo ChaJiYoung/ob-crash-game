@@ -8,7 +8,7 @@
 | T03 | `done ✅` | 점수 제출에 랭킹 규칙 버전 검사, 안 쓰는 상수 제거와 base 표 주석 (리뷰 6·8) | [T03](./T03-ruleset-check-and-leftovers.md) |
 
 ## Progress
-- done: 3/3 (active: none)
+- done: 3/3 (active: 없음)
 
 ## 보류
 - 리뷰 1(난이도·시간 보너스 구조·v5 초기화)은 사용자의 직접 플레이 뒤에 정한다. 이 Phase에서 수치를 바꾸지 않는다.

@@ -8,4 +8,4 @@
 | T03 | `done ✅` | 스킬 피해 공용 함수, 공격력 카드 적용, `spreadRad` 삭제, 샷건 설명 | [T03](./T03-skill-damage-bonus-and-shotgun-text.md) |
 
 ## Progress
-- done: 3/3
+- done: 3/3 (active: 없음)

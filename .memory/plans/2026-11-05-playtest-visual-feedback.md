@@ -18,7 +18,7 @@
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 화면 표시: 장전 링, 피격 번쩍임·소리, 보스 경고 띠 | [P01](../phases/2026-11-05-playtest-visual-feedback/P01-screen-feedback/phase.md) |
 | P02 | `done` | 3D 모델: 스프링 똥, 새 냉각기·대왕·OB 로고 | [P02](../phases/2026-11-05-playtest-visual-feedback/P02-shell-and-boss-models/phase.md) |
-| P03 | `in_progress` | 문서·도감·스크린샷 동기화, 최종 검증과 직접 플레이 | [P03](../phases/2026-11-05-playtest-visual-feedback/P03-docs-and-verify/phase.md) |
+| P03 | `done` | 문서·도감·스크린샷 동기화, 최종 검증과 직접 플레이 | [P03](../phases/2026-11-05-playtest-visual-feedback/P03-docs-and-verify/phase.md) |
 
 ## 순서의 이유
 - P01 먼저: 게임 규칙과 판정을 건드리지 않아 위험이 작다. 눈으로 바로 확인할 수 있다.

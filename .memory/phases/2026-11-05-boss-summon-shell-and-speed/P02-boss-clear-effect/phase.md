@@ -7,4 +7,4 @@
 | T02 | `done ✅` | 화면: 큰 폭발, 연쇄 폭발 연출, "BOSS DOWN!" 배너 | [T02](./T02-boss-clear-visuals.md) |
 
 ## Progress
-- done: 2/2
+- done: 2/2 (active: 없음)

@@ -4,7 +4,7 @@
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | T01 | `done ✅` | 웨이브 기준 시간(parTimeSec) 재측정·반영, 클리어율 확인 | [T01](./T01-remeasure-par-times.md) |
-| T02 | `in_progress 🔵` | 최종 자동 검증과 직접 플레이(사람) | [T02](./T02-final-verification-and-playtest.md) |
+| T02 | `done ✅` | 최종 자동 검증과 직접 플레이(사람) | [T02](./T02-final-verification-and-playtest.md) |
 
 ## Progress
-- done: 1/2 (active: T02)
+- done: 2/2 (active: 없음)

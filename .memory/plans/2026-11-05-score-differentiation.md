@@ -17,7 +17,7 @@
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 웨이브별 기준 시간, 선형 시간 보너스, 웨이브 클리어 표시와 결과 점수 내역 | [P01](../phases/2026-11-05-score-differentiation/P01-wave-time-bonus/phase.md) |
 | P02 | `done` | 보스 부하 소환 가속, 위에서 떨어지는 무작위 소환(6~14m)과 낙하 연출 | [P02](../phases/2026-11-05-score-differentiation/P02-boss-pressure/phase.md) |
-| P03 | `in_progress` | 기준 시간·상한 측정과 설정, 보스 압박 재조정, 문서·랭킹 버전, 직접 플레이 검증 | [P03](../phases/2026-11-05-score-differentiation/P03-tune-and-verify/phase.md) |
+| P03 | `done` | 기준 시간·상한 측정과 설정, 보스 압박 재조정, 문서·랭킹 버전, 직접 플레이 검증 | [P03](../phases/2026-11-05-score-differentiation/P03-tune-and-verify/phase.md) |
 
 ## 순서의 이유
 P02가 보스전 길이와 난이도를 바꾸므로, 보스 웨이브의 기준 시간은 P02 이후에 측정해야 한다. 그래서 P01은 임시 기준 시간으로 메커니즘만 만들고 P03에서 실측값으로 바꾼다.

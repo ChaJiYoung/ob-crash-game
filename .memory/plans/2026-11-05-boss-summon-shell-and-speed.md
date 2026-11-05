@@ -19,7 +19,7 @@
 | P01 | `done` | 속도 값, 대왕 방패 제거, 보스 체력 구간 소환(시간 소환 제거) | [P01](../phases/2026-11-05-boss-summon-shell-and-speed/P01-speed-and-boss-rules/phase.md) |
 | P02 | `done` | 보스 처치 연출: 엔진 처치 시퀀스와 화면 폭발·배너 | [P02](../phases/2026-11-05-boss-summon-shell-and-speed/P02-boss-clear-effect/phase.md) |
 | P03 | `done` | 똥 모양 포탄, 발사 사건과 분출 연출, 갈색 파편 | [P03](../phases/2026-11-05-boss-summon-shell-and-speed/P03-poop-shell/phase.md) |
-| P04 | `in_progress` | 문서·가이드 동기화, 기준 시간 재측정, 최종 검증과 직접 플레이 | [P04](../phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/phase.md) |
+| P04 | `done` | 문서·가이드 동기화, 기준 시간 재측정, 최종 검증과 직접 플레이 | [P04](../phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/phase.md) |
 
 ## 순서의 이유
 - P01 먼저: 방패와 시간 소환을 걷어내야 P02의 "마지막 보스" 판정과 P03 이전의 보스전 규칙이 단순해진다. 지우기를 먼저 하고 새 규칙을 얹는다.

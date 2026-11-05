@@ -1,6 +1,6 @@
 # Task: T02 자동 검증과 사람 직접 플레이
 
-## Status: in_progress (자동 검증 완료, 사람 직접 플레이 대기)
+## Status: done
 
 ## Goal
 자동 검증을 모두 돌리고, 사람이 직접 플레이해 다섯 가지 소감이 해결됐는지 확인한다.
@@ -35,7 +35,7 @@
 
 ## Acceptance Criteria
 - [x] 자동 검증이 통과하고 결과가 기록된다.
-- [ ] 사람 플레이 결과가 기록되고 조정 또는 "그대로 OK"로 확정된다.
+- [x] 사람 플레이 결과가 기록되고 조정 또는 "그대로 OK"로 확정된다.
 
 ## Validation
 - `npm test && npx tsc --noEmit && npm run build` — 모두 통과
@@ -55,5 +55,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ## Progress
 - [x] 구현 완료
-- [ ] 검증 통과
+- [x] 검증 통과
 - commit: pending
+
+## 사람 플레이 결과 (2026-11-06)
+사용자가 세 무기를 모두 직접 플레이해 "아슬아슬하게 다 깼다"고 알렸고, 이 플레이 확인을 닫으라고 했다. 값 조정 없음.

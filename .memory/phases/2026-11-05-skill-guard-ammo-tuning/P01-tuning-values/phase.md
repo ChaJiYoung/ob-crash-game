@@ -7,4 +7,4 @@
 | T02 | `done ✅` | 코드·문서의 하드코딩 문구(장전 1.2초, 10발, 방패 1.5초, 장전 2배)를 새 값에 맞게 수정 | [T02](./T02-sync-hardcoded-text.md) |
 
 ## Progress
-- done: 2/2 (active: none)
+- done: 2/2 (active: 없음)

@@ -8,4 +8,4 @@
 | T03 | `done ✅` | 리볼버 평타 관통의 뒤쪽 몬스터에 타격 연출 표시 | [T03](./T03-pierce-feedback.md) |
 
 ## Progress
-- done: 3/3
+- done: 3/3 (active: 없음)

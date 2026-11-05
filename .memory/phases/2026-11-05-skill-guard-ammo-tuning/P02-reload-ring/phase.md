@@ -8,4 +8,4 @@
 | T03 | `done ✅` | 장전 중 카드 효과와 링 동기화, 피버 중 죽은 spin 애니메이션 수정 | [T03](./T03-ring-robustness-and-dead-spin.md) |
 
 ## Progress
-- done: 3/3 (active: none)
+- done: 3/3 (active: 없음)

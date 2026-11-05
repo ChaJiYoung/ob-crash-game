@@ -8,4 +8,4 @@
 | T03 | `done ✅` | 보스 체력 상향과 체력 구간 소환(시간 소환 제거) | [T03](./T03-hp-threshold-summons.md) |
 
 ## Progress
-- done: 3/3
+- done: 3/3 (active: 없음)

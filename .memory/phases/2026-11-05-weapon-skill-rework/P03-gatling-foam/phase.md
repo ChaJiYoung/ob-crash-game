@@ -7,4 +7,4 @@
 | T02 | `done ✅` | 작은 거품 인스턴싱 렌더링, 레벨별 거품 수, 이전 거품 제거 | [T02](./T02-foam-visuals.md) |
 
 ## Progress
-- done: 2/2
+- done: 2/2 (active: 없음)
