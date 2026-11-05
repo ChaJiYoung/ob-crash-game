@@ -15,6 +15,10 @@ type TabType = 'weapons' | 'monsters' | 'cards' | 'items';
 type WeaponKindKey = 'shotgun' | 'revolver' | 'gatling';
 
 /** 무기 도감의 "성능" 줄을 무기 표(`WEAPON_ARCHETYPE_SPECS`, GAME_TUNING 반영)에서 만든다. 수치를 조정해도 안내가 어긋나지 않는다. */
+function levelSeries(byLevel: Record<1 | 2 | 3 | 4, number>): string {
+  return ([1, 2, 3, 4] as const).map((l) => byLevel[l]).join(' / ');
+}
+
 function weaponPerformanceText(kind: WeaponKindKey): string {
   const lv = WEAPON_ARCHETYPE_SPECS[kind].levels;
   const levels = [1, 2, 3, 4] as const;
@@ -88,7 +92,7 @@ const MONSTER_DETAILS: Record<
   boss: {
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (10m 정지, 좌우 이동)',
-    description: `스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 소환하고(소환 간격은 ${GAME_TUNING.boss.summonIntervalMs / 1000}초에서 ${GAME_TUNING.boss.summonAccel.minIntervalMs / 1000}초까지 짧아지고 ${GAME_TUNING.boss.summonCount}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다) 투사체를 쏩니다. 넉백이 통하지 않습니다.`,
+    description: `스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 소환하고(소환 간격은 ${GAME_TUNING.boss.summonIntervalMs / 1000}초에서 ${GAME_TUNING.boss.summonAccel.minIntervalMs / 1000}초까지 짧아지고 ${GAME_TUNING.boss.summonCount}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
     tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 대왕의 쉴드는 부하 6마리 또는 냉각기 1대를 처치하면 풀리고, 체력이 2/3·1/3 아래로 내려가면 다시 켜집니다. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
@@ -381,7 +385,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 리얼 고무 벨 뚫어뻥 장착 ➔ Lv.2 듀얼 고압관 ➔ Lv.3 호박색 맥주관 순환 ➔ Lv.4 쿼드 배럴 + 둔화 파동<br />
                   • <strong>성능:</strong> {weaponPerformanceText('shotgun')}<br />
-                  • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 화면 8방향에서 12~22개의 미니 뚫어뻥이 포물선으로 날아가 몬스터를 1.0~2.0초간 부착 기절(Stun)시킵니다! (빗나간 탄은 바닥에서 통통 튕김)
+                  • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 화면 8방향에서 12~22개의 미니 뚫어뻥이 포물선으로 날아가 몬스터를 1.0~2.0초간 부착 기절(Stun)시킵니다! (빗나간 탄은 바닥에서 통통 튕김) 보스에게는 피해만 줍니다.
                 </div>
               </div>
 
@@ -405,7 +409,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                         황금 병따개 리볼버 (Revolver)
                       </span>
                       <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px' }}>
-                        초정밀 일직선 관통탄 & 불릿 타임
+                        초정밀 일직선 관통탄 & 부채꼴 칼날
                       </span>
                     </div>
                   </div>
@@ -425,7 +429,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 병따개 해머 & 실린더 ➔ Lv.2 롱배럴 ➔ Lv.3 시안 네온 레이저 스코프 ➔ Lv.4 4각 머즐 브레이크<br />
                   • <strong>성능:</strong> {weaponPerformanceText('revolver')}<br />
-                  • <strong>⚡ 전용 액티브 스킬 [오프너 불릿 타임 & 참격]:</strong> 거대한 황금 병따개 블레이드가 전방을 회전하며 모든 몬스터를 베고 지나가며, 3.5~5.0초간 전장을 40~60% 슬로우 모션 상태로 만듭니다.
+                  • <strong>⚡ 전용 액티브 스킬 [오프너 참격]:</strong> 총구를 위로 '휙!' 젖히면 황금 칼날이 부채꼴로 곧게 날아가 닿은 몬스터를 베고 날아오는 포탄도 벱니다. 칼날 {levelSeries(GAME_TUNING.skills.blade.countByLevel)}개, 관통 {levelSeries(GAME_TUNING.skills.blade.pierceByLevel)}마리. 칼날 하나의 피해는 평타 한 발과 같습니다.
                 </div>
               </div>
 
@@ -449,7 +453,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                         탄산 탭 개틀링 (Gatling)
                       </span>
                       <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px' }}>
-                        초고속 탄산 기포 난사 & 160도 거품 해일
+                        초고속 탄산 기포 난사 & 거품 해일
                       </span>
                     </div>
                   </div>
@@ -469,7 +473,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                   • <strong>외형 진화:</strong> 6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크<br />
                   • <strong>성능:</strong> {weaponPerformanceText('gatling')}<br />
-                  • <strong>⚡ 전용 액티브 스킬 [거품 해일 160도 오버히트]:</strong> 160도 부채꼴 각도로 반투명 거품 해일이 밀려나가며 전방의 모든 몬스터를 1.0~1.4m 뒤로 밀어내고 둔화시킵니다.
+                  • <strong>⚡ 전용 액티브 스킬 [거품 해일]:</strong> 작은 거품이 필드 전체로 쓸고 나가며 닿은 몬스터를 {levelSeries(GAME_TUNING.skills.foam.knockbackMByLevel)}m 뒤로 밀어내고 둔화시킵니다. 밀어내기 전용이라 피해는 낮고, 레벨이 오를수록 거품이 많아집니다.
                 </div>
               </div>
             </div>

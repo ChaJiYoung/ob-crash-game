@@ -13,6 +13,7 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /5단계 (아케이드|테마)/, why: 'the game has 7 waves' },
   { pattern: /카드 5종|5종 보상 카드|보상 카드 5종/, why: 'there are 9 reward cards' },
   { pattern: /탄착군 확산|근접 넉백|넉백 밀쳐내기|근접 ?산탄/, why: 'shotgun has no spread stat and its knockback is minor' },
+  { pattern: /불릿 타임|오프너 부메랑|160도|오버히트/, why: 'the revolver skill is fan blades and the foam wave covers the whole field' },
   { pattern: /MISS 페널티 완전 폐지/, why: 'misses now cost ammo and reload time' },
   { pattern: /8초마다 (부하|소환)|부하를 8초마다|부하 4마리|4마리를 (공유|소환)/, why: 'boss summons are 3 minions with an interval that shrinks from 8s to 5s, dropped at 6-14m' },
   { pattern: /\+150 PTS|\+100 PTS|\+50 PTS|\+500점|\+1,500점|2배 화력|기본 피해의 3배/, why: 'scores are scaled by GAME_TUNING.score.scale (x0.1) and fever no longer boosts damage' },
@@ -84,6 +85,8 @@ describe('player-facing text matches the final spec', () => {
           `${(spec.reloadDurationMs / 1000).toFixed(1)}s`,
           `${spec.skillCooldownMs / 1000}s`,
         ];
+        if (kind === 'revolver') expected.push(`${spec.skillBladeCount}개·관통 ${spec.skillBladePierce}`);
+        if (kind === 'gatling') expected.push(`| ${spec.skillKnockbackM}m |`);
         expected.forEach((e) => {
           if (!row.includes(e)) mismatches.push(`${kind} Lv.${lv}: expected "${e}" in ${row.slice(0, 80)}`);
         });

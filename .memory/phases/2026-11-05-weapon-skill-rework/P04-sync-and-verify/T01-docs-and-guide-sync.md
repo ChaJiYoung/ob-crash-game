@@ -1,6 +1,6 @@
 # Task: T01 문서와 게임 내 가이드 동기화
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 내 가이드, `docs/`, README, 캡처 스크립트의 스킬 설명을 실제 동작과 일치시킨다. 사라진 불릿 타임, 부메랑, 160도가 플레이어에게 보이지 않게 한다.
@@ -105,6 +105,6 @@ Task: T01-docs-and-guide-sync
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

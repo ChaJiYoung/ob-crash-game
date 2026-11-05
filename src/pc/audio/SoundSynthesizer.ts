@@ -178,7 +178,7 @@ export class SoundSynthesizer {
         osc.stop(now + i * 0.06 + 0.1);
       }
     } else if (kind === 'revolver') {
-      // Bullet Time warp & golden slash
+      // Opener slash
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';

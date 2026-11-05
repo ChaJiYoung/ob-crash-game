@@ -106,8 +106,8 @@ async function captureWeaponsAndSkills() {
   console.log('Capturing screen-17-skill-plunger-storm.png...');
   await page.screenshot({ path: path.join(screensDir, 'screen-17-skill-plunger-storm.png') });
 
-  // 2. Revolver: Opener Boomerang
-  console.log('Setting up Revolver for Opener Boomerang skill...');
+  // 2. Revolver: Opener Slash
+  console.log('Setting up Revolver for Opener Slash skill...');
   await page.evaluate(() => {
     const eng = window.__engine;
     if (eng) {
@@ -123,11 +123,11 @@ async function captureWeaponsAndSkills() {
   });
   await page.waitForTimeout(800);
 
-  console.log('Firing Opener Boomerang via KeyR...');
+  console.log('Firing Opener Slash via KeyR...');
   await page.keyboard.press('KeyR');
-  await page.waitForTimeout(80); // Center front frame while giant golden opener is spinning!
-  console.log('Capturing screen-18-skill-opener-boomerang.png...');
-  await page.screenshot({ path: path.join(screensDir, 'screen-18-skill-opener-boomerang.png') });
+  await page.waitForTimeout(160); // Blades are mid-flight and have just reached the first monsters
+  console.log('Capturing screen-18-skill-opener-slash.png...');
+  await page.screenshot({ path: path.join(screensDir, 'screen-18-skill-opener-slash.png') });
 
   // 3. Gatling: Foam Tsunami
   console.log('Setting up Gatling for Foam Tsunami skill...');
@@ -148,9 +148,24 @@ async function captureWeaponsAndSkills() {
 
   console.log('Firing Foam Tsunami via KeyR...');
   await page.keyboard.press('KeyR');
-  await page.waitForTimeout(150); // Frame while 160-deg foam wave sweeps forward!
+  await page.waitForTimeout(400); // Frame while the foam wave sweeps across the field
   console.log('Capturing screen-19-skill-foam-tsunami.png...');
   await page.screenshot({ path: path.join(screensDir, 'screen-19-skill-foam-tsunami.png') });
+
+  // 3b. Gatling foam during fever (gameplay frame)
+  console.log('Firing Foam Tsunami during fever...');
+  await page.evaluate(() => {
+    const eng = window.__engine;
+    if (eng) {
+      eng.weaponSystem.refillSkillInstant();
+      eng.scoreManager.addFeverGauge(100);
+      eng.activateFever(performance.now());
+    }
+  });
+  await page.waitForTimeout(300);
+  await page.keyboard.press('KeyR');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: path.join(screensDir, 'play-fever-foam-tsunami.png') });
 
   await browser.close();
   console.log('ALL WEAPON EVOLUTIONS, SKILL ACTION FRAMES & CARD SELECTIONS CAPTURED SUCCESSFULLY!');
