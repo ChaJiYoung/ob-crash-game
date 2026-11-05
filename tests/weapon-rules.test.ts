@@ -64,8 +64,8 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
 
   it('scales base fire interval by 0.7 and reload by 2.0', () => {
     expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].fireIntervalMs).toBe(Math.round(320 * 0.7));
-    expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].reloadDurationMs).toBe(1400 * 2);
-    expect(WEAPON_ARCHETYPE_SPECS.gatling.levels[3].maxAmmo).toBe(GAME_TUNING.gatlingMaxAmmoByLevel[3]);
+    expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].reloadDurationMs).toBe(Math.round(1400 * GAME_TUNING.fire.reloadScale));
+    expect(WEAPON_ARCHETYPE_SPECS.gatling.levels[3].maxAmmo).toBe(GAME_TUNING.maxAmmoByWeapon.gatling[3]);
   });
 
   it('makes the same aim offset miss on an ultrawide screen but hit on 16:9 (aspect correction)', () => {

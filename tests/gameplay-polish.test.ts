@@ -49,7 +49,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       weaponSystem.selectWeapon('shotgun', 1);
 
       // Empty magazine completely
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < weaponSystem.getMaxAmmo(); i++) {
         weaponSystem.consumeShot(1000 + i * 400, false);
       }
 

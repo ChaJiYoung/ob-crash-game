@@ -179,9 +179,11 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     const guarded = (guardPhaseMs: number): ActiveTargetEntity =>
       mk('obi', 9, { guardPhaseMs, hp: 2, maxHp: 2 });
 
-    // With guardPhase 0 the shield is up for t in [0,2000) and down for [2000,3000) of each 3s cycle
-    const UP = 3000 * 5 + 500; // 15500: shield up
-    const DOWN = 3000 * 5 + 2500; // 17500: shield down
+    // With guardPhase 0 the shield is up for the first guardUpMs of each cycle and down for the rest
+    const { guardUpMs: GUARD_UP, guardDownMs: GUARD_DOWN } = GAME_TUNING.monsters.obi;
+    const CYCLE = GUARD_UP + GUARD_DOWN;
+    const UP = CYCLE * 5 + GUARD_UP / 2; // middle of the raised window
+    const DOWN = CYCLE * 5 + GUARD_UP + GUARD_DOWN / 2; // middle of the lowered window
 
     const shoot = (e: BeerCrusherEngine, t: ActiveTargetEntity, now: number, source: 'press' | 'fever' = 'press') => {
       e.activeTargets = [t];

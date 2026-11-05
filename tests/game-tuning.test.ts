@@ -57,7 +57,7 @@ describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
 
   it('does not mutate the base weapon spec table', () => {
     // 35s Lv.1 comes from tuning, not the literal table
-    expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].skillCooldownMs).toBe(35000);
+    expect(WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].skillCooldownMs).toBe(21000);
   });
 });
 
@@ -78,5 +78,41 @@ describe('wave time bonus tuning', () => {
     expect(t.maxPerWave).toBeGreaterThan(0);
     expect(t.bossWaveWeight).toBeGreaterThanOrEqual(1);
     expect(t.zeroAtParMult).toBeGreaterThan(1);
+  });
+});
+
+describe('2026-11-05 skill / guard / magazine tuning', () => {
+  const kinds = ['shotgun', 'revolver', 'gatling'] as const;
+  const levels = [1, 2, 3, 4] as const;
+
+  it('feeds every weapon level magazine from GAME_TUNING.maxAmmoByWeapon', () => {
+    kinds.forEach((kind) =>
+      levels.forEach((lv) => {
+        expect(WEAPON_ARCHETYPE_SPECS[kind].levels[lv].maxAmmo).toBe(GAME_TUNING.maxAmmoByWeapon[kind][lv]);
+      })
+    );
+  });
+
+  it('starts shotgun and revolver with 10 rounds and never shrinks the magazine on level up', () => {
+    expect(GAME_TUNING.maxAmmoByWeapon.shotgun[1]).toBe(10);
+    expect(GAME_TUNING.maxAmmoByWeapon.revolver[1]).toBe(10);
+    kinds.forEach((kind) => {
+      for (let lv = 2; lv <= 4; lv++) {
+        const l = lv as 2 | 3 | 4;
+        expect(GAME_TUNING.maxAmmoByWeapon[kind][l]).toBeGreaterThanOrEqual(GAME_TUNING.maxAmmoByWeapon[kind][(l - 1) as 1 | 2 | 3]);
+      }
+    });
+  });
+
+  it('keeps the obi shield down at least 70% of its cycle', () => {
+    const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
+    expect(guardDownMs / (guardUpMs + guardDownMs)).toBeGreaterThanOrEqual(0.7);
+  });
+
+  it('shortens the skill cooldown strictly with weapon level', () => {
+    const cd = GAME_TUNING.skillCooldownMsByLevel;
+    expect(cd[1]).toBeGreaterThan(cd[2]);
+    expect(cd[2]).toBeGreaterThan(cd[3]);
+    expect(cd[3]).toBeGreaterThan(cd[4]);
   });
 });

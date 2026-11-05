@@ -26,7 +26,7 @@ export const GAME_TUNING = {
      */
     timeBonus: { maxPerWave: 700, bossWaveWeight: 2, zeroAtParMult: 1.6 },
   },
-  skillCooldownMsByLevel: { 1: 35000, 2: 31000, 3: 27000, 4: 23000 },
+  skillCooldownMsByLevel: { 1: 21000, 2: 19000, 3: 16000, 4: 14000 },
   goldenCan: { feverGain: 30, skillStockGain: 1 },
   repairCard: { healAmount: 2 },
   hitZone: {
@@ -35,12 +35,17 @@ export const GAME_TUNING = {
   },
   fire: {
     intervalScale: 0.7,
-    reloadScale: 2.0,
+    reloadScale: 1.2,
     holdDamageByWeapon: { shotgun: 0.6, revolver: 0.6, gatling: 0.85 },
     holdIntervalScaleByWeapon: { shotgun: 0.7, revolver: 0.7, gatling: 0.85 },
   },
   weaponDamageScale: { shotgun: 1.2, revolver: 1.0, gatling: 2.0 },
-  gatlingMaxAmmoByLevel: { 1: 13, 2: 15, 3: 20, 4: 25 },
+  /** 무기·레벨별 기본 탄수. rapid_reload 카드가 장당 +2발 더한다. */
+  maxAmmoByWeapon: {
+    shotgun: { 1: 10, 2: 10, 3: 12, 4: 12 },
+    revolver: { 1: 10, 2: 10, 3: 12, 4: 12 },
+    gatling: { 1: 20, 2: 25, 3: 30, 4: 35 },
+  },
   cards: {
     damageUp: { amount: 0.1, maxStacks: 3 },
     skillCooldown: { multiplier: 0.9, maxStacks: 3 },
@@ -55,7 +60,7 @@ export const GAME_TUNING = {
     pilgood: { chargeRadiusM: 12, chargeSpeedMult: 1.4 },
     caslight: { swayAmplitudeRad: 0.25, swayFrequency: 0.004 },
     hanmac: { stopRadiusM: 11, fireIntervalMs: 4000, firstShotDelayMs: 1000 },
-    obi: { guardUpMs: 1500, guardDownMs: 1500 },
+    obi: { guardUpMs: 800, guardDownMs: 2400 },
     bottle: {
       bigScale: 1.2,
       splitCount: 2,

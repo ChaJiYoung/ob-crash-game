@@ -521,7 +521,7 @@ function applyWeaponTuning(
         fireIntervalMs: Math.round(b.fireIntervalMs * GAME_TUNING.fire.intervalScale),
         reloadDurationMs: Math.round(b.reloadDurationMs * GAME_TUNING.fire.reloadScale),
         damagePerHit: Number((b.damagePerHit * GAME_TUNING.weaponDamageScale[kind]).toFixed(3)),
-        maxAmmo: kind === 'gatling' ? GAME_TUNING.gatlingMaxAmmoByLevel[lv] : b.maxAmmo,
+        maxAmmo: GAME_TUNING.maxAmmoByWeapon[kind][lv],
       };
     });
     out[kind] = { ...base[kind], levels };

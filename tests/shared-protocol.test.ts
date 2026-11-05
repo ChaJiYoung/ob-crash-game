@@ -124,9 +124,9 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // Check Gatling specifics
     const gat = WEAPON_ARCHETYPE_SPECS.gatling;
     expect(gat.levels[1].damagePerHit).toBe(0.5); // 0.25 x 2.0 (tuning)
-    expect(gat.levels[1].maxAmmo).toBe(13);
+    expect(gat.levels[1].maxAmmo).toBe(20);
     expect(gat.levels[4].damagePerHit).toBe(1.0); // 0.50 x 2.0
-    expect(gat.levels[4].maxAmmo).toBe(25);
+    expect(gat.levels[4].maxAmmo).toBe(35);
     expect(gat.levels[4].fireIntervalMs).toBe(Math.round(83 * 0.7));
     expect(gat.levels[4].skillArcDeg).toBe(160);
   });
@@ -154,8 +154,8 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     expect(initial.weaponKind).toBe('shotgun');
     expect(initial.weaponLevel).toBe(1);
-    expect(initial.maxAmmo).toBe(5);
-    expect(initial.ammo).toBe(5);
+    expect(initial.maxAmmo).toBe(10);
+    expect(initial.ammo).toBe(10);
     expect(initial.skillStock).toBe(1);
     expect(initial.maxSkillStock).toBe(1);
     expect(initial.skillCooldownRemainingMs).toBe(0);
@@ -164,7 +164,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     const skillUsed = ws.consumeSkill(1000);
     expect(skillUsed).toBe(true);
     expect(ws.getState().skillStock).toBe(0);
-    expect(ws.getState().skillCooldownRemainingMs).toBe(35000); // Lv.1 cooldown
+    expect(ws.getState().skillCooldownRemainingMs).toBe(21000); // Lv.1 cooldown
 
     // Trying to use skill again without stock fails
     expect(ws.consumeSkill(1050)).toBe(false);
@@ -172,38 +172,38 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // 2. Advance time by 10s -> 25s remaining
     ws.update(11000, false, 10000);
     expect(ws.getState().skillStock).toBe(0);
-    expect(ws.getState().skillCooldownRemainingMs).toBe(25000);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(11000);
 
-    // Advance remaining 25s -> Skill recharges!
-    ws.update(36000, false, 25000);
+    // Advance remaining 11s -> Skill recharges!
+    ws.update(22000, false, 11000);
     expect(ws.getState().skillStock).toBe(1);
     expect(ws.getState().skillCooldownRemainingMs).toBe(0);
 
     // 3. Upgrade weapon level up to MAX (Lv.4)
     ws.upgradeWeaponLevel(); // Lv.2
     expect(ws.getState().weaponLevel).toBe(2);
-    expect(ws.getState().maxAmmo).toBe(5);
+    expect(ws.getState().maxAmmo).toBe(10);
 
     ws.upgradeWeaponLevel(); // Lv.3
     expect(ws.getState().weaponLevel).toBe(3);
-    expect(ws.getState().maxAmmo).toBe(6);
+    expect(ws.getState().maxAmmo).toBe(12);
 
     ws.upgradeWeaponLevel(); // Lv.4 MAX
     expect(ws.getState().weaponLevel).toBe(4);
-    expect(ws.getState().maxAmmo).toBe(7);
+    expect(ws.getState().maxAmmo).toBe(12);
     expect(ws.getState().maxSkillStock).toBe(2);
     expect(ws.getState().skillStock).toBe(2); // 2 stocks granted at MAX!
 
     // 4. Test Rapid Reload Card Buff
     ws.applyRapidReloadBuff();
     expect(ws.getState().hasRapidReloadBuff).toBe(true);
-    expect(ws.getState().maxAmmo).toBe(9); // 7 + 2 = 9
-    expect(ws.getReloadDurationMs()).toBe(1760); // 1100 * 2 (tuning) * 0.8 = 1760
+    expect(ws.getState().maxAmmo).toBe(14); // 12 + 2 = 14
+    expect(ws.getReloadDurationMs()).toBe(1056); // 1100 * 1.2 (tuning) * 0.8 = 1056
 
     // 5. Select Gatling archetype
     ws.selectWeapon('gatling', 1);
     expect(ws.getState().weaponKind).toBe('gatling');
-    expect(ws.getState().maxAmmo).toBe(15); // 13 + 2 (buff active) = 15
+    expect(ws.getState().maxAmmo).toBe(22); // 20 + 2 (buff active) = 22
     expect(ws.getState().skillStock).toBe(1);
   });
 });
