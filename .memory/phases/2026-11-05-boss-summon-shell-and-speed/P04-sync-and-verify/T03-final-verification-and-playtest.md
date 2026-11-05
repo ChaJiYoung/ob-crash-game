@@ -1,6 +1,6 @@
 # Task: T03 최종 자동 검증과 직접 플레이 (사람)
 
-## Status: pending
+## Status: in_progress (자동 검증 완료, 사람 직접 플레이 대기)
 
 ## Goal
 자동 검증을 모두 돌리고, 사람이 직접 플레이해 후반 속도·보스 소환·보스 처치 연출·똥 포탄을 확인한다. 앞 계획(`weapon-skill-rework` P04-T03)의 플레이도 이 플레이로 함께 닫는다.
@@ -61,6 +61,6 @@ Task: T03-final-verification-and-playtest
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료 (자동 검증·체크리스트 작성)
+- [ ] 검증 통과 (사람 플레이 대기)
 - commit: pending

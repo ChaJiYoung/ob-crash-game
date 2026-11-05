@@ -1,6 +1,6 @@
 # Task: T02 기준 시간 재측정과 난이도 보고
 
-## Status: pending
+## Status: done
 
 ## Goal
 속도·보스 개편 후 웨이브 기준 시간을 다시 재고, 합산 난이도 수치를 기록해 사용자에게 보고한다.
@@ -43,6 +43,6 @@ Task: T02-remeasure-and-report
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

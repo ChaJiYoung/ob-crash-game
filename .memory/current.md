@@ -7,10 +7,10 @@
 [P04 문서 동기화와 최종 검증](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/phase.md)
 
 ## Active Task
-[T02 기준 시간 재측정과 난이도 보고](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/T02-remeasure-and-report.md)
+[T03 최종 자동 검증과 직접 플레이 (사람)](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/T03-final-verification-and-playtest.md)
 
 ## Status
-- P01~P03 완료(똥 포탄, 속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
+- P01~P04-T02 완료·자동 검증 통과, **사람 직접 플레이 대기**(똥 포탄, 속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
 - 결정: [결정 문서](./decisions/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Paused Plan
@@ -20,4 +20,5 @@
 - 랭킹 v5 여부와 전체 난이도 판단은 P04-T03 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-P04-T02: measure-wave-times와 시뮬레이터로 합산 난이도를 재고 기록한다. 난이도는 임의로 고치지 않고 사용자에게 보고한다(샷건 보통 봇이 매우 낮게 나옴).
+사용자가 `.memory/references/playtest-2026-11-05-skill-guard-ammo.md` 하단 "보스·속도·포탄 개편 추가분"을 플레이해 채팅으로 느낌을 말한다. 에이전트가 대신 통과로 표시하지 않는다.
+**난이도 경고:** 합산 봇 클리어율이 샷건 보통 15%, 개틀링 45%, 리볼버 82%로 크게 어렵다(패배는 거의 5·7웨이브). 값은 아직 고치지 않았다. 피드백이 오면 `gameTuning.ts`(`boss.summonCount` 등)로 조정하고 `npm test`와 시뮬레이터를 다시 돌린다. 이후 v5 여부를 묻고 이전 계획들의 플레이 Task를 닫는다.
