@@ -254,12 +254,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                       >
                         #{idx + 1}
                       </span>
-                      <span style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90px' }}>{p.nickname}</span>
+                      <span style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '64px' }}>{p.nickname}</span>
                       <span style={{ fontSize: '11px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
                         W{p.waveReached} · {WEAPON_RANKING_LABEL[p.weaponKind]}
                       </span>
                     </div>
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: '8px' }}>
                       {p.score}점
                     </span>
                   </div>

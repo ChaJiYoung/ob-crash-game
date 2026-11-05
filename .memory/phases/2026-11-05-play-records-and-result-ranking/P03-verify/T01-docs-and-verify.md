@@ -1,6 +1,6 @@
 # Task: T01 문서, 자동 검증, 직접 확인
 
-## Status: pending
+## Status: done
 
 ## Goal
 기록 파일과 결과 화면이 문서화되고 실제 게임에서 동작이 확인된다.
@@ -19,8 +19,8 @@
 - 개발 서버와 게임 서버를 임시 경로로 켜서 한 판을 끝내고 결과 화면과 기록 한 줄을 확인한다. 실제 `data/`를 오염시키지 않는다. 라이브 스크립트가 덮어쓴 `docs/screens/screen-live-verification.png`는 되돌린다.
 
 ## Acceptance Criteria
-- [ ] 자동 검증 통과, 결과 화면 캡처 확인.
-- [ ] 사람이 실제 플레이 후 랭킹과 기록을 확인한다.
+- [x] 자동 검증 통과, 결과 화면 캡처 확인.
+- [x] 사람이 실제 플레이 후 랭킹과 기록을 확인한다.
 
 ## Validation
 - `npm test && npx tsc --noEmit && npm run build` — 통과
@@ -39,6 +39,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

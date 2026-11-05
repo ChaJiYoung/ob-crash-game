@@ -4,13 +4,13 @@
 [판별 플레이 기록 저장과 결과 화면 랭킹](./plans/2026-11-05-play-records-and-result-ranking.md)
 
 ## Active Phase
-[P01 결과 화면 랭킹](./phases/2026-11-05-play-records-and-result-ranking/P01-result-ranking/phase.md)
+[P03 검증](./phases/2026-11-05-play-records-and-result-ranking/P03-verify/phase.md)
 
 ## Active Task
-[T01 결과와 TOP 5 좌우 배치](./phases/2026-11-05-play-records-and-result-ranking/P01-result-ranking/T01-side-ranking.md)
+(이 계획의 Task 완료) 사람 플레이 대기
 
 ## Status
-- T01 구현 시작 준비 완료
+- 플레이 기록과 판별 랭킹 구현, 자동 검증 완료. 게임 서버 재시작과 사람 확인 대기
 
 ## Paused Plan
 - `2026-11-05-boss-distance-gatling-hanmac`: 구현 완료, 사람 플레이 느낌 대기.
@@ -21,4 +21,4 @@
 - 랭킹 v5 여부는 개틀링 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/pc/components/ResultRankingModal.tsx` 구현 시작
+사용자가 `npm run server`를 재시작하고 플레이한다. 체크리스트: `.memory/references/playtest-2026-11-05-skill-guard-ammo.md` 끝. 이후 열린 플레이 Task와 랭킹 v5 여부를 묻는다.

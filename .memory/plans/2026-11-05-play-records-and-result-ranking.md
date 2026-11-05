@@ -8,9 +8,9 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 결과 화면 좌우 배치 | [P01](../phases/2026-11-05-play-records-and-result-ranking/P01-result-ranking/phase.md) |
-| P02 | `pending` | 엔진 통계 수집, 서버 저장, 판별 TOP 5, 콤보·처치 표시 | [P02](../phases/2026-11-05-play-records-and-result-ranking/P02-play-records/phase.md) |
-| P03 | `pending` | 문서와 최종 검증 | [P03](../phases/2026-11-05-play-records-and-result-ranking/P03-verify/phase.md) |
+| P01 | `done` | 결과 화면 좌우 배치 | [P01](../phases/2026-11-05-play-records-and-result-ranking/P01-result-ranking/phase.md) |
+| P02 | `done` | 엔진 통계 수집, 서버 저장, 판별 TOP 5, 콤보·처치 표시 | [P02](../phases/2026-11-05-play-records-and-result-ranking/P02-play-records/phase.md) |
+| P03 | `done` | 문서와 최종 검증 | [P03](../phases/2026-11-05-play-records-and-result-ranking/P03-verify/phase.md) |
 
 ## 순서의 이유
 P01은 서버와 무관해 바로 확인할 수 있다. P02는 엔진 값이 있어야 전송할 수 있어 수집을 먼저 한다.
