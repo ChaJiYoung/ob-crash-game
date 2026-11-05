@@ -311,6 +311,8 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
 
       expect(killShot.fired).toBe(true);
       expect(killShot.killed).toBe(true);
+      expect(engine.isBossClearSequence()).toBe(true);
+      for (let t = 5000; t < 5000 + GAME_TUNING.boss.clear.durationMs + 300; t += 50) engine.update(t + 50, 0.05);
       expect(engine.gamePhase).toBe('VICTORY');
       // All remaining minions and projectiles cleared
       expect(engine.activeTargets.length).toBe(0);

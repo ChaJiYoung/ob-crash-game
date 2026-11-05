@@ -202,7 +202,9 @@ describe('revolver fan blades', () => {
     engine.activeTargets = [boss];
     cast(1);
     tick(40);
-    expect(engine.gamePhase).toBe('VICTORY');
+    expect(engine.isBossClearSequence()).toBe(true);
     expect(engine.activeSkillBlades.length).toBe(0);
+    tick(110); // 1.5s clear sequence
+    expect(engine.gamePhase).toBe('VICTORY');
   });
 });

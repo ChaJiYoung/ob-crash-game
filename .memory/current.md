@@ -7,7 +7,7 @@
 [P02 보스 처치 연출](./phases/2026-11-05-boss-summon-shell-and-speed/P02-boss-clear-effect/phase.md)
 
 ## Active Task
-[T01 엔진 보스 처치 시퀀스](./phases/2026-11-05-boss-summon-shell-and-speed/P02-boss-clear-effect/T01-boss-clear-sequence-engine.md)
+[T02 보스 처치 화면 연출](./phases/2026-11-05-boss-summon-shell-and-speed/P02-boss-clear-effect/T02-boss-clear-visuals.md)
 
 ## Status
 - P01 완료(속도, 방패 제거, 체력 구간 소환)
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단은 P04-T03 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-P02-T01 청사진을 읽고 보스 처치 시퀀스를 엔진에 넣는다. 보스를 죽인 직후 VICTORY/카드를 기대하는 기존 테스트는 시퀀스 길이만큼 update를 더 돌리게 고친다. 전체 구현 후 Opus 리뷰.
+P02-T02: HUD 스냅샷 bossDown 값, BOSS DOWN! 배너, 3D 큰 폭발·연쇄 폭발 연출을 넣는다.

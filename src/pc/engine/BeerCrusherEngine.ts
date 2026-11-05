@@ -140,6 +140,10 @@ export interface SkillBlade {
   bossDamage: number;
 }
 
+export type BossClearEvent =
+  | { type: 'defeated'; x: number; z: number; y: number }
+  | { type: 'cascade'; target: ActiveTargetEntity };
+
 export type SkillHitSource = 'blade' | 'foam';
 
 export interface SkillHitEvent {
@@ -199,6 +203,11 @@ export class BeerCrusherEngine {
 
   /** 날아가는 리볼버 칼날. 엔진이 매 프레임 전진시키고 화면은 이 상태를 그린다. */
   public activeSkillBlades: SkillBlade[] = [];
+
+  /** 마지막 보스를 잡은 뒤 연출이 끝나는 게임 시각. 0이면 연출 중이 아니다. */
+  private bossClearUntilMs = 0;
+  private bossClearNextCascadeMs = 0;
+  private bossClearEvents: BossClearEvent[] = [];
   public activeSkillFoamWaves: SkillFoamWave[] = [];
   private skillHitEvents: SkillHitEvent[] = [];
   private skillEntityCounter = 0;
@@ -354,6 +363,7 @@ export class BeerCrusherEngine {
 
   public startGame(options?: { withWeaponSelect?: boolean }): void {
     this.clearSkillProjectiles();
+    this.resetBossClear();
     this.gamePhase = 'PLAYING';
     this.currentWave = 1;
     this.maxLives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -397,6 +407,7 @@ export class BeerCrusherEngine {
 
   public startWave(waveIndex: number): void {
     this.clearSkillProjectiles();
+    this.resetBossClear();
     this.currentWave = Math.max(1, Math.min(STAGE_CONSTANTS.TOTAL_WAVES, waveIndex));
     this.spawnedInWave = 0;
     this.itemsSpawnedInWave = 0;
@@ -644,6 +655,7 @@ export class BeerCrusherEngine {
 
   public startTutorialMode(): void {
     this.clearSkillProjectiles();
+    this.resetBossClear();
     this.gamePhase = 'TUTORIAL';
     this.isTutorialMode = true;
     this.currentWave = 1;
@@ -744,6 +756,7 @@ export class BeerCrusherEngine {
     this.tutorialStep = 1;
     this.activeTargets = [];
     this.clearSkillProjectiles();
+    this.resetBossClear();
     this.gamePhase = 'PAIRING';
   }
 
@@ -759,6 +772,7 @@ export class BeerCrusherEngine {
     this.isSandboxMode = false;
     this.activeTargets = [];
     this.clearSkillProjectiles();
+    this.resetBossClear();
     this.gamePhase = 'PAIRING';
   }
 
@@ -794,6 +808,7 @@ export class BeerCrusherEngine {
 
   public startSandboxMode(): void {
     this.clearSkillProjectiles();
+    this.resetBossClear();
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;
     this.currentWave = 1;
@@ -877,7 +892,7 @@ export class BeerCrusherEngine {
   }
 
   public activateFever(nowMs: number): boolean {
-    if (this.isCardSelectPending) return false;
+    if (this.isCardSelectPending || this.bossClearUntilMs > 0) return false;
     const activated = this.scoreManager.activateFever(nowMs);
     if (activated) {
       this.weaponSystem.refillAmmoOnFever();
@@ -1082,6 +1097,10 @@ export class BeerCrusherEngine {
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
     if (this.lastBossProjectileMs > 0) this.lastBossProjectileMs += deltaMs;
+    if (this.bossClearUntilMs > 0) {
+      this.bossClearUntilMs += deltaMs;
+      this.bossClearNextCascadeMs += deltaMs;
+    }
     for (const target of this.activeTargets) {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
@@ -1118,12 +1137,17 @@ export class BeerCrusherEngine {
 
     if (this.waveStartMs === null && this.gamePhase === 'PLAYING') this.waveStartMs = nowMs;
 
+    if (this.bossClearUntilMs > 0) {
+      this.advanceBossClear(nowMs, dtSec);
+      return { breaches: [], phaseChanged: (this.gamePhase as GamePhase) === 'VICTORY', reloadedJustNow: false };
+    }
+
     this.updateGuards(nowMs);
     this.updateBossMovement(nowMs);
     this.advanceSkillBlades(nowMs, dtSec);
     this.advanceSkillFoam(nowMs, dtSec);
-    if ((this.gamePhase as GamePhase) === 'VICTORY') {
-      return { breaches: [], phaseChanged: true, reloadedJustNow: false };
+    if (this.bossClearUntilMs > 0) {
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
     // Clean expired buffs
@@ -1591,14 +1615,7 @@ export class BeerCrusherEngine {
 
     if (target.kind === 'boss') {
       if (this.getBossEntities().length > 0) return; // other bosses remain
-      this.isBossEncounterActive = false;
-        this.activeTargets = [];
-      this.isRewardCardPending = false;
-      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
-        this.awardWaveTimeBonus(nowMs);
-        this.declareVictory();
-      }
-      // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
+      this.startBossClearSequence(target, nowMs);
       return;
     }
 
@@ -1748,6 +1765,7 @@ export class BeerCrusherEngine {
     nowMs: number,
     source: ShotSource = 'press'
   ): EngineShootResult {
+    if (this.bossClearUntilMs > 0) return { fired: false, grade: 'MISS' };
     const counts = this.gamePhase === 'PLAYING' && !this.isPaused && !this.isCardSelectPending;
     const result = this.shootAtInner(aimX, aimY, nowMs, source);
     if (counts && result.fired) {
@@ -2104,6 +2122,67 @@ export class BeerCrusherEngine {
     return true;
   }
 
+  public isBossClearSequence(): boolean {
+    return this.bossClearUntilMs > 0;
+  }
+
+  public getBossClearUntilMs(): number {
+    return this.bossClearUntilMs;
+  }
+
+  /** 화면이 보스 처치 연출을 그리려고 가져간다. 돌려주고 비운다. */
+  public drainBossClearEvents(): BossClearEvent[] {
+    const events = this.bossClearEvents;
+    this.bossClearEvents = [];
+    return events;
+  }
+
+  private resetBossClear(): void {
+    this.bossClearUntilMs = 0;
+    this.bossClearNextCascadeMs = 0;
+    this.bossClearEvents = [];
+  }
+
+  /** 마지막 보스가 죽으면 필드를 한꺼번에 비우지 않고 연출 시퀀스를 시작한다. */
+  private startBossClearSequence(boss: ActiveTargetEntity, nowMs: number): void {
+    this.isBossEncounterActive = false;
+    this.awardWaveTimeBonus(nowMs);
+    this.activeTargets = this.activeTargets.filter(
+      (t) => !(t.isItem || t.isGoldenCan || t.isProjectile || t.weaponSelectKind || t.rewardCardKind)
+    );
+    this.clearSkillProjectiles();
+    this.bossClearUntilMs = nowMs + GAME_TUNING.boss.clear.durationMs;
+    this.bossClearNextCascadeMs = nowMs + GAME_TUNING.boss.clear.cascadeGapMs;
+    this.bossClearEvents.push({
+      type: 'defeated',
+      x: boss.x,
+      z: boss.z,
+      y: boss.customBaseY ?? getTargetBaseY('boss', false),
+    });
+  }
+
+  private advanceBossClear(nowMs: number, dtSec: number): void {
+    const feverActive = this.scoreManager.getState().isFeverActive;
+    this.weaponSystem.update(nowMs, feverActive, dtSec * 1000);
+    this.scoreManager.updateFeverTimer(nowMs);
+
+    if (nowMs >= this.bossClearNextCascadeMs) {
+      this.bossClearNextCascadeMs += GAME_TUNING.boss.clear.cascadeGapMs;
+      const next = [...this.activeTargets].sort((a, b) => a.radiusM - b.radiusM)[0];
+      if (next) {
+        this.activeTargets.splice(this.activeTargets.indexOf(next), 1);
+        this.bossClearEvents.push({ type: 'cascade', target: next });
+      }
+    }
+
+    if (nowMs >= this.bossClearUntilMs) {
+      this.activeTargets = [];
+      this.bossClearUntilMs = 0;
+      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) this.declareVictory();
+      // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
+    }
+  }
+
   /** 화면이 칼날·거품 타격 연출을 그리려고 가져간다. 돌려주고 비운다. */
   public drainSkillHitEvents(): SkillHitEvent[] {
     const events = this.skillHitEvents;
@@ -2156,7 +2235,7 @@ export class BeerCrusherEngine {
           t.slowRatio = wave.slowRatio;
         }
         this.pushSkillHitEvent({ source: 'foam', target: t, killed });
-        if ((this.gamePhase as GamePhase) === 'VICTORY') {
+        if (this.bossClearUntilMs > 0) {
           this.activeSkillFoamWaves = [];
           return;
         }
@@ -2201,7 +2280,7 @@ export class BeerCrusherEngine {
         const killed = this.applySkillDamage(t, t.kind === 'boss' ? blade.bossDamage : blade.damage, nowMs);
         for (const x of this.activeTargets) if (!idsBefore.has(x.id)) blade.hitTargetIds.add(x.id);
         this.pushSkillHitEvent({ source: 'blade', target: t, killed });
-        if (this.gamePhase === 'VICTORY') {
+        if (this.bossClearUntilMs > 0) {
           this.activeSkillBlades = [];
           return;
         }
@@ -2216,7 +2295,7 @@ export class BeerCrusherEngine {
     const weaponLevel = weaponState.weaponLevel;
     const levelSpec = this.weaponSystem.getCurrentLevelSpec();
 
-    if (this.isCardSelectPending || !this.weaponSystem.consumeSkill(nowMs)) {
+    if (this.isCardSelectPending || this.bossClearUntilMs > 0 || !this.weaponSystem.consumeSkill(nowMs)) {
       return {
         activated: false,
         weaponKind,
@@ -2241,7 +2320,7 @@ export class BeerCrusherEngine {
         affectedTargets.push(monster);
 
         this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
-        if (this.gamePhase === 'VICTORY') break;
+        if (this.bossClearUntilMs > 0) break;
       }
       return {
         activated: true,

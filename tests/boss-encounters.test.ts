@@ -15,6 +15,16 @@ function finishMiniWave(engine: BeerCrusherEngine, wave: number, now: number): v
 
 const bosses = (e: BeerCrusherEngine) => e.activeTargets.filter((t) => t.kind === 'boss');
 
+const finishBossSequence = (e: BeerCrusherEngine, from: number): number => {
+  let t = from;
+  const end = from + GAME_TUNING.boss.clear.durationMs + 300;
+  while (t < end) {
+    t += 50;
+    e.update(t, 0.05);
+  }
+  return t;
+};
+
 function killBoss(engine: BeerCrusherEngine, boss: ActiveTargetEntity, now: number): void {
   boss.hp = 0.1;
   engine.weaponSystem.selectWeapon('revolver', 1);
@@ -54,12 +64,15 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     killBoss(engine, bosses(engine)[0], 2000);
     expect(engine.gamePhase).toBe('PLAYING');
     expect(engine.isBossEncounterActive).toBe(false);
+    expect(engine.isBossClearSequence()).toBe(true);
+    expect(engine.isRewardCardPending).toBe(false); // the cards wait for the clear sequence
 
-    engine.update(2100, 0.016);
+    const after = finishBossSequence(engine, 2000);
+    engine.update(after + 50, 0.016);
     expect(engine.isRewardCardPending).toBe(true);
     const card = engine.activeTargets.find((t) => t.rewardCardKind)!;
     const p = engine.computeTargetAimCoords(card);
-    const pick = engine.shootAt(p.targetNormX, p.targetNormY, 4000, 'press');
+    const pick = engine.shootAt(p.targetNormX, p.targetNormY, after + 2000, 'press');
     expect(pick.selectedCard).toBeDefined();
     expect(engine.currentWave).toBe(4);
   });
@@ -93,6 +106,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(engine.gamePhase).toBe('PLAYING');
       killBoss(engine, boss, 2000 + i * 600);
     });
+    expect(engine.gamePhase).toBe('PLAYING'); // the clear sequence runs first
+    finishBossSequence(engine, 2000 + 2 * 600);
     expect(engine.gamePhase).toBe('VICTORY');
     expect(engine.activeTargets.length).toBe(0);
   });

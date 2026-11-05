@@ -3,8 +3,8 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 엔진 보스 처치 시퀀스(연쇄 폭발, 대기, 카드/승리 전환)와 사건 | [T01](./T01-boss-clear-sequence-engine.md) |
-| T02 | `pending` | 화면: 큰 폭발, 연쇄 폭발 연출, "BOSS DOWN!" 배너 | [T02](./T02-boss-clear-visuals.md) |
+| T01 | `done ✅` | 엔진 보스 처치 시퀀스(연쇄 폭발, 대기, 카드/승리 전환)와 사건 | [T01](./T01-boss-clear-sequence-engine.md) |
+| T02 | `in_progress 🔵` | 화면: 큰 폭발, 연쇄 폭발 연출, "BOSS DOWN!" 배너 | [T02](./T02-boss-clear-visuals.md) |
 
 ## Progress
-- done: 0/2 (active: T01)
+- done: 1/2 (active: T02)

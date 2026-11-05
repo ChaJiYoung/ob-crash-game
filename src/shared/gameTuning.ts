@@ -110,6 +110,8 @@ export const GAME_TUNING = {
     /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
     summonDropChance: 0.20,
+    /** 마지막 보스를 잡은 뒤 연출 시간. 이 동안 남은 몬스터가 cascadeGapMs 간격으로 연쇄로 터진다. */
+    clear: { durationMs: 1500, cascadeGapMs: 100 },
     /**
      * 보스 부하는 보스 뒤가 아니라 필드 곳곳(방어선에서 minRadiusM~maxRadiusM, 좌우 ±thetaRangeRad)에
      * 위에서 떨어진다. 착지(dropMs) 전에는 맞힐 수도 움직일 수도 없다. minSeparationM는 같은 소환 안 부하 사이 최소 거리.

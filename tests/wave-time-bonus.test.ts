@@ -97,7 +97,9 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
       engine.currentWave = 7;
       engine.isBossEncounterActive = true;
       engine.activeTargets = [];
-      engine.handleMonsterKilled({ kind: 'boss', bossRole: 'cooler', isItem: false } as any, 1000 + 20_000);
+      engine.handleMonsterKilled({ kind: 'boss', bossRole: 'cooler', isItem: false, x: 0, z: -10 } as any, 1000 + 20_000);
+      expect(engine.gamePhase).toBe('PLAYING'); // the clear sequence runs before victory
+      for (let t = 21_000; t < 21_000 + 1800; t += 50) engine.update(t + 50, 0.05);
       expect(engine.gamePhase).toBe('VICTORY');
       expect(engine.lastWaveClear.wave).toBe(7);
       expect(engine.scoreManager.getState().totalScore).toBeGreaterThan(before + engine.lastWaveClear.bonus - 1);
