@@ -230,8 +230,8 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
     });
   });
 
-  describe('T02: Wave 7 Cooler Boss 10m Stop, Minion Summons & Victory after all bosses', () => {
-    it('should clamp cooler boss at 10.0m and summon minion wave on tap lever action', () => {
+  describe('T02: Wave 7 Cooler Boss 14m Stop, Minion Summons & Victory after all bosses', () => {
+    it('should clamp cooler boss at 14.0m and summon minion wave on tap lever action', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.startWave(7);
       engine.activeTargets = [];
@@ -254,9 +254,9 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       engine.isBossEncounterActive = true;
       engine.activeTargets = [boss];
 
-      // Update by 2 seconds: speed is 2.0m/s so it would reach 7.0m, but clamped to 10.0m!
+      // Update by 2 seconds: speed is 2.0m/s so it would reach 7.0m, but clamped to 14m!
       engine.update(1000, 2.0);
-      expect(boss.radiusM).toBe(10.0);
+      expect(boss.radiusM).toBe(14.0);
       expect(boss.breached).toBe(false);
       expect(engine.lives).toBe(5); // Defense line unharmed!
 

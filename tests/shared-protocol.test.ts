@@ -122,9 +122,9 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // Check Gatling specifics
     const gat = WEAPON_ARCHETYPE_SPECS.gatling;
     expect(gat.levels[1].damagePerHit).toBe(0.5); // 0.25 x 2.0 (tuning)
-    expect(gat.levels[1].maxAmmo).toBe(20);
+    expect(gat.levels[1].maxAmmo).toBe(30);
     expect(gat.levels[4].damagePerHit).toBe(1.0); // 0.50 x 2.0
-    expect(gat.levels[4].maxAmmo).toBe(35);
+    expect(gat.levels[4].maxAmmo).toBe(50);
     expect(gat.levels[4].fireIntervalMs).toBe(Math.round(83 * 0.7));
     expect(gat.levels[4].skillKnockbackM).toBe(5);
     expect(gat.levels[4].skillDamage).toBe(0.5);
@@ -204,7 +204,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // 5. Select Gatling archetype
     ws.selectWeapon('gatling', 1);
     expect(ws.getState().weaponKind).toBe('gatling');
-    expect(ws.getState().maxAmmo).toBe(22); // 20 + 2 (buff active) = 22
+    expect(ws.getState().maxAmmo).toBe(32); // 30 + 2 (buff active) = 32
     expect(ws.getState().skillStock).toBe(1);
   });
 });

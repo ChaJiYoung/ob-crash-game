@@ -70,21 +70,21 @@ describe('gatling foam wave', () => {
   });
 
   it('a boss takes boss damage but is not pushed, slowed or slid', () => {
-    const boss = mk('boss', 12, { hp: 100, maxHp: 100 });
+    const boss = mk('boss', 14, { hp: 100, maxHp: 100 });
     engine.activeTargets = [boss];
     cast(1);
-    tick(30);
+    tick(40);
     expect(100 - boss.hp).toBeCloseTo(GAME_TUNING.skills.foam.bossDamageByLevel[1], 5);
-    expect(boss.radiusM).toBe(12);
+    expect(boss.radiusM).toBe(14);
     expect(boss.slowUntilMs).toBeUndefined();
     expect(boss.slideRemainingM).toBeUndefined();
   });
 
   it('the king takes boss damage from the wave like any boss', () => {
-    const king = mk('boss', 12, { hp: 100, maxHp: 100, bossRole: 'king' });
+    const king = mk('boss', 14, { hp: 100, maxHp: 100, bossRole: 'king' });
     engine.activeTargets = [king];
     cast(1);
-    tick(30);
+    tick(40);
     expect(100 - king.hp).toBeCloseTo(GAME_TUNING.skills.foam.bossDamageByLevel[1], 5);
     expect(engine.drainSkillHitEvents().some((e) => e.target === king && e.source === 'foam')).toBe(true);
   });
