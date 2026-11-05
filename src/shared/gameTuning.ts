@@ -84,13 +84,13 @@ export const GAME_TUNING = {
     summonDropChance: 0.20,
     summonIntervalMs: 8000,
     /** 보스 조우가 길어질수록 소환 간격이 summonIntervalMs에서 minIntervalMs까지 rampMs에 걸쳐 선형으로 줄어든다. */
-    summonAccel: { minIntervalMs: 4000, rampMs: 40000 },
+    summonAccel: { minIntervalMs: 5000, rampMs: 60000 },
     /**
      * 보스 부하는 보스 뒤가 아니라 필드 곳곳(방어선에서 minRadiusM~maxRadiusM, 좌우 ±thetaRangeRad)에
      * 위에서 떨어진다. 착지(dropMs) 전에는 맞힐 수도 움직일 수도 없다. minSeparationM는 같은 소환 안 부하 사이 최소 거리.
      */
-    minionDrop: { minRadiusM: 6, maxRadiusM: 14, thetaRangeRad: 0.55, dropMs: 700, minSeparationM: 1.5 },
-    summonCount: 4,
+    minionDrop: { minRadiusM: 6, maxRadiusM: 14, thetaRangeRad: 0.55, dropMs: 1200, minSeparationM: 1.5 },
+    summonCount: 3,
     summonMaxActive: 7,
     firstSummonDelayMs: 2500,
     shieldReleaseKills: 6,

@@ -59,16 +59,17 @@ describe('boss summon acceleration (score-differentiation P02-T01)', () => {
     const countMinions = () => engine.activeTargets.filter((t: any) => t.id.startsWith('boss_minion_')).length;
     for (const b of engine.getBossEntities()) { b.radiusM = 10; b.z = -10; b.x = 0; }
 
-    // Early in the fight a summon 5s after the previous one is too soon
+    // Early in the fight a summon only 5s after the previous one is too soon
     engine.lastBossSummonTimeMs = 6000;
     engine.update(11_000, 0.016);
     expect(countMinions()).toBe(0);
 
-    // 40s into the fight the same 5s gap is enough (interval is down to the minimum)
+    // At the end of the ramp a gap just over the minimum interval is enough
+    const late = 5000 + rampMs;
     engine.activeTargets = engine.activeTargets.filter((t: any) => !t.id.startsWith('boss_minion_'));
     for (const b of engine.getBossEntities()) { b.radiusM = 10; b.z = -10; b.x = 0; }
-    engine.lastBossSummonTimeMs = 45_000 - (MIN + 100);
-    engine.update(45_000, 0.016);
+    engine.lastBossSummonTimeMs = late - (MIN + 100);
+    engine.update(late, 0.016);
     expect(countMinions()).toBe(GAME_TUNING.boss.summonCount);
   });
 });

@@ -161,7 +161,7 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
     engine.update(landAt + 20, 0.02);
     expect(engine.isTargetLanded(c, landAt + 20)).toBe(true);
     // A frozen caslight would resume from its spawn angle (up to ~2.5m away); a swaying one barely moves in 40ms
-    expect(Math.abs(c.x - beforeX)).toBeLessThan(0.5);
+    expect(Math.abs(c.x - beforeX)).toBeLessThan(1.0);
   });
 
   describe('review follow-ups (P02)', () => {

@@ -1,3 +1,4 @@
+import { GAME_TUNING } from '../src/shared/gameTuning';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import { GunGripTracker } from '../src/controller/sensors/GunGripTracker';
@@ -264,7 +265,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       // Boss summon action should have triggered since boss.radiusM <= 12.5 and the shared timer was due
       expect(engine.isBossSummoning(1500)).toBe(true);
       const minions = engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_'));
-      expect(minions.length).toBe(4);
+      expect(minions.length).toBe(GAME_TUNING.boss.summonCount);
     });
 
     it('should trigger instant victory and clear all entities when boss is killed', () => {

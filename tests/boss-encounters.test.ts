@@ -415,7 +415,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       minion.x = 0;
       minion.z = -minion.radiusM;
       const mp = engine.computeTargetAimCoords(minion);
-      engine.shootAt(mp.targetNormX, mp.targetNormY, 102_000);
+      engine.shootAt(mp.targetNormX, mp.targetNormY, 103_000); // well after the minion has landed
       expect(engine.scoreManager.getState().feverGauge).toBeGreaterThan(0);
     });
 
