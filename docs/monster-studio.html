@@ -25,6 +25,8 @@
     }
     #info-card {
       position: absolute;
+      width: max-content;
+      max-width: 96vw;
       bottom: 35px;
       left: 50%;
       transform: translateX(-50%);
@@ -40,6 +42,7 @@
       z-index: 10;
     }
     .badge {
+      white-space: nowrap;
       padding: 5px 14px;
       border-radius: 99px;
       font-size: 13px;
@@ -48,8 +51,8 @@
       color: #111;
       letter-spacing: 0.5px;
     }
-    .name { font-size: 22px; font-weight: 900; color: #fff; }
-    .stat { font-size: 14px; color: #94a3b8; display: flex; gap: 6px; }
+    .name { font-size: 22px; font-weight: 900; color: #fff; white-space: nowrap; }
+    .stat { font-size: 14px; color: #94a3b8; display: flex; gap: 6px; white-space: nowrap; }
     .stat b { color: #38bdf8; }
   </style>
 </head>
@@ -435,20 +438,20 @@
     }
 
     const MONSTER_SPECS = {
-      pilgood: { badge: 'SPEED · 공중 활공', name: '필굿 (FiLGOOD)', hp: '1', speed: '4.2 m/s', score: '+30점', color: '#00a8e8' },
-      caslight: { badge: 'FLYING · 공중 비행', name: '카스 라이트 (Cass Light)', hp: '1', speed: '3.6 m/s', score: '+40점', color: '#38bdf8' },
-      obi: { badge: 'TANK · 지상 바운스', name: '오비 라거 (OB Lager)', hp: '2', speed: '3.0 m/s', score: '+70점', color: '#f59e0b' },
-      hanmac: { badge: 'ELITE · 지상 바운스', name: '한맥 (HANMAC)', hp: '2', speed: '3.2 m/s', score: '+90점', color: '#047857' },
-      bottle: { badge: 'HEAVY · 투명 유리병', name: '카스 프레시 병맥주 (Cass Fresh Bottle)', hp: '3', speed: '2.3 m/s', score: '+160점', color: '#004b91' },
-      boss: { badge: 'BOSS · 보스 레이드', name: '업소용 생맥주 냉각기 (Boss)', hp: '70~90', speed: '0.85 m/s', score: '+1,500점', color: '#ef4444' },
-      'boss-king': { badge: 'BOSS · 7웨이브', name: '대왕 냉각기 (King)', hp: '200', speed: '0.85 m/s', score: '+1,500점', color: '#fbbf24' }
+      pilgood: { badge: 'SPEED · 지상 돌진', name: '필굿 (FiLGOOD)', hp: '1', speed: '2.6 m/s', score: '+3점', color: '#00a8e8' },
+      caslight: { badge: 'FLYING · 공중 비행', name: '카스 라이트 (Cass Light)', hp: '1', speed: '2.4 m/s', score: '+4점', color: '#38bdf8' },
+      obi: { badge: 'SHIELD · 방패병', name: '오비 라거 (OB Lager)', hp: '2', speed: '2.2 m/s', score: '+7점', color: '#f59e0b' },
+      hanmac: { badge: 'BOMB · 처치 시 폭발', name: '한맥 (HANMAC)', hp: '3', speed: '2.0 m/s', score: '+9점', color: '#047857' },
+      bottle: { badge: 'SPLIT · 분열', name: '카스 프레시 병맥주 (Cass Fresh Bottle)', hp: '4', speed: '2.0 m/s', score: '+16점', color: '#004b91' },
+      boss: { badge: 'BOSS · 보스 레이드', name: '업소용 냉각기 (Boss)', hp: '70~90', speed: '0.85 m/s', score: '+150점', color: '#ef4444' },
+      'boss-king': { badge: 'BOSS · 7웨이브', name: '대왕 냉각기 (King)', hp: '200', speed: '0.85 m/s', score: '+150점', color: '#fbbf24' }
     };
 
     const ITEM_SPECS = {
-      power_shot: { badge: 'BUFF ITEM · 소품', name: '파워 샷 (황금 병따개)', dur: '8초 지속', effect: '사격 데미지 2배 증폭 (라거 원샷 원킬)', wave: 'Wave 2, 4, 5 출현', color: '#ef4444' },
-      wide_scope: { badge: 'BUFF ITEM · 소품', name: '빅 스코프 (맥주 코스터)', dur: '8초 지속', effect: '조준경 140px & 판정 반경 1.6배 확대', wave: 'Wave 1, 3, 4, 5 출현', color: '#38bdf8' },
-      ice_freeze: { badge: 'BUFF ITEM · 소품', name: '아이스 프리즈 (얼음 버킷)', dur: '8초 지속', effect: '모든 몬스터 이동속도 50% 감속', wave: 'Wave 3, 4, 5 출현', color: '#60a5fa' },
-      bar_repair: { badge: 'INSTANT · 소품', name: '바 수리 (홉 열매 다발)', dur: '즉시 발동', effect: '바 방어선 체력 +1 즉시 회복 (최대 5)', wave: 'Wave 2, 3, 4, 5 출현', color: '#10b981' },
+      power_shot: { badge: 'BUFF ITEM · 소품', name: '파워 샷 (황금 병따개)', dur: '8초 지속', effect: '사격 데미지 2배 증폭', wave: '처치 시 드롭', color: '#ef4444' },
+      wide_scope: { badge: 'BUFF ITEM · 소품', name: '빅 스코프 (맥주 코스터)', dur: '8초 지속', effect: '조준경 및 명중 반경 1.6배 확대', wave: '처치 시 드롭', color: '#38bdf8' },
+      ice_freeze: { badge: 'BUFF ITEM · 소품', name: '아이스 프리즈 (얼음 버킷)', dur: '8초 지속', effect: '모든 몬스터 이동속도 50% 감속', wave: '처치 시 드롭', color: '#60a5fa' },
+      bar_repair: { badge: 'INSTANT · 소품', name: '바 수리 (홉 열매 다발)', dur: '즉시 발동', effect: '바 방어선 체력 +1 즉시 회복 (최대 5)', wave: '처치 시 드롭', color: '#10b981' },
     };
 
     let activeModel = null;
@@ -508,9 +511,9 @@
       document.getElementById('m-badge').textContent = 'MONSTER LINEUP';
       document.getElementById('m-badge').style.background = '#f59e0b';
       document.getElementById('m-name').textContent = '비어 크러셔 3D 실물 PBR 몬스터 6종 풀 라인업';
-      document.getElementById('m-hp').textContent = '1 ~ 40';
-      document.getElementById('m-speed').textContent = '1.10 ~ 4.2 m/s';
-      document.getElementById('m-score').textContent = '+30 ~ +1,500점';
+      document.getElementById('m-hp').textContent = '1 ~ 200';
+      document.getElementById('m-speed').textContent = '0.85 ~ 2.6 m/s';
+      document.getElementById('m-score').textContent = '+3 ~ +150점';
     };
 
     window.showItem = function(itemKind) {
