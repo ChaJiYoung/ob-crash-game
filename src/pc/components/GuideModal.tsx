@@ -92,7 +92,7 @@ const MONSTER_DETAILS: Record<
   boss: {
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (14m 정지, 좌우 이동)',
-    description: `앞면에 탭이 달린 업소용 냉각기 보스. 소형은 은색 1구, 대왕은 검정 3구에 금색 왕관을 썼습니다. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCount}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
+    description: `앞면에 탭이 달린 업소용 냉각기 보스. 소형은 은색 1구, 대왕은 검정 3구에 금색 왕관을 썼습니다. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCountByStep.join('·')}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
     tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },

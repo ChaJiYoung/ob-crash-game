@@ -1026,15 +1026,16 @@ export class BeerCrusherEngine {
     return itemEntity;
   }
 
-  /** 각 보스가 자기 최대 체력 대비 구간 값 아래로 내려갈 때마다 summonCount마리를 소환한다(시간이 아니라 체력 기준). */
+  /** 각 보스가 자기 최대 체력 대비 구간 값 아래로 내려갈 때마다 구간별 마릿수(4·5·6)를 소환한다(시간이 아니라 체력 기준). */
   private checkBossHpSummons(nowMs: number): void {
     const thresholds = GAME_TUNING.boss.summonHpThresholds;
     for (const boss of this.getBossEntities()) {
       let crossed = this.bossSummonCrossed.get(boss.id) ?? 0;
       const ratio = boss.hp / boss.maxHp;
       while (crossed < thresholds.length && ratio <= thresholds[crossed]) {
+        const count = GAME_TUNING.boss.summonCountByStep[crossed];
         crossed += 1;
-        this.spawnBossMinionWave(nowMs, GAME_TUNING.boss.summonCount);
+        this.spawnBossMinionWave(nowMs, count);
       }
       this.bossSummonCrossed.set(boss.id, crossed);
     }

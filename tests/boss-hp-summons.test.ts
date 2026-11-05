@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
-import { GAME_TUNING } from '../src/shared/gameTuning';
+import { GAME_TUNING, RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
-const MIN = GAME_TUNING.boss.summonCount;
+const [S1, S2, S3] = GAME_TUNING.boss.summonCountByStep;
 const bosses = (e: BeerCrusherEngine) => e.activeTargets.filter((t) => t.kind === 'boss');
 const minions = (e: BeerCrusherEngine) => e.activeTargets.filter((t) => t.isSummonedMinion);
 
@@ -28,7 +28,9 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
 
   it('has the tuned thresholds and the new boss HP', () => {
     expect(GAME_TUNING.boss.summonHpThresholds).toEqual([0.99, 0.66, 0.33]);
-    expect(GAME_TUNING.boss.summonCount).toBe(4);
+    expect(GAME_TUNING.boss.summonCountByStep).toEqual([4, 5, 6]);
+    expect(GAME_TUNING.boss.summonCountByStep.length).toBe(GAME_TUNING.boss.summonHpThresholds.length);
+    expect(RANKING_RULESET_VERSION).toBe(5);
     const hp = (w: number) => GAME_TUNING.waves[w - 1].boss!;
     expect(hp(3).coolerHp).toEqual([75]);
     expect(hp(5).coolerHp).toEqual([70, 70]);
@@ -43,7 +45,7 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
     expect(minions(engine).length).toBe(0);
   });
 
-  it('summons 4 at each of 99 / 66 / 33 percent, 12 in total, and never again', () => {
+  it('summons 4, 5, 6 at 99 / 66 / 33 percent, 15 in total, and never again', () => {
     startBossWave(engine, 3, now);
     hold(engine);
     const boss = bosses(engine)[0];
@@ -53,7 +55,7 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
       step();
       counts.push(minions(engine).length);
     }
-    expect(counts).toEqual([MIN, MIN * 2, MIN * 3, MIN * 3]);
+    expect(counts).toEqual([S1, S1 + S2, S1 + S2 + S3, S1 + S2 + S3]);
   });
 
   it('a big drop in HP summons every skipped threshold at once', () => {
@@ -62,7 +64,7 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
     const boss = bosses(engine)[0];
     boss.hp = boss.maxHp * 0.2;
     step();
-    expect(minions(engine).length).toBe(MIN * 3);
+    expect(minions(engine).length).toBe(S1 + S2 + S3);
   });
 
   it('has no cap on the number of minions on the field', () => {
@@ -82,10 +84,10 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
     const [a, c] = bosses(engine);
     a.hp = a.maxHp * 0.5;
     step();
-    expect(minions(engine).length).toBe(MIN * 2); // a crossed 99 and 66
+    expect(minions(engine).length).toBe(S1 + S2); // a crossed 99 and 66
     c.hp = c.maxHp * 0.98;
     step();
-    expect(minions(engine).length).toBe(MIN * 3);
+    expect(minions(engine).length).toBe(S1 + S2 + S1); // c starts from its own first step
   });
 
   it('the king follows the same rule (no shield)', () => {
@@ -94,7 +96,7 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
     const king = bosses(engine).find((b) => b.bossRole === 'king')!;
     king.hp = king.maxHp * 0.6;
     step();
-    expect(minions(engine).length).toBe(MIN * 2);
+    expect(minions(engine).length).toBe(S1 + S2);
   });
 
   it('the thresholds start over for the next boss fight', () => {
@@ -107,6 +109,6 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
     now += 100_000;
     bosses(engine)[0].hp = bosses(engine)[0].maxHp * 0.98;
     step();
-    expect(minions(engine).filter((m) => m.id.startsWith('boss_minion_')).length).toBeGreaterThanOrEqual(MIN);
+    expect(minions(engine).filter((m) => m.id.startsWith('boss_minion_')).length).toBeGreaterThanOrEqual(S1);
   });
 });

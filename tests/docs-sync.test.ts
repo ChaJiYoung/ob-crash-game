@@ -145,18 +145,18 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     const pct = '99% / 66% / 33%';
     expect(b.summonHpThresholds.map((v) => Math.round(v * 100))).toEqual([99, 66, 33]);
     expect(read('README.md')).toContain(`체력이 ${pct} 아래로 내려갈 때마다`);
-    expect(read('README.md')).toContain(`${b.summonCount}마리씩 필드 ${area}`);
-    expect(read('docs/몬스터_도감_설명서.md')).toContain(`부하 ${b.summonCount}마리를 필드 ${area}`);
+    expect(read('README.md')).toContain(`${b.summonCountByStep.join('·')}마리씩 필드 ${area}`);
+    expect(read('docs/몬스터_도감_설명서.md')).toContain(`부하 ${b.summonCountByStep.join('·')}마리를 필드 ${area}`);
     expect(read('docs/몬스터_도감_설명서.md')).toContain(`체력이 ${pct} 아래로 내려갈 때마다`);
-    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`부하 ${b.summonCount}마리를 소환`);
+    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`부하 ${b.summonCountByStep.join('·')}마리를 소환`);
     expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`필드 ${area}에 위에서 떨어지고`);
-    expect(read('docs/비어 크러셔 상세설계서.md')).toContain(`한 번에 ${b.summonCount}마리를 필드 ${area}`);
+    expect(read('docs/비어 크러셔 상세설계서.md')).toContain(`한 번에 ${b.summonCountByStep.join('·')}마리를 필드 ${area}`);
     expect(read('docs/튜토리얼_훈련장_가이드.md')).toContain(`필드 ${area}에 위에서 떨어집니다`);
   });
 
   it('keeps the in-game guide numbers tied to GAME_TUNING instead of hard-coded text', () => {
     const guide = read('src/pc/components/GuideModal.tsx');
-    expect(guide).toContain('GAME_TUNING.boss.summonCount');
+    expect(guide).toContain('GAME_TUNING.boss.summonCountByStep');
     expect(guide).toContain('GAME_TUNING.boss.minionDrop.minRadiusM');
     expect(guide).toContain('GAME_TUNING.score.timeBonus.maxPerWave');
     expect(guide).toContain('GAME_TUNING.score.timeBonus.zeroAtParMult');

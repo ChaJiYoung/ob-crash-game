@@ -266,7 +266,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       engine.update(1100, 0.05);
       expect(engine.isBossSummoning(1500)).toBe(true);
       const minions = engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_'));
-      expect(minions.length).toBe(GAME_TUNING.boss.summonCount);
+      expect(minions.length).toBe(GAME_TUNING.boss.summonCountByStep[0]);
     });
 
     it('should trigger instant victory and clear all entities when boss is killed', () => {
