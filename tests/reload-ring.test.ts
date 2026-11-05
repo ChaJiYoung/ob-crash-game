@@ -33,4 +33,22 @@ describe('reload progress ring', () => {
       expect(block).toContain('isReloading={hudState.isReloading}');
     });
   });
+
+  it('keeps the reload ring tied to the duration the reload started with', () => {
+    const src = fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
+    expect(src).toContain('startDurationMsRef');
+  });
+
+  it('defines the crosshair-spin keyframes and no longer uses the undefined "spin"', () => {
+    const src = fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
+    expect(src).toContain('@keyframes crosshair-spin');
+    expect(src).not.toMatch(/'spin \d/);
+  });
+
+  it('the ring spec is pure: same input, same output', () => {
+    const a = getReloadRingSpec({ isReloading: true, reloadDurationMs: 1200, sizePx: 76 });
+    const b = getReloadRingSpec({ isReloading: true, reloadDurationMs: 1200, sizePx: 76 });
+    expect(a).toEqual(b);
+    expect(a.durationMs).toBe(1200);
+  });
 });

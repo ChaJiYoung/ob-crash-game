@@ -285,7 +285,17 @@ export const CrosshairOverlay = React.memo(
     kickScaleRef.current = spec.weaponKind === 'shotgun' ? 1.32 : spec.weaponKind === 'revolver' ? 0.90 : 1.20;
 
     const cornerSize = spec.sizePx * 0.22;
-    const ring = getReloadRingSpec({ isReloading, isFeverActive, reloadDurationMs, sizePx: spec.sizePx });
+    // The real reload ends at the time it started with; a rapid_reload card taken mid-reload only
+    // affects the next one. Pin the ring to the duration seen when this reload began.
+    const startDurationMsRef = useRef(0);
+    if (!isReloading || isFeverActive) startDurationMsRef.current = 0;
+    else if (startDurationMsRef.current === 0 && reloadDurationMs > 0) startDurationMsRef.current = reloadDurationMs;
+    const ring = getReloadRingSpec({
+      isReloading,
+      isFeverActive,
+      reloadDurationMs: startDurationMsRef.current || reloadDurationMs,
+      sizePx: spec.sizePx,
+    });
 
     return (
       <div
@@ -305,6 +315,9 @@ export const CrosshairOverlay = React.memo(
           transition: 'transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
         }}
       >
+        {/* The reticle rings used an undefined "spin" animation; define it here (rotation only, no translate). */}
+        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
         {/* 1. 🪠 SHOTGUN SPECIFIC HUD: Large Pellet Circle + 8-radial dots + Octagon Brackets */}
         {spec.weaponKind === 'shotgun' && (
           <>
@@ -316,7 +329,7 @@ export const CrosshairOverlay = React.memo(
                 height: `${spec.ringSizePx}px`,
                 borderRadius: '50%',
                 border: `2px dashed ${spec.primaryColor}`,
-                animation: isFeverActive ? 'spin 2s linear infinite' : undefined,
+                animation: isFeverActive ? 'crosshair-spin 2s linear infinite' : undefined,
               }}
             />
 
@@ -413,7 +426,7 @@ export const CrosshairOverlay = React.memo(
                 border: `2px solid ${spec.primaryColor}`,
                 borderTopColor: 'transparent',
                 borderBottomColor: 'transparent',
-                animation: isFeverActive ? 'spin 0.6s linear infinite' : 'spin 4s linear infinite',
+                animation: isFeverActive ? 'crosshair-spin 0.6s linear infinite' : 'crosshair-spin 4s linear infinite',
               }}
             />
 

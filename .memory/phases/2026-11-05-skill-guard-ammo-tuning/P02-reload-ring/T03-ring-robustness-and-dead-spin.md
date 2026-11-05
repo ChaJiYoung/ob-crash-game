@@ -1,6 +1,6 @@
 # Task: T03 링 보강(rapid_reload 연속 처리)과 죽은 spin 애니메이션 수정
 
-## Status: pending
+## Status: done
 
 ## Goal
 (1) 장전 도중 `rapid_reload` 카드로 장전 시간이 바뀌어도 링이 실제 장전 종료 시각과 맞게 이어지게 한다. (2) `CrosshairOverlay`의 피버 중 회전 링(`animation: 'spin 2s linear infinite'`)이 keyframes가 없어 실제로는 멈춰 있는 문제를 고친다. 둘 다 같은 컴포넌트의 애니메이션 정의 문제라 한 Task로 묶는다(결정 D06-3, D06-4).
@@ -82,6 +82,6 @@ Task: T03-ring-robustness-and-dead-spin
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
