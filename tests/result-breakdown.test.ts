@@ -56,3 +56,13 @@ describe('result screen score breakdown (score-differentiation P01-T02)', () => 
     expect(html).not.toContain('last-wave-clear');
   });
 });
+
+describe('result screen ranking layout', () => {
+  it('lays the ranking beside the result and keeps both buttons', () => {
+    const html = render({ gamePhase: 'GAMEOVER' });
+    expect(html).toContain('result-layout');
+    expect(html).toContain('아직 기록이 없습니다');
+    expect(html).toContain('다시 도전하기');
+    expect(html).toContain('로비로 이동');
+  });
+});

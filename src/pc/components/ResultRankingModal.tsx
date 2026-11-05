@@ -55,7 +55,9 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
     >
       <div
         style={{
-          width: '680px',
+          width: 'min(1100px, 94vw)',
+          maxHeight: '94vh',
+          overflowY: 'auto',
           background: 'linear-gradient(145deg, #131a29, #0d121c)',
           border: isVictory ? '2px solid #fbbf24' : '2px solid #ef4444',
           borderRadius: '24px',
@@ -87,6 +89,9 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           </div>
         </div>
 
+        <style>{`.result-layout { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; } @media (max-width: 900px) { .result-layout { grid-template-columns: minmax(0, 1fr); } }`}</style>
+        <div className="result-layout">
+        <div>
         {/* Score & Record Summary */}
         <div
           style={{
@@ -174,6 +179,8 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           </div>
         </div>
 
+        </div>
+
         {/* TOP 5 Hall of Fame Table */}
         <div
           style={{
@@ -200,6 +207,11 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {rankings.length === 0 && (
+              <div style={{ fontSize: '13px', color: '#94a3b8', padding: '12px 0', textAlign: 'center' }}>
+                아직 기록이 없습니다. 첫 기록의 주인공이 되어 보세요!
+              </div>
+            )}
             {rankings.slice(0, 5).map((p, idx) => {
               const isCurrent = currentPlayer && p.deviceId === currentPlayer.deviceId;
               return (
@@ -244,6 +256,8 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
               );
             })}
           </div>
+        </div>
+
         </div>
 
         {/* Buttons */}
