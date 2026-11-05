@@ -400,31 +400,6 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(buildHudSnapshot(engine, 103_000).isBossWarning).toBe(false);
     });
 
-    it('summoned hanmacs do not starve the bosses of projectile fire', () => {
-      finishMiniWave(engine, 5, 100_000);
-      let now = 100_000;
-      const bossShots: number[] = [];
-      // Park two hanmacs next to the bosses; they fire on their own timer
-      const hans = [0.3, -0.3].map((th, i) => ({
-        id: `han${i}`, kind: 'hanmac' as const, hp: 3, maxHp: 3, radiusM: 11, thetaRad: th, initialThetaRad: th,
-        x: Math.sin(th) * 11, z: -Math.cos(th) * 11, speedMps: 0, hitRadiusM: 1, killBonusScore: 1, breached: false,
-      }));
-      engine.activeTargets.push(...hans);
-      for (let i = 0; i < 800; i++) {
-        now += 50;
-        engine.update(now, 0.05);
-        engine.activeTargets
-          .filter((t) => t.isProjectile && !(t as any).seen)
-          .forEach((t) => {
-            (t as any).seen = true;
-            if (t.id.endsWith('_boss')) bossShots.push(now);
-          });
-        engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile);
-      }
-      // 40s of fight at one boss shot per 3.5s
-      expect(bossShots.length).toBeGreaterThanOrEqual(8);
-    });
-
     it('does not leak boss state into the sandbox and keeps sandbox bosses harmless', () => {
       finishMiniWave(engine, 7, 100_000);
       expect(engine.isBossEncounterActive).toBe(true);
@@ -443,24 +418,14 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(engine.gamePhase).toBe('SANDBOX'); // no VICTORY freeze
     });
 
-    it('a long pause does not make hanmacs or summons fire on resume', () => {
+    it('a long pause does not make bosses or summons fire on resume', () => {
       finishMiniWave(engine, 5, 100_000);
       let now = 100_000;
       for (let i = 0; i < 100; i++) {
         now += 50;
         engine.update(now, 0.05);
       }
-      const han = { id: 'h', kind: 'hanmac' as const, hp: 3, maxHp: 3, radiusM: 11, thetaRad: 0, initialThetaRad: 0, x: 0, z: -11, speedMps: 0, hitRadiusM: 1, killBonusScore: 1, breached: false } as ActiveTargetEntity;
-      engine.activeTargets.push(han);
-      let hanShots = 0;
-      for (let i = 0; i < 30; i++) {
-        now += 50;
-        engine.update(now, 0.05);
-        hanShots += engine.activeTargets.filter((t) => t.isProjectile).length;
-        // Keep the field uncrowded so the hanmac is never blocked by the field-size limit
-        engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile && !t.id.startsWith('boss_minion_'));
-      }
-      expect(hanShots).toBeGreaterThanOrEqual(1); // it was firing before the pause
+      engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile && !t.id.startsWith('boss_minion_'));
       engine.setPaused(true, now);
       now += 20_000;
       engine.setPaused(false, now);

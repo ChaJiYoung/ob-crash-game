@@ -76,10 +76,10 @@ const MONSTER_DETAILS: Record<
     imageSrc: '/docs/screens/monster-03-obi.png',
   },
   hanmac: {
-    role: '지상 포격형 · 멈춰 서서 투사체 발사 (3HP)',
-    speedText: `2.0 m/s (${GAME_TUNING.monsters.hanmac.stopRadiusM}m에서 정지)`,
-    description: `100% 국산 쌀 벼 이삭 크레스트가 새겨진 딥 에메랄드 캔. ${GAME_TUNING.monsters.hanmac.stopRadiusM}m에서 멈춰 서서 ${GAME_TUNING.monsters.hanmac.fireIntervalMs / 1000}초마다 자기 위치에서 갈색 똥 투사체를 날립니다.`,
-    tip: '갈색 똥 투사체를 요격하면 터지며 점수를 줍니다. 한맥은 방어선을 넘지 않으니 투사체가 날아오기 전에 우선 처치하세요.',
+    role: '지상 폭탄형 · 잡으면 주변이 터짐 (3HP)',
+    speedText: '2.0 m/s',
+    description: `100% 국산 쌀 벼 이삭 크레스트가 새겨진 딥 에메랄드 캔에 빨간 띠와 심지를 단 폭탄 캔. 처치하면 터져서 반경 ${GAME_TUNING.monsters.hanmac.blastRadiusM}m 안 몬스터에게 피해 ${GAME_TUNING.monsters.hanmac.blastDamage}를 줍니다(보스 제외, 다른 한맥이 죽으면 연쇄 폭발).`,
+    tip: '몬스터가 뭉쳤을 때 한맥을 노리면 한꺼번에 정리할 수 있습니다. 놓치면 방어선을 넘어 체력이 깎입니다.',
     imageSrc: '/docs/screens/monster-04-hanmac.png',
   },
   bottle: {
@@ -500,7 +500,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
                   • <strong>100% 비례 슬림 게이지 체력바:</strong> 모든 몬스터는 100% 비례 연속 게이지 바로 체력이 표시됩니다. 1HP 캔(필굿, 카스라이트)도 스쳐 맞았을 때(hp &lt; maxHp) 즉시 머리 위에 잔여 체력바가 나타납니다!<br />
                   • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +{Math.round(500 * GAME_TUNING.score.scale)}점과 함께 액티브 스킬 1회 충전, 피버 게이지 +{GAME_TUNING.goldenCan.feverGain}%를 받습니다.<br />
-                  • <strong>💩 똥 투사체 요격:</strong> 한맥과 보스가 쏘는 갈색 똥 덩어리(아이템과 달리 빛나지 않고 맞으면 체력이 깎입니다)가 바닥을 따라 다가올 때 사격하면 몬스터처럼 터지며 요격음과 점수를 얻습니다. 놓쳐서 방어선을 통과하면 바 생명이 1 차감됩니다.
+                  • <strong>💩 똥 투사체 요격:</strong> 보스가 쏘는 갈색 똥 덩어리(아이템과 달리 빛나지 않고 맞으면 체력이 깎입니다)가 바닥을 따라 다가올 때 사격하면 몬스터처럼 터지며 요격음과 점수를 얻습니다. 놓쳐서 방어선을 통과하면 바 생명이 1 차감됩니다.
                 </div>
               </div>
 

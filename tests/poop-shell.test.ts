@@ -62,7 +62,7 @@ describe('enemy shells are brown poop, not shiny item orbs', () => {
     const e = new BeerCrusherEngine();
     e.startGame({ withWeaponSelect: false });
     e.activeTargets = [];
-    const shell = e.spawnMonsterProjectile(1000, 'hanmac', { thetaRad: 0.05, radiusM: 7 });
+    const shell = e.spawnMonsterProjectile(1000, 'boss', { thetaRad: 0.05, radiusM: 7 });
     const aim = e.computeTargetAimCoords(shell);
     expect(aim.targetNormY).toBeLessThan(0);
     expect(aim.targetNormY).not.toBeCloseTo(0.1, 2);
@@ -74,13 +74,13 @@ describe('enemy shells are brown poop, not shiny item orbs', () => {
     expect(resolveHitFxColor({ isProjectile: true } as any)).toBe('#7a4a21');
   });
 
-  it('the engine reports a launch event for hanmac and boss shells, once', () => {
+  it('the engine reports a launch event for boss shells, once', () => {
     const e = new BeerCrusherEngine();
     e.startGame({ withWeaponSelect: false });
-    e.spawnMonsterProjectile(1000, 'hanmac', { thetaRad: 0.1, radiusM: 11 });
+    e.spawnMonsterProjectile(1000, 'boss', { thetaRad: 0.1, radiusM: 11 });
     e.spawnMonsterProjectile(1100, 'boss', { thetaRad: -0.2, radiusM: 10 });
     const events = e.drainProjectileLaunchEvents();
-    expect(events.map((x) => x.source)).toEqual(['hanmac', 'boss']);
+    expect(events.map((x) => x.source)).toEqual(['boss', 'boss']);
     expect(events[0].x).toBeCloseTo(Math.sin(0.1) * 11, 5);
     expect(events[0].z).toBeCloseTo(-Math.cos(0.1) * 11, 5);
     expect(e.drainProjectileLaunchEvents()).toEqual([]);
@@ -89,7 +89,7 @@ describe('enemy shells are brown poop, not shiny item orbs', () => {
   it('a new wave drops stale launch events', () => {
     const e = new BeerCrusherEngine();
     e.startGame({ withWeaponSelect: false });
-    e.spawnMonsterProjectile(1000, 'hanmac', { thetaRad: 0, radiusM: 11 });
+    e.spawnMonsterProjectile(1000, 'boss', { thetaRad: 0, radiusM: 11 });
     e.startWave(2);
     expect(e.drainProjectileLaunchEvents()).toEqual([]);
   });

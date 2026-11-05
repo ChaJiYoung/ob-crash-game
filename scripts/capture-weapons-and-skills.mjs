@@ -178,7 +178,7 @@ async function captureWeaponsAndSkills() {
       eng.startGame({ withWeaponSelect: false }); // fresh state: no fever, no leftover banners
       eng.activeTargets = [];
       eng.weaponSystem.selectWeapon('shotgun', 1);
-      eng.spawnMonsterProjectile(performance.now(), 'hanmac', { thetaRad: 0.05, radiusM: 7.0 });
+      eng.spawnMonsterProjectile(performance.now(), 'boss', { thetaRad: 0.05, radiusM: 7.0 });
     }
   });
   await page.waitForTimeout(200);

@@ -45,7 +45,7 @@ await page.evaluate(() => {
   eng.startGame({ withWeaponSelect: false });
   eng.activeTargets = [];
   eng.weaponSystem.selectWeapon('shotgun', 1);
-  eng.spawnMonsterProjectile(performance.now(), 'hanmac', { thetaRad: 0.05, radiusM: 7.0 });
+  eng.spawnMonsterProjectile(performance.now(), 'boss', { thetaRad: 0.05, radiusM: 7.0 });
 });
 await page.waitForTimeout(200);
 await shot('play-poop-shell.png');

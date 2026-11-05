@@ -109,7 +109,7 @@ describe('revolver fan blades', () => {
   });
 
   it('cuts enemy shells without using pierce', () => {
-    const shell = engine.spawnMonsterProjectile(now, 'hanmac', { thetaRad: 0, radiusM: 8 });
+    const shell = engine.spawnMonsterProjectile(now, 'boss', { thetaRad: 0, radiusM: 8 });
     const m = mk('hanmac', 10);
     engine.activeTargets = [shell, m];
     cast(1);
@@ -171,7 +171,7 @@ describe('revolver fan blades', () => {
     engine.activeSkillBlades = engine.activeSkillBlades.filter((b) => Math.abs(b.thetaRad) < 1e-6);
     tick(25); // front is now around 19m
     const late = mk('hanmac', 6);
-    const shell = engine.spawnMonsterProjectile(now, 'hanmac', { thetaRad: 0, radiusM: 7 });
+    const shell = engine.spawnMonsterProjectile(now, 'boss', { thetaRad: 0, radiusM: 7 });
     engine.activeTargets.push(late);
     tick(3);
     expect(late.hp).toBe(99);

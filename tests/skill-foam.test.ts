@@ -90,7 +90,7 @@ describe('gatling foam wave', () => {
   });
 
   it('ignores shells, items, golden cans and monsters still falling in', () => {
-    const shell = engine.spawnMonsterProjectile(now, 'hanmac', { thetaRad: 0, radiusM: 10 });
+    const shell = engine.spawnMonsterProjectile(now, 'boss', { thetaRad: 0, radiusM: 10 });
     const item = mk('pilgood', 10, { isItem: true });
     const can = mk('pilgood', 10, { isGoldenCan: true });
     const falling = mk('hanmac', 12, { dropLandAtMs: now + 100000 });

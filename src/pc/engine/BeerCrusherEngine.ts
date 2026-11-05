@@ -45,8 +45,6 @@ export interface ActiveTargetEntity {
   customBaseY?: number;
   initialThetaRad?: number;
   // Hanmac artillery
-  hanmacArrivedAtMs?: number;
-  lastFireMs?: number;
   // Obi shield / bottle split
   guardPhaseMs?: number;
   isGuarding?: boolean;
@@ -141,7 +139,7 @@ export interface SkillBlade {
 }
 
 export interface ProjectileLaunchEvent {
-  source: 'hanmac' | 'boss';
+  source: 'boss';
   x: number;
   z: number;
   y: number;
@@ -151,7 +149,13 @@ export type BossClearEvent =
   | { type: 'defeated'; x: number; z: number; y: number }
   | { type: 'cascade'; target: ActiveTargetEntity };
 
-export type SkillHitSource = 'blade' | 'foam';
+export type SkillHitSource = 'blade' | 'foam' | 'blast';
+
+export interface HanmacBlastEvent {
+  x: number;
+  y: number;
+  z: number;
+}
 
 export interface SkillHitEvent {
   source: SkillHitSource;
@@ -216,6 +220,8 @@ export class BeerCrusherEngine {
   private bossClearNextCascadeMs = 0;
   private bossClearEvents: BossClearEvent[] = [];
   private projectileLaunchEvents: ProjectileLaunchEvent[] = [];
+  private pendingHanmacBlasts: { x: number; z: number }[] = [];
+  private hanmacBlastEvents: HanmacBlastEvent[] = [];
   public activeSkillFoamWaves: SkillFoamWave[] = [];
   private skillHitEvents: SkillHitEvent[] = [];
   private skillEntityCounter = 0;
@@ -362,7 +368,7 @@ export class BeerCrusherEngine {
     } else if (!paused && this.isPaused) {
       const pauseDurationMs = this.pausedAtMs !== null ? Math.max(0, nowMs - this.pausedAtMs) : 0;
       // Same set of timers as the card-select freeze: buffs, fever, reload, spawns, boss summon,
-      // projectile timers, hanmac fire, stun and slow
+      // projectile timers, stun and slow
       this.freezeTimers(pauseDurationMs);
       this.isPaused = false;
       this.pausedAtMs = null;
@@ -619,7 +625,7 @@ export class BeerCrusherEngine {
 
   public spawnMonsterProjectile(
     nowMs: number,
-    sourceKind: 'hanmac' | 'boss',
+    sourceKind: 'boss',
     origin?: { thetaRad: number; radiusM: number }
   ): ActiveTargetEntity {
     this.lastProjectileSpawnTimeMs = nowMs;
@@ -1113,7 +1119,6 @@ export class BeerCrusherEngine {
     for (const target of this.activeTargets) {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
-      if (target.lastFireMs !== undefined) target.lastFireMs += deltaMs;
       if (target.dropLandAtMs !== undefined) target.dropLandAtMs += deltaMs;
     }
   }
@@ -1175,6 +1180,8 @@ export class BeerCrusherEngine {
         this.advanceTutorialStep('COMPLETED');
       }
     }
+
+    this.processHanmacBlasts(nowMs);
 
     const breaches: ActiveTargetEntity[] = [];
     const isIceFreeze = this.isBuffActive('ice_freeze', nowMs);
@@ -1267,27 +1274,6 @@ export class BeerCrusherEngine {
           target.z = next.z;
           target.breached = false;
         }
-      } else if (target.kind === 'hanmac' && isRegularPlay && isPlainMonster && next.radiusM <= GAME_TUNING.monsters.hanmac.stopRadiusM) {
-        // Hanmac stops at range and bombards from its own position
-        const stopRadiusM = Math.min(GAME_TUNING.monsters.hanmac.stopRadiusM, target.radiusM); // a drop inside the stop radius stays put
-        target.radiusM = stopRadiusM;
-        target.x = Math.sin(target.thetaRad) * stopRadiusM;
-        target.z = -Math.cos(target.thetaRad) * stopRadiusM;
-        target.breached = false;
-        if (target.hanmacArrivedAtMs === undefined) {
-          target.hanmacArrivedAtMs = nowMs;
-          target.lastFireMs =
-            nowMs - GAME_TUNING.monsters.hanmac.fireIntervalMs + GAME_TUNING.monsters.hanmac.firstShotDelayMs;
-        }
-        const fieldHasRoom = this.activeTargets.length < (this.waveDefinitions[this.currentWave]?.maxSimultaneous ?? 6) + 2;
-        if (
-          !isStunned &&
-          fieldHasRoom &&
-          nowMs - (target.lastFireMs ?? nowMs) >= GAME_TUNING.monsters.hanmac.fireIntervalMs
-        ) {
-          target.lastFireMs = nowMs;
-          this.spawnMonsterProjectile(nowMs, 'hanmac', { thetaRad: target.thetaRad, radiusM: target.radiusM });
-        }
       } else {
         target.radiusM = next.radiusM;
         target.x = next.x;
@@ -1365,7 +1351,7 @@ export class BeerCrusherEngine {
       }
     }
 
-    // Periodic projectile spawn from the boss (hanmac fires on its own timer in the movement loop)
+    // Periodic projectile spawn from the boss
     const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
     if (hasBossShooter && nowMs - this.lastBossProjectileMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
       // Living coolers fire in turns from their own position; the king fires only if no cooler is left
@@ -1374,7 +1360,7 @@ export class BeerCrusherEngine {
       const shooters = coolers.length > 0 ? coolers : bosses;
       const shooter = shooters[this.bossShooterIndex % shooters.length];
       this.bossShooterIndex += 1;
-      this.lastBossProjectileMs = nowMs; // separate from the hanmac shots so summoned hanmacs cannot starve the bosses
+      this.lastBossProjectileMs = nowMs;
       this.spawnMonsterProjectile(nowMs, 'boss', { thetaRad: shooter.thetaRad, radiusM: shooter.radiusM });
     }
 
@@ -1631,6 +1617,11 @@ export class BeerCrusherEngine {
     }
 
     if (this.bossClearUntilMs > 0) return; // 연출 중에는 분열·드롭·킬 카운트가 없다
+
+    // 사격·스킬이 목록을 처리하는 도중일 수 있으므로 여기서 터뜨리지 않고 다음 update로 미룬다.
+    if (target.kind === 'hanmac' && !this.isTutorialMode && !this.isSandboxMode && !target.isItem && !target.isProjectile) {
+      this.pendingHanmacBlasts.push({ x: target.x, z: target.z });
+    }
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
       if (!this.isTutorialMode && !this.isSandboxMode) {
@@ -2162,6 +2153,45 @@ export class BeerCrusherEngine {
     this.bossClearNextCascadeMs = 0;
     this.bossClearEvents = [];
     this.projectileLaunchEvents = [];
+    this.pendingHanmacBlasts = [];
+    this.hanmacBlastEvents = [];
+  }
+
+  /** 한맥 폭발을 처리한다. 폭발로 죽은 한맥은 큐에 다시 들어와 연쇄로 터지고, 죽은 대상은 목록에서 빠져 반복되지 않는다. */
+  private processHanmacBlasts(nowMs: number): void {
+    const { blastRadiusM, blastDamage } = GAME_TUNING.monsters.hanmac;
+    while (this.pendingHanmacBlasts.length > 0) {
+      if (this.bossClearUntilMs > 0) {
+        this.pendingHanmacBlasts = [];
+        return;
+      }
+      const blast = this.pendingHanmacBlasts.shift()!;
+      this.hanmacBlastEvents.push({ x: blast.x, y: getTargetBaseY('hanmac', false) + 0.35, z: blast.z });
+      if (this.hanmacBlastEvents.length > 32) this.hanmacBlastEvents.shift();
+      const victims = this.activeTargets.filter(
+        (t) =>
+          t.kind !== 'boss' &&
+          !t.isItem &&
+          !t.isProjectile &&
+          !t.isGoldenCan &&
+          !t.weaponSelectKind &&
+          !t.rewardCardKind &&
+          this.isTargetLanded(t, nowMs) &&
+          Math.hypot(t.x - blast.x, t.z - blast.z) <= blastRadiusM
+      );
+      for (const t of victims) {
+        if (!this.activeTargets.includes(t)) continue;
+        const killed = this.applySkillDamage(t, blastDamage, nowMs);
+        this.pushSkillHitEvent({ source: 'blast', target: t, killed });
+      }
+    }
+  }
+
+  /** 화면이 한맥 폭발 연출을 그리려고 가져간다. 돌려주고 비운다. */
+  public drainHanmacBlastEvents(): HanmacBlastEvent[] {
+    const events = this.hanmacBlastEvents;
+    this.hanmacBlastEvents = [];
+    return events;
   }
 
   /** 마지막 보스가 죽으면 필드를 한꺼번에 비우지 않고 연출 시퀀스를 시작한다. */

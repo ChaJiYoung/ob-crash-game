@@ -181,7 +181,7 @@ async function runPlaytest() {
     eng.weaponSystem.refillSkillInstant();
     eng.spawnSandboxTarget('hanmac', { radiusM: 9.0, thetaRad: 0.0 });
     eng.spawnSandboxTarget('bottle', { radiusM: 13.0, thetaRad: 0.0 });
-    eng.spawnMonsterProjectile(performance.now(), 'hanmac');
+    eng.spawnMonsterProjectile(performance.now(), 'boss');
   });
   await play(6000);
 

@@ -735,6 +735,12 @@ export class ParticleEffects3D {
     this.spawnHitEffect(position, '#d6d3d1', 6);
   }
 
+  /** 한맥이 터지는 폭발: 주황·빨강 파편. */
+  public spawnHanmacBlast(position: THREE.Vector3): void {
+    this.spawnHitEffect(position, '#f97316', 26);
+    this.spawnHitEffect(position, '#dc2626', 14);
+  }
+
   /** 보스가 터지는 큰 폭발: 금색·흰색 파편과 유리 조각을 한꺼번에 뿜는다. */
   public spawnBossDefeatBurst(position: THREE.Vector3): void {
     this.spawnHitEffect(position, '#fbbf24', 30);

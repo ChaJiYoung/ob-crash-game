@@ -547,6 +547,33 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
       inner.add(topFoam);
     }
 
+    // Hanmac is a bomb can: a red warning band and a lit fuse
+    if (kind === 'hanmac') {
+      const bombMat = getCachedMaterial('hanmac-bomb-mat', () =>
+        new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0xdc2626, emissiveIntensity: 0.7, roughness: 0.4 })
+      );
+      const bandGeo = getCachedGeometry('hanmac-band-geo', () => {
+        const g = new THREE.TorusGeometry(r * 1.0, 0.022, 8, 28);
+        g.rotateX(Math.PI / 2);
+        return g;
+      });
+      [h * 0.3, -h * 0.3].forEach((y) => {
+        const band = new THREE.Mesh(bandGeo, bombMat);
+        band.position.y = y;
+        inner.add(band);
+      });
+      const fuseGeo = getCachedGeometry('hanmac-fuse-geo', () => new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8));
+      const fuse = new THREE.Mesh(fuseGeo, capMat);
+      fuse.position.set(0.05, h / 2 + 0.2, 0);
+      fuse.rotation.z = -0.35;
+      inner.add(fuse);
+      const sparkGeo = getCachedGeometry('hanmac-spark-geo', () => new THREE.SphereGeometry(0.035, 10, 10));
+      const spark = new THREE.Mesh(sparkGeo, bombMat);
+      spark.name = 'hanmacFuseSpark';
+      spark.position.set(0.08, h / 2 + 0.28, 0);
+      inner.add(spark);
+    }
+
     // Airborne jet plume for pilgood & caslight
     if (kind === 'pilgood' || kind === 'caslight') {
       const jetGeo = getCachedGeometry('jet-plume-geo', () => new THREE.CylinderGeometry(r * 0.3, r * 0.7, 0.22, 12));

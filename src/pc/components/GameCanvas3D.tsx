@@ -540,7 +540,12 @@ export const GameCanvas3D = React.memo(
           if (ev.source === 'blade') particles.spawnSlashMark(pos);
         }
 
-        // 한맥·보스가 쏘는 순간: 그 자리에서 갈색 덩어리가 뿜어져 나간다.
+        for (const ev of engine.drainHanmacBlastEvents()) {
+          particles.spawnHanmacBlast(new THREE.Vector3(ev.x, ev.y, ev.z));
+          soundSynth.playHanmacBlastSound();
+        }
+
+        // 보스가 쏘는 순간: 그 자리에서 갈색 덩어리가 뿜어져 나간다.
         for (const ev of engine.drainProjectileLaunchEvents()) {
           particles.spawnProjectileLaunchBurst(new THREE.Vector3(ev.x, ev.y, ev.z));
         }

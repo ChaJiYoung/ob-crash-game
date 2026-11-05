@@ -82,7 +82,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     expect(pb - proj.radiusM).toBeCloseTo(3.2 * 0.1, 3);
     expect(ib - item.radiusM).toBeCloseTo(1 * 0.1, 3);
 
-    const projectile = engine.spawnMonsterProjectile(2000, 'hanmac');
+    const projectile = engine.spawnMonsterProjectile(2000, 'boss');
     expect(projectile.customBaseY).toBe(GAME_TUNING.shell.baseY);
     expect(projectile.customNormY).toBeUndefined();
   });
@@ -103,51 +103,17 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     expect(pilDev).toBe(0);
   });
 
-  it('hanmac stops at 11m, never reaches the defense line, and fires from its own theta every 3s', () => {
-    const h = mk('hanmac', 14, { thetaRad: 0.2, initialThetaRad: 0.2, x: Math.sin(0.2) * 14, z: -Math.cos(0.2) * 14 });
+  it('hanmac never fires and walks to the defense line, costing a life', () => {
+    const h = mk('hanmac', 4, { speedMps: 2 });
     engine.activeTargets = [h];
-
-    const fired: ActiveTargetEntity[] = [];
+    const before = engine.lives;
     let now = 1000;
-    for (let i = 0; i < 400; i++) {
-      // 20s in 50ms steps; intercept every projectile so only the hanmac's own behaviour is measured
+    for (let i = 0; i < 60; i++) {
       now = step(engine, now, 50);
-      engine.activeTargets.filter((t) => t.isProjectile).forEach((t) => fired.push(t));
-      engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile);
+      expect(engine.activeTargets.some((t) => t.isProjectile)).toBe(false);
     }
-    expect(h.radiusM).toBe(GAME_TUNING.monsters.hanmac.stopRadiusM);
-    expect(engine.lives).toBe(5);
-    // Arrives after ~1s, first shot 1s later, then every 3s: ~6 shots in 20s
-    expect(fired.length).toBeGreaterThanOrEqual(5);
-    expect(fired.length).toBeLessThanOrEqual(7);
-    fired.forEach((p) => expect(p.initialThetaRad).toBeCloseTo(0.2, 5));
-  });
-
-  it('a stunned hanmac does not fire', () => {
-    const h = mk('hanmac', 11, { thetaRad: 0, stunUntilMs: 1_000_000 });
-    engine.activeTargets = [h];
-    step(engine, 1000, 8000);
-    expect(engine.activeTargets.some((t) => t.isProjectile)).toBe(false);
-  });
-
-  it('a hanmac does not fire immediately after the card selection freeze ends', () => {
-    const h = mk('hanmac', 11, { thetaRad: 0 });
-    engine.activeTargets = [h];
-    let now = step(engine, 1000, 3500); // fires at least once by now
-    engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile);
-
-    engine.spawnWaveRewardCards(now, false);
-    for (let i = 0; i < 100; i++) {
-      now += 100;
-      engine.update(now, 0.1); // 10s frozen
-    }
-    const pick = engine.activeTargets.find((t) => t.rewardCardKind)!;
-    const p = engine.computeTargetAimCoords(pick);
-    engine.shootAt(p.targetNormX, p.targetNormY, now, 'press');
-    engine.activeTargets = engine.activeTargets.filter((t) => t.kind === 'hanmac');
-
-    now = step(engine, now, 200);
-    expect(engine.activeTargets.some((t) => t.isProjectile)).toBe(false);
+    expect(engine.activeTargets.includes(h)).toBe(false);
+    expect(engine.lives).toBe(before - 1);
   });
 
   it('hanmac keeps walking in the sandbox and tutorial', () => {
@@ -158,7 +124,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       const h = mk('hanmac', 11.5, { speedMps: 2 });
       e.activeTargets = [h];
       e.update(1000, 0.5);
-      expect(h.radiusM).toBeLessThan(GAME_TUNING.monsters.hanmac.stopRadiusM);
+      expect(h.radiusM).toBeLessThan(11.5);
     }
   });
 

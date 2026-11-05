@@ -83,7 +83,8 @@ export const GAME_TUNING = {
   monsters: {
     pilgood: { chargeRadiusM: 12, chargeSpeedMult: 1.4 },
     caslight: { swayAmplitudeRad: 0.25, swayFrequency: 0.004 },
-    hanmac: { stopRadiusM: 11, fireIntervalMs: 4000, firstShotDelayMs: 1000 },
+    /** 처치되면 터져 주변 몬스터에게 피해를 주는 폭탄 캔. 보스는 맞지 않는다. */
+    hanmac: { blastRadiusM: 4, blastDamage: 2 },
     obi: { guardUpMs: 800, guardDownMs: 2400 },
     bottle: {
       bigScale: 1.2,

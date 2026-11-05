@@ -707,7 +707,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     );
 
     // 4. Projectile Interception
-    const proj = engine.spawnMonsterProjectile(4000, 'hanmac');
+    const proj = engine.spawnMonsterProjectile(4000, 'boss');
     expect(proj.isProjectile).toBe(true);
     const projAim = engine.computeTargetAimCoords(proj);
     const interceptShot = engine.shootAt(projAim.targetNormX, projAim.targetNormY, 4100);

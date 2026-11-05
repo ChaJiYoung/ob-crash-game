@@ -3,7 +3,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 발사 제거, 지연 폭발, 표시 | [T01](./T01-hanmac-bomb.md) |
+| T01 | `done ✅` | 발사 제거, 지연 폭발, 표시 | [T01](./T01-hanmac-bomb.md) |
 
 ## Progress
-- done: 0/1 (active: T01)
+- done: 1/1 (active: 없음)

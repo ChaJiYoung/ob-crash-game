@@ -112,24 +112,6 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
     });
   });
 
-  it('a hanmac that lands inside its stop radius fires from where it landed', () => {
-    engine.dropRng = () => 0;
-    const [h] = engine.spawnBossMinionWave(1000, 1);
-    h.kind = 'hanmac';
-    h.radiusM = drop.minRadiusM; // 6m: inside the 11m stop radius
-    h.thetaRad = 0;
-    h.x = 0;
-    h.z = -h.radiusM;
-    h.speedMps = 2;
-    engine.activeTargets = [h];
-    engine.spawnedInWave = 999;
-    engine.update(1000, 0.0001);
-    engine.update(1000 + drop.dropMs + 100, 0.1);
-    engine.update(1000 + drop.dropMs + 200, 0.1);
-    expect(h.radiusM).toBeCloseTo(drop.minRadiusM, 5); // not pushed out to the 11m stop line
-    expect(h.hanmacArrivedAtMs).toBeDefined();
-  });
-
   it('a caslight keeps swaying while it falls (follows the sway formula, so it does not jump on landing)', () => {
     const { swayAmplitudeRad, swayFrequency } = GAME_TUNING.monsters.caslight;
     engine.dropRng = () => 0.5;

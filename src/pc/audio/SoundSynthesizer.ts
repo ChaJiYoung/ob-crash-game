@@ -462,6 +462,25 @@ export class SoundSynthesizer {
     });
   }
 
+  /** 한맥 폭발음: 짧고 묵직한 쾅. */
+  public playHanmacBlastSound(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.25);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+
   /** 체력이 줄었을 때 나는 둔탁한 짧은 소리. */
   public playPlayerHitSound(): void {
     const ctx = this.ensureContext();
