@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>비어 크러셔 3D 발표자료</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>Chart.defaults.animation = false;</script>
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { interpolate-size: allow-keywords; }
+
+    /* ===== THEMES ===== */
+    html.theme-dark {
+      --bg: #0B0B0F; --surface: #15151C; --surface-hover: #1E1E28;
+      --border: rgba(255,255,255,0.09);
+      --text: #F2F0EA; --text-secondary: #A09CA8;
+      --accent: #F5B83D; --accent-secondary: #22C3E6;
+      --positive: #34D399; --negative: #F43F5E; --warning: #F59E0B;
+      --title-grad: linear-gradient(135deg, #1b1330 0%, #2a1a4a 45%, #0f2a3d 100%);
+      --section-grad: linear-gradient(135deg, #3a2a05 0%, #5a3d08 100%);
+      --atmos: rgba(245,184,61,0.06);
+    }
+    html.theme-light {
+      --bg: #FBF8F1; --surface: #FFFFFF; --surface-hover: #F5F0E4;
+      --border: rgba(40,30,10,0.12);
+      --text: #1B1710; --text-secondary: #6B6455;
+      --accent: #B9770E; --accent-secondary: #0E7C99;
+      --positive: #047857; --negative: #BE123C; --warning: #B45309;
+      --title-grad: linear-gradient(135deg, #fdf0cf 0%, #f7dfa5 50%, #cfeaf3 100%);
+      --section-grad: linear-gradient(135deg, #fbe3a1 0%, #f5c860 100%);
+      --atmos: rgba(185,119,14,0.08);
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6; -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em; word-break: keep-all;
+      transition: background .3s, color .3s;
+      background-image: radial-gradient(var(--atmos) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    h1,h2,h3,h4 { color: var(--text); letter-spacing: -0.03em; line-height: 1.15; text-wrap: balance; }
+    h1 { font-weight: 800; font-size: clamp(3rem, 6.4vw, 5.25rem); }
+    h2 { font-weight: 700; font-size: clamp(2.5rem, 4.2vw, 3.4rem); margin-bottom: 8px; }
+    h3 { font-weight: 600; font-size: 1.5rem; }
+    p, li, td, th, span, label { color: var(--text); font-weight: 400; }
+    .sec { color: var(--text-secondary); }
+    .kicker { font-size: .875rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 12px; display: block; }
+    .lead { font-size: 1.25rem; color: var(--text-secondary); max-width: 62ch; }
+    code, .mono { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: .92em; }
+    code { background: var(--surface-hover); padding: 2px 7px; border-radius: 5px; border: 1px solid var(--border); }
+
+    /* ===== CARD ===== */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; transition: box-shadow .2s ease, background .2s; }
+    .card:hover { box-shadow: 0 0 0 1px var(--border), 0 8px 18px rgba(0,0,0,.18); }
+    .card h3 { margin-bottom: 8px; }
+    .card p { font-size: 1.05rem; color: var(--text-secondary); }
+
+    /* ===== ANIMATION ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+    @keyframes flow { to { stroke-dashoffset: -24; } }
+    .animate { animation: fadeInUp .6s ease-out both; }
+    .animate.delay-1 { animation-delay: .1s; } .animate.delay-2 { animation-delay: .2s; }
+    .animate.delay-3 { animation-delay: .3s; } .animate.delay-4 { animation-delay: .4s; }
+    .animate.delay-5 { animation-delay: .5s; } .animate.delay-6 { animation-delay: .6s; }
+    /* slide-local entrance: only runs while slide is active */
+    .slide:not(.active) .animate { animation: none; opacity: 0; }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ===== DECK ===== */
+    .deck { position: fixed; inset: 0; overflow: hidden; }
+    .progress { position: fixed; top: 0; left: 0; height: 4px; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-secondary)); z-index: 9990; transition: width .5s cubic-bezier(.4,0,.2,1); }
+    .slide {
+      position: absolute; inset: 0; padding: 56px clamp(20px, 6vw, 96px) 84px;
+      display: flex; flex-direction: column; justify-content: center; gap: 28px;
+      overflow-y: auto; overflow-x: hidden;
+      transform: translateX(100%); opacity: 0; visibility: hidden;
+      transition: transform .5s cubic-bezier(.4,0,.2,1), opacity .5s, visibility .5s;
+    }
+    .slide.active { transform: none; opacity: 1; visibility: visible; }
+    .slide.past { transform: translateX(-30%); }
+    .slide-head { display: flex; flex-direction: column; gap: 4px; }
+    .slide-body { display: flex; flex-direction: column; gap: 24px; }
+
+    .slide.title { background: var(--title-grad); text-align: center; align-items: center; }
+    .slide.divider { background: var(--section-grad); align-items: flex-start; }
+    .slide.divider h2 { font-size: clamp(3rem, 6vw, 5rem); }
+    .slide.title h1, .slide.title p, .slide.divider h2, .slide.divider p, .slide.divider span { text-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    html.theme-light .slide.title h1, html.theme-light .slide.title p, html.theme-light .slide.divider h2, html.theme-light .slide.divider p { text-shadow: none; }
+    .big-num { font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+    .big-num.accent { color: var(--accent); }
+
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .grid.g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .grid.g3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .split { display: grid; gap: 28px; grid-template-columns: 1fr 1fr; align-items: center; }
+    .split.wide-l { grid-template-columns: 1.15fr 1fr; }
+    .split.wide-r { grid-template-columns: 1fr 1.25fr; }
+    .shot { width: 100%; border-radius: 10px; border: 1px solid var(--border); display: block; box-shadow: 0 12px 40px rgba(0,0,0,.35); background: var(--surface); }
+    .shot-cap { font-size: .9rem; color: var(--text-secondary); margin-top: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-size: .95rem; font-weight: 500; }
+    .chip.hot { border-color: var(--accent); color: var(--accent); }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tag { font-size: .8rem; font-weight: 700; padding: 3px 9px; border-radius: 6px; letter-spacing: .02em; }
+    .tag.user { background: rgba(245,184,61,.18); color: var(--accent); border: 1px solid var(--accent); }
+    .tag.auto { background: rgba(34,195,230,.14); color: var(--accent-secondary); border: 1px solid var(--accent-secondary); }
+    .tag.draft { background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border); }
+    .callout { border-left: 4px solid var(--accent); background: var(--surface); padding: 18px 22px; border-radius: 0 8px 8px 0; font-size: 1.2rem; }
+    .callout strong { color: var(--accent); font-weight: 700; }
+    .chart-container { height: 360px; padding: 24px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); position: relative; container-type: inline-size; }
+    .chart-container canvas { max-height: 100%; }
+
+    /* steps */
+    .steps { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); position: relative; }
+    .step { position: relative; display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
+    .step .num { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--accent); color: #1a1202; font-weight: 800; font-size: 1.25rem; }
+    .step .cmd { font-size: 1rem; color: var(--accent-secondary); }
+    .step.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .step ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .step li { font-size: 1.02rem; color: var(--text-secondary); padding-left: 18px; position: relative; }
+    .step li::before { content: ''; position: absolute; left: 0; top: .7em; width: 8px; height: 2px; background: var(--accent); }
+    .arrow-sep { position: absolute; top: 40px; right: -16px; color: var(--text-secondary); }
+
+    /* QA simulation */
+    .qa { display: flex; flex-direction: column; gap: 14px; }
+    .bubble { padding: 16px 20px; border-radius: 12px; font-size: 1.1rem; max-width: 92%; border: 1px solid var(--border); }
+    .bubble.ai { background: var(--surface); align-self: flex-start; }
+    .bubble.me { background: rgba(245,184,61,.14); border-color: var(--accent); align-self: flex-end; }
+    .bubble .who { font-size: .8rem; font-weight: 700; letter-spacing: .08em; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+    .opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .opt { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-hover); cursor: pointer; font-family: inherit; font-size: 1rem; color: var(--text); transition: background .15s, border-color .15s; }
+    .opt:hover, .opt:focus-visible { border-color: var(--accent); outline: none; }
+    .opt.rec { border-color: var(--accent); }
+    .opt.rec::after { content: ' ★추천'; color: var(--accent); font-size: .8rem; font-weight: 700; }
+    .opt.picked { background: var(--accent); color: #1a1202; border-color: var(--accent); }
+    .qa-result { display: none; }
+    .qa-result.show { display: block; animation: fadeInUp .4s ease-out both; }
+
+    /* file tree */
+    .tree { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: .98rem; line-height: 1.9; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; white-space: pre; overflow-x: auto; color: var(--text); }
+    .tree .c { color: var(--text-secondary); }
+    .tree .h { color: var(--accent); font-weight: 600; }
+    .tree .k { color: var(--accent-secondary); }
+
+    /* loop diagram */
+    .loop { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .loop .node { padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-weight: 600; text-align: center; min-width: 120px; }
+    .loop .node small { display: block; font-weight: 400; color: var(--text-secondary); font-size: .85rem; }
+    .loop .node.cur { border-color: var(--accent); color: var(--accent); }
+    .loop .sep { color: var(--accent); font-weight: 700; }
+
+    /* tables */
+    table { width: 100%; border-collapse: collapse; font-size: 1.02rem; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-secondary); font-weight: 600; font-size: .9rem; letter-spacing: .04em; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .good { color: var(--positive); font-weight: 600; } .bad { color: var(--negative); font-weight: 600; }
+
+    /* tabs */
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab { padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-family: inherit; font-size: 1.05rem; font-weight: 500; transition: all .15s; }
+    .tab:hover { background: var(--surface-hover); }
+    .tab.on { background: var(--accent); color: #1a1202; border-color: var(--accent); font-weight: 700; }
+    .tabpane { display: none; } .tabpane.on { display: block; animation: fadeIn .3s both; }
+
+    /* judgement bars */
+    .judge { display: flex; flex-direction: column; gap: 10px; }
+    .jrow { display: grid; grid-template-columns: 110px 1fr 70px; gap: 12px; align-items: center; }
+    .jbar { height: 26px; border-radius: 6px; background: var(--surface-hover); overflow: hidden; }
+    .jbar i { display: block; height: 100%; border-radius: 6px; width: 0; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+    .slide.active .jbar i { width: var(--w); }
+    .jrow b { font-weight: 700; } .jrow .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+    /* monsters */
+    .mon { display: flex; flex-direction: column; gap: 6px; }
+    .mon .hp { font-size: .85rem; color: var(--text-secondary); }
+    .mon.dim { opacity: .25; }
+
+    /* wave strip */
+    .wave-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .wv { border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 12px 6px; text-align: center; }
+    .wv b { display: block; font-size: 1.3rem; } .wv span { font-size: .8rem; color: var(--text-secondary); }
+    .wv.boss { border-color: var(--negative); background: rgba(244,63,94,.1); }
+    .wv.boss b { color: var(--negative); }
+
+    /* cards 9 */
+    .rcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .rc { padding: 14px 16px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+    .rc b { display: block; font-size: 1.05rem; } .rc span { font-size: .92rem; color: var(--text-secondary); }
+
+    /* nav */
+    .slide-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; z-index: 9998; background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(10px); padding: 4px 8px; border-radius: 12px; }
+    .slide-nav button { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: .6; transition: opacity .2s, background .2s; }
+    .slide-nav button:hover { opacity: 1; background: var(--surface-hover); }
+    .slide-counter { font-size: .9rem; color: var(--text-secondary); min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
+    .timer { position: fixed; left: 16px; bottom: 24px; font-size: .9rem; color: var(--text-secondary); z-index: 9998; font-variant-numeric: tabular-nums; cursor: pointer; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; font-family: inherit; }
+    .hint { position: fixed; right: 16px; bottom: 24px; font-size: .8rem; color: var(--text-secondary); z-index: 9998; }
+
+    /* overview */
+    .overview { position: fixed; inset: 0; background: var(--bg); z-index: 9995; padding: 72px 32px 32px; overflow-y: auto; display: none; }
+    .overview.open { display: block; }
+    .ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .ov-item { text-align: left; padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-family: inherit; }
+    .ov-item:hover, .ov-item.cur { border-color: var(--accent); }
+    .ov-item small { color: var(--accent); font-weight: 700; display: block; }
+    .ov-item span { font-size: 1rem; font-weight: 600; }
+
+    /* menu */
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle { width: 44px; height: 44px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(12px); transition: all .2s; }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown { position: absolute; top: 52px; right: 0; min-width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all .2s; backdrop-filter: blur(16px); }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: none; }
+    .viz-menu-dropdown button { width: 100%; padding: 10px 14px; border: none; border-radius: 8px; background: transparent; color: var(--text); font-size: 14px; font-family: inherit; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 10px; transition: background .15s; }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+    .skip-to-content { position: absolute; top: -40px; left: 6px; background: var(--accent); color: #1a1202; padding: 8px 12px; text-decoration: none; border-radius: 4px; opacity: 0; pointer-events: none; z-index: 10000; }
+    .skip-to-content:focus { top: 6px; opacity: 1; pointer-events: auto; }
+    :focus-visible { outline: 2px solid var(--accent-secondary); outline-offset: 2px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    @container (max-width: 400px) { .chart-title { font-size: 1rem; } }
+    @media (max-width: 900px) {
+      .split, .split.wide-l, .split.wide-r, .steps { grid-template-columns: 1fr; }
+      .rcards { grid-template-columns: 1fr 1fr; }
+      .arrow-sep { display: none; }
+      .slide { padding: 72px 16px 90px; justify-content: flex-start; }
+      .hint, .timer { display: none; }
+    }
+    @media (max-width: 768px) { .grid, .grid.g2, .grid.g3 { grid-template-columns: 1fr; gap: 16px; } .wave-strip { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 900px) { .wstats { grid-template-columns: repeat(2,1fr) !important; } }
+    @media (max-width: 375px) { body { overflow-x: hidden; } .card { padding: 16px; } .big-num { font-size: 2.25rem; } .rcards { grid-template-columns: 1fr; } .jrow { grid-template-columns: 80px 1fr 50px; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; } .slide:not(.active) .animate { opacity: 1; }
+    }
+    @media print {
+      html, body { height: auto; overflow: visible; background: white !important; color: black !important; }
+      .viz-menu, .slide-nav, .timer, .hint, .progress, .overview, .skip-to-content { display: none !important; }
+      .deck { position: static; }
+      .slide { position: relative; transform: none !important; opacity: 1 !important; visibility: visible !important; page-break-after: always; min-height: 100vh; overflow: visible; }
+      .animate, .reveal { opacity: 1 !important; transform: none !important; animation: none !important; }
+      .jbar i { width: var(--w) !important; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; text-shadow: none !important; }
+      .card { break-inside: avoid; box-shadow: none; }
+    }
+    @page { size: landscape; margin: 0.4in; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">본문으로 건너뛰기</a>
+
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="메뉴">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/></svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown">
+      <button onclick="cycleTheme()"><span id="themeIcon">🌙</span><span id="themeLabel">Dark</span></button>
+      <button onclick="toggleOverview()"><span>▦</span><span>슬라이드 전체 보기 (G)</span></button>
+      <button onclick="downloadImage()"><span>📥</span><span>Download PNG</span></button>
+      <button onclick="window.print()"><span>🖨️</span><span>Print / PDF</span></button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+
+  <main id="main-content" class="deck" role="main">
+
+    <!-- 1. TITLE -->
+    <section class="slide title" data-title="타이틀" data-notes="6일 만에 만든 게임입니다. 먼저 어떤 작업 방식으로 만들었는지, 그다음 게임 기획 요소를 소개합니다.">
+      <span class="kicker animate">Beer Crusher 3D · Arcade v2.2</span>
+      <h1 class="animate delay-1">스마트폰이 권총이 되는<br>3D 아케이드 게임</h1>
+      <p class="lead animate delay-2" style="color:var(--text);opacity:.85;text-align:center">질문 → 계획 → 실행. 에이전트 워크플로로 6일 만에 완성한 풀스택 게임</p>
+      <div class="chip-row animate delay-3" style="justify-content:center">
+        <span class="chip">웹앱 · React + Three.js</span><span class="chip">자이로 센서 컨트롤러</span><span class="chip hot">grill-me → plan → execute</span>
+      </div>
+    </section>
+
+    <!-- 2. NUMBERS -->
+    <section class="slide" data-title="숫자로 보는 프로젝트" data-notes="6일, 280개 커밋, 428개 테스트. 결과물의 규모입니다.">
+      <header class="slide-head animate"><span class="kicker">The result</span><h2>6일간 만든 결과</h2></header>
+      <div class="grid animate delay-1">
+        <div class="card"><div class="big-num accent" data-count="6" data-suffix="일">0</div><p>2026-11-01 ~ 11-06</p></div>
+        <div class="card"><div class="big-num" data-count="280">0</div><p>Git 커밋</p></div>
+        <div class="card"><div class="big-num" data-count="17894">0</div><p>줄의 TypeScript</p></div>
+        <div class="card"><div class="big-num" data-count="428">0</div><p>자동 테스트 전부 통과</p></div>
+      </div>
+      <div class="grid animate delay-2">
+        <div class="card"><div class="big-num" data-count="43">0</div><p>설계 결정 문서</p></div>
+        <div class="card"><div class="big-num" data-count="39">0</div><p>실행 계획서</p></div>
+        <div class="card"><div class="big-num" data-count="176">0</div><p>작업 지시서(Task)</p></div>
+        <div class="card"><div class="big-num" data-count="5">0</div><p>몬스터 + 보스, 무기 3종</p></div>
+      </div>
+    </section>
+
+    <!-- 3. GAME INTRO -->
+    <section class="slide" data-title="게임 한눈에" data-notes="PC 모니터가 화면, 폰이 총. 별도 장비 없이 QR 한 번이면 연결됩니다.">
+      <div class="split wide-r">
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">The game</span><h2>비어 크러셔 3D</h2></header>
+          <p class="lead animate delay-1">폰을 모니터에 겨누고 쏟아지는 맥주 캔 몬스터를 부수는 체감형 슈팅 게임.</p>
+          <div class="grid animate delay-2" style="grid-template-columns:1fr 1fr">
+            <div class="card"><h3>PC = 화면</h3><p>실사 펍 배경, 3D 맥주 모델, 네온 라인</p></div>
+            <div class="card"><h3>폰 = 총</h3><p>자이로·가속도 센서, 터치 방아쇠</p></div>
+          </div>
+          <div class="chip-row animate delay-3"><span class="chip">7웨이브</span><span class="chip">보스전 3회</span><span class="chip">로그라이크 카드</span><span class="chip">랭킹</span></div>
+        </div>
+        <figure class="animate delay-2"><img class="shot" src="screens/play-wave1-shotgun-combat.png" alt="인게임 전투 화면: 샷건으로 맥주 캔 몬스터와 싸우는 장면" loading="lazy"><figcaption class="shot-cap">실제 인게임 화면 (웨이브 1)</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 4. ARCHITECTURE -->
+    <section class="slide" data-title="웹앱 환경" data-notes="서버가 중간에서 폰 센서 신호를 PC로 중계합니다. 설치 없이 브라우저만으로 동작합니다.">
+      <header class="slide-head animate"><span class="kicker">Web app environment</span><h2>설치 없이 브라우저만으로</h2></header>
+      <div class="animate delay-1" role="img" aria-label="구조도: 스마트폰이 센서 데이터를 웹소켓 서버로 보내면 서버가 PC 브라우저로 중계한다">
+        <svg viewBox="0 0 960 230" width="100%" style="max-height:260px" fill="none">
+          <g stroke="var(--border)" stroke-width="1.5">
+            <rect x="10" y="40" width="250" height="150" rx="14" fill="var(--surface)"/>
+            <rect x="355" y="40" width="250" height="150" rx="14" fill="var(--surface)"/>
+            <rect x="700" y="40" width="250" height="150" rx="14" fill="var(--surface)"/>
+          </g>
+          <g font-family="Inter, Noto Sans KR, sans-serif" text-anchor="middle">
+            <text x="135" y="85" font-size="22" font-weight="700" fill="var(--text)">📱 스마트폰</text>
+            <text x="135" y="118" font-size="16" fill="var(--text-secondary)">자이로 · 가속도 센서</text>
+            <text x="135" y="144" font-size="16" fill="var(--text-secondary)">터치 방아쇠 · 닉네임</text>
+            <text x="480" y="85" font-size="22" font-weight="700" fill="var(--accent)">🔌 WebSocket 서버</text>
+            <text x="480" y="118" font-size="16" fill="var(--text-secondary)">방(QR) 매칭 · 신호 중계</text>
+            <text x="480" y="144" font-size="16" fill="var(--text-secondary)">랭킹 · 플레이 기록 저장</text>
+            <text x="825" y="85" font-size="22" font-weight="700" fill="var(--text)">🖥️ PC 브라우저</text>
+            <text x="825" y="118" font-size="16" fill="var(--text-secondary)">게임 엔진 · 판정 루프</text>
+            <text x="825" y="144" font-size="16" fill="var(--text-secondary)">Three.js 3D 렌더링</text>
+          </g>
+          <g stroke="var(--accent)" stroke-width="3" stroke-dasharray="8 4" style="animation: flow 1s linear infinite">
+            <line x1="262" y1="115" x2="353" y2="115"/><line x1="607" y1="115" x2="698" y2="115"/>
+          </g>
+          <text x="308" y="100" font-size="14" text-anchor="middle" fill="var(--text-secondary)" font-family="Inter">60Hz</text>
+          <text x="652" y="100" font-size="14" text-anchor="middle" fill="var(--text-secondary)" font-family="Inter">relay</text>
+        </svg>
+      </div>
+      <div class="chip-row animate delay-2">
+        <span class="chip">React 18</span><span class="chip">TypeScript</span><span class="chip">Three.js</span><span class="chip">Vite (HTTPS)</span><span class="chip">ws 서버</span><span class="chip">Vitest</span><span class="chip">Playwright 자동 캡처</span><span class="chip">One Euro Filter 센서 안정화</span><span class="chip">shared/ 타입·튜닝 단일 소스</span>
+      </div>
+      <p class="callout animate delay-3"><strong>2대의 터미널, 2줄의 명령</strong> <code>npm run server</code> · <code>npm run dev</code> → PC에서 QR을 띄우고, 폰으로 스캔하면 연결 끝.</p>
+    </section>
+
+    <!-- 5. DIVIDER: HOW -->
+    <section class="slide divider" data-title="Part 1 · 어떻게 만들었나" data-notes="이 발표의 핵심입니다. 모든 기능이 같은 3단계를 따랐습니다.">
+      <span class="kicker animate" style="color:var(--text)">PART 1</span>
+      <h2 class="animate delay-1">에이전트와 일하는<br>3단계 워크플로</h2>
+      <p class="lead animate delay-2" style="color:var(--text)">구현 전에 AI가 끈질기게 물어보게 하고, 결정을 파일로 남긴다</p>
+    </section>
+
+    <!-- 6. THREE STEPS -->
+    <section class="slide" data-title="3단계 작업 규칙" data-notes="프로젝트 규칙 파일(AGENTS.md)에 3단계 규칙을 적어 두었고, 모든 기능이 이 순서를 따랐습니다. 카드를 클릭하면 강조됩니다.">
+      <header class="slide-head animate"><span class="kicker">AGENTS.md · Project workflow</span><h2>모든 기능은 같은 3단계</h2></header>
+      <div class="steps animate delay-1">
+        <article class="card step on" tabindex="0" onclick="pickStep(this)" onkeydown="if(event.key==='Enter')pickStep(this)">
+          <div class="num">1</div><h3>인터뷰</h3><div class="cmd mono">/edu-grill-me</div>
+          <ul><li>AI가 한 번에 질문 1개</li><li>추천 답안 + 선택지 2~3개</li><li>코드로 알 수 있는 건 안 물음</li><li>결정을 <code>decisions/</code>에 저장</li></ul>
+          <svg class="arrow-sep" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </article>
+        <article class="card step" tabindex="0" onclick="pickStep(this)" onkeydown="if(event.key==='Enter')pickStep(this)">
+          <div class="num">2</div><h3>계획</h3><div class="cmd mono">/edu-plan</div>
+          <ul><li>결정 → 로드맵 → Phase → Task</li><li>Task마다 수정할 파일·함수·검증 명령</li><li>커밋 메시지까지 미리 작성</li><li>이 단계에선 코드를 치지 않음</li></ul>
+          <svg class="arrow-sep" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </article>
+        <article class="card step" tabindex="0" onclick="pickStep(this)" onkeydown="if(event.key==='Enter')pickStep(this)">
+          <div class="num">3</div><h3>순차 실행</h3><div class="cmd mono">/edu-execute</div>
+          <ul><li><code>current.md</code> 포인터가 가리키는 Task 1개</li><li>구현 → 테스트 실행</li><li>통과하면 커밋 + 포인터 전진</li><li>"current 보고 이어서 해줘" 한마디</li></ul>
+        </article>
+      </div>
+      <p class="callout animate delay-3"><strong>사람은 결정과 검수</strong>, 구현과 검증 반복은 에이전트. 컨텍스트는 대화가 아니라 파일에 남긴다.</p>
+    </section>
+
+    <!-- 7. GRILL ME -->
+    <section class="slide" data-title="1단계 · grill-me" data-notes="실제 결정 문서의 한 장면을 재현했습니다. 선택지를 직접 눌러 보세요.">
+      <div class="split wide-l">
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Step 1 · grill-me</span><h2>AI가 나를 "심문"한다</h2></header>
+          <p class="lead animate delay-1">질문마다 <b>추천 답안</b>과 선택지가 붙어, 설계 분기를 빠르게 확정할 수 있습니다.</p>
+          <div class="qa animate delay-2" id="qa">
+            <div class="bubble ai"><span class="who">AI · 질문 1/7</span>점수 격차를 벌리는 주축은 무엇으로 할까요?
+              <div class="opts" role="group" aria-label="질문 선택지">
+                <button class="opt rec" onclick="pickOpt(this,'a')">웨이브 클리어 속도</button>
+                <button class="opt" onclick="pickOpt(this,'b')">정확도 비중 확대</button>
+                <button class="opt" onclick="pickOpt(this,'c')">고급 기술 보상</button>
+              </div>
+            </div>
+            <div class="bubble me qa-result" id="qa-me"><span class="who">나</span><span id="qa-me-t"></span></div>
+            <div class="bubble ai qa-result" id="qa-ai"><span class="who">AI · 기록</span><span id="qa-ai-t"></span></div>
+          </div>
+        </div>
+        <div class="slide-body animate delay-3">
+          <div class="card">
+            <h3>결정 문서의 표기법</h3>
+            <p style="margin-bottom:12px">모든 결정에 출처 꼬리표가 붙습니다.</p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><span class="tag user">사용자</span> <span class="sec">인터뷰에서 내가 선택</span></div>
+              <div><span class="tag auto">자동</span> <span class="sec">코드·측정으로 AI가 확정</span></div>
+              <div><span class="tag draft">초안</span> <span class="sec">플레이하며 조정할 수치</span></div>
+            </div>
+          </div>
+          <div class="card"><h3>채택하지 않은 안도 기록</h3><p><code>Rejected</code> 항목에 이유까지 남겨 같은 논쟁을 반복하지 않습니다.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. PLAN -->
+    <section class="slide" data-title="2단계 · plan" data-notes="결정을 파일 구조로 쪼갭니다. Task 하나에 수정할 파일, 함수, 테스트까지 적혀 있어서 AI가 헤매지 않습니다.">
+      <div class="split">
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Step 2 · plan</span><h2>결정을 "작업 지시서"로</h2></header>
+<pre class="tree animate delay-1" aria-label="메모리 폴더 구조"><span class="h">.memory/</span>
+├─ <span class="k">current.md</span>        <span class="c">← 지금 할 일 포인터</span>
+├─ decisions/       <span class="c">43개 결정 문서</span>
+├─ plans/           <span class="c">39개 로드맵</span>
+└─ phases/
+   └─ 2026-11-05-score-differentiation/
+      ├─ P01-wave-time-bonus/
+      ├─ P02-boss-pressure/
+      │  └─ <span class="k">T01-summon-acceleration.md</span>
+      └─ P03-tune-and-verify/</pre>
+        </div>
+        <div class="slide-body animate delay-2">
+          <div class="card">
+            <h3>Task 하나에 들어 있는 것</h3>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:8px">
+              <li>📄 수정할 파일 + 함수 이름</li>
+              <li>🧩 필드·타입 (<code>summonAccel: {…}</code>)</li>
+              <li>🧪 검증 명령 + 통과 기준 체크박스</li>
+              <li>💬 미리 쓴 커밋 메시지</li>
+            </ul>
+          </div>
+          <p class="callout"><strong>176개 Task</strong>가 이렇게 쪼개져 하나씩 완료 처리되었습니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. EXECUTE -->
+    <section class="slide" data-title="3단계 · execute" data-notes="실행 단계는 반복 루프입니다. 한 번에 한 Task만 하기 때문에 중간에 길을 잃지 않습니다.">
+      <header class="slide-head animate"><span class="kicker">Step 3 · execute</span><h2>한 번에 하나, 검증하고 전진</h2></header>
+      <div class="loop animate delay-1" role="img" aria-label="실행 루프: 포인터 읽기, 구현, 테스트, 커밋, 포인터 전진">
+        <div class="node cur">current.md<small>포인터 읽기</small></div><span class="sep">→</span>
+        <div class="node">구현<small>청사진대로</small></div><span class="sep">→</span>
+        <div class="node">테스트<small>vitest run</small></div><span class="sep">→</span>
+        <div class="node">커밋<small>Plan 헤더 포함</small></div><span class="sep">→</span>
+        <div class="node cur">다음 Task<small>포인터 전진</small></div>
+      </div>
+      <div class="grid g2 animate delay-2">
+        <div class="card"><h3>실패하면?</h3><p>테스트가 통과할 때까지 Task는 <code>done</code>이 되지 않고 포인터도 움직이지 않습니다.</p></div>
+        <div class="card"><h3>중단해도?</h3><p>세션이 끊겨도 <code>current.md</code>만 읽으면 어디서든 이어집니다. 새 대화에서도 문맥 유지.</p></div>
+      </div>
+      <div class="chart-container animate delay-3" style="height:320px" role="img" aria-label="날짜별 커밋 수 막대 차트: 11/1 35, 11/2 76, 11/3 24, 11/4 40, 11/5 100, 11/6 5"><canvas id="chartCommits" role="img" aria-label="날짜별 커밋 수"></canvas></div>
+    </section>
+
+    <!-- 10. ROLES -->
+    <section class="slide" data-title="사람 vs AI 역할" data-notes="결정과 검수, 플레이 감각은 사람의 몫이고 반복 구현은 에이전트가 맡았습니다.">
+      <header class="slide-head animate"><span class="kicker">Division of labor</span><h2>사람 vs 에이전트 역할</h2></header>
+      <div class="grid g2 animate delay-1">
+        <div class="card" style="border-color:var(--accent)">
+          <h3 style="color:var(--accent)">👤 사람 (개발자)</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:10px;font-size:1.1rem">
+            <li>• 요구사항·아키텍처 결정, 범위 정하기</li>
+            <li>• 인터뷰 답변, Task 청사진 검수</li>
+            <li>• 직접 플레이하고 감각 피드백</li>
+            <li>• 점수·난이도 목표 정하기 (예: 실력 격차 1.5배)</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:var(--accent-secondary)">
+          <h3 style="color:var(--accent-secondary)">🤖 AI 에이전트</h3>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:10px;font-size:1.1rem">
+            <li>• 구현 · 절차적 3D 모델 생성</li>
+            <li>• 테스트 428개 작성·실행</li>
+            <li>• 봇으로 수천 판 시뮬레이션</li>
+            <li>• 문서·스크린샷 자동 갱신</li>
+          </ul>
+        </div>
+      </div>
+      <p class="callout animate delay-3">실제 사례: 플레이 후 "<strong>빈 노란 띠가 상자처럼 보여요</strong>" → 결정 문서 → 수정 커밋으로 이어짐</p>
+    </section>
+
+    <!-- 11. DIVIDER: DESIGN -->
+    <section class="slide divider" data-title="Part 2 · 게임 기획" data-notes="이제 게임 기획 요소입니다. 조작감, 무기, 몬스터, 웨이브, 보상, 점수 순서로.">
+      <span class="kicker animate" style="color:var(--text)">PART 2</span>
+      <h2 class="animate delay-1">게임에 들어간<br>기획 요소들</h2>
+      <p class="lead animate delay-2" style="color:var(--text)">조작감 · 무기 · 몬스터 · 웨이브 · 보상 카드 · 점수</p>
+    </section>
+
+    <!-- 12. CONTROL FEEL -->
+    <section class="slide" data-title="기획 1 · 조작과 판정" data-notes="정확하게 맞힐수록 이득이 큰 구조. 난사는 불리합니다. 폰 조작에 맞춰 '끊기면 크게 잃는 규칙'은 일부러 뺐습니다.">
+      <div class="split">
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Design 1 · Control &amp; judgment</span><h2>정확하게 쏠수록 이득</h2></header>
+          <p class="lead animate delay-1">명중 오차에 따라 4단계 판정, 데미지 배율이 달라집니다.</p>
+          <div class="judge animate delay-2" role="img" aria-label="판정별 데미지 배율: PERFECT 2배, GREAT 1배, GOOD 0.5배, MISS 0">
+            <div class="jrow"><b>PERFECT</b><div class="jbar"><i style="--w:100%;background:var(--accent)"></i></div><span class="v">×2.0</span></div>
+            <div class="jrow"><b>GREAT</b><div class="jbar"><i style="--w:50%;background:var(--accent-secondary)"></i></div><span class="v">×1.0</span></div>
+            <div class="jrow"><b>GOOD</b><div class="jbar"><i style="--w:25%;background:var(--text-secondary)"></i></div><span class="v">×0.5</span></div>
+            <div class="jrow"><b>MISS</b><div class="jbar"><i style="--w:2%;background:var(--negative)"></i></div><span class="v">×0</span></div>
+          </div>
+          <p class="sec animate delay-3" style="font-size:.95rem">PERFECT = 오차 25% 이내, GREAT = 55% 이내, GOOD = 100% 이내</p>
+        </div>
+        <div class="slide-body animate delay-2">
+          <div class="card"><h3>📍 정면 영점 맞추기</h3><p>게임 시작 전 폰을 화면 중앙에 겨누고 버튼 한 번. 센서 오차를 보정.</p></div>
+          <div class="card"><h3>🫳 휙! 스냅 스킬</h3><p>손목을 위로 튕기면 무기별 필살기 발동. 쿨다운 21→14초.</p></div>
+          <div class="card"><h3>🔥 더블탭 피버</h3><p>게이지 100% 시 4초간 무제한 탄창, 점수 ×1.5.</p></div>
+          <div class="card"><h3>⚖️ 누르고 쏘기 페널티</h3><p>꾹 누른 연사는 피해 감소. 한 발씩 노려 쏘게 유도.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. WEAPONS -->
+    <section class="slide" data-title="기획 2 · 무기 3종" data-notes="가위바위보처럼 역할이 갈립니다. 탭을 눌러 무기별 성장 수치를 확인해 보세요.">
+      <header class="slide-head animate"><span class="kicker">Design 2 · Weapon archetypes</span><h2>역할이 다른 무기 3종</h2></header>
+      <div class="tabs animate delay-1" role="tablist" aria-label="무기 선택">
+        <button class="tab on" role="tab" onclick="pickWeapon('shotgun',this)">🪠 뚫어뻥 샷건</button>
+        <button class="tab" role="tab" onclick="pickWeapon('revolver',this)">🍾 병따개 리볼버</button>
+        <button class="tab" role="tab" onclick="pickWeapon('gatling',this)">🍺 탄산 탭 개틀링</button>
+      </div>
+      <div class="split animate delay-2" style="grid-template-columns:.8fr 1.4fr;align-items:start">
+        <div>
+          <div class="tabpane on" data-w="shotgun"><h3>넓은 범위, 한 방의 화력</h3><p class="sec" style="margin:8px 0 14px">Lv.1 펠릿 3발 → MAX 6발(총 4.32). 스킬 <b>사방 뚫어뻥 폭풍</b>: 8방향에서 날아와 몬스터를 기절시킴.</p><div class="shot-cap">조준 허용 범위가 가장 넓어 초보자에게 적합</div></div>
+          <div class="tabpane" data-w="revolver"><h3>정밀 저격과 관통</h3><p class="sec" style="margin:8px 0 14px">Lv.4에서 2마리 관통, 데미지 2.20. 스킬 <b>오프너 참격</b>: 부채꼴 칼날 3→7개가 필드 끝까지 날아감.</p><div class="shot-cap">줄지어 오는 적에게 강함 · 포탄을 베어낼 수 있음</div></div>
+          <div class="tabpane" data-w="gatling"><h3>초고속 연사와 제압</h3><p class="sec" style="margin:8px 0 14px">초당 9.5발 → 17.2발. 스킬 <b>거품 해일</b>: 필드 전체를 밀어내고 둔화. 단, 점수 배율은 가장 낮음.</p><div class="shot-cap">쉽지만 점수 천장이 낮은 "안전한 선택"</div></div>
+          <div class="chip-row" style="margin-top:14px"><span class="chip">Lv.1 → Lv.4 MAX 외형 진화</span><span class="chip">외부 3D 파일 없이 코드로 생성</span></div>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+          <div>
+            <div class="tabs" style="margin-bottom:8px" role="group" aria-label="레이더 레벨 선택"><button class="tab" onclick="pickRadar(0,this)">Lv.1</button><button class="tab on" onclick="pickRadar(1,this)">Lv.4 MAX</button></div>
+            <div class="chart-container" style="height:360px;padding:12px" role="img" aria-label="무기 3종 레이더 차트: 발당 화력, 초당 화력, 판정 범위, 탄창, 장전 속도, 관통 수"><canvas id="chartRadar" role="img" aria-label="무기 3종 레이더 비교"></canvas></div>
+            <p class="sec" style="font-size:.8rem;margin-top:6px">축별 Lv.4 최댓값=100 · 샷건 초당 화력은 전 펠릿 명중 가정</p>
+          </div>
+          <div>
+            <p class="sec" style="font-size:.95rem;font-weight:600;padding:12px 0 8px">레벨별 발당 피해량</p>
+            <div class="chart-container" style="height:360px;padding:12px" role="img" aria-label="무기 레벨별 발당 피해량 비교 선 그래프"><canvas id="chartWeapons" role="img" aria-label="레벨별 피해량 비교"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- WEAPON DETAIL: shotgun -->
+    <section class="slide" data-title="무기 · 맥주관 뚫어뻥 샷건" data-notes="레벨 버튼을 눌러 외형과 수치가 어떻게 달라지는지 보여 주세요. 무기 레벨은 보상 카드로 올립니다(1웨이브 Lv.2, 2~4웨이브 Lv.3, 5웨이브부터 MAX).">
+      <header class="slide-head animate"><span class="kicker">Weapon 1/3 · Level-up</span><h2>🪠 맥주관 뚫어뻥 샷건</h2><p class="lead" id="wtag-shotgun">넓은 범위, 한 방의 화력</p></header>
+      <div class="split wide-r animate delay-1 wdetail" data-w="shotgun">
+        <div>
+          <img class="shot wimg" alt="🪠 맥주관 뚫어뻥 샷건 레벨별 외형" loading="lazy" style="max-height:320px;object-fit:contain">
+          <div class="tabs wlv" style="margin-top:12px" role="tablist" aria-label="레벨 선택">
+            <button class="tab on" onclick="pickLv(this,0)">Lv.1</button><button class="tab" onclick="pickLv(this,1)">Lv.2</button><button class="tab" onclick="pickLv(this,2)">Lv.3</button><button class="tab" onclick="pickLv(this,3)">Lv.4 MAX</button>
+          </div>
+        </div>
+        <div class="slide-body">
+          <div class="card"><h3 class="wlook-t">외형 진화</h3><p class="wlook"></p></div>
+          <div class="grid wstats" style="grid-template-columns:repeat(4,1fr);gap:10px"></div>
+          <div class="split" style="grid-template-columns:1fr 1fr;gap:14px;align-items:stretch">
+            <div class="card"><h3 class="wskill-t"></h3><p class="wskill"></p></div>
+            <img class="shot" src="screens/screen-17-skill-plunger-storm.png" alt="🪠 맥주관 뚫어뻥 샷건 액티브 스킬 시전 화면" loading="lazy" style="max-height:170px;object-fit:cover">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEAPON DETAIL: revolver -->
+    <section class="slide" data-title="무기 · 황금 병따개 리볼버" data-notes="레벨 버튼을 눌러 외형과 수치가 어떻게 달라지는지 보여 주세요. 무기 레벨은 보상 카드로 올립니다(1웨이브 Lv.2, 2~4웨이브 Lv.3, 5웨이브부터 MAX).">
+      <header class="slide-head animate"><span class="kicker">Weapon 2/3 · Level-up</span><h2>🍾 황금 병따개 리볼버</h2><p class="lead" id="wtag-revolver">초정밀 일직선 관통</p></header>
+      <div class="split wide-r animate delay-1 wdetail" data-w="revolver">
+        <div>
+          <img class="shot wimg" alt="🍾 황금 병따개 리볼버 레벨별 외형" loading="lazy" style="max-height:320px;object-fit:contain">
+          <div class="tabs wlv" style="margin-top:12px" role="tablist" aria-label="레벨 선택">
+            <button class="tab on" onclick="pickLv(this,0)">Lv.1</button><button class="tab" onclick="pickLv(this,1)">Lv.2</button><button class="tab" onclick="pickLv(this,2)">Lv.3</button><button class="tab" onclick="pickLv(this,3)">Lv.4 MAX</button>
+          </div>
+        </div>
+        <div class="slide-body">
+          <div class="card"><h3 class="wlook-t">외형 진화</h3><p class="wlook"></p></div>
+          <div class="grid wstats" style="grid-template-columns:repeat(4,1fr);gap:10px"></div>
+          <div class="split" style="grid-template-columns:1fr 1fr;gap:14px;align-items:stretch">
+            <div class="card"><h3 class="wskill-t"></h3><p class="wskill"></p></div>
+            <img class="shot" src="screens/screen-18-skill-opener-slash.png" alt="🍾 황금 병따개 리볼버 액티브 스킬 시전 화면" loading="lazy" style="max-height:170px;object-fit:cover">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEAPON DETAIL: gatling -->
+    <section class="slide" data-title="무기 · 탄산 탭 개틀링" data-notes="레벨 버튼을 눌러 외형과 수치가 어떻게 달라지는지 보여 주세요. 무기 레벨은 보상 카드로 올립니다(1웨이브 Lv.2, 2~4웨이브 Lv.3, 5웨이브부터 MAX).">
+      <header class="slide-head animate"><span class="kicker">Weapon 3/3 · Level-up</span><h2>🍺 탄산 탭 개틀링</h2><p class="lead" id="wtag-gatling">초고속 탄산 기포 난사</p></header>
+      <div class="split wide-r animate delay-1 wdetail" data-w="gatling">
+        <div>
+          <img class="shot wimg" alt="🍺 탄산 탭 개틀링 레벨별 외형" loading="lazy" style="max-height:320px;object-fit:contain">
+          <div class="tabs wlv" style="margin-top:12px" role="tablist" aria-label="레벨 선택">
+            <button class="tab on" onclick="pickLv(this,0)">Lv.1</button><button class="tab" onclick="pickLv(this,1)">Lv.2</button><button class="tab" onclick="pickLv(this,2)">Lv.3</button><button class="tab" onclick="pickLv(this,3)">Lv.4 MAX</button>
+          </div>
+        </div>
+        <div class="slide-body">
+          <div class="card"><h3 class="wlook-t">외형 진화</h3><p class="wlook"></p></div>
+          <div class="grid wstats" style="grid-template-columns:repeat(4,1fr);gap:10px"></div>
+          <div class="split" style="grid-template-columns:1fr 1fr;gap:14px;align-items:stretch">
+            <div class="card"><h3 class="wskill-t"></h3><p class="wskill"></p></div>
+            <img class="shot" src="screens/screen-19-skill-foam-tsunami.png" alt="🍺 탄산 탭 개틀링 액티브 스킬 시전 화면" loading="lazy" style="max-height:170px;object-fit:cover">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. MONSTERS -->
+    <section class="slide" data-title="기획 3 · 몬스터" data-notes="몬스터마다 대응법이 다르게 설계했습니다. 필터 버튼으로 유형별로 볼 수 있습니다.">
+      <header class="slide-head animate"><span class="kicker">Design 3 · Monsters</span><h2>5종 몬스터, 5가지 대응법</h2></header>
+      <div class="tabs animate delay-1" role="group" aria-label="몬스터 필터">
+        <button class="tab on" onclick="filterMon('all',this)">전체</button>
+        <button class="tab" onclick="filterMon('move',this)">움직임이 변수</button>
+        <button class="tab" onclick="filterMon('hard',this)">단단함이 변수</button>
+        <button class="tab" onclick="filterMon('chain',this)">처치 후가 변수</button>
+      </div>
+      <div class="grid g3 animate delay-2" id="monGrid">
+        <article class="card mon" data-k="move"><h3>필굿 <span class="sec" style="font-size:1rem">HP 1</span></h3><p>땅을 굴러오다 <b>12m 안에서 1.4배 가속</b>. 멀리서 미리 저격.</p></article>
+        <article class="card mon" data-k="move"><h3>카스 라이트 <span class="sec" style="font-size:1rem">HP 1</span></h3><p><b>유일한 비행 몬스터</b>. 좌우로 크게 흔들려 방향 전환 순간을 노려야 함.</p></article>
+        <article class="card mon" data-k="hard"><h3>오비 라거 <span class="sec" style="font-size:1rem">HP 2</span></h3><p><b>방패병</b>. 0.8초 올리고 2.4초 내림. 스킬만 방패를 뚫음.</p></article>
+        <article class="card mon" data-k="chain"><h3>한맥 <span class="sec" style="font-size:1rem">HP 3</span></h3><p><b>폭탄 캔</b>. 터지면 반경 4m에 피해 2. 뭉쳤을 때 노려 연쇄 폭발.</p></article>
+        <article class="card mon" data-k="hard chain"><h3>카스 병맥주 <span class="sec" style="font-size:1rem">HP 4</span></h3><p><b>분열 탱커</b>. 깨지면 작고 빠른 병 2마리로 분열.</p></article>
+        <article class="card mon" data-k="hard move chain" style="border-color:var(--negative)"><h3 style="color:var(--negative)">냉각기 보스 <span class="sec" style="font-size:1rem">HP 70~200</span></h3><p>좌우 이동, 체력 구간마다 <b>부하 소환</b>. 각종 방해 면역.</p></article>
+      </div>
+      <img class="shot animate delay-3" src="screens/monster-lineup-all.png" alt="몬스터 6종 라인업 이미지" loading="lazy" style="max-height:200px;object-fit:contain">
+    </section>
+
+
+    <!-- MONSTER DETAIL 1 -->
+    <section class="slide" data-title="몬스터 · 필굿" data-notes="필굿 (FiLGOOD): 멀리서 미리 저격 · 샷건의 넓은 판정이 유리">
+      <div class="split wide-r">
+        <figure class="animate delay-1"><img class="shot" src="screens/monster-01-pilgood.png" alt="필굿 (FiLGOOD) 3D 모델" loading="lazy" style="max-height:460px;object-fit:contain"><figcaption class="shot-cap">실제 렌더링 (PBR 캔 모델 · 첫 등장 W1~)</figcaption></figure>
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Monster 1/5 · 지상 돌격대</span><h2>필굿 (FiLGOOD)</h2></header>
+          <div class="grid animate delay-1" style="grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">체력</span><div class="big-num accent" style="font-size:2.2rem">1</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">접근 속도</span><div class="big-num" style="font-size:1.6rem;line-height:1.4">2.6 m/s</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">처치 점수</span><div class="big-num" style="font-size:2.2rem">+3</div></div>
+          </div>
+          <p class="animate delay-2" style="font-size:1.1rem">땅을 굴러오다 방어선 <b>12m 안에서 속도 ×1.4</b>로 쇄도. 체력이 1이라 가까워지기 전에 처리해야 하는 시간 압박형.</p>
+          <p class="sec animate delay-3" style="font-size:.95rem">외형: 시안 블루 알루미늄 캔, 고래 일러스트 라벨, 뒤쪽 탄산 제트 분사구, 상단 크림 거품. · 지상 0.55m · 히트 반경 0.85m</p>
+          <p class="callout animate delay-3"><strong>공략</strong> 멀리서 미리 저격 · 샷건의 넓은 판정이 유리</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MONSTER DETAIL 2 -->
+    <section class="slide" data-title="몬스터 · 카스 라이트" data-notes="카스 라이트 (Cass Light): 흔들림 가장자리에서 방향을 바꾸는 순간을 노려라">
+      <div class="split wide-r">
+        <figure class="animate delay-1"><img class="shot" src="screens/monster-02-caslight.png" alt="카스 라이트 (Cass Light) 3D 모델" loading="lazy" style="max-height:460px;object-fit:contain"><figcaption class="shot-cap">실제 렌더링 (PBR 캔 모델 · 첫 등장 W1~)</figcaption></figure>
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Monster 2/5 · 아이스 윙 비행선</span><h2>카스 라이트 (Cass Light)</h2></header>
+          <div class="grid animate delay-1" style="grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">체력</span><div class="big-num accent" style="font-size:2.2rem">1</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">접근 속도</span><div class="big-num" style="font-size:1.6rem;line-height:1.4">2.4 m/s</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">처치 점수</span><div class="big-num" style="font-size:2.2rem">+4</div></div>
+          </div>
+          <p class="animate delay-2" style="font-size:1.1rem"><b>유일한 비행 몬스터</b>. 날개를 퍼덕이며 좌우로 크게 흔들리는 회피 비행. 조준 높이를 달리해야 함.</p>
+          <p class="sec animate delay-3" style="font-size:.95rem">외형: 아이스 실버/블루 메탈릭 캔, 카스 쉐브론 로고, 양옆 반투명 시안 날개. · 공중 1.45m · 히트 반경 0.90m</p>
+          <p class="callout animate delay-3"><strong>공략</strong> 흔들림 가장자리에서 방향을 바꾸는 순간을 노려라</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MONSTER DETAIL 3 -->
+    <section class="slide" data-title="몬스터 · 오비 라거" data-notes="오비 라거 (OB Lager): 방패가 내려간 순간에 쏴라 · 피버 사격도 막힘">
+      <div class="split wide-r">
+        <figure class="animate delay-1"><img class="shot" src="screens/monster-03-obi.png" alt="오비 라거 (OB Lager) 3D 모델" loading="lazy" style="max-height:460px;object-fit:contain"><figcaption class="shot-cap">실제 렌더링 (PBR 캔 모델 · 첫 등장 W2~)</figcaption></figure>
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Monster 3/5 · 랄라베어 방패병</span><h2>오비 라거 (OB Lager)</h2></header>
+          <div class="grid animate delay-1" style="grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">체력</span><div class="big-num accent" style="font-size:2.2rem">2</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">접근 속도</span><div class="big-num" style="font-size:1.6rem;line-height:1.4">2.2 m/s</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">처치 점수</span><div class="big-num" style="font-size:2.2rem">+7</div></div>
+          </div>
+          <p class="animate delay-2" style="font-size:1.1rem">방패를 <b>0.8초 들고 2.4초 내리기</b> 반복(개체마다 시작 타이밍 다름). 방패 중엔 탄이 튕겨 점수·피버 없이 탄약만 소모. <b>액티브 스킬만 방패를 뚫음</b>.</p>
+          <p class="sec animate delay-3" style="font-size:.95rem">외형: 앰버 골드 캔, 왕관 쓴 오비 랄라베어, 1952 클래식 레드 리본, 푸른 방패 판. · 지상 0.55m · 히트 반경 0.95m</p>
+          <p class="callout animate delay-3"><strong>공략</strong> 방패가 내려간 순간에 쏴라 · 피버 사격도 막힘</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MONSTER DETAIL 4 -->
+    <section class="slide" data-title="몬스터 · 한맥" data-notes="한맥 (HANMAC): 몬스터가 뭉쳤을 때 터뜨려 연쇄 · 놓치면 체력 감소">
+      <div class="split wide-r">
+        <figure class="animate delay-1"><img class="shot" src="screens/monster-04-hanmac.png" alt="한맥 (HANMAC) 3D 모델" loading="lazy" style="max-height:460px;object-fit:contain"><figcaption class="shot-cap">실제 렌더링 (PBR 캔 모델 · 첫 등장 W3~)</figcaption></figure>
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Monster 4/5 · 폭탄 캔</span><h2>한맥 (HANMAC)</h2></header>
+          <div class="grid animate delay-1" style="grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">체력</span><div class="big-num accent" style="font-size:2.2rem">3</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">접근 속도</span><div class="big-num" style="font-size:1.6rem;line-height:1.4">2.0 m/s</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">처치 점수</span><div class="big-num" style="font-size:2.2rem">+9</div></div>
+          </div>
+          <p class="animate delay-2" style="font-size:1.1rem">3HP 엘리트. <b>처치되면 폭발해 반경 4m 몬스터에게 피해 2</b>(보스 제외). 폭발로 죽은 한맥도 연쇄 폭발.</p>
+          <p class="sec animate delay-3" style="font-size:.95rem">외형: 딥 에메랄드 그린 PBR 캔, 황금 벼 이삭 크레스트, 韓 모노그램, 빨간 경고 띠와 불붙은 심지. · 지상 0.55m · 히트 반경 0.95m</p>
+          <p class="callout animate delay-3"><strong>공략</strong> 몬스터가 뭉쳤을 때 터뜨려 연쇄 · 놓치면 체력 감소</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MONSTER DETAIL 5 -->
+    <section class="slide" data-title="몬스터 · 카스 프레시 병맥주" data-notes="카스 프레시 병맥주: 큰 병 → 작은 병 순서로 정리 · 유리 파편 이펙트">
+      <div class="split wide-r">
+        <figure class="animate delay-1"><img class="shot" src="screens/monster-05-cass-bottle.png" alt="카스 프레시 병맥주 3D 모델" loading="lazy" style="max-height:460px;object-fit:contain"><figcaption class="shot-cap">실제 렌더링 (PBR 캔 모델 · 첫 등장 W4~)</figcaption></figure>
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Monster 5/5 · 분열하는 탱커</span><h2>카스 프레시 병맥주</h2></header>
+          <div class="grid animate delay-1" style="grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">체력</span><div class="big-num accent" style="font-size:2.2rem">4</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">접근 속도</span><div class="big-num" style="font-size:1.6rem;line-height:1.4">2.0 m/s</div></div>
+            <div class="card" style="padding:14px"><span class="sec" style="font-size:.8rem">처치 점수</span><div class="big-num" style="font-size:2.2rem">+16</div></div>
+          </div>
+          <p class="animate delay-2" style="font-size:1.1rem">4HP 탱커. <b>깨지면 작은 병 2마리(HP 1, 2.2 m/s)로 양옆 분열</b>. 작은 병은 다시 나뉘지 않지만 웨이브 종료 전에 모두 처치해야 함.</p>
+          <p class="sec animate delay-3" style="font-size:.95rem">외형: 정품 500ml 투명병 실사 PNG 빌보드, 은색 크라운 캡, V-컷 CASS FRESH 블루 라벨. · 지상 0.55m (모델 1.2배) · 히트 반경 1.35m</p>
+          <p class="callout animate delay-3"><strong>공략</strong> 큰 병 → 작은 병 순서로 정리 · 유리 파편 이펙트</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOSS -->
+    <section class="slide" data-title="보스 · 업소용 냉각기" data-notes="보스는 체력 구간마다 부하를 소환합니다. 7웨이브는 냉각기 2대와 대왕 냉각기를 모두 잡아야 승리합니다.">
+      <header class="slide-head animate"><span class="kicker">Boss · 3 · 5 · 7 Wave</span><h2>업소용 생맥주 냉각기</h2></header>
+      <div class="split">
+        <div class="grid animate delay-1" style="grid-template-columns:1fr 1fr;gap:12px">
+          <figure><img class="shot" src="screens/monster-06-boss-dispenser.png" alt="냉각기 보스" loading="lazy" style="max-height:260px;object-fit:contain"><figcaption class="shot-cap">냉각기 (은색 · 탭 1구)</figcaption></figure>
+          <figure><img class="shot" src="screens/monster-06b-boss-king.png" alt="대왕 냉각기" loading="lazy" style="max-height:260px;object-fit:contain"><figcaption class="shot-cap">대왕 냉각기 (금색 탭 3구 · 왕관)</figcaption></figure>
+          <img class="shot" src="screens/play-boss-warning.png" alt="WARNING 띠" loading="lazy" style="grid-column:span 2;max-height:200px;object-fit:cover">
+        </div>
+        <div class="slide-body animate delay-2">
+          <table aria-label="보스전 구성">
+            <thead><tr><th>웨이브</th><th>구성</th><th class="num">체력</th></tr></thead>
+            <tbody><tr><td>3</td><td>냉각기 1대</td><td class="num">75</td></tr><tr><td>5</td><td>냉각기 2대</td><td class="num">각 70</td></tr><tr><td>7</td><td>냉각기 2대 + 대왕</td><td class="num">각 90 / 200</td></tr></tbody>
+          </table>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;font-size:1.05rem">
+            <li>• 방어선 앞 14m에서 <b>좌우 이동</b> (2대는 교차)</li>
+            <li>• 체력 <b>99 / 66 / 33%</b> 아래마다 부하 3마리를 위에서 투하 (착지 1.2초, 링 표시)</li>
+            <li>• 넉백·기절·둔화 면역, 판정 범위 0.6배</li>
+            <li>• 몸통을 맞혀도 <b>피버 0</b> → 부하를 잡아야 충전</li>
+            <li>• 💩 투사체 발사, 요격 가능</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ITEMS -->
+    <section class="slide" data-title="필드 아이템 4종" data-notes="몬스터를 처치하면 기본 4% 확률로 드롭됩니다. 보스 부하는 20%. 행운의 보급품 카드로 배율이 올라갑니다.">
+      <div class="split wide-r">
+        <figure class="animate delay-1"><img class="shot" src="screens/item-lineup-all.png" alt="오비 펍 아이템 4종 라인업" loading="lazy"><figcaption class="shot-cap">처치 시 4% 드롭 (보스 부하 20%, 행운 카드 ×2~4)</figcaption></figure>
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Field items</span><h2>펍 소품형 아이템 4종</h2></header>
+          <div class="grid g2 animate delay-1" style="gap:12px">
+            <div class="card" style="padding:16px"><h3>💥 파워 샷</h3><p>황금 병따개 · 8초간 피해 <b>2배</b>, 총이 골든 캐논으로 진화</p></div>
+            <div class="card" style="padding:16px"><h3>🎯 빅 스코프</h3><p>맥주 코스터 · 8초간 조준경·판정 <b>1.6배</b>, 록온 마커</p></div>
+            <div class="card" style="padding:16px"><h3>🧊 아이스 프리즈</h3><p>얼음 버킷 · 8초간 전 몬스터 <b>50% 감속</b></p></div>
+            <div class="card" style="padding:16px"><h3>🍺 바 수리</h3><p>홉 열매 · 방어선 체력 <b>+1</b> 즉시 회복</p></div>
+          </div>
+          <p class="callout animate delay-3">3D 네온 라벨이 머리 위에 떠 <strong>18m 밖에서도 즉시 식별</strong>. 방어선에 닿아도 목숨은 깎지 않음.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPECIAL MECHANICS -->
+    <section class="slide" data-title="특수 전장 기믹" data-notes="황금 캔, 똥 투사체, 피버. 단조로움을 깨는 이벤트 요소입니다.">
+      <header class="slide-head animate"><span class="kicker">Special mechanics</span><h2>단조로움을 깨는 이벤트</h2></header>
+      <div class="grid g3 animate delay-1">
+        <article class="card"><img class="shot" src="screens/play-golden-can-detected.png" alt="황금 캔 출현 화면" loading="lazy" style="max-height:170px;object-fit:cover;margin-bottom:12px"><h3>🌟 황금 캔</h3><p>웨이브마다 1회 고속 횡단. 격추 시 <b>+50점 · 스킬 1회 충전 · 피버 +30%</b>. 출현 시 코인 차임과 골드 네온 테두리.</p></article>
+        <article class="card"><img class="shot" src="screens/play-poop-shell.png" alt="보스 똥 투사체" loading="lazy" style="max-height:170px;object-fit:cover;margin-bottom:12px"><h3>💩 투사체 요격</h3><p>보스가 바닥을 따라 쏘는 투사체를 <b>사격으로 격추</b>. 못 막으면 방어선 체력(맥주잔 5개) 감소.</p></article>
+        <article class="card"><img class="shot" src="screens/play-fever-foam-tsunami.png" alt="피버와 거품 해일" loading="lazy" style="max-height:170px;object-fit:cover;margin-bottom:12px"><h3>🔥 4초 피버</h3><p>PERFECT +2%, 처치 +4%로 충전 → 더블탭 발동. <b>무제한 탄창 · 점수 ×1.5</b>, 즉시 탄창 리필.</p></article>
+      </div>
+    </section>
+
+    <!-- 15. WAVES -->
+    <section class="slide" data-title="기획 4 · 웨이브 구조" data-notes="3, 5, 7웨이브가 보스입니다. 리듬: 일반 웨이브로 긴장을 쌓고 보스로 터뜨리고 카드로 숨 돌립니다.">
+      <header class="slide-head animate"><span class="kicker">Design 4 · Wave structure</span><h2>7웨이브, 보스 3번의 리듬</h2></header>
+      <div class="wave-strip animate delay-1" role="img" aria-label="웨이브 1부터 7까지, 3·5·7이 보스 웨이브">
+        <div class="wv"><b>1</b><span>20마리</span></div><div class="wv"><b>2</b><span>26마리</span></div>
+        <div class="wv boss"><b>3</b><span>BOSS</span></div><div class="wv"><b>4</b><span>34마리</span></div>
+        <div class="wv boss"><b>5</b><span>BOSS ×2</span></div><div class="wv"><b>6</b><span>40마리</span></div>
+        <div class="wv boss"><b>7</b><span>대왕</span></div>
+      </div>
+      <div class="split animate delay-2">
+        <div class="chart-container" role="img" aria-label="웨이브별 기준 클리어 시간 막대 차트"><canvas id="chartWaves" role="img" aria-label="웨이브별 기준 시간(초)"></canvas></div>
+        <div class="slide-body">
+          <div class="card"><h3>👑 보스: 체력 구간 소환</h3><p>체력 99/66/33% 아래로 내려갈 때마다 부하가 하늘에서 떨어집니다. 빨리 잡아도 소환을 봅니다.</p></div>
+          <div class="card"><h3>🧊 중간 휴식</h3><p>웨이브 클리어와 4·6웨이브 중간에 전장이 정지하고 보상 카드가 나옵니다.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16. REWARD CARDS -->
+    <section class="slide" data-title="기획 5 · 보상 카드" data-notes="로그라이크 요소입니다. 매 판 다른 빌드가 나옵니다. 카드는 총을 쏴서 고르는 방식이라 폰만으로 조작이 가능합니다.">
+      <div class="split wide-l">
+        <div class="slide-body">
+          <header class="slide-head animate"><span class="kicker">Design 5 · Roguelike rewards</span><h2>매 판 다른 빌드</h2></header>
+          <p class="lead animate delay-1">전장이 얼어붙고 9종 중 무작위 3장이 3D 홀로그램으로 등장. <b>총을 쏴서</b> 고릅니다.</p>
+          <div class="rcards animate delay-2">
+            <div class="rc"><b>⬆️ 무기 레벨업</b><span>웨이브별 상한</span></div>
+            <div class="rc"><b>⚡ 초고속 장전</b><span>재장전 단축</span></div>
+            <div class="rc"><b>🍺 바리케이드 수리</b><span>체력 +2</span></div>
+            <div class="rc"><b>🔥 피버 부스터</b><span>충전 +50%</span></div>
+            <div class="rc"><b>🍀 행운의 보급품</b><span>아이템 드롭↑</span></div>
+            <div class="rc"><b>💥 공격력 강화</b><span>+10%</span></div>
+            <div class="rc"><b>⏱️ 스킬 가속</b><span>쿨다운 −10%</span></div>
+            <div class="rc"><b>🔥 피버 연장</b><span>+0.5초</span></div>
+            <div class="rc"><b>🎯 조준 보정</b><span>+5%</span></div>
+          </div>
+        </div>
+        <figure class="animate delay-2"><img class="shot" src="screens/play-kill-gauge-reward-cards.png" alt="3D 보상 카드 3장이 떠 있는 인게임 화면" loading="lazy"><figcaption class="shot-cap">카드 선택 중에는 피버·버프·쿨다운 시간도 정지</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 17. SCORE -->
+    <section class="slide" data-title="기획 6 · 점수 설계" data-notes="점수 설계에서 가장 고민한 부분입니다. 많이 쏘면 이득이던 구조를 속도와 정확도 중심으로 바꿨습니다.">
+      <header class="slide-head animate"><span class="kicker">Design 6 · Scoring</span><h2>실력이 점수가 되도록</h2></header>
+      <div class="split">
+        <div class="chart-container animate delay-1" style="height:380px" role="img" aria-label="점수 구성 도넛 차트: 기본 11,123, 시간 보너스 5,764, 정밀도 보너스 4,211"><canvas id="chartScore" role="img" aria-label="샷건 정확 플레이 점수 구성"></canvas></div>
+        <div class="slide-body animate delay-2">
+          <div class="card"><h3>⏱️ 시간 보너스</h3><p>웨이브마다 기준 시간 안에 깨면 최대 700점(보스 ×2). 기준의 1.6배에서 0점까지 선형 감소.</p></div>
+          <div class="card"><h3>🎯 정밀도 보너스</h3><p>판정 비율의 제곱 × 12,000점. 많이 쏘기보다 정확히 맞히기가 이득.</p></div>
+          <div class="card"><h3>🪜 저레벨 클리어 보너스</h3><p>무기 레벨이 낮을수록 ×1.2 → ×1.0 배율. 성장 없이 깬 사람에게 보상.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18. ANTI-EXPLOIT -->
+    <section class="slide" data-title="기획 7 · 꼼수 방지와 검증" data-notes="기획서만으로 끝내지 않고 봇으로 수치를 검증했습니다. 보스 스톨 전략이 손해가 되도록 구조를 바꿨습니다.">
+      <header class="slide-head animate"><span class="kicker">Design 7 · Balance by data</span><h2>꼼수는 구조로 막는다</h2></header>
+      <div class="split">
+        <div class="slide-body animate delay-1">
+          <p class="lead">"보스를 살려 두고 부하만 잡아 점수 쌓기"를 막기 위해, 보스가 오래 살수록 <b>소환 간격이 8초 → 4초</b>로 짧아지게 설계.</p>
+          <table aria-label="전략별 클리어율과 점수 (샷건, 정확 봇 30판)">
+            <thead><tr><th>전략 (샷건)</th><th class="num">클리어율</th><th class="num">점수</th></tr></thead>
+            <tbody>
+              <tr><td>부하 먼저 처치</td><td class="num good">67%</td><td class="num">15,316</td></tr>
+              <tr><td>보스만 러시</td><td class="num bad">3%</td><td class="num">6,696</td></tr>
+              <tr><td>보스 스톨</td><td class="num bad">17%</td><td class="num">7,823</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-container animate delay-2" role="img" aria-label="전략별 평균 점수 비교 막대 차트"><canvas id="chartStrategy" role="img" aria-label="전략별 점수"></canvas></div>
+      </div>
+      <p class="callout animate delay-3"><strong>봇이 수십~수백 판</strong>을 대신 플레이해 클리어율·점수를 측정 → 수치를 표로 비교하며 사람이 결정.</p>
+    </section>
+
+    <!-- 19. QUALITY -->
+    <section class="slide" data-title="품질 장치" data-notes="에이전트가 빠르게 바꾸는 코드를 테스트와 문서 동기화로 방어했습니다.">
+      <header class="slide-head animate"><span class="kicker">Quality net</span><h2>깨지지 않게 지키는 장치</h2></header>
+      <div class="grid g3 animate delay-1">
+        <div class="card"><h3>🧪 428개 자동 테스트</h3><p>44개 파일. 무기·몬스터·점수·센서·UI까지. 수정할 때마다 실행.</p></div>
+        <div class="card"><h3>📚 docs-sync 테스트</h3><p>README·가이드의 수치가 실제 설정값과 다르면 테스트가 실패 → 문서가 낡지 않음.</p></div>
+        <div class="card"><h3>⚙️ 수치는 한 곳에</h3><p><code>gameTuning.ts</code> 하나만 고치면 난이도 전체가 바뀜.</p></div>
+        <div class="card"><h3>📸 자동 스크린샷</h3><p>Playwright가 실제 게임을 실행해 문서용 화면을 다시 캡처.</p></div>
+        <div class="card"><h3>🏷️ 랭킹 규칙 버전</h3><p>점수 규칙이 바뀌면 버전을 올리고, 기존 기록은 백업 후 새 랭킹 시작.</p></div>
+        <div class="card"><h3>📝 커밋 규칙</h3><p>feat 114 · docs 79 · fix 40 · perf 11. 모든 변경에 이유가 남음.</p></div>
+      </div>
+    </section>
+
+    <!-- 20. LESSONS -->
+    <section class="slide" data-title="배운 점" data-notes="에이전트로 개발할 때 효과적이었던 다섯 가지.">
+      <header class="slide-head animate"><span class="kicker">Takeaways</span><h2>에이전트 협업 5가지 원칙</h2></header>
+      <ol class="grid animate delay-1" style="list-style:none;counter-reset:t">
+        <li class="card" style="counter-increment:t"><h3>1. 먼저 질문받기</h3><p>코딩 전 인터뷰로 애매함을 제거하세요.</p></li>
+        <li class="card" style="counter-increment:t"><h3>2. 결정을 파일로</h3><p>대화는 사라져도 문서는 남습니다.</p></li>
+        <li class="card" style="counter-increment:t"><h3>3. 작게 쪼개기</h3><p>Task 하나, 테스트 하나, 커밋 하나.</p></li>
+        <li class="card" style="counter-increment:t"><h3>4. 직접 플레이하기</h3><p>피드백은 사람만 줄 수 있는 "감각".</p></li>
+        <li class="card" style="counter-increment:t"><h3>5. 숫자로 검증하기</h3><p>봇과 표로 "느낌"을 "근거"로 바꾸기.</p></li>
+      </ol>
+    </section>
+
+    <!-- 21. CLOSING -->
+    <section class="slide title" data-title="마무리" data-notes="질문 받겠습니다. 시연이 필요하시면 폰으로 QR을 스캔해 주세요.">
+      <span class="kicker animate">Thank you</span>
+      <h1 class="animate delay-1">결정은 사람이,<br>반복은 에이전트가</h1>
+      <p class="lead animate delay-2" style="color:var(--text);opacity:.85;text-align:center">질문 → 계획 → 실행. 이 세 단계가 6일, 280커밋의 게임을 완성시켰습니다.</p>
+      <div class="chip-row animate delay-3" style="justify-content:center"><span class="chip hot">Q &amp; A</span><span class="chip">라이브 데모</span></div>
+    </section>
+  </main>
+
+  <div class="overview" id="overview" role="dialog" aria-label="슬라이드 전체 보기"><div class="ov-grid" id="ovGrid"></div></div>
+  <button class="timer" id="timer" onclick="resetTimer()" aria-label="발표 타이머 (클릭하면 초기화)">⏱ 00:00</button>
+  <span class="hint">← → 이동 · G 전체보기 · N 노트</span>
+  <nav class="slide-nav" aria-label="슬라이드 이동">
+    <button onclick="prevSlide()" aria-label="이전 슬라이드"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span class="slide-counter" id="slideCounter">1 / 31</span>
+    <button onclick="nextSlide()" aria-label="다음 슬라이드"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+  </nav>
+
+  <script>
+    // === Menu ===
+    function toggleMenu() { var d = document.getElementById('vizMenuDropdown'); if (d) d.classList.toggle('open'); }
+    document.addEventListener('click', function(e) {
+      var d = document.getElementById('vizMenuDropdown');
+      if (!e.target.closest('.viz-menu') && d) d.classList.remove('open');
+    });
+
+    // === Theme ===
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('viz-theme'); } catch (e) {}
+    var currentTheme = savedTheme || 'dark';
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      document.getElementById('themeIcon').textContent = t === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeLabel').textContent = t === 'dark' ? 'Dark' : 'Light';
+      try { localStorage.setItem('viz-theme', t); } catch (e) {}
+      currentTheme = t;
+      if (typeof onThemeChange === 'function') onThemeChange();
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+
+    // === Deck ===
+    var slides = [], current = 0, notesOn = false, startTime = Date.now(), chartsBuilt = false;
+    function buildDeck() {
+      slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+      var grid = document.getElementById('ovGrid');
+      slides.forEach(function(s, i) {
+        var b = document.createElement('button');
+        b.className = 'ov-item'; b.setAttribute('data-i', i);
+        b.innerHTML = '<small>' + (i + 1) + '</small><span>' + (s.getAttribute('data-title') || '') + '</span>';
+        b.onclick = function() { goTo(i); toggleOverview(); };
+        grid.appendChild(b);
+      });
+    }
+    function goTo(n) {
+      if (n < 0 || n >= slides.length) return;
+      current = n;
+      slides.forEach(function(s, i) {
+        s.classList.toggle('active', i === n);
+        s.classList.toggle('past', i < n);
+      });
+      document.getElementById('slideCounter').textContent = (n + 1) + ' / ' + slides.length;
+      document.getElementById('progress').style.width = ((n + 1) / slides.length * 100) + '%';
+      slides[n].scrollTop = 0;
+      Array.prototype.forEach.call(document.querySelectorAll('.ov-item'), function(el, i) { el.classList.toggle('cur', i === n); });
+      if (location.hash !== '#' + (n + 1)) { try { history.replaceState(null, '', '#' + (n + 1)); } catch (e) {} }
+      runCounters(slides[n]);
+      showNotes();
+    }
+    function nextSlide() { goTo(current + 1); }
+    function prevSlide() { goTo(current - 1); }
+    function toggleOverview() { document.getElementById('overview').classList.toggle('open'); }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { document.getElementById('vizMenuDropdown').classList.remove('open'); document.getElementById('overview').classList.remove('open'); return; }
+      if (e.target.closest && e.target.closest('button') && (e.key === ' ' || e.key === 'Enter')) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+      else if (e.key === 'Home') goTo(0);
+      else if (e.key === 'End') goTo(slides.length - 1);
+      else if (e.key === 'g' || e.key === 'G') toggleOverview();
+      else if (e.key === 'n' || e.key === 'N') { notesOn = !notesOn; showNotes(); }
+    });
+    // touch swipe
+    var touchX = null;
+    document.addEventListener('touchstart', function(e) { touchX = e.touches[0].clientX; }, { passive: true });
+    document.addEventListener('touchend', function(e) {
+      if (touchX === null) return;
+      var dx = e.changedTouches[0].clientX - touchX; touchX = null;
+      if (Math.abs(dx) > 60) { dx < 0 ? nextSlide() : prevSlide(); }
+    }, { passive: true });
+
+    // speaker notes (toggle with N)
+    var notesEl = null;
+    function showNotes() {
+      if (!notesEl) {
+        notesEl = document.createElement('div');
+        notesEl.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:72px;max-width:min(760px,92vw);background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:12px 18px;z-index:9997;font-size:1rem;display:none';
+        document.body.appendChild(notesEl);
+      }
+      var n = slides[current] ? slides[current].getAttribute('data-notes') : '';
+      notesEl.textContent = '🗒 ' + (n || '');
+      notesEl.style.display = (notesOn && n) ? 'block' : 'none';
+    }
+
+    // timer
+    function tickTimer() {
+      var s = Math.floor((Date.now() - startTime) / 1000);
+      var m = Math.floor(s / 60); s = s % 60;
+      document.getElementById('timer').textContent = '⏱ ' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+    function resetTimer() { startTime = Date.now(); tickTimer(); }
+    setInterval(tickTimer, 1000);
+
+    // counters
+    function runCounters(root) {
+      root.querySelectorAll('[data-count]').forEach(function(el) {
+        if (el.dataset.counted) return;
+        el.dataset.counted = '1';
+        var target = parseFloat(el.dataset.count), suffix = el.dataset.suffix || '';
+        var start = performance.now(), duration = 1200;
+        (function tick(now) {
+          var p = Math.min((now - start) / duration, 1), eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased).toLocaleString() + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        })(start);
+      });
+    }
+
+    // === Interactions ===
+    function pickStep(el) {
+      Array.prototype.forEach.call(document.querySelectorAll('.step'), function(s) { s.classList.remove('on'); });
+      el.classList.add('on');
+    }
+    var QA = {
+      a: ['웨이브 클리어 속도로 하자', '결정 D01: 속도가 주축. 발사 수가 아니라 시간 기준이라 연사 무기가 유리해지지 않고, 연속 조건이 없어 자이로에도 부담이 없음. (정확도·기술 보상은 Rejected로 사유와 함께 기록)'],
+      b: ['정확도 비중을 키우자', '기록: 시뮬레이션에서 정확도 편차가 작아 효과가 약합니다(+9~13%). 추천안(클리어 속도)을 한 번 더 검토해 보시겠어요?'],
+      c: ['고급 기술 보상으로 가자', '기록: 모바일에서 난이도가 높고 운에 좌우될 수 있습니다. 추천안(클리어 속도)을 한 번 더 검토해 보시겠어요?']
+    };
+    function pickOpt(btn, k) {
+      Array.prototype.forEach.call(document.querySelectorAll('#qa .opt'), function(o) { o.classList.remove('picked'); });
+      btn.classList.add('picked');
+      document.getElementById('qa-me-t').textContent = QA[k][0];
+      document.getElementById('qa-ai-t').textContent = QA[k][1];
+      document.getElementById('qa-me').classList.add('show');
+      document.getElementById('qa-ai').classList.add('show');
+    }
+    function pickWeapon(w, btn) {
+      Array.prototype.forEach.call(btn.parentNode.children, function(t) { t.classList.remove('on'); });
+      btn.classList.add('on');
+      Array.prototype.forEach.call(document.querySelectorAll('.tabpane'), function(p) { p.classList.toggle('on', p.getAttribute('data-w') === w); });
+      highlightWeapon = w; if (chartsBuilt) { chartsBuilt = false; buildCharts(); }
+    }
+    function filterMon(k, btn) {
+      Array.prototype.forEach.call(btn.parentNode.children, function(t) { t.classList.remove('on'); });
+      btn.classList.add('on');
+      Array.prototype.forEach.call(document.querySelectorAll('#monGrid .mon'), function(c) {
+        c.classList.toggle('dim', k !== 'all' && c.getAttribute('data-k').indexOf(k) === -1);
+      });
+    }
+
+
+    // === Weapon level data ===
+    var WDATA = {
+      shotgun: { skillT: '사방 뚫어뻥 폭풍', skill: '화면 외곽 8방향에서 3D 뚫어뻥 12~22개가 포물선으로 날아와 몬스터에 달라붙어 1~2초 기절. 빗나간 탄은 바닥에서 바운스 후 소멸. 보스는 면역. MAX에서 2회 스택.',
+        keys: ['펠릿 수','펠릿당 공격력','총 공격력','넉백','탄창','장전','연사 간격','스킬 쿨타임'],
+        lv: [['3발','0.42','1.26','—','10발','1.7s','224ms','21s'],['4발','0.48','1.92','0.3m','10발','1.6s','210ms','19s'],['5발','0.60','3.00','0.3m','12발','1.4s','196ms','16s'],['6발','0.72','4.32','0.4m+둔화','12발','1.3s','182ms','14s ×2']],
+        look: ['리얼 고무 벨 뚫어뻥이 총구에 정면 장착된 단총열 샷건.','브론즈 상하 트윈 총열 + 고압 황동 밸브 노즐 (듀얼 고압관).','총열을 휘감는 투명 앰버 맥주 호스에 거품 기포가 순환 (호박색 맥주관).','4총열 배럴 클러스터 + 전방 시안 네온 초크 링 점등 (쿼드 배럴).'] },
+      revolver: { skillT: '오프너 참격', skill: '세운 황금 초승달 칼날이 부채꼴로 필드 끝까지 비행. 칼날 3/3/5/7개, 추가 관통 0/1/1/2마리. 날아오는 포탄도 벤다. MAX에서 2회 스택.',
+        keys: ['공격력','관통 수','관통 데미지율','탄창','장전','연사 간격','스킬 칼날','스킬 쿨타임'],
+        lv: [['1.00','1마리','47%','10발','1.7s','196ms','3개·관통 0','21s'],['1.35','1마리','50%','10발','1.4s','175ms','3개·관통 1','19s'],['1.75','2마리','50%','12발','1.3s','161ms','5개·관통 1','16s'],['2.20','2마리','100%','12발','1.2s','147ms','7개·관통 2','14s ×2']],
+        look: ['황금 병따개 머즐 해머 + 6구 탄창 실린더.','42cm 장총열 크롬 실린더 + 금박 각인 프레임 (헤비 롱배럴).','총기 상단 시안 네온 홀로그램 스코프 링 + 전방 레이저 빔.','4방향 가스 분출 포트 머즐 브레이크 + 발사 시 황금 스파크 폭발.'] },
+      gatling: { skillT: '거품 해일', skill: '작은 거품 수백 개가 필드 전체로 퍼지며 몬스터를 3/3.5/4/5m 밀어내고 둔화시킴. 밀어내기 전용이라 피해는 낮고 보스는 피해만 받는다. MAX에서 2회 스택.',
+        keys: ['발당 공격력','초당 발사','DPS','탄창','장전','발사 간격','밀쳐내기','스킬 쿨타임'],
+        lv: [['0.50','9.5발','4.76','30발','1.7s','105ms','3m','21s'],['0.64','11.4발','7.27','35발','1.6s','88ms','3.5m','19s'],['0.80','14.3발','11.43','40발','1.4s','70ms','4m','16s'],['1.00','17.2발','17.24','50발','1.2s','58ms','5m','14s ×2']],
+        look: ['6각 원형 배치 6총열 묶음, 사격·쿨다운 시 회전.','카스 시안 블루 알루미늄 타공 방열 재킷 (쿨링 재킷).','하단 양측에 카스 생맥주 드럼통 탄창 2개 (듀얼 탄산 드럼통).','2중 12총열 회전 클러스터 + 총구 고압 플라즈마 탄산 스파크.'] }
+    };
+    function renderWeapon(box, n) {
+      var w = box.getAttribute('data-w'), d = WDATA[w];
+      box.querySelector('.wimg').src = 'screens/weapons/' + w + '-lv' + (n + 1) + '.png';
+      box.querySelector('.wlook-t').textContent = 'Lv.' + (n + 1) + (n === 3 ? ' MAX' : '') + ' 외형';
+      box.querySelector('.wlook').textContent = d.look[n];
+      box.querySelector('.wskill-t').textContent = '스킬 · ' + d.skillT;
+      box.querySelector('.wskill').textContent = d.skill;
+      var html = '';
+      d.keys.forEach(function(k, i) {
+        var prev = n > 0 ? d.lv[n - 1][i] : null, cur = d.lv[n][i];
+        html += '<div class="card" style="padding:12px"><span class="sec" style="font-size:.8rem">' + k + '</span><div style="font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums;' + (prev !== null && prev !== cur ? 'color:var(--accent)' : '') + '">' + cur + '</div></div>';
+      });
+      box.querySelector('.wstats').innerHTML = html;
+    }
+    function pickLv(btn, n) {
+      Array.prototype.forEach.call(btn.parentNode.children, function(t) { t.classList.remove('on'); });
+      btn.classList.add('on');
+      renderWeapon(btn.closest('.wdetail'), n);
+    }
+    function initWeapons() { Array.prototype.forEach.call(document.querySelectorAll('.wdetail'), function(b) { renderWeapon(b, 0); }); }
+
+    // === Download PNG ===
+    async function downloadImage() {
+      var menu = document.querySelector('.viz-menu'); menu.style.display = 'none';
+      try {
+        var url = await htmlToImage.toPng(slides[current], { quality: 1, pixelRatio: 2, backgroundColor: getComputedStyle(document.body).backgroundColor });
+        var a = document.createElement('a'); a.href = url; a.download = 'beer-crusher-slide-' + (current + 1) + '.png'; a.click();
+      } catch (e) { console.error('Download failed:', e); }
+      menu.style.display = '';
+    }
+
+    // === Charts ===
+    var ChartManager = {
+      charts: new Map(),
+      safeInit: function(canvasId, config) {
+        if (typeof Chart === 'undefined') { console.error('Chart.js not loaded'); return null; }
+        try {
+          if (this.charts.has(canvasId)) { this.charts.get(canvasId).destroy(); this.charts.delete(canvasId); }
+          var ctx = document.getElementById(canvasId);
+          if (!ctx) { console.error('Canvas not found: ' + canvasId); return null; }
+          ctx.setAttribute('role', 'img');
+          if (!ctx.getAttribute('aria-label')) ctx.setAttribute('aria-label', 'Chart');
+          var chart = new Chart(ctx, config);
+          this.charts.set(canvasId, chart);
+          return chart;
+        } catch (error) { console.error('Chart init failed for ' + canvasId + ':', error); return null; }
+      },
+      updateTheme: function() { this.charts.forEach(function(c) { try { c.update(); } catch (e) {} }); },
+      destroyAll: function() { this.charts.forEach(function(c) { try { c.destroy(); } catch (e) {} }); this.charts.clear(); }
+    };
+    var highlightWeapon = 'shotgun';
+    function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+    function baseOpts(extra) {
+      var o = {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        layout: { padding: 8 },
+        plugins: { tooltip: { enabled: true, padding: 12, cornerRadius: 8, titleFont: { size: 14 }, bodyFont: { size: 13 } },
+                   legend: { labels: { color: css('--text'), font: { size: 13, family: 'Inter, Noto Sans KR' } } } }
+      };
+      for (var k in extra) { o[k] = extra[k]; }
+      return o;
+    }
+    function axes(yTitle) {
+      var grid = currentTheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+      return {
+        x: { ticks: { color: css('--text-secondary'), font: { size: 13 }, maxRotation: 0 }, grid: { color: grid } },
+        y: { ticks: { color: css('--text-secondary'), font: { size: 13 } }, grid: { color: grid },
+             title: yTitle ? { display: true, text: yTitle, color: css('--text-secondary'), font: { size: 14 } } : { display: false } }
+      };
+    }
+    function buildCharts() {
+      if (chartsBuilt || typeof Chart === 'undefined') return;
+      var acc = css('--accent'), acc2 = css('--accent-secondary'), neg = css('--negative'), sec = css('--text-secondary');
+      Chart.defaults.color = sec; Chart.defaults.font.family = 'Inter, Noto Sans KR, sans-serif';
+
+      ChartManager.safeInit('chartCommits', { type: 'bar',
+        data: { labels: ['11/1', '11/2', '11/3', '11/4', '11/5', '11/6'], datasets: [{ label: '커밋 수', data: [35, 76, 24, 40, 100, 5], backgroundColor: acc, borderRadius: 4 }] },
+        options: baseOpts({ scales: axes('커밋'), plugins: { legend: { display: false }, tooltip: { enabled: true, padding: 12, cornerRadius: 8 } } }) });
+
+      var dps = { shotgun: [1.26, 1.92, 3.0, 4.32], revolver: [1.0, 1.35, 1.75, 2.2], gatling: [0.5, 0.64, 0.8, 1.0] };
+      var perShot = { shotgun: '샷건 총 공격력/발', revolver: '리볼버 공격력/발', gatling: '개틀링 공격력/발' };
+      var colors = { shotgun: acc, revolver: acc2, gatling: neg };
+      ChartManager.safeInit('chartWeapons', { type: 'line',
+        data: { labels: ['Lv.1', 'Lv.2', 'Lv.3', 'Lv.4 MAX'], datasets: Object.keys(dps).map(function(k) {
+          var on = k === highlightWeapon;
+          return { label: perShot[k], data: dps[k], borderColor: colors[k], backgroundColor: colors[k], borderWidth: on ? 5 : 2, pointRadius: on ? 6 : 3, pointHoverRadius: 8, tension: .25, borderDash: on ? [] : [6, 4] };
+        }) },
+        options: baseOpts({ scales: axes('발당 피해량'), interaction: { mode: 'index', intersect: false } }) });
+
+      ChartManager.safeInit('chartWaves', { type: 'bar',
+        data: { labels: ['W1', 'W2', 'W3 👑', 'W4', 'W5 👑', 'W6', 'W7 👑'], datasets: [{ label: '기준 클리어 시간(초)', data: [14, 18, 28, 23, 35, 24, 61], backgroundColor: [acc, acc, neg, acc, neg, acc, neg], borderRadius: 4 }] },
+        options: baseOpts({ scales: axes('초'), plugins: { legend: { display: false }, tooltip: { enabled: true, padding: 12, cornerRadius: 8 } } }) });
+
+      ChartManager.safeInit('chartScore', { type: 'doughnut',
+        data: { labels: ['기본 점수', '시간 보너스', '정밀도 보너스'], datasets: [{ data: [11123, 5764, 4211], backgroundColor: [acc, acc2, css('--positive')], borderColor: css('--surface'), borderWidth: 3 }] },
+        options: baseOpts({ cutout: '58%', plugins: { tooltip: { enabled: true, padding: 12, cornerRadius: 8,
+          callbacks: { label: function(c) { var t = c.dataset.data.reduce(function(a, b) { return a + b; }, 0); return ' ' + c.label + ': ' + c.parsed.toLocaleString() + '점 (' + Math.round(c.parsed / t * 100) + '%)'; } } },
+          legend: { position: 'bottom', labels: { color: css('--text'), font: { size: 14 }, padding: 16 } } } }) });
+
+      ChartManager.safeInit('chartStrategy', { type: 'bar',
+        data: { labels: ['부하 먼저', '보스 러시', '보스 스톨'], datasets: [{ label: '평균 점수 (샷건)', data: [15316, 6696, 7823], backgroundColor: [css('--positive'), neg, neg], borderRadius: 4 }] },
+        options: baseOpts({ scales: axes('점수'), plugins: { legend: { display: false }, tooltip: { enabled: true, padding: 12, cornerRadius: 8 } } }) });
+      buildRadar();
+      chartsBuilt = true;
+    }
+    // Radar: raw values per weapon [shotgun, revolver, gatling], per level index (0 = Lv.1, 1 = Lv.4)
+    var radarLevel = 1;
+    var RADAR_AXES = ['발당 화력', '초당 화력', '판정 범위', '탄창', '장전 속도', '관통 수'];
+    var RADAR_RAW = [ // [perShot, dps, hitZone, mag, 1/reload(1/s), targets]
+      { shotgun: [1.26, 5.63, 1.40, 10, 1 / 1.7, 1], revolver: [1.00, 5.10, 0.95, 10, 1 / 1.7, 1], gatling: [0.50, 4.76, 1.05, 30, 1 / 1.7, 1] },
+      { shotgun: [4.32, 23.7, 1.40, 12, 1 / 1.3, 1], revolver: [2.20, 15.0, 0.95, 12, 1 / 1.2, 2], gatling: [1.00, 17.24, 1.05, 50, 1 / 1.2, 1] }
+    ];
+    function buildRadar() {
+      var raw = RADAR_RAW[radarLevel], max = RADAR_RAW[1];
+      function norm(k) { return raw[k].map(function(v, i) { return Math.round(v / Math.max(max.shotgun[i], max.revolver[i], max.gatling[i]) * 100); }); }
+      var fmt = [function(v) { return v.toFixed(2); }, function(v) { return v.toFixed(1) + '/s'; }, function(v) { return '×' + v.toFixed(2); }, function(v) { return v + '발'; }, function(v) { return (1 / v).toFixed(1) + 's'; }, function(v) { return v + '마리'; }];
+      var cols = { shotgun: css('--accent'), revolver: css('--accent-secondary'), gatling: css('--negative') };
+      var names = { shotgun: '샷건', revolver: '리볼버', gatling: '개틀링' };
+      var grid = currentTheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+      ChartManager.safeInit('chartRadar', { type: 'radar',
+        data: { labels: RADAR_AXES, datasets: ['shotgun', 'revolver', 'gatling'].map(function(k) {
+          return { label: names[k], data: norm(k), borderColor: cols[k], backgroundColor: cols[k] + '33', borderWidth: 3, pointRadius: 4, pointHoverRadius: 7, pointBackgroundColor: cols[k] };
+        }) },
+        options: baseOpts({
+          scales: { r: { min: 0, max: 100, ticks: { display: false, stepSize: 25 }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: css('--text'), font: { size: 13, weight: '600' } } } },
+          plugins: { legend: { position: 'bottom', labels: { color: css('--text'), font: { size: 13 }, padding: 10 } },
+            tooltip: { enabled: true, padding: 12, cornerRadius: 8, callbacks: { label: function(c) {
+              var k = ['shotgun', 'revolver', 'gatling'][c.datasetIndex];
+              return ' ' + c.dataset.label + ': ' + fmt[c.dataIndex](raw[k][c.dataIndex]) + ' (' + c.parsed.r + ')'; } } } }
+        }) });
+    }
+    function pickRadar(n, btn) {
+      Array.prototype.forEach.call(btn.parentNode.children, function(t) { t.classList.remove('on'); });
+      btn.classList.add('on'); radarLevel = n; buildRadar();
+    }
+    function onThemeChange() { if (chartsBuilt) { chartsBuilt = false; setTimeout(buildCharts, 50); } }
+
+    // === Init ===
+    document.addEventListener('DOMContentLoaded', function() {
+      applyTheme(currentTheme);
+      initWeapons();
+      buildDeck();
+      var h = parseInt((location.hash || '').replace('#', ''), 10);
+      goTo(h > 0 && h <= slides.length ? h - 1 : 0);
+      buildCharts();
+    });
+    window.addEventListener('load', buildCharts);
+  </script>
+</body>
+</html>

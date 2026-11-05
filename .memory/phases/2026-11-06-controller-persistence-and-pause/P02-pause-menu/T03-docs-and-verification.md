@@ -1,6 +1,6 @@
 # Task: T03 문서 갱신과 전체 검증
 
-## Status: pending
+## Status: done
 
 ## Goal
 사용자용 문서에 새 동작(방 유지, 자동 재연결, 일시정지)을 적고, 전체 테스트·타입·빌드가 통과함을 확인한다.
@@ -46,6 +46,6 @@ Task: T03-docs-and-verification
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (this commit)
