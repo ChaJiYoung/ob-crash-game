@@ -1,6 +1,6 @@
 # Task: T03 Sync Docs and Ranking Version
 
-## Status: todo
+## Status: done
 
 ## Goal
 새 점수 규칙(시간 보너스, 보스 소환 방식)을 안내 문구와 문서에 반영하고, 랭킹 규칙 버전을 필요하면 올린다.
@@ -41,9 +41,9 @@
 
 
 ## Acceptance Criteria
-- [ ] 안내 모달·README·docs에 시간 보너스와 새 보스 소환 규칙이 현재 수치로 적혀 있다.
-- [ ] `docs-sync` 테스트가 통과한다.
-- [ ] 랭킹 규칙 버전 결정이 기록되었다.
+- [x] 안내 모달·README·docs에 시간 보너스와 새 보스 소환 규칙이 현재 수치로 적혀 있다.
+- [x] `docs-sync` 테스트가 통과한다.
+- [x] 랭킹 규칙 버전 결정이 기록되었다.
 
 ## Validation
 - `npx vitest run tests/docs-sync.test.ts tests/server-session.test.ts` — 통과
@@ -63,6 +63,6 @@ Task: T03-sync-docs-and-ranking-version
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
