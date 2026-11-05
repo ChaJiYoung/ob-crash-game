@@ -163,4 +163,84 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
     // A frozen caslight would resume from its spawn angle (up to ~2.5m away); a swaying one barely moves in 40ms
     expect(Math.abs(c.x - beforeX)).toBeLessThan(0.5);
   });
+
+  describe('review follow-ups (P02)', () => {
+    const mkTarget = (id: string, kind: any, radius: number, extra: any = {}) => ({
+      id, kind, hp: 4, maxHp: 4, radiusM: radius, thetaRad: 0, x: 0, z: -radius, speedMps: 0,
+      hitRadiusM: 1, killBonusScore: 1, breached: false, ...extra,
+    });
+
+    it('revolver pierce passes through a landed target but skips one that is still falling', () => {
+      const runPierce = (rearFalling: boolean) => {
+        const e: any = new BeerCrusherEngine();
+        e.startGame({ withWeaponSelect: false });
+        e.weaponSystem.selectWeapon('revolver', 3);
+        const front = mkTarget('front', 'bottle', 8);
+        const rear = mkTarget('rear', 'bottle', 11, rearFalling ? { dropLandAtMs: 5000 + 700 } : {});
+        e.activeTargets = [front, rear];
+        const p = e.computeTargetAimCoords(front);
+        e.shootAt(p.targetNormX, p.targetNormY, 5000, 'press');
+        return { front, rear };
+      };
+      const landed = runPierce(false);
+      expect(landed.front.hp).toBeLessThan(4);
+      expect(landed.rear.hp).toBeLessThan(4); // control: the pierce really reaches a landed rear target
+      const falling = runPierce(true);
+      expect(falling.front.hp).toBeLessThan(4);
+      expect(falling.rear.hp).toBe(4);
+    });
+
+    it('a falling hanmac does not fire or start its timers until it lands', () => {
+      engine.dropRng = () => 0.5;
+      const [h] = engine.spawnBossMinionWave(1000, 1);
+      h.kind = 'hanmac';
+      engine.activeTargets = [h];
+      engine.spawnedInWave = 999;
+      for (let t = 1000; t < 1000 + drop.dropMs; t += 50) engine.update(t, 0.05);
+      expect(h.hanmacArrivedAtMs).toBeUndefined();
+      expect(engine.activeTargets.some((t: any) => t.isProjectile)).toBe(false);
+      for (let t = 1000 + drop.dropMs; t < 1000 + drop.dropMs + 400; t += 50) engine.update(t, 0.05);
+      expect(h.hanmacArrivedAtMs).toBeDefined();
+    });
+
+    it('a pause does not let a minion land: the drawn clock holds and the landing time shifts on resume', () => {
+      engine.dropRng = () => 0.5;
+      const [m] = engine.spawnBossMinionWave(1000, 1);
+      engine.setPaused(true, 1300);
+      expect(engine.getEffectiveNowMs(9999)).toBe(1300); // what the canvas draws with while paused
+      engine.setPaused(false, 21_300); // 20s pause
+      expect(m.dropLandAtMs).toBe(1000 + drop.dropMs + 20_000);
+      expect(engine.getEffectiveNowMs(21_400)).toBe(21_400);
+      expect(engine.isTargetLanded(m, 21_300)).toBe(false);
+    });
+
+    it('an obi lands with its shield down so the player gets the full window', () => {
+      engine.dropRng = () => 0.5;
+      const kinds = engine.waveDefinitions[3].boss.summonKinds;
+      engine.waveDefinitions[3].boss.summonKinds = ['obi'];
+      const [o] = engine.spawnBossMinionWave(1000, 1);
+      engine.waveDefinitions[3].boss.summonKinds = kinds;
+      expect(o.kind).toBe('obi');
+      const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
+      const cycle = guardUpMs + guardDownMs;
+      const landAt = o.dropLandAtMs;
+      engine.activeTargets = [o];
+      engine.updateGuards(landAt + 1);
+      expect(o.isGuarding).toBe(false);
+      engine.updateGuards(landAt + guardDownMs - 1);
+      expect(o.isGuarding).toBe(false);
+      engine.updateGuards(landAt + guardDownMs + 1);
+      expect(o.isGuarding).toBe(true);
+      expect(cycle).toBeGreaterThan(0);
+    });
+
+    it('keeps drops inside the visible fan on narrow windows', () => {
+      engine.aspect = 1; // square window
+      engine.dropRng = () => 1 - 1e-9; // widest possible angle
+      const [m] = engine.spawnBossMinionWave(1000, 1);
+      const fan = Math.atan(Math.tan((52 * Math.PI) / 360) * 1) * 0.8;
+      expect(Math.abs(m.thetaRad)).toBeLessThanOrEqual(fan + 1e-6);
+      expect(fan).toBeLessThan(drop.thetaRangeRad);
+    });
+  });
 });

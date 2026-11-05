@@ -1293,6 +1293,12 @@ export function createCardTargetMesh3D(
 /** Height (m) a summoned minion falls from; the fall accelerates (remaining^2). */
 export const MINION_DROP_HEIGHT_M = 8;
 
+/** 1 right after the summon, 0 once landed (or for anything that never falls). Uses the engine's effective clock. */
+export function getMinionDropRemaining(dropLandAtMs: number | undefined, clockMs: number, dropMs: number): number {
+  if (dropLandAtMs === undefined || dropMs <= 0) return 0;
+  return Math.min(1, Math.max(0, (dropLandAtMs - clockMs) / dropMs));
+}
+
 /** Flat ring on the floor where a falling minion will land. */
 export function createLandingMarker3D(): THREE.Mesh {
   const geo = getCachedGeometry('landing-marker-geo', () => {

@@ -12,6 +12,7 @@ import {
   createLandingMarker3D,
   updateLandingMarker3D,
   MINION_DROP_HEIGHT_M,
+  getMinionDropRemaining,
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
@@ -815,6 +816,15 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
         if (o.name === 'landingMarker') found = true;
       });
       expect(found).toBe(true);
+    });
+
+    it('reports the fall progress: 1 at the summon, 0 on landing, 0 for things that never fall', () => {
+      expect(getMinionDropRemaining(undefined, 1000, 700)).toBe(0);
+      expect(getMinionDropRemaining(1700, 1000, 700)).toBe(1);
+      expect(getMinionDropRemaining(1700, 1350, 700)).toBeCloseTo(0.5, 6);
+      expect(getMinionDropRemaining(1700, 1700, 700)).toBe(0);
+      expect(getMinionDropRemaining(1700, 5000, 700)).toBe(0);
+      expect(getMinionDropRemaining(1700, 0, 700)).toBe(1); // clamped, never above 1
     });
 
     it('falls from a positive height', () => {

@@ -13,6 +13,7 @@ import {
   createLandingMarker3D,
   updateLandingMarker3D,
   MINION_DROP_HEIGHT_M,
+  getMinionDropRemaining,
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
@@ -231,7 +232,7 @@ export const GameCanvas3D = React.memo(
         triggerSkillEffect(kind: WeaponKind, level?: WeaponLevel) {
           if (!particlesRef.current) return;
           const monsterPositions = engine.activeTargets
-            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind)
+            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetLanded(t, performance.now()))
             .map((t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z));
           const actualLevel = level ?? engine.weaponSystem.getState().weaponLevel;
           particlesRef.current.spawnSkillEffect(kind, actualLevel, monsterPositions);
@@ -496,6 +497,7 @@ export const GameCanvas3D = React.memo(
         });
 
         // Add & update active target meshes (monsters, items, golden cans, projectiles, cards)
+        const dropClock = engine.getEffectiveNowMs(time);
         engine.activeTargets.forEach((target) => {
           let mesh = targetMeshMap.get(target.id);
           const needsAdd = !mesh || mesh.parent !== scene;
@@ -565,6 +567,9 @@ export const GameCanvas3D = React.memo(
             }
           }
           mesh.position.set(target.x, baseY, target.z);
+          // Falling boss minion: lift the whole mesh before the animation pass so its shadow stays on the floor
+          const dropRemaining = getMinionDropRemaining(target.dropLandAtMs, dropClock, GAME_TUNING.boss.minionDrop.dropMs);
+          if (dropRemaining > 0) mesh.position.y += MINION_DROP_HEIGHT_M * dropRemaining * dropRemaining;
 
           if (target.isItem && target.itemKind) {
             updateItemAnimation3D(mesh, target.itemKind, time / 1000);
@@ -596,10 +601,8 @@ export const GameCanvas3D = React.memo(
             });
           }
 
-          // Boss minion drop: fall in from above with a landing ring on the floor
-          if (target.dropLandAtMs !== undefined && time < target.dropLandAtMs) {
-            const remaining = (target.dropLandAtMs - time) / GAME_TUNING.boss.minionDrop.dropMs;
-            mesh.position.y += MINION_DROP_HEIGHT_M * remaining * remaining;
+          // Landing ring on the floor while the minion falls in
+          if (dropRemaining > 0) {
             let marker = dropMarkers.get(target.id);
             if (!marker) {
               marker = markerPool.pop() ?? createLandingMarker3D();
@@ -608,7 +611,7 @@ export const GameCanvas3D = React.memo(
             }
             marker.position.x = target.x;
             marker.position.z = target.z;
-            updateLandingMarker3D(marker, remaining, target.hitRadiusM || 0.8);
+            updateLandingMarker3D(marker, dropRemaining, target.hitRadiusM || 0.8);
           } else if (dropMarkers.has(target.id)) {
             releaseMarker(target.id);
           }
@@ -644,7 +647,7 @@ export const GameCanvas3D = React.memo(
 
           engine.activeTargets.forEach((target) => {
             if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile, target.hp)) return;
-            if (target.dropLandAtMs !== undefined && time < target.dropLandAtMs) return; // still falling in
+            if (getMinionDropRemaining(target.dropLandAtMs, engine.getEffectiveNowMs(time), GAME_TUNING.boss.minionDrop.dropMs) > 0) return; // still falling in
             const mesh = targetMeshMap.get(target.id);
             if (!mesh) return;
 

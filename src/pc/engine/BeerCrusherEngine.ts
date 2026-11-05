@@ -288,6 +288,11 @@ export class BeerCrusherEngine {
     };
   }
 
+  /** The clock the world is drawn with: held at the pause moment while paused (timers are shifted on resume). */
+  public getEffectiveNowMs(nowMs: number): number {
+    return this.isPaused && this.pausedAtMs !== null ? this.pausedAtMs : nowMs;
+  }
+
   public setPaused(paused: boolean, nowMs: number = performance.now()): void {
     if (paused && !this.isPaused) {
       this.isPaused = true;
@@ -950,10 +955,14 @@ export class BeerCrusherEngine {
   /** Random landing spot across the field, not too close to the defense line and not on top of a sibling. */
   private pickMinionDropSpot(placed: { x: number; z: number }[]): { theta: number; radius: number } {
     const cfg = GAME_TUNING.boss.minionDrop;
+    // Narrow windows see less of the field: never drop outside the visible fan (same margin as regular spawns)
+    const visibleHalfRad =
+      computeHorizontalHalfFovRad(STAGE_CONSTANTS.CAMERA_FOV_DEG, this.aspect) * STAGE_CONSTANTS.FAN_MARGIN_RATIO;
+    const thetaRange = Math.min(cfg.thetaRangeRad, visibleHalfRad);
     let theta = 0;
     let radius = cfg.minRadiusM;
     for (let attempt = 0; attempt < 4; attempt++) {
-      theta = (this.dropRng() * 2 - 1) * cfg.thetaRangeRad;
+      theta = (this.dropRng() * 2 - 1) * thetaRange;
       radius = cfg.minRadiusM + this.dropRng() * (cfg.maxRadiusM - cfg.minRadiusM);
       const x = Math.sin(theta) * radius;
       const z = -Math.cos(theta) * radius;
@@ -999,6 +1008,12 @@ export class BeerCrusherEngine {
         dropLandAtMs: nowMs + GAME_TUNING.boss.minionDrop.dropMs,
       };
       this.applyMonsterTraits(entity);
+      if (entity.guardPhaseMs !== undefined && entity.dropLandAtMs !== undefined) {
+        // An obi lands with its shield DOWN so the player gets the full down window to react
+        const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
+        const cycle = guardUpMs + guardDownMs;
+        entity.guardPhaseMs = (((guardUpMs - entity.dropLandAtMs) % cycle) + cycle) % cycle;
+      }
       this.activeTargets.push(entity);
       spawned.push(entity);
     }
