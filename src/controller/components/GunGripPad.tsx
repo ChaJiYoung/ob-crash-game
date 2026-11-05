@@ -312,7 +312,7 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
 
         {/* 100% Auto Reload Reminder */}
         <div style={{ marginTop: '24px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
-          ⚡ 10발 소진 시 1.2초 뒤 자동으로 재장전됩니다
+          ⚡ 탄창이 비면 자동으로 재장전됩니다
         </div>
       </div>
     </div>

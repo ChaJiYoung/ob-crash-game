@@ -1,6 +1,6 @@
 # Task: T02 하드코딩된 안내 문구를 새 값에 맞게 정리
 
-## Status: pending
+## Status: done
 
 ## Goal
 장전 시간·탄수·방패 주기·장전 배율이 코드와 문서 여기저기에 숫자로 박혀 있다. 새 값(T01)과 어긋난 문구를 값 참조 또는 값에 독립적인 문장으로 바꿔, 게임 화면과 문서가 거짓말하지 않게 한다. 모바일 `GunGripPad.tsx` 문구 수정은 사용자가 요청한 범위다.
@@ -83,6 +83,6 @@ Task: T02-sync-hardcoded-text
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

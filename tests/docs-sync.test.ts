@@ -160,3 +160,26 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     for (const f of ['README.md', 'docs/무기_및_스킬_가이드.md']) expect(read(f)).toContain('명중 점수 1.5배');
   });
 });
+
+describe('guard cycle and reload multiplier are documented with the tuned numbers', () => {
+  const bestiary = fs.readFileSync('docs/몬스터_도감_설명서.md', 'utf8');
+  const readme = fs.readFileSync('README.md', 'utf8');
+  const tutorial = fs.readFileSync('docs/튜토리얼_훈련장_가이드.md', 'utf8');
+  const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
+
+  it('the bestiary states the obi shield cycle', () => {
+    expect(bestiary).toContain(`${guardUpMs / 1000}초 들고 ${guardDownMs / 1000}초 내`);
+  });
+
+  it('no document keeps the old hard-coded reload or shield numbers', () => {
+    [bestiary, readme, tutorial].forEach((doc) => {
+      expect(doc).not.toContain('1.5초 들고 1.5초');
+      expect(doc).not.toContain('(1.2s)');
+      expect(doc).not.toContain('1.2초 뒤');
+    });
+  });
+
+  it('the README states the reload multiplier', () => {
+    expect(readme).toContain(`기본의 ${GAME_TUNING.fire.reloadScale}배`);
+  });
+});

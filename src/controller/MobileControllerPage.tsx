@@ -7,6 +7,7 @@ import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
 import { PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { WEAPON_CONSTANTS } from '../shared/constants';
+import { GAME_TUNING } from '../shared/gameTuning';
 
 export const MobileControllerPage: React.FC = () => {
   const deviceId = useMemo(() => getOrCreateDeviceId(), []);
@@ -38,7 +39,7 @@ export const MobileControllerPage: React.FC = () => {
     skillStock: 1,
     maxSkillStock: 1,
     skillCooldownRemainingMs: 0,
-    skillCooldownTotalMs: 25000,
+    skillCooldownTotalMs: GAME_TUNING.skillCooldownMsByLevel[1],
   });
 
   const wsRef = useRef<WebSocket | null>(null);

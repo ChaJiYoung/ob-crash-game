@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { validateNicknameInput } from '../src/controller/components/LoginAndPermissionGate';
 import { resolveRouteMode } from '../src/App';
+import fs from 'node:fs';
 
 describe('Controller Login Validation & App Route Resolution', () => {
   it('should validate nickname input length between 2 and 10 characters', () => {
@@ -44,5 +45,15 @@ describe('Controller Login Validation & App Route Resolution', () => {
     handlePermissionGranted();
     expect(sensorsActive).toBe(true);
     expect(step).toBe('PAD');
+  });
+});
+
+describe('mobile controller text follows the tuning', () => {
+  it('does not hard-code the initial skill cooldown or the reload time', () => {
+    const page = fs.readFileSync('src/controller/MobileControllerPage.tsx', 'utf8');
+    expect(page).not.toContain('skillCooldownTotalMs: 25000');
+    expect(page).toContain('GAME_TUNING.skillCooldownMsByLevel[1]');
+    const pad = fs.readFileSync('src/controller/components/GunGripPad.tsx', 'utf8');
+    expect(pad).not.toMatch(/1\.2초|10발 소진/);
   });
 });

@@ -251,7 +251,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
           }}
         >
           {isReloading
-            ? '⚡ 자동 재장전 중 (1.2s)...'
+            ? '⚡ 자동 재장전 중...'
             : isFeverActive
             ? '🔥 FEVER UNLIMITED AMMO'
             : `탄창: ${ammo} / ${maxAmmo}`}

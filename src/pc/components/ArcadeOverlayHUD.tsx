@@ -87,7 +87,7 @@ export function formatAmmoStatusText(
     return '🔥 FEVER UNLIMITED AMMO';
   }
   if (isReloading) {
-    return '⚡ 자동 장전 중 (1.2s)...';
+    return '⚡ 자동 장전 중...';
   }
   return `${ammo} / ${maxAmmo}`;
 }

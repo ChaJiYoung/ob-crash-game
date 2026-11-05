@@ -20,6 +20,8 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     expect(formatAmmoStatusText(4, 10, false, false)).toBe('4 / 10');
     expect(formatAmmoStatusText(0, 10, true, false)).toContain('자동 장전 중');
     expect(formatAmmoStatusText(0, 10, false, true)).toContain('FEVER');
+    // The reload text must not carry a hard-coded duration that drifts from the tuning
+    expect(formatAmmoStatusText(0, 10, true, false)).not.toMatch(/\d\.\ds/);
   });
 
   it('should format fever status badge with 100% LOCK indicator', () => {
