@@ -1,3 +1,4 @@
+import path from 'path';
 import http from 'node:http';
 import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -5,6 +6,7 @@ import { PlayerStore } from './PlayerStore';
 import { RoomManager } from './RoomManager';
 import { ClientToServerMessage, ServerToClientMessage } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
+import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
 
 export interface BeerCrusherServerInstance {
   server: http.Server;
@@ -40,9 +42,14 @@ export function sendJson(ws: WebSocket | undefined, message: ServerToClientMessa
 export async function createBeerCrusherServer(options?: {
   port?: number;
   storePath?: string;
+  recordPath?: string;
 }): Promise<BeerCrusherServerInstance> {
   const port = options?.port ?? 8787;
   const playerStore = new PlayerStore(options?.storePath);
+  // 저장소 경로를 주면 기록도 같은 폴더에 둔다(테스트가 실제 data/에 쓰지 않게).
+  const recordPath =
+    options?.recordPath ?? (options?.storePath ? path.join(path.dirname(options.storePath), 'play-records.jsonl') : undefined);
+  const playRecordStore = new PlayRecordStore(recordPath);
   const roomManager = new RoomManager();
 
   const server = http.createServer((req, res) => {
@@ -306,6 +313,18 @@ export async function createBeerCrusherServer(options?: {
             }
 
             const { rankings, profile } = playerStore.recordGameScore(deviceId, score);
+            // 기록 실패는 랭킹 저장을 막지 않는다.
+            if (isValidPlayRunStats(msg.stats)) {
+              playRecordStore.append({
+                playedAt: new Date().toISOString(),
+                deviceId,
+                nickname: profile.nickname,
+                rulesetVersion: RANKING_RULESET_VERSION,
+                stats: msg.stats,
+              });
+            } else if (msg.stats !== undefined) {
+              console.warn('Ignored invalid play stats from', deviceId);
+            }
             const session = roomManager.getRoom(roomId);
 
             const response: ServerToClientMessage = {

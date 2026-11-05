@@ -1,6 +1,6 @@
 # Task: T02 전송과 서버 저장
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임이 끝나면 통계가 서버로 가서 `data/play-records.jsonl`에 한 줄 추가된다.
@@ -46,7 +46,7 @@
 - 두 번 저장하면 두 줄이고 JSON으로 읽힌다. 잘못된 값(NaN, 음수, 무기 오류)은 거절. 추가 키는 저장되지 않음. 쓰기 실패 시 `false`이며 예외 없음. 소켓 통합: `stats` 포함 제출은 랭킹과 기록 모두, `stats` 없음은 랭킹만, 규칙 버전 불일치는 둘 다 없음. `players.json` 초기화 뒤에도 기록 파일 유지.
 
 ## Acceptance Criteria
-- [ ] 끝난 판마다 한 줄이 쌓이고, 기록 실패가 랭킹에 영향이 없다.
+- [x] 끝난 판마다 한 줄이 쌓이고, 기록 실패가 랭킹에 영향이 없다.
 
 ## Validation
 - `npx vitest run tests/play-records.test.ts tests/server-session.test.ts` — 통과
@@ -66,6 +66,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

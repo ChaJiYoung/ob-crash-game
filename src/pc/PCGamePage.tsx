@@ -601,6 +601,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           waveReached,
           maxCombo,
           rulesetVersion: RANKING_RULESET_VERSION,
+          stats: engine.getPlayRunStats() ?? undefined,
         })
       );
     }
