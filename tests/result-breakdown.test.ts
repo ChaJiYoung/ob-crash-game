@@ -65,4 +65,15 @@ describe('result screen ranking layout', () => {
     expect(html).toContain('다시 도전하기');
     expect(html).toContain('로비로 이동');
   });
+
+  it('shows every run with stage and weapon icon, and kills apart from max combo', () => {
+    const row = { deviceId: 'd', nickname: '두둥', score: 21395, waveReached: 7, weaponKind: 'shotgun', playedAt: 't1' };
+    const html = render({ gamePhase: 'VICTORY', kills: 180, maxCombo: 90, rankings: [row, { ...row, score: 100, waveReached: 5, weaponKind: 'gatling', playedAt: 't2' }] });
+    expect(html).toContain('🪠 샷건');
+    expect(html).toContain('W5');
+    expect(html).toContain('🍺 개틀링');
+    expect(html).toContain('21395점');
+    expect(html).toContain('180 KILL');
+    expect(html).toContain('90 COMBO');
+  });
 });

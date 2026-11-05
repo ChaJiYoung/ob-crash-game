@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { PlayerProfile } from '../../shared/types';
+import { PlayerProfile, RunRankingEntry } from '../../shared/types';
+import { WEAPON_RANKING_LABEL } from '../../shared/constants';
 
 export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string): string {
   let cleanOrigin = origin.replace(/\/+$/, '');
@@ -14,7 +15,7 @@ export interface QRPairingModalProps {
   roomId: string;
   lanIp?: string;
   pairedPlayer?: PlayerProfile;
-  topRankings: PlayerProfile[];
+  topRankings: RunRankingEntry[];
   isZeroCalibrated?: boolean;
   onStartAsPc: () => void;
   onStartWithController: () => void;
@@ -232,7 +233,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               {topRankings.length > 0 ? (
                 topRankings.slice(0, 5).map((p, idx) => (
                   <div
-                    key={p.deviceId}
+                    key={`${p.deviceId}-${p.playedAt}`}
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -253,10 +254,13 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                       >
                         #{idx + 1}
                       </span>
-                      <span style={{ fontSize: '13px', fontWeight: 600 }}>{p.nickname}</span>
+                      <span style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90px' }}>{p.nickname}</span>
+                      <span style={{ fontSize: '11px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                        W{p.waveReached} · {WEAPON_RANKING_LABEL[p.weaponKind]}
+                      </span>
                     </div>
                     <span style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>
-                      {p.bestScore}점
+                      {p.score}점
                     </span>
                   </div>
                 ))

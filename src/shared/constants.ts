@@ -608,3 +608,10 @@ export const REWARD_CARD_SPECS: Record<RewardCardKind, RewardCardSpec> = {
     icon: '🎯',
   },
 };
+
+/** 랭킹에 쓰는 무기 표시. 아이콘은 가이드 문서와 조준점 배지와 같다. */
+export const WEAPON_RANKING_LABEL: Record<WeaponKind, string> = {
+  shotgun: '🪠 샷건',
+  revolver: '🍾 리볼버',
+  gatling: '🍺 개틀링',
+};

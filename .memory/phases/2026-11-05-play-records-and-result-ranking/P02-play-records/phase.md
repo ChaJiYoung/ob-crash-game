@@ -8,4 +8,4 @@
 | T03 | `in_progress 🔵` | 판별 TOP 5와 콤보·처치 표시 | [T03](./T03-run-ranking.md) |
 
 ## Progress
-- done: 1/3 (active: T03)
+- done: 1/3 (active: 없음)

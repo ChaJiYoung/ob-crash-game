@@ -124,6 +124,16 @@ export interface PlayRunStats {
   cardStacks: { damage_up: number; skill_cooldown: number; fever_extend: number; hit_zone_up: number };
 }
 
+/** 랭킹 한 줄(판 단위). 같은 사람이 여러 줄 나올 수 있다. */
+export interface RunRankingEntry {
+  deviceId: string;
+  nickname: string;
+  score: number;
+  waveReached: number;
+  weaponKind: WeaponKind;
+  playedAt: string;
+}
+
 export interface PlayerProfile {
   deviceId: string;
   nickname: string;
@@ -176,8 +186,8 @@ export type ClientToServerMessage =
     };
 
 export type ServerToClientMessage =
-  | { type: 'ROOM_CREATED'; roomId: string; rankings: PlayerProfile[]; lanIp?: string }
-  | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: PlayerProfile[] }
+  | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; lanIp?: string }
+  | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
@@ -200,5 +210,5 @@ export type ServerToClientMessage =
       roomId: string;
       config: Record<string, any>;
     }
-  | { type: 'RANKING_UPDATED'; rankings: PlayerProfile[]; updatedPlayer?: PlayerProfile }
+  | { type: 'RANKING_UPDATED'; rankings: RunRankingEntry[]; updatedPlayer?: PlayerProfile }
   | { type: 'ERROR'; code: string; message: string };

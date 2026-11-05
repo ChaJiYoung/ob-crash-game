@@ -1,5 +1,6 @@
 import React from 'react';
-import { GamePhase, PlayerProfile } from '../../shared/types';
+import { GamePhase, PlayerProfile, RunRankingEntry } from '../../shared/types';
+import { WEAPON_RANKING_LABEL } from '../../shared/constants';
 
 export interface ResultRankingModalProps {
   gamePhase: GamePhase;
@@ -9,10 +10,12 @@ export interface ResultRankingModalProps {
   /** The final wave ends the game, so its clear time/bonus is shown here instead of a banner. */
   lastWaveClear?: { wave: number; seconds: number; bonus: number } | null;
   maxCombo: number;
+  /** 판 전체 처치 수. */
+  kills?: number;
   waveReached: number;
   currentPlayer?: PlayerProfile;
   isNewRecord?: boolean;
-  rankings: PlayerProfile[];
+  rankings: RunRankingEntry[];
   onRestart: () => void;
   onReturnToLobby: () => void;
   hoveredAction?: 'restart' | 'lobby' | null;
@@ -26,6 +29,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   breakdown,
   lastWaveClear,
   maxCombo,
+  kills = 0,
   waveReached,
   currentPlayer,
   isNewRecord,
@@ -97,7 +101,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           style={{
             width: '100%',
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(2, 1fr)',
             gap: '12px',
             marginBottom: '24px',
           }}
@@ -159,7 +163,22 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           >
             <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>누적 격파 (KILL)</div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#38bdf8', marginTop: '4px' }}>
-              {maxCombo} KILL
+              {kills} KILL
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              padding: '16px',
+              borderRadius: '14px',
+              textAlign: 'center',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>최대 콤보</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#f472b6', marginTop: '4px' }}>
+              {maxCombo} COMBO
             </div>
           </div>
 
@@ -216,7 +235,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
               const isCurrent = currentPlayer && p.deviceId === currentPlayer.deviceId;
               return (
                 <div
-                  key={p.deviceId}
+                  key={`${p.deviceId}-${p.playedAt}`}
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -248,9 +267,12 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
                     <span style={{ fontSize: '13px', fontWeight: isCurrent ? 800 : 600 }}>
                       {p.nickname} {isCurrent && '(나)'}
                     </span>
+                    <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                      W{p.waveReached} · {WEAPON_RANKING_LABEL[p.weaponKind]}
+                    </span>
                   </div>
                   <span style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>
-                    {p.bestScore}점
+                    {p.score}점
                   </span>
                 </div>
               );

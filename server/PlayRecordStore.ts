@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { PlayRunStats, WeaponKind } from '../src/shared/types';
+import { PlayRunStats, RunRankingEntry, WeaponKind } from '../src/shared/types';
+import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface PlayRecordInput {
   playedAt: string;
@@ -59,9 +60,48 @@ function pickStats(s: PlayRunStats): PlayRunStats {
 /** 끝난 판을 JSONL(한 줄에 JSON 하나)로 덧붙인다. 규칙 버전이 바뀌어도 파일은 지우지 않는다. */
 export class PlayRecordStore {
   private filePath: string;
+  private rulesetVersion: number;
+  private topRuns: RunRankingEntry[] = [];
 
-  constructor(filePath?: string) {
+  constructor(filePath?: string, rulesetVersion: number = RANKING_RULESET_VERSION) {
     this.filePath = filePath || path.resolve(process.cwd(), 'data', 'play-records.jsonl');
+    this.rulesetVersion = rulesetVersion;
+    this.loadTopRuns();
+  }
+
+  /** 현재 규칙 버전의 기록에서 랭킹을 복원한다. 깨진 줄 하나로 서버가 멈추면 안 되므로 건너뛴다. */
+  private loadTopRuns(): void {
+    let raw = '';
+    try {
+      if (!fs.existsSync(this.filePath)) return;
+      raw = fs.readFileSync(this.filePath, 'utf-8');
+    } catch (err) {
+      console.error('Failed to read play records from', this.filePath, err);
+      return;
+    }
+    for (const line of raw.split('\n')) {
+      if (!line.trim()) continue;
+      try {
+        const r = JSON.parse(line);
+        if (r?.rulesetVersion !== this.rulesetVersion || !isValidPlayRunStats(r)) continue;
+        const meta = r as unknown as { deviceId: unknown; nickname: unknown; playedAt: unknown };
+        if (typeof meta.deviceId !== 'string' || typeof meta.nickname !== 'string' || typeof meta.playedAt !== 'string') continue;
+        this.addToTop({ deviceId: meta.deviceId, nickname: meta.nickname, score: r.totalScore, waveReached: r.waveReached, weaponKind: r.weaponKind, playedAt: meta.playedAt });
+      } catch {
+        // 깨진 줄
+      }
+    }
+  }
+
+  /** 점수 내림차순, 같으면 먼저 세운 기록이 위. */
+  private addToTop(entry: RunRankingEntry): void {
+    this.topRuns.push(entry);
+    this.topRuns.sort((a, b) => b.score - a.score || a.playedAt.localeCompare(b.playedAt));
+    this.topRuns.length = Math.min(this.topRuns.length, 5);
+  }
+
+  public getTopRuns(limit = 5): RunRankingEntry[] {
+    return this.topRuns.slice(0, limit).map((r) => ({ ...r }));
   }
 
   public append(record: PlayRecordInput): boolean {
@@ -75,6 +115,17 @@ export class PlayRecordStore {
         ...pickStats(record.stats),
       });
       fs.appendFileSync(this.filePath, `${line}\n`, 'utf-8');
+      // 파일에 남은 기록만 보드에 올린다. 재시작 뒤 사라질 기록이 보이면 안 된다.
+      if (record.rulesetVersion === this.rulesetVersion) {
+        this.addToTop({
+          deviceId: record.deviceId,
+          nickname: record.nickname,
+          score: record.stats.totalScore,
+          waveReached: record.stats.waveReached,
+          weaponKind: record.stats.weaponKind,
+          playedAt: record.playedAt,
+        });
+      }
       return true;
     } catch (err) {
       console.error('Failed to append play record to', this.filePath, err);

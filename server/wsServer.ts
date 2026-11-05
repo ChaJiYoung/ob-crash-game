@@ -87,7 +87,7 @@ export async function createBeerCrusherServer(options?: {
             sendJson(ws, {
               type: 'ROOM_CREATED',
               roomId: session.roomId,
-              rankings: playerStore.getTopRankings(5),
+              rankings: playRecordStore.getTopRuns(5),
               lanIp: getLanIpAddress(),
             });
             break;
@@ -116,7 +116,7 @@ export async function createBeerCrusherServer(options?: {
 
             roomManager.attachControllerSocket(roomId, ws, deviceId);
             const player = playerStore.findByDeviceId(deviceId);
-            const rankings = playerStore.getTopRankings(5);
+            const rankings = playRecordStore.getTopRuns(5);
 
             if (player) {
               sendJson(ws, {
@@ -167,7 +167,7 @@ export async function createBeerCrusherServer(options?: {
 
             try {
               const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
-              const rankings = playerStore.getTopRankings(5);
+              const rankings = playRecordStore.getTopRuns(5);
 
               sendJson(ws, {
                 type: 'AUTH_RESULT',
@@ -312,9 +312,9 @@ export async function createBeerCrusherServer(options?: {
               return;
             }
 
-            const { rankings, profile } = playerStore.recordGameScore(deviceId, score);
+            const { profile } = playerStore.recordGameScore(deviceId, score);
             // 기록 실패는 랭킹 저장을 막지 않는다.
-            if (isValidPlayRunStats(msg.stats)) {
+            if (isValidPlayRunStats(msg.stats) && msg.stats.totalScore === score) {
               playRecordStore.append({
                 playedAt: new Date().toISOString(),
                 deviceId,
@@ -329,7 +329,7 @@ export async function createBeerCrusherServer(options?: {
 
             const response: ServerToClientMessage = {
               type: 'RANKING_UPDATED',
-              rankings,
+              rankings: playRecordStore.getTopRuns(5),
               updatedPlayer: profile,
             };
 

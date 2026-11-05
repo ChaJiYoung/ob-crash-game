@@ -57,4 +57,33 @@ describe('play records', () => {
     expect(isValidPlayRunStats({ ...stats(), shots: { PERFECT: 1 } })).toBe(false);
     expect(isValidPlayRunStats(undefined)).toBe(false);
   });
+
+  describe('run ranking', () => {
+    const at = (t: string, score: number, deviceId = 'd1') => ({ ...rec({ totalScore: score }), playedAt: t, deviceId });
+
+    it('keeps the top 5 runs, the same player can repeat, ties go to the earlier run', () => {
+      const s = new PlayRecordStore(file, 4);
+      [10, 50, 30, 60, 20, 40].forEach((v, i) => s.append(at(`2026-11-05T00:00:0${i}Z`, v)));
+      s.append(at('2026-11-05T00:01:00Z', 60, 'd2'));
+      const top = s.getTopRuns();
+      expect(top.map((r) => r.score)).toEqual([60, 60, 50, 40, 30]);
+      expect(top[0].deviceId).toBe('d1');
+      expect(top[1].deviceId).toBe('d2');
+      expect(top[0]).toMatchObject({ waveReached: 7, weaponKind: 'gatling' });
+    });
+
+    it('restores after a restart, skipping broken lines and other rulesets', () => {
+      const s = new PlayRecordStore(file, 4);
+      s.append(at('2026-11-05T00:00:00Z', 100));
+      fs.appendFileSync(file, '{broken\n');
+      fs.appendFileSync(file, `${JSON.stringify({ ...stats({ totalScore: 999 }), rulesetVersion: 3, deviceId: 'x', nickname: 'x', playedAt: 'y' })}\n`);
+      expect(new PlayRecordStore(file, 4).getTopRuns().map((r) => r.score)).toEqual([100]);
+    });
+
+    it('a failed write stays off the board', () => {
+      const s = new PlayRecordStore(dir, 4);
+      s.append(at('2026-11-05T00:00:00Z', 100));
+      expect(s.getTopRuns()).toEqual([]);
+    });
+  });
 });

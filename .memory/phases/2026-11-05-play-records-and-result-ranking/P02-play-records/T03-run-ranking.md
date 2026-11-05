@@ -1,6 +1,6 @@
 # Task: T03 판별 TOP 5와 콤보·처치 표시
 
-## Status: pending
+## Status: done
 
 ## Goal
 결과 화면과 로비 보드가 같은 사람을 포함한 판별 상위 5개를 닉네임, 점수, 스테이지, 무기와 함께 보여 주고, 결과 화면에 처치 수와 최대 콤보가 따로 나온다.
@@ -57,9 +57,9 @@
 - 같은 기기의 3판이 모두 순위에 나온다. 6판이면 상위 5개, 동점 순서, 재시작 뒤 복원, 깨진 줄 무시, 이전 규칙 버전 제외, 쓰기 실패 시 미포함, 점수 불일치 건너뜀. 소켓 응답 `rankings` 형식. 두 화면에 스테이지와 무기가 표시되고, 처치 수와 최대 콤보가 다른 값으로 나온다.
 
 ## Acceptance Criteria
-- [ ] 같은 사람이 여러 번 TOP 5에 오를 수 있고 두 화면이 같은 내용을 보여 준다.
-- [ ] 결과 화면의 처치 수와 최대 콤보가 맞다.
-- [ ] 서버를 재시작해도 랭킹이 유지된다.
+- [x] 같은 사람이 여러 번 TOP 5에 오를 수 있고 두 화면이 같은 내용을 보여 준다.
+- [x] 결과 화면의 처치 수와 최대 콤보가 맞다.
+- [x] 서버를 재시작해도 랭킹이 유지된다.
 
 ## Validation
 - `npx vitest run tests/play-records.test.ts tests/server-session.test.ts tests/result-breakdown.test.ts tests/pc-modals-and-pairing.test.ts` — 통과
@@ -80,6 +80,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

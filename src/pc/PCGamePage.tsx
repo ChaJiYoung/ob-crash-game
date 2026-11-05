@@ -20,7 +20,7 @@ import {
   SensorTuningConfig,
 } from './components/MobileSensorLabModal';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
-import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
+import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, RunRankingEntry, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
 
@@ -41,7 +41,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [roomId, setRoomId] = useState<string>('');
   const [lanIp, setLanIp] = useState<string>('');
   const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
-  const [topRankings, setTopRankings] = useState<PlayerProfile[]>([]);
+  const [topRankings, setTopRankings] = useState<RunRankingEntry[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isSensorLabOpen, setIsSensorLabOpen] = useState<boolean>(false);
@@ -1218,6 +1218,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             breakdown={engine.getScoreBreakdown()}
             lastWaveClear={engine.lastWaveClear}
             maxCombo={engine.scoreManager.getState().maxCombo}
+            kills={engine.getPlayRunStats()?.kills ?? 0}
             waveReached={engine.currentWave}
             currentPlayer={pairedPlayer}
             isNewRecord={isNewRecord}
