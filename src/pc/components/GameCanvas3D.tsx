@@ -76,6 +76,11 @@ export function playTargetBurst(
 
 const SKILL_HIT_SOUND_GAP_MS = 70;
 
+/** 관통으로 맞은 몬스터(주 대상 제외). */
+export function getPiercedTargets(result: EngineShootResult): ActiveTargetEntity[] {
+  return (result.hitTargets ?? []).filter((t) => t !== result.target);
+}
+
 export function computeAimWorldPoint(
   camera: THREE.PerspectiveCamera,
   aimX: number,
@@ -225,6 +230,14 @@ export const GameCanvas3D = React.memo(
                 if (result.target.isItem && result.target.itemKind) {
                   particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
                 }
+
+                // 리볼버 관통: 뒤쪽에 맞은 몬스터도 찌그러지고 파편이 튄다(소리는 주 대상 한 번).
+                getPiercedTargets(result).forEach((rear) => {
+                  const rearKilled = rear.hp <= 0;
+                  const rearMesh = targetMeshMapRef.current.get(rear.id);
+                  if (rearMesh && !rearKilled) applyTargetHitFlash3D(rearMesh, performance.now() / 1000);
+                  playTargetBurst(particlesRef.current!, soundSynth, rear, computeSkillHitFxPosition(rear), rearKilled, false);
+                });
               }
             } else {
               targetPos = projectedAimPoint;

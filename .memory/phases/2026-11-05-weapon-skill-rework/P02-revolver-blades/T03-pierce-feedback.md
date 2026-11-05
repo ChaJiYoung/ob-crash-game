@@ -1,6 +1,6 @@
 # Task: T03 리볼버 평타 관통 표시
 
-## Status: pending
+## Status: done
 
 ## Goal
 리볼버 평타가 뒤쪽 몬스터를 관통했을 때 그 몬스터에도 타격 연출(찌그러짐과 파편)이 보이게 한다. 지금은 엔진의 `hitTargets`를 화면이 읽지 않아 관통이 터져도 보이지 않고, 관통으로 죽은 몬스터는 그냥 사라진다.
@@ -66,6 +66,6 @@ Task: T03-pierce-feedback
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -8,6 +8,7 @@ import { evaluateHitJudgment } from '../src/pc/engine/HitJudgment';
 import { ScoreAndFeverManager } from '../src/pc/engine/ScoreAndFeverManager';
 import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
+import { getPiercedTargets } from '../src/pc/components/GameCanvas3D';
 import { STAGE_CONSTANTS, JUDGMENT_SPECS } from '../src/shared/constants';
 
 describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload', () => {
@@ -835,5 +836,34 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(sgGood.grade).toBe('GOOD');
     expect(sgGood.killed).toBe(false);
     expect(canSgGood.hp).toBeCloseTo(0.37, 2); // 3 pellets x (0.35 x 1.2) x 0.5 GOOD = 0.63
+  });
+});
+
+describe('revolver pierce feedback', () => {
+  it('getPiercedTargets returns the targets behind the primary one', () => {
+    const a = { id: 'a' } as any;
+    const b = { id: 'b' } as any;
+    expect(getPiercedTargets({ fired: true, grade: 'GREAT' })).toEqual([]);
+    expect(getPiercedTargets({ fired: true, grade: 'GREAT', target: a, hitTargets: [a] })).toEqual([]);
+    expect(getPiercedTargets({ fired: true, grade: 'GREAT', target: a, hitTargets: [a, b] })).toEqual([b]);
+  });
+
+  it('a real revolver shot pierces to the rear monster and lowers its hp', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.startWave(6);
+    (engine as any).spawnedInWave = 999;
+    const mkT = (r: number): ActiveTargetEntity => ({
+      id: `p${r}`, kind: 'bottle', hp: 99, maxHp: 99, radiusM: r, thetaRad: 0, x: 0, z: -r, speedMps: 0,
+      hitRadiusM: 1.15, killBonusScore: 0, breached: false,
+    });
+    const front = mkT(8);
+    const rear = mkT(10);
+    engine.activeTargets = [front, rear];
+    engine.weaponSystem.selectWeapon('revolver', 1);
+    const p = engine.computeTargetAimCoords(front);
+    const res = engine.shootAt(p.targetNormX, p.targetNormY, 2000, 'press');
+    expect(getPiercedTargets(res)).toEqual([rear]);
+    expect(rear.hp).toBeLessThan(99);
   });
 });
