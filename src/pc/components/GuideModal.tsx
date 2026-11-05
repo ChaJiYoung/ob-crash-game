@@ -88,7 +88,7 @@ const MONSTER_DETAILS: Record<
   boss: {
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (10m 정지, 좌우 이동)',
-    description: '스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 소환하고(소환 간격은 8초에서 5초까지 짧아지고 3마리씩 필드 6~14m에 위에서 떨어집니다) 투사체를 쏩니다. 넉백이 통하지 않습니다.',
+    description: `스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 소환하고(소환 간격은 ${GAME_TUNING.boss.summonIntervalMs / 1000}초에서 ${GAME_TUNING.boss.summonAccel.minIntervalMs / 1000}초까지 짧아지고 ${GAME_TUNING.boss.summonCount}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다) 투사체를 쏩니다. 넉백이 통하지 않습니다.`,
     tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 대왕의 쉴드는 부하 6마리 또는 냉각기 1대를 처치하면 풀리고, 체력이 2/3·1/3 아래로 내려가면 다시 켜집니다. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
@@ -634,14 +634,14 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
                     • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림!)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 점수 1.5배, 명중은 모두 GREAT 판정!)<br />
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 명중 점수 1.5배, 명중은 모두 GREAT 판정!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
                     • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> <strong>R 키</strong> 또는 <strong>마우스 우클릭</strong><br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 탄창 자동 연사 & 점수 1.5배, 명중은 모두 GREAT 판정)
+                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>Space 키</strong> 누르기 (4초간 무한 탄창 자동 연사 & 명중 점수 1.5배, 명중은 모두 GREAT 판정)
                   </div>
                 </div>
               </div>

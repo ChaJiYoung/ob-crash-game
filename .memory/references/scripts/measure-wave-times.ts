@@ -91,7 +91,7 @@ const byWave: Record<string, number[][]> = {};
 for (const kind of WEAPONS) {
   if (onlyWeapon && onlyWeapon !== 'all' && onlyWeapon !== kind) continue;
   for (const sk of SKILLS) {
-    if (onlySkill && !sk.name.includes(onlySkill)) continue;
+    if (onlySkill && sk.name !== onlySkill) continue; // exact match: '정확' must not also select '부정확'
     const rs = Array.from({ length: N }, () => play(kind, sk.k, sk.w));
     const perWave = [1, 2, 3, 4, 5, 6, 7].map((w) => rs.map((r) => r.times[w]).filter((x) => x !== undefined));
     (byWave[sk.name] ??= [[], [], [], [], [], [], []]).forEach((arr, i) => arr.push(...perWave[i]));

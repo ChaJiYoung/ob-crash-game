@@ -110,10 +110,10 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
-                      🔥 4초 피버 발동 중! 무한 탄창 자동 연사 & 점수 1.5배!
+                      🔥 4초 피버 발동 중! 무한 탄창 자동 연사 & 명중 점수 1.5배!
                     </span>
                   ) : (
-                    <span>💡 PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%)로 충전되며, 발동 시 4초간 무한 탄창 자동 연사 & 점수 1.5배!</span>
+                    <span>💡 PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%)로 충전되며, 발동 시 4초간 무한 탄창 자동 연사 & 명중 점수 1.5배!</span>
                   )}
                 </div>
               </>
@@ -270,7 +270,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
           }}
         >
           {isFeverActive
-            ? '🔥 FEVER ACTIVE (무한 탄창 & 점수 1.5배)'
+            ? '🔥 FEVER ACTIVE (무한 탄창 & 명중 점수 1.5배)'
             : isFeverReady
             ? '🔥 FEVER READY! [Space / 모바일 더블탭]'
             : 'FEVER GAUGE 준비 중'}

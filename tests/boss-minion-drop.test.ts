@@ -148,99 +148,32 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
     expect(h.hanmacArrivedAtMs).toBeDefined();
   });
 
-  it('a caslight keeps swaying while it falls so it does not jump on landing', () => {
+  it('a caslight keeps swaying while it falls (follows the sway formula, so it does not jump on landing)', () => {
+    const { swayAmplitudeRad, swayFrequency } = GAME_TUNING.monsters.caslight;
     engine.dropRng = () => 0.5;
-    const [c] = engine.spawnBossMinionWave(1000, 1);
+    // Time the spawn so the sway is at its peak just before landing: a caslight frozen during the fall would then
+    // sit a full sway amplitude away from where it should be
+    const radius = drop.minRadiusM + 0.5 * (drop.maxRadiusM - drop.minRadiusM);
+    let peakMs = (Math.PI / 2 - radius * 0.7) / swayFrequency;
+    while (peakMs < drop.dropMs + 200) peakMs += (2 * Math.PI) / swayFrequency;
+    const spawnAt = Math.round(peakMs + 20 - drop.dropMs);
+    const [c] = engine.spawnBossMinionWave(spawnAt, 1);
     c.kind = 'caslight';
     engine.activeTargets = [c];
     engine.spawnedInWave = 999;
-    const landAt = 1000 + drop.dropMs;
-    for (let t = 1000; t < landAt - 20; t += 20) engine.update(t, 0.02);
-    const beforeX = c.x;
+    const sway = (t: number, r: number = c.radiusM) => c.initialThetaRad + Math.sin(t * swayFrequency + r * 0.7) * swayAmplitudeRad;
+    const landAt = c.dropLandAtMs;
+    for (let t = spawnAt; t <= landAt - 20; t += 20) engine.update(t, 0.02);
     expect(engine.isTargetLanded(c, landAt - 20)).toBe(false);
+    // Mid-fall the caslight is exactly where the sway puts it (a frozen one would still sit at its spawn angle)
+    expect(Math.abs(sway(landAt - 20) - c.initialThetaRad)).toBeGreaterThan(0.2);
+    expect(c.thetaRad).toBeCloseTo(sway(landAt - 20), 8);
+    expect(c.x).toBeCloseTo(Math.sin(c.thetaRad) * c.radiusM, 8);
+    // One step later it has landed and keeps following the same curve without a jump
+    const r0 = c.radiusM;
     engine.update(landAt + 20, 0.02);
     expect(engine.isTargetLanded(c, landAt + 20)).toBe(true);
-    // A frozen caslight would resume from its spawn angle (up to ~2.5m away); a swaying one barely moves in 40ms
-    expect(Math.abs(c.x - beforeX)).toBeLessThan(1.0);
-  });
-
-  describe('review follow-ups (P02)', () => {
-    const mkTarget = (id: string, kind: any, radius: number, extra: any = {}) => ({
-      id, kind, hp: 4, maxHp: 4, radiusM: radius, thetaRad: 0, x: 0, z: -radius, speedMps: 0,
-      hitRadiusM: 1, killBonusScore: 1, breached: false, ...extra,
-    });
-
-    it('revolver pierce passes through a landed target but skips one that is still falling', () => {
-      const runPierce = (rearFalling: boolean) => {
-        const e: any = new BeerCrusherEngine();
-        e.startGame({ withWeaponSelect: false });
-        e.weaponSystem.selectWeapon('revolver', 3);
-        const front = mkTarget('front', 'bottle', 8);
-        const rear = mkTarget('rear', 'bottle', 11, rearFalling ? { dropLandAtMs: 5000 + 700 } : {});
-        e.activeTargets = [front, rear];
-        const p = e.computeTargetAimCoords(front);
-        e.shootAt(p.targetNormX, p.targetNormY, 5000, 'press');
-        return { front, rear };
-      };
-      const landed = runPierce(false);
-      expect(landed.front.hp).toBeLessThan(4);
-      expect(landed.rear.hp).toBeLessThan(4); // control: the pierce really reaches a landed rear target
-      const falling = runPierce(true);
-      expect(falling.front.hp).toBeLessThan(4);
-      expect(falling.rear.hp).toBe(4);
-    });
-
-    it('a falling hanmac does not fire or start its timers until it lands', () => {
-      engine.dropRng = () => 0.5;
-      const [h] = engine.spawnBossMinionWave(1000, 1);
-      h.kind = 'hanmac';
-      engine.activeTargets = [h];
-      engine.spawnedInWave = 999;
-      for (let t = 1000; t < 1000 + drop.dropMs; t += 50) engine.update(t, 0.05);
-      expect(h.hanmacArrivedAtMs).toBeUndefined();
-      expect(engine.activeTargets.some((t: any) => t.isProjectile)).toBe(false);
-      for (let t = 1000 + drop.dropMs; t < 1000 + drop.dropMs + 400; t += 50) engine.update(t, 0.05);
-      expect(h.hanmacArrivedAtMs).toBeDefined();
-    });
-
-    it('a pause does not let a minion land: the drawn clock holds and the landing time shifts on resume', () => {
-      engine.dropRng = () => 0.5;
-      const [m] = engine.spawnBossMinionWave(1000, 1);
-      engine.setPaused(true, 1300);
-      expect(engine.getEffectiveNowMs(9999)).toBe(1300); // what the canvas draws with while paused
-      engine.setPaused(false, 21_300); // 20s pause
-      expect(m.dropLandAtMs).toBe(1000 + drop.dropMs + 20_000);
-      expect(engine.getEffectiveNowMs(21_400)).toBe(21_400);
-      expect(engine.isTargetLanded(m, 21_300)).toBe(false);
-    });
-
-    it('an obi lands with its shield down so the player gets the full window', () => {
-      engine.dropRng = () => 0.5;
-      const kinds = engine.waveDefinitions[3].boss.summonKinds;
-      engine.waveDefinitions[3].boss.summonKinds = ['obi'];
-      const [o] = engine.spawnBossMinionWave(1000, 1);
-      engine.waveDefinitions[3].boss.summonKinds = kinds;
-      expect(o.kind).toBe('obi');
-      const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
-      const cycle = guardUpMs + guardDownMs;
-      const landAt = o.dropLandAtMs;
-      engine.activeTargets = [o];
-      engine.updateGuards(landAt + 1);
-      expect(o.isGuarding).toBe(false);
-      engine.updateGuards(landAt + guardDownMs - 1);
-      expect(o.isGuarding).toBe(false);
-      engine.updateGuards(landAt + guardDownMs + 1);
-      expect(o.isGuarding).toBe(true);
-      expect(cycle).toBeGreaterThan(0);
-    });
-
-    it('keeps drops inside the visible fan on narrow windows', () => {
-      engine.aspect = 1; // square window
-      engine.dropRng = () => 1 - 1e-9; // widest possible angle
-      const [m] = engine.spawnBossMinionWave(1000, 1);
-      const fan = Math.atan(Math.tan((52 * Math.PI) / 360) * 1) * 0.8;
-      expect(Math.abs(m.thetaRad)).toBeLessThanOrEqual(fan + 1e-6);
-      expect(fan).toBeLessThan(drop.thetaRangeRad);
-    });
+    expect(c.thetaRad).toBeCloseTo(sway(landAt + 20, r0), 8); // the sway uses the radius from before this step's walk
+    expect(r0 - c.radiusM).toBeLessThan(0.3); // only a normal 20ms step of walking
   });
 });

@@ -1125,6 +1125,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             gamePhase={gamePhase}
             score={hudState.score}
             breakdown={engine.getScoreBreakdown()}
+            lastWaveClear={engine.lastWaveClear}
             maxCombo={engine.scoreManager.getState().maxCombo}
             waveReached={engine.currentWave}
             currentPlayer={pairedPlayer}

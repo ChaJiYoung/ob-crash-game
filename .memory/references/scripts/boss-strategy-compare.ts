@@ -22,6 +22,8 @@ function play(kind: (typeof WEAPONS)[number], strategy: Strategy) {
   let now = 1000, tSec = Math.random() * 6, cx = 0, cy = 0, lastTap = 0;
   const dt = 1000 / 60;
   let bossStart = 0, bossWave = 0, livesAtStart = 0;
+  let stallBossDamage = 0; // boss HP lost before the stall window ends (should stay ~0 for the stalling bot)
+  let stallChecked = false;
   const bossDur: Record<number, number> = {};
   let bossLives = 0;
 
@@ -43,17 +45,26 @@ function play(kind: (typeof WEAPONS)[number], strategy: Strategy) {
     const fs = sm.getState();
     if (fs.isFeverReady && !fs.isFeverActive) e.activateFever(now);
     const mons = e.activeTargets.filter((t: any) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.rewardCardKind);
-    if (e.weaponSystem.getState().skillStock > 0 && mons.length >= 2) e.triggerWeaponSkill(now);
+    const bossHp = () => e.activeTargets.filter((t: any) => t.kind === 'boss').reduce((a: number, t: any) => a + t.hp, 0);
+    const bossMaxHp = () => e.activeTargets.filter((t: any) => t.kind === 'boss').reduce((a: number, t: any) => a + t.maxHp, 0);
+    if (e.isBossEncounterActive && !stallChecked && now - bossStart >= STALL_UNTIL_MS) {
+      stallChecked = true;
+      stallBossDamage = bossMaxHp() - bossHp();
+    }
+    const stalling = strategy === 'stall' && e.isBossEncounterActive && now - bossStart < STALL_UNTIL_MS;
+    // A weapon skill damages every monster including the boss, so the stalling bot holds it during the window
+    if (!stalling && e.weaponSystem.getState().skillStock > 0 && mons.length >= 2) e.triggerWeaponSkill(now);
     tSec += dt / 1000;
 
     let pool = e.activeTargets.filter((t: any) => !t.isItem && !t.rewardCardKind && !t.isGuarding && !t.isShielded && e.isTargetLanded(t, now));
     if (e.isBossEncounterActive) {
       const bosses = pool.filter((t: any) => t.kind === 'boss');
       const others = pool.filter((t: any) => t.kind !== 'boss');
-      const sinceStart = now - bossStart;
       if (strategy === 'boss-rush' && bosses.length) pool = bosses;
-      // Stall: farm minions (and never touch the boss) until the time limit, then finish it
-      if (strategy === 'stall') pool = sinceStart < STALL_UNTIL_MS ? others : bosses.length ? bosses : pool;
+      // Minions first: always clear landed minions before touching the boss (the boss is nearest at 10m)
+      if (strategy === 'minions-first') pool = others.length ? others : bosses;
+      // Stall: only minions during the window, then finish the boss
+      if (strategy === 'stall') pool = stalling ? others : bosses.length ? bosses : pool;
     }
     if (pool.length) {
       const near = [...pool].sort((a: any, b: any) => a.radiusM - b.radiusM)[0];
@@ -63,16 +74,24 @@ function play(kind: (typeof WEAPONS)[number], strategy: Strategy) {
       cy += (p.targetNormY - cy) * kk;
     }
     const fever = sm.getState().isFeverActive;
-    // The stalling bot must not accidentally hit the boss: it only shoots while aiming at a minion
-    const aimingAtBoss = strategy === 'stall' && e.isBossEncounterActive && now - bossStart < STALL_UNTIL_MS && pool.length === 0; // nothing to farm yet: hold fire, never touch the boss
-    if (!aimingAtBoss && (fever || now - lastTap >= 150)) {
+    const aimX = cx + 0.02 * Math.sin(tSec * 5);
+    const aimY = cy + 0.016 * Math.sin(tSec * 7.3);
+    let nearBoss = false;
+    if (stalling) {
+      for (const b of e.activeTargets.filter((t: any) => t.kind === 'boss')) {
+        const p = e.computeTargetAimCoords(b);
+        // generous: any weapon's hit tolerance (up to 1.6x) plus the aspect-corrected horizontal axis
+        if (Math.hypot((aimX - p.targetNormX) * e.aspect, aimY - p.targetNormY) < p.apparentHitRadius * 1.8) nearBoss = true;
+      }
+    }
+    if (!nearBoss && (pool.length > 0 || !stalling) && (fever || now - lastTap >= 150)) {
       lastTap = now;
-      e.shootAt(cx + 0.02 * Math.sin(tSec * 5), cy + 0.016 * Math.sin(tSec * 7.3), now, fever ? 'fever' : 'press');
+      e.shootAt(aimX, aimY, now, fever ? 'fever' : 'press');
     }
     now += dt;
   }
   if (bossWave !== 0) { bossDur[bossWave] = (now - bossStart) / 1000; bossLives += livesAtStart - e.lives; }
-  return { win: e.gamePhase === 'VICTORY', bossLives, bossDur, score: e.getScoreBreakdown().total, dur: now / 1000 };
+  return { win: e.gamePhase === 'VICTORY', bossLives, bossDur, stallBossDamage, score: e.getScoreBreakdown().total, dur: now / 1000 };
 }
 
 const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN);
@@ -84,7 +103,7 @@ for (const kind of WEAPONS) {
     const rs = Array.from({ length: N }, () => play(kind, strategy));
     const bd = (w: number) => f(avg(rs.filter((r) => r.bossDur[w] !== undefined).map((r) => r.bossDur[w])));
     console.log(
-      `${kind.padEnd(9)}${strategy.padEnd(14)} 클리어 ${f((100 * rs.filter((r) => r.win).length) / N).padStart(3)}% | 보스전 체력손실 ${f(avg(rs.map((r) => r.bossLives)), 1)} | 보스전 ${bd(3)}/${bd(5)}/${bd(7)}s | 총 ${f(avg(rs.map((r) => r.dur)))}s | 점수 ${f(avg(rs.map((r) => r.score)))}`
+      `${kind.padEnd(9)}${strategy.padEnd(14)} 클리어 ${f((100 * rs.filter((r) => r.win).length) / N).padStart(3)}% | 보스전 체력손실 ${f(avg(rs.map((r) => r.bossLives)), 1)} | 보스전 ${bd(3)}/${bd(5)}/${bd(7)}s | 총 ${f(avg(rs.map((r) => r.dur)))}s | 점수 ${f(avg(rs.map((r) => r.score)))}${strategy === 'stall' ? ` | 스톨 구간 보스 체력 감소 ${f(avg(rs.map((r) => r.stallBossDamage)), 1)}` : ''}`
     );
   }
 }

@@ -103,7 +103,7 @@ export function formatFeverStatusBadge(
 } {
   if (isFeverActive) {
     return {
-      label: '🔥 FEVER ACTIVE (무한 탄창·점수 1.5배)',
+      label: '🔥 FEVER ACTIVE (무한 탄창·명중 점수 1.5배)',
       isLocked: false,
       accentColor: '#f59e0b',
     };

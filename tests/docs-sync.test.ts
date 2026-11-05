@@ -114,29 +114,49 @@ describe('score scale and precision bonus are documented with the tuned numbers'
   });
 });
 
-describe('wave time bonus and boss drop are documented with the tuned numbers', () => {
+describe('wave time bonus and boss summon rules are documented with the tuned numbers', () => {
   const t = GAME_TUNING.score.timeBonus;
+  const b = GAME_TUNING.boss;
   const fmt = (n: number) => n.toLocaleString('en-US');
-  const docs = ['README.md', 'docs/무기_및_스킬_가이드.md'].map((f) => fs.readFileSync(f, 'utf8'));
+  const sec = (ms: number) => ms / 1000;
+  const read = (f: string) => fs.readFileSync(f, 'utf8');
+  const area = `${b.minionDrop.minRadiusM}~${b.minionDrop.maxRadiusM}m`;
 
-  it('explains the time bonus caps and zero point', () => {
-    for (const doc of docs) {
+  it('explains the time bonus caps and zero point with full phrases', () => {
+    for (const doc of [read('README.md'), read('docs/무기_및_스킬_가이드.md')]) {
       expect(doc).toContain('웨이브 시간 보너스');
-      expect(doc).toContain(`최대 ${fmt(t.maxPerWave)}점`);
-      expect(doc).toContain(`${fmt(t.maxPerWave * t.bossWaveWeight)}점`);
-      expect(doc).toContain(`${t.zeroAtParMult}배`);
+      expect(doc).toContain(`웨이브당 최대 ${fmt(t.maxPerWave)}점`);
+      expect(doc).toContain(`보스 웨이브는 ${fmt(t.maxPerWave * t.bossWaveWeight)}점`);
+      expect(doc).toContain(`기준 시간의 ${t.zeroAtParMult}배에서 0점`);
     }
   });
 
-  it('describes the boss drop radius, minion count and interval ramp', () => {
-    const d = GAME_TUNING.boss.minionDrop;
-    const guide = fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8');
-    const readme = docs[0];
-    expect(readme).toContain(`${d.minRadiusM}~${d.maxRadiusM}m`);
-    expect(readme).toContain(`${GAME_TUNING.boss.summonCount}마리`);
-    expect(readme).toContain(`${GAME_TUNING.boss.summonIntervalMs / 1000}초에서`);
-    expect(readme).toContain(`${GAME_TUNING.boss.summonAccel.minIntervalMs / 1000}초`);
-    expect(guide).toContain(`${d.minRadiusM}~${d.maxRadiusM}m`);
-    expect(guide).toContain(`${GAME_TUNING.boss.summonCount}마리`);
+  it('describes the boss summon in every document that talks about it', () => {
+    const ramp = `${sec(b.summonIntervalMs)}초에서 시작해 보스전이 길어질수록 ${sec(b.summonAccel.minIntervalMs)}초까지`;
+    expect(read('README.md')).toContain(ramp);
+    expect(read('README.md')).toContain(`${b.summonCount}마리씩 필드 ${area}`);
+    expect(read('docs/몬스터_도감_설명서.md')).toContain(ramp);
+    expect(read('docs/몬스터_도감_설명서.md')).toContain(`부하 ${b.summonCount}마리를 필드 ${area}`);
+    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`부하 ${b.summonCount}마리를 소환(${ramp} 단축)`);
+    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`필드 ${area}에 위에서 떨어지고`);
+    expect(read('docs/비어 크러셔 상세설계서.md')).toContain(
+      `간격은 ${sec(b.summonIntervalMs)}초에서 ${sec(b.summonAccel.minIntervalMs)}초까지(${sec(b.summonAccel.rampMs)}초에 걸쳐)`
+    );
+    expect(read('docs/비어 크러셔 상세설계서.md')).toContain(`한 번에 ${b.summonCount}마리를 필드 ${area}`);
+    expect(read('docs/튜토리얼_훈련장_가이드.md')).toContain(`필드 ${area}에 위에서 떨어지며`);
+  });
+
+  it('keeps the in-game guide numbers tied to GAME_TUNING instead of hard-coded text', () => {
+    const guide = read('src/pc/components/GuideModal.tsx');
+    expect(guide).toContain('GAME_TUNING.boss.summonIntervalMs');
+    expect(guide).toContain('GAME_TUNING.boss.summonAccel.minIntervalMs');
+    expect(guide).toContain('GAME_TUNING.boss.summonCount');
+    expect(guide).toContain('GAME_TUNING.boss.minionDrop.minRadiusM');
+    expect(guide).toContain('GAME_TUNING.score.timeBonus.maxPerWave');
+    expect(guide).toContain('GAME_TUNING.score.timeBonus.zeroAtParMult');
+  });
+
+  it('keeps the fever wording precise: only hit points get x1.5, not kill bonuses', () => {
+    for (const f of ['README.md', 'docs/무기_및_스킬_가이드.md']) expect(read(f)).toContain('명중 점수 1.5배');
   });
 });
