@@ -23,10 +23,11 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
   });
 
   describe('computeWaveTimeBonus', () => {
-    it('is full at or under par, half at 1.5x par, zero at 2x par and beyond', () => {
+    it('is full at or under par, half midway to the zero point, zero at the zero point and beyond', () => {
       expect(engine.computeWaveTimeBonus(1, 0)).toBe(cfg.maxPerWave);
       expect(engine.computeWaveTimeBonus(1, par(1))).toBe(cfg.maxPerWave);
-      expect(engine.computeWaveTimeBonus(1, par(1) * 1.5)).toBe(Math.round(cfg.maxPerWave / 2));
+      const mid = 1 + (cfg.zeroAtParMult - 1) / 2;
+      expect(engine.computeWaveTimeBonus(1, par(1) * mid)).toBe(Math.round(cfg.maxPerWave / 2));
       expect(engine.computeWaveTimeBonus(1, par(1) * cfg.zeroAtParMult)).toBe(0);
       expect(engine.computeWaveTimeBonus(1, par(1) * 5)).toBe(0);
     });
@@ -39,8 +40,9 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
     });
 
     it('falls linearly between par and the zero point', () => {
-      const a = engine.computeWaveTimeBonus(1, par(1) * 1.25);
-      const b = engine.computeWaveTimeBonus(1, par(1) * 1.75);
+      const span = cfg.zeroAtParMult - 1;
+      const a = engine.computeWaveTimeBonus(1, par(1) * (1 + span * 0.25));
+      const b = engine.computeWaveTimeBonus(1, par(1) * (1 + span * 0.75));
       expect(a + b).toBe(cfg.maxPerWave);
     });
   });
@@ -58,7 +60,7 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
     });
 
     it('pays less for a slow wave', () => {
-      finishEmptyWave(engine, 1000, 1000 + par(1) * 1.5 * 1000);
+      finishEmptyWave(engine, 1000, 1000 + par(1) * (1 + (cfg.zeroAtParMult - 1) / 2) * 1000);
       expect(engine.lastWaveClear.bonus).toBe(Math.round(cfg.maxPerWave / 2));
     });
 

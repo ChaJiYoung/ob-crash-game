@@ -15,3 +15,8 @@
 ```bash
 node .memory/references/scripts/capture-start-state.mjs
 ```
+
+## 점수 규칙 관련 (2026-11-05, score-differentiation)
+- `measure-wave-times.ts [게임수] [무기] [실력]`: 죽지 않게 한 상태에서 웨이브별 클리어 시간(게임 시계)을 무기·봇 실력별로 출력. `GAME_TUNING.waves[i].parTimeSec`를 정할 때 쓴다.
+- `simulate-current-decisions.ts`: 점수 내역(기본/시간/정밀)과 판정 비율을 출력한다. `INVINCIBLE=1`이면 죽지 않게 해 모든 판이 끝까지 가므로 실력별 점수 격차를 볼 수 있다. `JUDGE`로 판정표 값을 덮어쓸 수 있다.
+

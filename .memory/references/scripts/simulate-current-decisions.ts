@@ -73,6 +73,7 @@ interface GameResult {
   maxCombo: number;
   hits: number;
   grades: Record<string, number>;
+  breakdown: { total: number; timeBonus: number; precisionBonus: number; base: number };
 }
 
 function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
@@ -165,7 +166,7 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
     };
 
     // A real player sees raised shields: skip targets that cannot be hurt right now
-    const vulnerable = (t: any) => !t.isGuarding && !t.isShielded;
+    const vulnerable = (t: any) => !t.isGuarding && !t.isShielded && e.isTargetLanded(t, now);
     const visible = e.activeTargets.filter((t: any) => !t.isItem && !t.rewardCardKind);
     const positions = visible.map((t: any) => {
       const p = e.computeTargetAimCoords(t);
@@ -209,6 +210,7 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
     maxCombo: sm.getState().maxCombo,
     hits: st.hits,
     grades: st.grades,
+    breakdown: e.getScoreBreakdown(),
     result: e.gamePhase,
     dur: now / 1000,
     lives: e.lives,
@@ -253,7 +255,7 @@ for (const k of WEAPONS) {
     console.log(
       `${k.padEnd(9)}${b.name.padEnd(16)} 클리어 ${f((100 * wins.length) / N).padStart(3)}%${to ? `(초과${f((100 * to) / N)})` : ''}` +
         ` | 승리체력 ${wins.length ? f(avg(wins.map((r) => r.lives)), 1) : '-'} | ${m((r) => r.dur)}s` +
-        ` | 점수 클리어 ${wins.length ? f(avg(wins.map((r) => r.score))) : '-'} / 전체 ${m((r) => r.score)}` +
+        ` | 점수 클리어 ${wins.length ? f(avg(wins.map((r) => r.score))) : '-'} / 전체 ${m((r) => r.score)} (기본 ${m((r) => r.breakdown.base)} + 시간 ${m((r) => r.breakdown.timeBonus)} + 정밀 ${m((r) => r.breakdown.precisionBonus)})` +
         ` | 최대콤보 ${m((r) => r.maxCombo)} 명중 ${m((r) => r.hits)} P/G/g/M ${gradeMix(rs)}` +
         ` | 피버 ${f(avg(rs.filter((r) => r.gapN).map((r) => r.gapSum / r.gapN)))}s간격 | 스킬 ${m((r) => r.skills, 1)}` +
         ` | 카드 ${m((r) => r.cards, 1)} | MAX ${f((100 * rs.filter((r) => r.maxWave !== null).length) / N)}%` +
