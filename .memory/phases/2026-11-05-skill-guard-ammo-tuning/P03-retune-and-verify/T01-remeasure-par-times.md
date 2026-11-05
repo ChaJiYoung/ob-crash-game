@@ -1,6 +1,6 @@
 # Task: T01 웨이브 기준 시간 재측정과 클리어율 확인
 
-## Status: pending
+## Status: done
 
 ## Goal
 방패 내림 시간·탄수·장전·쿨타임이 바뀌어 웨이브 클리어 시간이 달라졌다. 시간 보너스의 기준인 `parTimeSec`를 다시 재서 반영하고, 클리어율이 크게 무너지지 않았는지 확인한다.
@@ -49,6 +49,6 @@ Task: T01-remeasure-par-times
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
