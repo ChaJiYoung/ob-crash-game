@@ -18,11 +18,12 @@ function setup(weapon: 'shotgun' | 'gatling', level: 1 | 2 | 3 | 4) {
 }
 
 describe('knockback never pulls a monster toward the player', () => {
-  it.each([[10, 11], [15, 16], [18, 19], [22, 23], [24, 24]])('gatling skill: %sm -> %sm', (from, to) => {
+  it.each([[10, 13], [15, 18], [18, 21], [22, 24], [24, 24]])('gatling skill: %sm -> %sm', (from, to) => {
     const e = setup('gatling', 1);
     const t = mk('hanmac', from);
     e.activeTargets = [t];
     e.triggerWeaponSkill(2000);
+    for (let i = 0; i < 120; i++) e.update(2000 + (i + 1) * 16, 0.016);
     expect(t.radiusM).toBeCloseTo(to, 5);
     expect(t.x).toBeCloseTo(Math.sin(t.thetaRad) * t.radiusM, 5);
     expect(t.z).toBeCloseTo(-Math.cos(t.thetaRad) * t.radiusM, 5);
@@ -42,6 +43,7 @@ describe('knockback never pulls a monster toward the player', () => {
     const t = mk('hanmac', 24.5);
     e.activeTargets = [t];
     e.triggerWeaponSkill(2000);
+    for (let i = 0; i < 120; i++) e.update(2000 + (i + 1) * 16, 0.016);
     expect(t.radiusM).toBe(24.5);
   });
 
@@ -52,7 +54,7 @@ describe('knockback never pulls a monster toward the player', () => {
       e.activeTargets = [t];
       e.update(2000, 0.016);
       if (push) e.triggerWeaponSkill(2016);
-      e.update(2032, 0.016);
+      for (let i = 0; i < 4; i++) e.update(2032 + i * 16, 0.016);
       return t.thetaRad;
     };
     expect(Math.abs(run(true) - run(false))).toBeLessThan(0.005);

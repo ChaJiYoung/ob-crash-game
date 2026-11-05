@@ -187,9 +187,9 @@ export const STAGE_CONSTANTS = {
 
 /**
  * 기본 무기 표. maxAmmo·reloadDurationMs·skillCooldownMs(·fireIntervalMs·damagePerHit)는 아래 applyWeaponTuning이
- * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다(리볼버 skillDamage·skillBossDamage도 덮어쓴다). 난이도는 gameTuning.ts에서 조정한다.
+ * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다(리볼버 skillDamage·skillBossDamage, 개틀링 skillDamage·skillBossDamage·skillKnockbackM도 덮어쓴다). 난이도는 gameTuning.ts에서 조정한다.
  */
-type BaseWeaponLevelSpec = Omit<WeaponLevelSpec, 'skillBladeCount' | 'skillBladePierce'>;
+type BaseWeaponLevelSpec = Omit<WeaponLevelSpec, 'skillBladeCount' | 'skillBladePierce' | 'skillFoamCount'>;
 type BaseWeaponArchetypeSpec = Omit<WeaponArchetypeSpec, 'levels'> & { levels: Record<WeaponLevel, BaseWeaponLevelSpec> };
 
 const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> = {
@@ -218,7 +218,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 12,
         skillCooldownMs: 25000,
         maxSkillStock: 1,
@@ -241,7 +240,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 15,
         skillCooldownMs: 22000,
         maxSkillStock: 1,
@@ -264,7 +262,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 18,
         skillCooldownMs: 19000,
         maxSkillStock: 1,
@@ -287,7 +284,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 22,
         skillCooldownMs: 16000,
         maxSkillStock: 2,
@@ -319,7 +315,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 25000,
         maxSkillStock: 1,
@@ -342,7 +337,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 22000,
         maxSkillStock: 1,
@@ -365,7 +359,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 19000,
         maxSkillStock: 1,
@@ -388,7 +381,6 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillSlowRatio: 0,
         skillSlowMs: 0,
         skillKnockbackM: 0,
-        skillArcDeg: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 16000,
         maxSkillStock: 2,
@@ -413,14 +405,13 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         maxAmmo: 18,
         reloadDurationMs: 1400,
         fireIntervalMs: 150,
-        skillNameKo: '거품 해일 160도 오버히트',
+        skillNameKo: '거품 해일',
         skillDamage: 0.4,
         skillBossDamage: 4,
         skillStunMs: 0,
         skillSlowRatio: 0.30,
         skillSlowMs: 2000,
         skillKnockbackM: 1.0,
-        skillArcDeg: 90,
         skillPlungerCount: 0,
         skillCooldownMs: 25000,
         maxSkillStock: 1,
@@ -436,14 +427,13 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         maxAmmo: 22,
         reloadDurationMs: 1300,
         fireIntervalMs: 125,
-        skillNameKo: '거품 해일 160도 오버히트',
+        skillNameKo: '거품 해일',
         skillDamage: 0.6,
         skillBossDamage: 5,
         skillStunMs: 0,
         skillSlowRatio: 0.35,
         skillSlowMs: 2300,
         skillKnockbackM: 1.0,
-        skillArcDeg: 110,
         skillPlungerCount: 0,
         skillCooldownMs: 22000,
         maxSkillStock: 1,
@@ -459,14 +449,13 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         maxAmmo: 28,
         reloadDurationMs: 1200,
         fireIntervalMs: 100,
-        skillNameKo: '거품 해일 160도 오버히트',
+        skillNameKo: '거품 해일',
         skillDamage: 0.8,
         skillBossDamage: 6,
         skillStunMs: 0,
         skillSlowRatio: 0.40,
         skillSlowMs: 2600,
         skillKnockbackM: 1.2,
-        skillArcDeg: 130,
         skillPlungerCount: 0,
         skillCooldownMs: 19000,
         maxSkillStock: 1,
@@ -482,14 +471,13 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         maxAmmo: 35,
         reloadDurationMs: 1000,
         fireIntervalMs: 83,
-        skillNameKo: '거품 해일 160도 오버히트',
+        skillNameKo: '거품 해일',
         skillDamage: 1.0,
         skillBossDamage: 7,
         skillStunMs: 0,
         skillSlowRatio: 0.50,
         skillSlowMs: 3000,
         skillKnockbackM: 1.4,
-        skillArcDeg: 160,
         skillPlungerCount: 0,
         skillCooldownMs: 16000,
         maxSkillStock: 2,
@@ -511,6 +499,7 @@ function applyWeaponTuning(
       const b = base[kind].levels[lv];
       const damagePerHit = Number((b.damagePerHit * GAME_TUNING.weaponDamageScale[kind]).toFixed(3));
       const blade = GAME_TUNING.skills.blade;
+      const foam = GAME_TUNING.skills.foam;
       levels[lv] = {
         ...b,
         skillCooldownMs: GAME_TUNING.skillCooldownMsByLevel[lv],
@@ -520,7 +509,11 @@ function applyWeaponTuning(
         maxAmmo: GAME_TUNING.maxAmmoByWeapon[kind][lv],
         skillBladeCount: kind === 'revolver' ? blade.countByLevel[lv] : 0,
         skillBladePierce: kind === 'revolver' ? blade.pierceByLevel[lv] : 0,
+        skillFoamCount: kind === 'gatling' ? foam.countByLevel[lv] : 0,
         ...(kind === 'revolver' ? { skillDamage: damagePerHit, skillBossDamage: blade.bossDamageByLevel[lv] } : {}),
+        ...(kind === 'gatling'
+          ? { skillDamage: foam.damageByLevel[lv], skillBossDamage: foam.bossDamageByLevel[lv], skillKnockbackM: foam.knockbackMByLevel[lv] }
+          : {}),
       };
     });
     out[kind] = { ...base[kind], levels };

@@ -64,6 +64,8 @@ export interface ActiveTargetEntity {
   stuckPlungerCount?: number;
   /** 밀려난 거리만큼 흔들림 위상을 되돌려, 밀어내기가 카스 라이트 좌우 위치를 튀게 하지 않는다. */
   swayPhaseOffsetRad?: number;
+  /** 아직 밀려나야 할 거리. 0보다 크면 전진하지 않고 뒤로 미끄러진다. */
+  slideRemainingM?: number;
   isGoldenCan?: boolean;
   isProjectile?: boolean;
   weaponSelectKind?: WeaponKind;
@@ -105,8 +107,24 @@ export interface SkillExecuteResult {
   weaponLevel: WeaponLevel;
   affectedTargets: ActiveTargetEntity[];
   plungerCount?: number;
-  arcDeg?: number;
   bladeCount?: number;
+  foamCount?: number;
+}
+
+export interface SkillFoamWave {
+  id: string;
+  /** 파도 앞면의 거리. */
+  radiusM: number;
+  /** 지난 프레임의 앞면 거리. 이번 프레임에 앞면이 훑고 지나간 구간만 맞힌다. */
+  prevRadiusM: number;
+  hitTargetIds: Set<string>;
+  damage: number;
+  bossDamage: number;
+  knockbackM: number;
+  slowRatio: number;
+  slowMs: number;
+  /** 화면에 그릴 거품 수. */
+  count: number;
 }
 
 export interface SkillBlade {
@@ -185,6 +203,7 @@ export class BeerCrusherEngine {
 
   /** 날아가는 리볼버 칼날. 엔진이 매 프레임 전진시키고 화면은 이 상태를 그린다. */
   public activeSkillBlades: SkillBlade[] = [];
+  public activeSkillFoamWaves: SkillFoamWave[] = [];
   private skillHitEvents: SkillHitEvent[] = [];
   private skillEntityCounter = 0;
   private pausedAtMs: number | null = null;
@@ -1113,6 +1132,7 @@ export class BeerCrusherEngine {
     this.updateBossMovement(nowMs);
     this.updateKingShield();
     this.advanceSkillBlades(nowMs, dtSec);
+    this.advanceSkillFoam(nowMs, dtSec);
     if ((this.gamePhase as GamePhase) === 'VICTORY') {
       return { breaches: [], phaseChanged: true, reloadedJustNow: false };
     }
@@ -1172,6 +1192,15 @@ export class BeerCrusherEngine {
         if (isSlowed) {
           effectiveSpeed *= (1 - (target.slowRatio ?? 0.4));
         }
+      }
+
+      // 거품 해일에 밀린 몬스터: 전진하지 않고 뒤로 미끄러진다(순간이동이 아니다).
+      const slide = target.slideRemainingM ?? 0;
+      if (slide > 0) {
+        const step = Math.min(slide, GAME_TUNING.skills.foam.slideSpeedMps * dtSec);
+        target.slideRemainingM = slide - step;
+        this.pushTargetBack(target, step);
+        effectiveSpeed = 0;
       }
 
       const isRegularPlay = !this.isTutorialMode && !this.isSandboxMode;
@@ -2166,12 +2195,49 @@ export class BeerCrusherEngine {
 
   private clearSkillProjectiles(): void {
     this.activeSkillBlades = [];
+    this.activeSkillFoamWaves = [];
     this.skillHitEvents = [];
   }
 
   private pushSkillHitEvent(event: SkillHitEvent): void {
     this.skillHitEvents.push(event);
     if (this.skillHitEvents.length > 128) this.skillHitEvents.shift();
+  }
+
+  private advanceSkillFoam(nowMs: number, dtSec: number): void {
+    if (this.activeSkillFoamWaves.length === 0) return;
+    const maxRadiusM = STAGE_CONSTANTS.SPAWN_RADIUS_M + 1;
+    for (let w = this.activeSkillFoamWaves.length - 1; w >= 0; w--) {
+      const wave = this.activeSkillFoamWaves[w];
+      const sweepFrom = wave.prevRadiusM - 0.5;
+      wave.prevRadiusM = wave.radiusM;
+      wave.radiusM += GAME_TUNING.skills.foam.speedMps * dtSec;
+      const candidates = this.activeTargets.filter(
+        (t) =>
+          !t.isItem && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && !t.isGoldenCan &&
+          this.isTargetLanded(t, nowMs) &&
+          !wave.hitTargetIds.has(t.id) &&
+          t.radiusM <= wave.radiusM &&
+          t.radiusM > sweepFrom
+      );
+      for (const t of candidates) {
+        if (!this.activeTargets.includes(t)) continue;
+        wave.hitTargetIds.add(t.id);
+        const blocked = Boolean(t.isShielded);
+        const killed = this.applySkillDamage(t, t.kind === 'boss' ? wave.bossDamage : wave.damage, nowMs);
+        if (!killed && t.kind !== 'boss') {
+          t.slideRemainingM = Math.max(t.slideRemainingM ?? 0, wave.knockbackM);
+          t.slowUntilMs = nowMs + wave.slowMs;
+          t.slowRatio = wave.slowRatio;
+        }
+        this.pushSkillHitEvent({ source: 'foam', target: t, killed, blocked });
+        if ((this.gamePhase as GamePhase) === 'VICTORY') {
+          this.activeSkillFoamWaves = [];
+          return;
+        }
+      }
+      if (wave.radiusM > maxRadiusM) this.activeSkillFoamWaves.splice(w, 1);
+    }
   }
 
   private advanceSkillBlades(nowMs: number, dtSec: number): void {
@@ -2278,29 +2344,23 @@ export class BeerCrusherEngine {
       }
       return { activated: true, weaponKind, weaponLevel, affectedTargets, bladeCount: count };
     } else {
-      // 3. gatling: 거품 해일 160도 오버히트: Arc knockback & slow
-      const halfArcRad = ((levelSpec.skillArcDeg / 2) * Math.PI) / 180;
-      for (let i = activeMonsters.length - 1; i >= 0; i--) {
-        const monster = activeMonsters[i];
-        if (Math.abs(monster.thetaRad) <= halfArcRad) {
-          if (monster.kind !== 'boss') {
-            this.pushTargetBack(monster, levelSpec.skillKnockbackM);
-            monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
-            monster.slowRatio = levelSpec.skillSlowRatio;
-          }
-          affectedTargets.push(monster);
-
-          this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
-          if (this.gamePhase === 'VICTORY') break;
-        }
-      }
-      return {
-        activated: true,
-        weaponKind,
-        weaponLevel,
-        affectedTargets,
-        arcDeg: levelSpec.skillArcDeg,
-      };
+      // 3. 거품 해일: 필드 전체를 쓸고 가는 파도. 닿는 순간 advanceSkillFoam이 피해·둔화·밀기를 준다.
+      this.skillEntityCounter += 1;
+      const foam = GAME_TUNING.skills.foam;
+      const bonus = this.weaponSystem.getDamageBonusMultiplier();
+      this.activeSkillFoamWaves.push({
+        id: `foam_${this.skillEntityCounter}`,
+        radiusM: foam.startRadiusM,
+        prevRadiusM: 0,
+        hitTargetIds: new Set(),
+        damage: Number((levelSpec.skillDamage * bonus).toFixed(3)),
+        bossDamage: Number((levelSpec.skillBossDamage * bonus).toFixed(3)),
+        knockbackM: levelSpec.skillKnockbackM,
+        slowRatio: levelSpec.skillSlowRatio,
+        slowMs: levelSpec.skillSlowMs,
+        count: levelSpec.skillFoamCount,
+      });
+      return { activated: true, weaponKind, weaponLevel, affectedTargets, foamCount: levelSpec.skillFoamCount };
     }
   }
 }

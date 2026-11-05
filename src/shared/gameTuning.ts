@@ -52,6 +52,17 @@ export const GAME_TUNING = {
       speedMps: 40,
       startRadiusM: 3,
     },
+    /** 개틀링 '거품 해일'. 밀어내기 전용이라 피해는 낮다. 거품 수(countByLevel)는 화면에만 쓰인다. */
+    foam: {
+      knockbackMByLevel: { 1: 3, 2: 3.5, 3: 4, 4: 5 },
+      damageByLevel: { 1: 0.2, 2: 0.3, 3: 0.4, 4: 0.5 },
+      bossDamageByLevel: { 1: 2, 2: 2.5, 3: 3, 4: 3.5 },
+      countByLevel: { 1: 120, 2: 160, 3: 210, 4: 280 },
+      speedMps: 24,
+      startRadiusM: 2,
+      /** 밀려나는 속도. 3m면 약 0.25초. */
+      slideSpeedMps: 12,
+    },
   },
   /** 무기·레벨별 기본 탄수. rapid_reload 카드가 장당 +2발 더한다. */
   maxAmmoByWeapon: {

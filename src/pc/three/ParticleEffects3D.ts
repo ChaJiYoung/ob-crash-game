@@ -716,7 +716,7 @@ export class ParticleEffects3D {
     } else {
       // 3. gatling: 거품 해일 160도 오버히트: 반투명 크리미 폼 웨이브
       const waveGroup = new THREE.Group();
-      const halfArc = ((spec.skillArcDeg / 2) * Math.PI) / 180;
+      const halfArc = Math.PI / 4;
       const foamCount = 50;
 
       for (let k = 0; k < foamCount; k++) {

@@ -633,12 +633,15 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(m2.slowUntilMs).toBeUndefined();
     engine.activeSkillBlades = [];
 
-    // 3. Gatling skill: 거품 해일 160도 오버히트 (AoE 0.4 DMG + 1.0m Knockback)
+    // 3. Gatling skill: 거품 해일 (foam wave, push on contact)
     engine.weaponSystem.selectWeapon('gatling', 1);
     const initialRadius = m1.radiusM;
     const gatSkill = engine.triggerWeaponSkill(5000);
     expect(gatSkill.activated).toBe(true);
-    expect(m1.radiusM).toBe(initialRadius + 1.0); // 1.0m knockback!
+    expect(gatSkill.foamCount).toBe(120);
+    expect(m1.radiusM).toBe(initialRadius); // nothing happens until the wave arrives
+    engine.update(5300, 0.3); // front 2 + 24 x 0.3 = 9.2m passes m1; slide 12 x 0.3 = 3.6m >= 3m
+    expect(m1.radiusM).toBeCloseTo(initialRadius + 3.0, 5);
   });
 
   it('should handle Shoot-to-Select Weapon & Reward Cards, Golden Can and Projectile Interception', () => {

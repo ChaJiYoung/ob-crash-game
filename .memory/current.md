@@ -7,7 +7,7 @@
 [P03 개틀링 거품](./phases/2026-11-05-weapon-skill-rework/P03-gatling-foam/phase.md)
 
 ## Active Task
-[T01 거품 파도 판정과 미끄러짐](./phases/2026-11-05-weapon-skill-rework/P03-gatling-foam/T01-foam-engine.md)
+[T02 작은 거품 렌더링](./phases/2026-11-05-weapon-skill-rework/P03-gatling-foam/T02-foam-visuals.md)
 
 ## Status
 - P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 리뷰 반영 완료, P02 전체 완료 + Opus 리뷰 반영(칼날 지난 구간만 판정, 종료 시 칼날 정리)
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단(이전 리뷰 1)은 P04-T03 플레이 뒤에 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-P03-T01 청사진을 읽고 거품 파도 엔진을 구현한다. 칼날처럼 "앞면이 이번 프레임에 훑은 구간만" 판정한다(P02 리뷰 교훈).
+P03-T02 청사진을 읽고 작은 거품을 인스턴싱으로 그린다. 끝나면 P03 Opus 5.5 리뷰.

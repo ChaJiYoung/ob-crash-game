@@ -126,7 +126,10 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(gat.levels[4].damagePerHit).toBe(1.0); // 0.50 x 2.0
     expect(gat.levels[4].maxAmmo).toBe(35);
     expect(gat.levels[4].fireIntervalMs).toBe(Math.round(83 * 0.7));
-    expect(gat.levels[4].skillArcDeg).toBe(160);
+    expect(gat.levels[4].skillKnockbackM).toBe(5);
+    expect(gat.levels[4].skillDamage).toBe(0.5);
+    expect(gat.levels[4].skillBossDamage).toBe(3.5);
+    expect(gat.levels[4].skillFoamCount).toBe(280);
   });
 
   it('should define 9 shoot-to-select reward card specs (D08)', () => {
