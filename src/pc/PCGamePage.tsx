@@ -849,7 +849,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           data-testid="boss-down-banner"
           style={{
             position: 'absolute',
-            top: '38%',
+            top: '25%',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 125,

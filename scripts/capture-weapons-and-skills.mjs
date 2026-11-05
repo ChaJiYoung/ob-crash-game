@@ -167,6 +167,49 @@ async function captureWeaponsAndSkills() {
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(screensDir, 'play-fever-foam-tsunami.png') });
 
+  // 4. Poop shell in flight and the boss-clear sequence (game state driven through the engine)
+  console.log('Setting up a hanmac shell...');
+  await page.mouse.up();
+  await page.mouse.move(150, 760); // aim away so the shell is not intercepted before the shot
+  await page.evaluate(() => {
+    const eng = window.__engine;
+    if (eng) {
+      eng.isSandboxMode = false;
+      eng.startGame({ withWeaponSelect: false }); // fresh state: no fever, no leftover banners
+      eng.activeTargets = [];
+      eng.weaponSystem.selectWeapon('shotgun', 1);
+      eng.spawnMonsterProjectile(performance.now(), 'hanmac', { thetaRad: 0.05, radiusM: 7.0 });
+    }
+  });
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: path.join(screensDir, 'play-poop-shell.png') });
+
+  console.log('Setting up a boss kill...');
+  await page.evaluate(() => {
+    const eng = window.__engine;
+    if (eng) {
+      eng.isSandboxMode = false;
+      eng.startGame({ withWeaponSelect: false });
+      eng.weaponSystem.selectWeapon('revolver', 1);
+      eng.startWave(3);
+      eng.activeTargets = [];
+      eng.spawnedInWave = 999;
+      eng.update(performance.now(), 0.016);
+      const boss = eng.activeTargets.find((t) => t.kind === 'boss');
+      if (boss) {
+        boss.radiusM = 10;
+        boss.x = 0;
+        boss.z = -10;
+        boss.thetaRad = 0;
+        boss.hp = 0.1;
+        const p = eng.computeTargetAimCoords(boss);
+        eng.shootAt(p.targetNormX, p.targetNormY, performance.now(), 'press');
+      }
+    }
+  });
+  await page.waitForTimeout(450);
+  await page.screenshot({ path: path.join(screensDir, 'play-boss-down.png') });
+
   await browser.close();
   console.log('ALL WEAPON EVOLUTIONS, SKILL ACTION FRAMES & CARD SELECTIONS CAPTURED SUCCESSFULLY!');
 }

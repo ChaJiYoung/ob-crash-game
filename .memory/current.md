@@ -7,7 +7,7 @@
 [P04 문서 동기화와 최종 검증](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/phase.md)
 
 ## Active Task
-[T01 문서와 캡처 동기화](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/T01-docs-and-capture.md)
+[T02 기준 시간 재측정과 난이도 보고](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/T02-remeasure-and-report.md)
 
 ## Status
 - P01~P03 완료(똥 포탄, 속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단은 P04-T03 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-P04-T01: 문서·가이드·README 문구와 스크린샷. 그 뒤 T02(기준 시간·합산 난이도 보고), T03(사람 플레이). 전체 구현 후 Opus 리뷰.
+P04-T02: measure-wave-times와 시뮬레이터로 합산 난이도를 재고 기록한다. 난이도는 임의로 고치지 않고 사용자에게 보고한다(샷건 보통 봇이 매우 낮게 나옴).

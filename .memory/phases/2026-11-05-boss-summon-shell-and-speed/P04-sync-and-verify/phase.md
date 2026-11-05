@@ -3,9 +3,9 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 문서·가이드·README·캡처 스크립트와 스크린샷 | [T01](./T01-docs-and-capture.md) |
-| T02 | `pending` | 기준 시간 재측정과 합산 난이도 보고 | [T02](./T02-remeasure-and-report.md) |
+| T01 | `done ✅` | 문서·가이드·README·캡처 스크립트와 스크린샷 | [T01](./T01-docs-and-capture.md) |
+| T02 | `in_progress 🔵` | 기준 시간 재측정과 합산 난이도 보고 | [T02](./T02-remeasure-and-report.md) |
 | T03 | `pending` | 최종 자동 검증과 직접 플레이(사람) | [T03](./T03-final-verification-and-playtest.md) |
 
 ## Progress
-- done: 0/3 (active: T01)
+- done: 1/3 (active: T02)

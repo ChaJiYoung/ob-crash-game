@@ -1,6 +1,6 @@
 # Task: T01 문서와 캡처 동기화
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 내 가이드, `docs/`, README를 최종 동작에 맞추고 새 연출 스크린샷을 찍는다.
@@ -55,6 +55,6 @@ Task: T01-docs-and-capture
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
