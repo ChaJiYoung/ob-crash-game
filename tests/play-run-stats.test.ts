@@ -80,4 +80,23 @@ describe('play run stats', () => {
     e.gamePhase = 'GAMEOVER';
     expect(e.getPlayRunStats()!.levelBonus).toBe(0);
   });
+
+  it('counts real damage and healing, and resets', () => {
+    e.lives = 5;
+    e.activateItemBuff('bar_repair', 1000); // full: nothing healed
+    e.activeTargets = [{ id: 'x', kind: 'pilgood', hp: 1, maxHp: 1, radiusM: 0.1, thetaRad: 0, initialThetaRad: 0, x: 0, z: -0.1, speedMps: 1, hitRadiusM: 0.8, killBonusScore: 0, breached: false } as any];
+    (e as any).spawnedInWave = 999;
+    e.update(100_000, 0.05);
+    expect(e.lives).toBe(4);
+    e.activateItemBuff('bar_repair', 1000);
+    (e as any).applyRewardCard('bar_repair', 1000); // already full again: nothing more
+    e.gamePhase = 'GAMEOVER';
+    let s = e.getPlayRunStats()!;
+    expect(s.damageTaken).toBe(1);
+    expect(s.healedLives).toBe(1);
+    e.startGame({ withWeaponSelect: false });
+    e.gamePhase = 'GAMEOVER';
+    s = e.getPlayRunStats()!;
+    expect([s.damageTaken, s.healedLives, s.itemsCollected]).toEqual([0, 0, 0]);
+  });
 });

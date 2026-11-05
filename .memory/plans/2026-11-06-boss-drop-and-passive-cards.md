@@ -8,5 +8,6 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 드롭률 변경, 문서, 측정 | [P01](../phases/2026-11-06-boss-drop-and-passive-cards/P01-boss-drop/phase.md) |
-| P02 | `pending` | 패시브 카드 HUD | [P02](../phases/2026-11-06-boss-drop-and-passive-cards/P02-passive-cards/phase.md) |
+| P01 | `done` | 드롭률 변경, 문서, 측정 | [P01](../phases/2026-11-06-boss-drop-and-passive-cards/P01-boss-drop/phase.md) |
+| P02 | `done` | 패시브 카드 HUD | [P02](../phases/2026-11-06-boss-drop-and-passive-cards/P02-passive-cards/phase.md) |
+| P03 | `done` | 피해·회복 기록 | [P03](../phases/2026-11-06-boss-drop-and-passive-cards/P03-damage-heal-records/phase.md) |

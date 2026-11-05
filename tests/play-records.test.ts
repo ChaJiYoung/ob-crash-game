@@ -80,6 +80,22 @@ describe('play records', () => {
       expect(new PlayRecordStore(file, 4).getTopRuns().map((r) => r.score)).toEqual([100]);
     });
 
+    it('older records without the damage fields stay on the ranking', () => {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, `${JSON.stringify({ ...stats({ totalScore: 777 }), rulesetVersion: 4, deviceId: 'o', nickname: 'o', playedAt: 't' })}\n`);
+      expect(new PlayRecordStore(file, 4).getTopRuns().map((r) => r.score)).toEqual([777]);
+    });
+
+    it('stores the damage fields, defaulting to 0', () => {
+      const s = new PlayRecordStore(file, 4);
+      s.append(at('t1', 1));
+      s.append({ ...at('t2', 2), stats: { ...stats({ totalScore: 2 }), damageTaken: 3, healedLives: 2, itemsCollected: 5 } });
+      const lines = fs.readFileSync(file, 'utf-8').trim().split('\n').map((l) => JSON.parse(l));
+      expect(lines[0]).toMatchObject({ damageTaken: 0, healedLives: 0, itemsCollected: 0 });
+      expect(lines[1]).toMatchObject({ damageTaken: 3, healedLives: 2, itemsCollected: 5 });
+      expect(isValidPlayRunStats({ ...stats(), damageTaken: -1 })).toBe(false);
+    });
+
     it('a failed write stays off the board', () => {
       const s = new PlayRecordStore(dir, 4);
       s.append(at('2026-11-05T00:00:00Z', 100));

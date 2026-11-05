@@ -116,6 +116,10 @@ export interface PlayRunStats {
   levelBonus: number;
   maxCombo: number;
   kills: number;
+  /** 이 필드들이 없는 옛 기록도 유효하다. */
+  damageTaken?: number;
+  healedLives?: number;
+  itemsCollected?: number;
   waves: { wave: number; seconds: number; bonus: number }[];
   shots: { PERFECT: number; GREAT: number; GOOD: number; MISS: number };
   /** 0..1 */

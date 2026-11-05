@@ -14,6 +14,7 @@ export interface PlayRecordInput {
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const WEAPONS: readonly WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
 const NUMBER_KEYS = ['waveReached', 'livesLeft', 'durationSec', 'totalScore', 'baseScore', 'timeBonus', 'precisionBonus', 'levelBonus', 'maxCombo', 'kills', 'accuracy', 'weaponLevel'] as const;
+const OPTIONAL_KEYS = ['damageTaken', 'healedLives', 'itemsCollected'] as const;
 const SHOT_KEYS = ['PERFECT', 'GREAT', 'GOOD', 'MISS'] as const;
 const CARD_KEYS = ['damage_up', 'skill_cooldown', 'fever_extend', 'hit_zone_up'] as const;
 
@@ -24,6 +25,7 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   if (s.outcome !== 'GAMEOVER' && s.outcome !== 'VICTORY') return false;
   if (!WEAPONS.includes(s.weaponKind)) return false;
   if (!NUMBER_KEYS.every((k) => isCount(s[k]))) return false;
+  if (!OPTIONAL_KEYS.every((k) => s[k] === undefined || isCount(s[k]))) return false;
   if (!s.shots || !SHOT_KEYS.every((k) => isCount(s.shots[k]))) return false;
   if (!s.cardStacks || !CARD_KEYS.every((k) => isCount(s.cardStacks[k]))) return false;
   if (!Array.isArray(s.waves) || s.waves.length > 20) return false;
@@ -44,6 +46,9 @@ function pickStats(s: PlayRunStats): PlayRunStats {
     levelBonus: s.levelBonus,
     maxCombo: s.maxCombo,
     kills: s.kills,
+    damageTaken: s.damageTaken ?? 0,
+    healedLives: s.healedLives ?? 0,
+    itemsCollected: s.itemsCollected ?? 0,
     waves: s.waves.map((w) => ({ wave: w.wave, seconds: w.seconds, bonus: w.bonus })),
     shots: { PERFECT: s.shots.PERFECT, GREAT: s.shots.GREAT, GOOD: s.shots.GOOD, MISS: s.shots.MISS },
     accuracy: s.accuracy,

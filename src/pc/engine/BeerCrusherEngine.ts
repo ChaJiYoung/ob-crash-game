@@ -293,6 +293,9 @@ export class BeerCrusherEngine {
   private totalKills = 0;
   /** 판 전체 게임 시계. 일시정지와 카드 정지는 빠진다. */
   private playTimeSec = 0;
+  private damageTaken = 0;
+  private healedLives = 0;
+  private itemsCollected = 0;
   private waveClears: { wave: number; seconds: number; bonus: number }[] = [];
   private bossSpawned = false;
   private cardStacks: Record<'damage_up' | 'skill_cooldown' | 'fever_extend' | 'hit_zone_up', number> = {
@@ -416,6 +419,9 @@ export class BeerCrusherEngine {
     this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
     this.totalKills = 0;
     this.playTimeSec = 0;
+    this.damageTaken = 0;
+    this.healedLives = 0;
+    this.itemsCollected = 0;
     this.waveClears = [];
     this.precisionBonusApplied = 0;
     this.levelBonusApplied = 0;
@@ -577,7 +583,7 @@ export class BeerCrusherEngine {
         this.weaponSystem.applyRapidReloadBuff();
         break;
       case 'bar_repair':
-        this.lives = Math.min(this.maxLives, this.lives + GAME_TUNING.repairCard.healAmount);
+        this.healLives(GAME_TUNING.repairCard.healAmount);
         break;
       case 'lucky_drop':
         this.luckyDropStacks = Math.min(GAME_TUNING.cards.luckyDropMaxStacks, this.luckyDropStacks + 1);
@@ -936,10 +942,17 @@ export class BeerCrusherEngine {
     return this.activateFever(nowMs);
   }
 
+  /** 체력을 회복한다. 가득 차서 버려지는 양은 기록하지 않는다. */
+  private healLives(amount: number): void {
+    const next = Math.min(this.maxLives, this.lives + amount);
+    this.healedLives += next - this.lives;
+    this.lives = next;
+  }
+
   public activateItemBuff(kind: ItemBuffKind, nowMs: number): void {
     const spec = ITEM_BUFF_SPECS[kind];
     if (kind === 'bar_repair') {
-      this.lives = Math.min(this.maxLives, this.lives + 1);
+      this.healLives(1);
       return;
     }
     this.activeBuffUntilMs.set(kind, nowMs + spec.durationMs);
@@ -1334,6 +1347,7 @@ export class BeerCrusherEngine {
 
         breaches.push(target);
         const damage = target.isProjectile ? 1 : target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
+        this.damageTaken += Math.min(this.lives, damage);
         this.lives = Math.max(0, this.lives - damage);
 
         if (this.lives <= 0) {
@@ -1855,6 +1869,9 @@ export class BeerCrusherEngine {
       levelBonus: breakdown.levelBonus,
       maxCombo: this.scoreManager.getState().maxCombo,
       kills: this.totalKills,
+      damageTaken: this.damageTaken,
+      healedLives: this.healedLives,
+      itemsCollected: this.itemsCollected,
       waves: this.waveClears.map((w) => ({ ...w, seconds: Number(w.seconds.toFixed(2)) })),
       shots: { ...this.shotStats },
       accuracy: Number(this.getPrecisionStats().ratio.toFixed(4)),
@@ -2092,6 +2109,7 @@ export class BeerCrusherEngine {
       let activatedItem: ItemBuffKind | undefined;
 
       if (killed && target.isItem && target.itemKind) {
+        this.itemsCollected += 1;
         this.activateItemBuff(target.itemKind, nowMs);
         activatedItem = target.itemKind;
       }
