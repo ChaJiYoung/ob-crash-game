@@ -8,4 +8,4 @@
 | T03 | `in_progress 🔵` | 보스 경고 가로 띠, 빛줄, 경고음 | [T03](./T03-boss-warning-band.md) |
 
 ## Progress
-- done: 1/3 (active: T03)
+- done: 1/3 (active: 없음)

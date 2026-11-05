@@ -1525,7 +1525,7 @@ export class BeerCrusherEngine {
     if (!waveDef?.boss) return;
     this.bossSpawned = true;
     this.isBossEncounterActive = true;
-    this.bossWarningUntilMs = nowMs + 2000;
+    this.bossWarningUntilMs = nowMs + GAME_TUNING.boss.warningMs;
     this.bossSummonCrossed.clear();
     this.bossShooterIndex = 0;
     this.lastBossProjectileMs = nowMs;

@@ -1,6 +1,6 @@
 # Task: T03 보스 경고 가로 띠, 빛줄, 경고음
 
-## Status: pending
+## Status: done
 
 ## Goal
 보스가 나올 때 가로 띠에 `WARNING`이 뜨고 빛줄이 글자 위를 훑으며 경고음이 나고, 2초 안에 서서히 사라진다.
@@ -58,9 +58,9 @@
 - 소스 검사: `PCGamePage.tsx`에 `boss-warning-sweep`, `WARNING`, `playBossWarningSound`가 있고 옛 문구 `⚠️ 보스 등장!`이 없다.
 
 ## Acceptance Criteria
-- [ ] 3·5·7웨이브 보스 등장 때 띠, 빛줄, 소리가 한 번씩 나오고 2초 뒤 사라진다.
-- [ ] 띠가 맥주잔과 1·2개 보스 체력바를 가리지 않는다.
-- [ ] 게임은 멈추지 않고 띠가 클릭을 막지 않는다.
+- [x] 3·5·7웨이브 보스 등장 때 띠, 빛줄, 소리가 한 번씩 나오고 2초 뒤 사라진다.
+- [x] 띠가 맥주잔과 1·2개 보스 체력바를 가리지 않는다.
+- [x] 게임은 멈추지 않고 띠가 클릭을 막지 않는다.
 
 ## Validation
 - `npx vitest run tests/boss-encounters.test.ts` — 통과
@@ -81,6 +81,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

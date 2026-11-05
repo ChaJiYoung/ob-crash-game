@@ -1,3 +1,4 @@
+import { GAME_TUNING } from '../shared/gameTuning';
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { BeerCrusherEngine, EngineShootResult } from './engine/BeerCrusherEngine';
 import { GameCanvas3D, GameCanvas3DHandle, RenderPerformanceMetrics } from './components/GameCanvas3D';
@@ -111,6 +112,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   });
   const [isGoldenCanAlertActive, setIsGoldenCanAlertActive] = useState<boolean>(false);
   const lastGoldenCanActiveRef = useRef<boolean>(false);
+  const lastBossWarningRef = useRef<boolean>(false);
 
   // Snapshot for HUD: only replaced when a displayed value changes.
   const [hudState, setHudState] = useState<HudSnapshot>(() => buildHudSnapshot(engine, performance.now()));
@@ -511,6 +513,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       }
       lastGoldenCanActiveRef.current = hasGoldenCan;
 
+      // Boss warning alarm: once, on the rising edge
+      if (nextHud.isBossWarning && !lastBossWarningRef.current) soundSynth.playBossWarningSound();
+      lastBossWarningRef.current = nextHud.isBossWarning;
+
       // Auto-fire loop during active Fever mode: polls fast, the weapon's own fire interval gates the actual shots
       if (feverState.isFeverActive && !engine.isPaused && !engine.isCardSelectPending && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
         if (!feverAutoFireTimerRef.current) {
@@ -846,22 +852,39 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           data-testid="boss-warning-banner"
           style={{
             position: 'absolute',
-            top: '24%',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            left: 0,
+            right: 0,
+            top: '21.5%',
+            height: '17%',
             zIndex: 125,
-            padding: '10px 32px',
-            borderRadius: '9999px',
-            background: 'rgba(69, 10, 10, 0.96)',
-            border: '3px solid #ef4444',
-            color: '#fecaca',
-            fontSize: '22px',
-            fontWeight: 900,
-            letterSpacing: '0.08em',
+            overflow: 'hidden',
             pointerEvents: 'none',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(69, 10, 10, 0.93)',
+            borderTop: '4px solid #ef4444',
+            borderBottom: '4px solid #ef4444',
+            animation: `boss-warning-band ${GAME_TUNING.boss.warningMs}ms ease-out forwards`,
           }}
         >
-          ⚠️ 보스 등장!
+          <style>{`@keyframes boss-warning-band { 0% { opacity: 0; } 8% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } } @keyframes boss-warning-sweep { from { left: -25%; } to { left: 110%; } }`}</style>
+          <div style={{ color: '#fecaca', fontSize: 'clamp(40px, 6.4vw, 92px)', fontWeight: 900, letterSpacing: '0.14em', lineHeight: 1.05 }}>
+            ⚠ WARNING ⚠
+          </div>
+          <div style={{ color: '#fca5a5', fontSize: 'clamp(16px, 2.2vw, 30px)', fontWeight: 700 }}>보스 등장</div>
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              width: '13%',
+              transform: 'skewX(-18deg)',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent)',
+              animation: 'boss-warning-sweep 0.7s linear infinite',
+            }}
+          />
         </div>
       )}
 

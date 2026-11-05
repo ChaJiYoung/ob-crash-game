@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
 import { GAME_TUNING } from '../src/shared/gameTuning';
@@ -380,7 +381,12 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       const cooler = bosses(engine).find((b) => b.bossRole === 'cooler')!;
       expect(king.modelScaleMult).toBe(GAME_TUNING.boss.kingScale);
       expect(cooler.modelScaleMult).toBeUndefined();
-      expect(engine.bossWarningUntilMs).toBe(100_000 + 2000);
+      expect(engine.bossWarningUntilMs).toBe(100_000 + GAME_TUNING.boss.warningMs);
+      const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+      expect(page).toContain('boss-warning-sweep');
+      expect(page).toContain('WARNING');
+      expect(page).toContain('playBossWarningSound');
+      expect(page).not.toContain('⚠️ 보스 등장!');
     });
 
     it('HUD snapshot lists every boss with role and hp', () => {

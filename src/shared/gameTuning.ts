@@ -106,6 +106,8 @@ export const GAME_TUNING = {
     stopRadiusM: 10,
     hitZoneScale: 0.6,
     kingScale: 1.5,
+    /** 보스 등장 경고 띠가 떠 있는 시간. 이 안에서 나타났다가 사라진다. */
+    warningMs: 2000,
     coolerSpreadRad: 0.34,
     /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },

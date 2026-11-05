@@ -481,6 +481,28 @@ export class SoundSynthesizer {
     osc.stop(now + 0.2);
   }
 
+  /** 보스 등장 경고음: 높낮이가 있는 삐뽀 두 번. */
+  public playBossWarningSound(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    [0, 0.24].forEach((offset) => {
+      const start = now + offset;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, start);
+      osc.frequency.linearRampToValueAtTime(660, start + 0.18);
+      gain.gain.setValueAtTime(0.22, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.2);
+    });
+  }
+
   public playBossExplosionSound(): void {
     const ctx = this.ensureContext();
     if (!ctx) return;
