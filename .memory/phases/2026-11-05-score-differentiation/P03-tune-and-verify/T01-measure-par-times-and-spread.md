@@ -1,6 +1,6 @@
 # Task: T01 Measure Par Times and Spread
 
-## Status: todo
+## Status: done
 
 ## Goal
 봇으로 웨이브별 클리어 시간을 재서 기준 시간을 정하고, 시간 보너스 상한을 조정해 점수 격차 목표(약 1.5배)를 맞춘다.
@@ -44,10 +44,10 @@
 
 
 ## Acceptance Criteria
-- [ ] 7개 웨이브 모두 측정 근거가 있는 `parTimeSec`가 들어갔다.
-- [ ] 죽지 않게 한 상태에서 정확 대 부정확 점수 비가 약 1.5배, 정확 대 보통이 1.25배 이상이다(미달이면 이유를 기록).
-- [ ] 시간 보너스가 정확 봇 총점의 약 25~30%이다.
-- [ ] 무기 점수 순서가 유지된다.
+- [x] 7개 웨이브 모두 측정 근거가 있는 `parTimeSec`가 들어갔다.
+- [x] 죽지 않게 한 상태에서 정확 대 부정확 점수 비가 약 1.5배, 정확 대 보통이 1.25배 이상이다(미달이면 이유를 기록).
+- [x] 시간 보너스가 정확 봇 총점의 약 25~30%이다.
+- [x] 무기 점수 순서가 유지된다.
 
 ## Validation
 - `npx tsx .memory/references/scripts/measure-wave-times.ts 30` — 웨이브별 시간 표 출력
@@ -67,6 +67,6 @@ Task: T01-measure-par-times-and-spread
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
