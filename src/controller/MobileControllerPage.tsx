@@ -8,6 +8,7 @@ import { triggerHaptic } from './sensors/HapticFeedback';
 import { PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { WEAPON_CONSTANTS } from '../shared/constants';
 import { GAME_TUNING } from '../shared/gameTuning';
+import { getReconnectDelayMs, loadSavedControllerRoomId, saveControllerRoomId } from './sensors/ReconnectPolicy';
 
 export const MobileControllerPage: React.FC = () => {
   const deviceId = useMemo(() => getOrCreateDeviceId(), []);
@@ -42,6 +43,8 @@ export const MobileControllerPage: React.FC = () => {
     skillCooldownTotalMs: GAME_TUNING.skillCooldownMsByLevel[1],
   });
 
+  const [connectionState, setConnectionState] = useState<'CONNECTING' | 'CONNECTED' | 'RECONNECTING'>('CONNECTING');
+  const hasConnectedBeforeRef = useRef<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const startCountdownRef = useRef<(sec?: number) => void>(() => {});
@@ -65,8 +68,14 @@ export const MobileControllerPage: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
     if (room) {
-      setRoomId(room.toUpperCase().trim());
+      const normalized = room.toUpperCase().trim();
+      setRoomId(normalized);
+      saveControllerRoomId(normalized);
+      return;
     }
+    // No QR link this time: fall back to the room this phone used last.
+    const saved = loadSavedControllerRoomId();
+    if (saved) setRoomId(saved);
   }, []);
 
   // 2. Connect to WebSocket & send DEVICE_CHECK
@@ -76,88 +85,143 @@ export const MobileControllerPage: React.FC = () => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    let socket: WebSocket;
-    try {
-      socket = new WebSocket(wsUrl);
-    } catch {
-      socket = new WebSocket(`${protocol}//${window.location.hostname}:8787`);
-    }
+    let disposed = false;
+    let attempt = 0;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-    wsRef.current = socket;
-
-    socket.onopen = () => {
-      socket.send(
-        JSON.stringify({
-          type: 'DEVICE_CHECK',
-          roomId,
-          deviceId,
-        })
-      );
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data) as ServerToClientMessage;
-        switch (msg.type) {
-          case 'AUTH_RESULT':
-            setIsNewUser(msg.isNewUser);
-            if (msg.player) {
-              setPlayer(msg.player);
-            }
-            break;
-
-          case 'FEVER_STATUS_RELAY':
-            setIsFeverReady(msg.isFeverReady);
-            if (msg.isFeverReady) {
-              triggerHaptic([60, 40, 80]);
-            }
-            break;
-
-          case 'SKILL_STATE_SYNC':
-            setSkillState({
-              weaponKind: msg.weaponKind,
-              weaponLevel: msg.weaponLevel,
-              skillStock: msg.skillStock,
-              maxSkillStock: msg.maxSkillStock,
-              skillCooldownRemainingMs: msg.skillCooldownRemainingMs,
-              skillCooldownTotalMs: msg.skillCooldownTotalMs,
-            });
-            if (prevSkillStockRef.current === 0 && msg.skillStock > 0) {
-              triggerHaptic([60, 40, 90]);
-            }
-            prevSkillStockRef.current = msg.skillStock;
-            break;
-
-          case 'GAME_COUNTDOWN_START':
-            startCountdownRef.current(msg.sec || 3);
-            break;
-
-          case 'SENSOR_CONFIG_UPDATE': {
-            const cfg = msg.config;
-            if (cfg) {
-              if (typeof cfg.isStabilizedMode === 'boolean') {
-                tracker.setStabilizedMode(cfg.isStabilizedMode);
-                setIsStabilizedMode(cfg.isStabilizedMode);
-              }
-              tracker.setFilterConfig(cfg);
-            }
-            break;
-          }
-
-          case 'ERROR':
-            if (msg.code === 'PC_DISCONNECTED') {
-              alert('PC 호스트와의 연결이 끊어졌습니다.');
-            }
-            break;
-        }
-      } catch (err) {
-        console.error('Error parsing WebSocket message on mobile', err);
+    const clearRetry = () => {
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
       }
     };
 
+    const connect = () => {
+      clearRetry();
+      if (disposed) return;
+
+      let socket: WebSocket;
+      try {
+        socket = new WebSocket(wsUrl);
+      } catch {
+        socket = new WebSocket(`${protocol}//${window.location.hostname}:8787`);
+      }
+
+      wsRef.current = socket;
+
+      socket.onopen = () => {
+        if (wsRef.current !== socket) return;
+        attempt = 0;
+        hasConnectedBeforeRef.current = true;
+        setConnectionState('CONNECTED');
+        socket.send(
+          JSON.stringify({
+            type: 'DEVICE_CHECK',
+            roomId,
+            deviceId,
+          })
+        );
+      };
+
+      socket.onclose = () => {
+        // A replaced or disposed socket must not start another retry loop.
+        if (disposed || wsRef.current !== socket) return;
+        setConnectionState('RECONNECTING');
+        clearRetry();
+        retryTimer = setTimeout(connect, getReconnectDelayMs(attempt));
+        attempt += 1;
+      };
+
+      socket.onmessage = (event) => {
+        if (wsRef.current !== socket) return;
+        try {
+          const msg = JSON.parse(event.data) as ServerToClientMessage;
+          switch (msg.type) {
+            case 'AUTH_RESULT':
+              setIsNewUser(msg.isNewUser);
+              if (msg.player) {
+                setPlayer(msg.player);
+              }
+              break;
+
+            case 'FEVER_STATUS_RELAY':
+              setIsFeverReady(msg.isFeverReady);
+              if (msg.isFeverReady) {
+                triggerHaptic([60, 40, 80]);
+              }
+              break;
+
+            case 'SKILL_STATE_SYNC':
+              setSkillState({
+                weaponKind: msg.weaponKind,
+                weaponLevel: msg.weaponLevel,
+                skillStock: msg.skillStock,
+                maxSkillStock: msg.maxSkillStock,
+                skillCooldownRemainingMs: msg.skillCooldownRemainingMs,
+                skillCooldownTotalMs: msg.skillCooldownTotalMs,
+              });
+              if (prevSkillStockRef.current === 0 && msg.skillStock > 0) {
+                triggerHaptic([60, 40, 90]);
+              }
+              prevSkillStockRef.current = msg.skillStock;
+              break;
+
+            case 'GAME_COUNTDOWN_START':
+              startCountdownRef.current(msg.sec || 3);
+              break;
+
+            case 'SENSOR_CONFIG_UPDATE': {
+              const cfg = msg.config;
+              if (cfg) {
+                if (typeof cfg.isStabilizedMode === 'boolean') {
+                  tracker.setStabilizedMode(cfg.isStabilizedMode);
+                  setIsStabilizedMode(cfg.isStabilizedMode);
+                }
+                tracker.setFilterConfig(cfg);
+              }
+              break;
+            }
+
+            case 'ERROR':
+              // The server keeps this socket open in both cases; close it so onclose runs the retry loop.
+              // A PC that comes back never tells the phone, so the phone has to knock again.
+              if (msg.code === 'PC_DISCONNECTED' || msg.code === 'ROOM_NOT_FOUND') {
+                setConnectionState('RECONNECTING');
+                socket.close();
+              }
+              break;
+          }
+        } catch (err) {
+          console.error('Error parsing WebSocket message on mobile', err);
+        }
+      };
+
+    };
+
+    connect();
+
+    // A sleeping phone freezes its timers: reconnect the moment the screen is back instead of waiting for the next retry.
+    const reviveIfDead = () => {
+      if (disposed) return;
+      if (document.visibilityState === 'hidden') return;
+      const current = wsRef.current;
+      if (current && (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)) return;
+      attempt = 0;
+      setConnectionState('RECONNECTING');
+      connect();
+    };
+    document.addEventListener('visibilitychange', reviveIfDead);
+    window.addEventListener('online', reviveIfDead);
+
     return () => {
+      disposed = true;
+      clearRetry();
+      document.removeEventListener('visibilitychange', reviveIfDead);
+      window.removeEventListener('online', reviveIfDead);
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-      socket.close();
+      const current = wsRef.current;
+      wsRef.current = null;
+      current?.close();
     };
   }, [roomId, deviceId]);
 
@@ -426,6 +490,28 @@ export const MobileControllerPage: React.FC = () => {
 
   return (
     <>
+      {connectionState !== 'CONNECTED' && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10000,
+            padding: '8px 12px',
+            textAlign: 'center',
+            fontSize: '13px',
+            fontWeight: 800,
+            color: '#fef3c7',
+            background: 'rgba(180, 83, 9, 0.92)',
+            pointerEvents: 'none',
+            fontFamily: "'Noto Sans KR', sans-serif",
+          }}
+        >
+          📡 PC와 다시 연결하는 중...
+        </div>
+      )}
+
       {step === 'LOGIN_GATE' && (
         <LoginAndPermissionGate
           isNewUser={isNewUser}

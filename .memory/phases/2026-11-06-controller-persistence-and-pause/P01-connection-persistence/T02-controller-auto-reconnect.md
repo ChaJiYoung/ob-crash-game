@@ -1,6 +1,6 @@
 # Task: T02 폰 자동 재연결
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰이 방 코드를 기억하고, 소켓이 끊기면(화면 꺼짐·네트워크 순단·PC 재시작) 사람 손 없이 같은 방으로 다시 접속한다. 재연결 동안 '재연결 중' 배너를 보여 준다.
@@ -82,6 +82,6 @@ Task: T02-controller-auto-reconnect
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (this commit)
