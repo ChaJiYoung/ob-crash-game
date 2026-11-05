@@ -623,12 +623,14 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.update(1500, 0.5);
     expect(m1.radiusM).toBe(7.0); // No movement!
 
-    // 2. Revolver skill: 오프너 불릿 타임 & 참격 (AoE 0.6 DMG + 3500ms 40% Slow)
+    // 2. Revolver skill: 오프너 참격 (fan blades, damage on contact)
     engine.weaponSystem.selectWeapon('revolver', 1);
     const revSkill = engine.triggerWeaponSkill(3000);
     expect(revSkill.activated).toBe(true);
-    expect(m2.slowUntilMs).toBe(6500); // 3000 + 3500ms slow
-    expect(m2.slowRatio).toBe(0.40);
+    expect(revSkill.bladeCount).toBe(3);
+    expect(engine.activeSkillBlades.length).toBe(3);
+    expect(m2.slowUntilMs).toBeUndefined();
+    engine.activeSkillBlades = [];
 
     // 3. Gatling skill: 거품 해일 160도 오버히트 (AoE 0.4 DMG + 1.0m Knockback)
     engine.weaponSystem.selectWeapon('gatling', 1);

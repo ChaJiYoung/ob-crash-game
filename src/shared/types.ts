@@ -35,6 +35,8 @@ export interface WeaponLevelSpec {
   skillSlowMs: number;
   skillKnockbackM: number;
   skillArcDeg: number;
+  skillBladeCount: number;
+  skillBladePierce: number;
   skillPlungerCount: number;
   skillCooldownMs: number;
   maxSkillStock: number;

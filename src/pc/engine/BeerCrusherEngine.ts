@@ -106,6 +106,30 @@ export interface SkillExecuteResult {
   affectedTargets: ActiveTargetEntity[];
   plungerCount?: number;
   arcDeg?: number;
+  bladeCount?: number;
+}
+
+export interface SkillBlade {
+  id: string;
+  thetaRad: number;
+  /** 칼날 앞면의 거리. */
+  radiusM: number;
+  /** 남은 타격 수(관통 + 1). 포탄은 줄이지 않는다. */
+  hitsLeft: number;
+  hitTargetIds: Set<string>;
+  /** 시전 시점에 고정한 피해. 날아가는 도중 카드를 받아도 이 칼날의 피해는 바뀌지 않는다. */
+  damage: number;
+  bossDamage: number;
+}
+
+export type SkillHitSource = 'blade' | 'foam';
+
+export interface SkillHitEvent {
+  source: SkillHitSource;
+  target: ActiveTargetEntity;
+  killed: boolean;
+  /** 대왕 쉴드에 막혔다. */
+  blocked: boolean;
 }
 
 export interface WaveDefinition {
@@ -156,6 +180,11 @@ export class BeerCrusherEngine {
   public infiniteAmmo = false;
 
   public isPaused = false;
+
+  /** 날아가는 리볼버 칼날. 엔진이 매 프레임 전진시키고 화면은 이 상태를 그린다. */
+  public activeSkillBlades: SkillBlade[] = [];
+  private skillHitEvents: SkillHitEvent[] = [];
+  private skillEntityCounter = 0;
   private pausedAtMs: number | null = null;
 
   public readonly scoreManager = new ScoreAndFeverManager();
@@ -311,6 +340,7 @@ export class BeerCrusherEngine {
   }
 
   public startGame(options?: { withWeaponSelect?: boolean }): void {
+    this.clearSkillProjectiles();
     this.gamePhase = 'PLAYING';
     this.currentWave = 1;
     this.maxLives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -355,6 +385,7 @@ export class BeerCrusherEngine {
   }
 
   public startWave(waveIndex: number): void {
+    this.clearSkillProjectiles();
     this.currentWave = Math.max(1, Math.min(STAGE_CONSTANTS.TOTAL_WAVES, waveIndex));
     this.spawnedInWave = 0;
     this.itemsSpawnedInWave = 0;
@@ -603,6 +634,7 @@ export class BeerCrusherEngine {
   }
 
   public startTutorialMode(): void {
+    this.clearSkillProjectiles();
     this.gamePhase = 'TUTORIAL';
     this.isTutorialMode = true;
     this.currentWave = 1;
@@ -750,6 +782,7 @@ export class BeerCrusherEngine {
   }
 
   public startSandboxMode(): void {
+    this.clearSkillProjectiles();
     this.gamePhase = 'SANDBOX';
     this.isSandboxMode = true;
     this.currentWave = 1;
@@ -1074,6 +1107,10 @@ export class BeerCrusherEngine {
     this.updateGuards(nowMs);
     this.updateBossMovement(nowMs);
     this.updateKingShield();
+    this.advanceSkillBlades(nowMs, dtSec);
+    if ((this.gamePhase as GamePhase) === 'VICTORY') {
+      return { breaches: [], phaseChanged: true, reloadedJustNow: false };
+    }
 
     // Clean expired buffs
     for (const [kind, untilMs] of this.activeBuffUntilMs.entries()) {
@@ -2109,6 +2146,69 @@ export class BeerCrusherEngine {
     return true;
   }
 
+  /** 화면이 칼날·거품 타격 연출을 그리려고 가져간다. 돌려주고 비운다. */
+  public drainSkillHitEvents(): SkillHitEvent[] {
+    const events = this.skillHitEvents;
+    this.skillHitEvents = [];
+    return events;
+  }
+
+  /** 몬스터가 나타나는 좌우 범위(라디안 절반). */
+  public getSkillFanHalfRangeRad(): number {
+    return computeHorizontalHalfFovRad(this.vFovDeg, this.aspect) * STAGE_CONSTANTS.FAN_MARGIN_RATIO;
+  }
+
+  private clearSkillProjectiles(): void {
+    this.activeSkillBlades = [];
+    this.skillHitEvents = [];
+  }
+
+  private pushSkillHitEvent(event: SkillHitEvent): void {
+    this.skillHitEvents.push(event);
+    if (this.skillHitEvents.length > 128) this.skillHitEvents.shift();
+  }
+
+  private advanceSkillBlades(nowMs: number, dtSec: number): void {
+    if (this.activeSkillBlades.length === 0) return;
+    const { speedMps, halfWidthM } = GAME_TUNING.skills.blade;
+    const maxRadiusM = STAGE_CONSTANTS.SPAWN_RADIUS_M + 1;
+    for (let b = this.activeSkillBlades.length - 1; b >= 0; b--) {
+      const blade = this.activeSkillBlades[b];
+      blade.radiusM += speedMps * dtSec;
+      const candidates = this.activeTargets
+        .filter(
+          (t) =>
+            !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isGoldenCan &&
+            this.isTargetLanded(t, nowMs) &&
+            !blade.hitTargetIds.has(t.id) &&
+            t.radiusM <= blade.radiusM &&
+            Math.cos(t.thetaRad - blade.thetaRad) > 0 &&
+            Math.abs(t.radiusM * Math.sin(t.thetaRad - blade.thetaRad)) <= halfWidthM + t.hitRadiusM
+        )
+        .sort((a, c) => a.radiusM - c.radiusM);
+      for (const t of candidates) {
+        if (!this.activeTargets.includes(t)) continue; // 보스 처치가 필드를 비울 수 있다
+        if (t.isProjectile) {
+          this.activeTargets.splice(this.activeTargets.indexOf(t), 1);
+          this.scoreManager.registerHit('PERFECT', t.killBonusScore, true);
+          this.pushSkillHitEvent({ source: 'blade', target: t, killed: true, blocked: false });
+          continue;
+        }
+        if (blade.hitsLeft <= 0) continue; // 남은 포탄은 계속 벤다
+        blade.hitsLeft -= 1;
+        blade.hitTargetIds.add(t.id);
+        const blocked = Boolean(t.isShielded);
+        const killed = this.applySkillDamage(t, t.kind === 'boss' ? blade.bossDamage : blade.damage, nowMs);
+        this.pushSkillHitEvent({ source: 'blade', target: t, killed, blocked });
+        if (this.gamePhase === 'VICTORY') {
+          this.activeSkillBlades = [];
+          return;
+        }
+      }
+      if (blade.hitsLeft <= 0 || blade.radiusM > maxRadiusM) this.activeSkillBlades.splice(b, 1);
+    }
+  }
+
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
     const weaponState = this.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
@@ -2150,24 +2250,23 @@ export class BeerCrusherEngine {
         plungerCount: levelSpec.skillPlungerCount,
       };
     } else if (weaponKind === 'revolver') {
-      // 2. 오프너 불릿 타임 & 참격: All monsters get slowed & slashed
-      for (let i = activeMonsters.length - 1; i >= 0; i--) {
-        const monster = activeMonsters[i];
-        if (monster.kind !== 'boss') {
-          monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
-          monster.slowRatio = levelSpec.skillSlowRatio;
-        }
-        affectedTargets.push(monster);
-
-        this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
-        if (this.gamePhase === 'VICTORY') break;
+      // 2. 오프너 참격: 부채꼴 칼날. 피해는 칼날이 닿는 순간 advanceSkillBlades가 준다.
+      const range = this.getSkillFanHalfRangeRad();
+      const count = levelSpec.skillBladeCount;
+      const bonus = this.weaponSystem.getDamageBonusMultiplier();
+      for (let i = 0; i < count; i++) {
+        this.skillEntityCounter += 1;
+        this.activeSkillBlades.push({
+          id: `blade_${this.skillEntityCounter}`,
+          thetaRad: -range + ((2 * i + 1) * range) / count,
+          radiusM: GAME_TUNING.skills.blade.startRadiusM,
+          hitsLeft: levelSpec.skillBladePierce + 1,
+          hitTargetIds: new Set(),
+          damage: Number((levelSpec.skillDamage * bonus).toFixed(3)),
+          bossDamage: Number((levelSpec.skillBossDamage * bonus).toFixed(3)),
+        });
       }
-      return {
-        activated: true,
-        weaponKind,
-        weaponLevel,
-        affectedTargets,
-      };
+      return { activated: true, weaponKind, weaponLevel, affectedTargets, bladeCount: count };
     } else {
       // 3. gatling: 거품 해일 160도 오버히트: Arc knockback & slow
       const halfArcRad = ((levelSpec.skillArcDeg / 2) * Math.PI) / 180;

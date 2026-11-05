@@ -41,6 +41,18 @@ export const GAME_TUNING = {
     holdIntervalScaleByWeapon: { shotgun: 0.7, revolver: 0.7, gatling: 0.85 },
   },
   weaponDamageScale: { shotgun: 1.2, revolver: 1.0, gatling: 2.0 },
+  /** 스킬 수치. 리볼버 칼날 피해는 평타 GREAT 한 발과 같아 무기 표에서 자동으로 맞춘다. */
+  skills: {
+    blade: {
+      countByLevel: { 1: 3, 2: 3, 3: 5, 4: 7 },
+      pierceByLevel: { 1: 0, 2: 1, 3: 1, 4: 2 },
+      bossDamageByLevel: { 1: 2, 2: 2.5, 3: 3, 4: 3.5 },
+      /** 칼날 좌우 절반 폭. 맞는 조건은 횡거리 <= halfWidthM + hitRadiusM. 화면 폭도 이 값으로 그린다. */
+      halfWidthM: 0.7,
+      speedMps: 40,
+      startRadiusM: 3,
+    },
+  },
   /** 무기·레벨별 기본 탄수. rapid_reload 카드가 장당 +2발 더한다. */
   maxAmmoByWeapon: {
     shotgun: { 1: 10, 2: 10, 3: 12, 4: 12 },

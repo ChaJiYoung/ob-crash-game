@@ -9,6 +9,7 @@ import {
   WeaponArchetypeSpec,
   WeaponKind,
   WeaponLevel,
+  WeaponLevelSpec,
 } from './types';
 import { GAME_TUNING } from './gameTuning';
 
@@ -186,9 +187,12 @@ export const STAGE_CONSTANTS = {
 
 /**
  * 기본 무기 표. maxAmmo·reloadDurationMs·skillCooldownMs(·fireIntervalMs·damagePerHit)는 아래 applyWeaponTuning이
- * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다. 난이도는 gameTuning.ts에서 조정한다.
+ * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다(리볼버 skillDamage·skillBossDamage도 덮어쓴다). 난이도는 gameTuning.ts에서 조정한다.
  */
-const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
+type BaseWeaponLevelSpec = Omit<WeaponLevelSpec, 'skillBladeCount' | 'skillBladePierce'>;
+type BaseWeaponArchetypeSpec = Omit<WeaponArchetypeSpec, 'levels'> & { levels: Record<WeaponLevel, BaseWeaponLevelSpec> };
+
+const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> = {
   shotgun: {
     kind: 'shotgun',
     nameKo: '맥주관 뚫어뻥 샷건',
@@ -295,7 +299,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
     nameKo: '황금 병따개 리볼버',
     badgeIcon: '🍾',
     accentColorHex: '#f59e0b',
-    descriptionKo: '초정밀 일직선 관통 탄환과 불릿 타임',
+    descriptionKo: '초정밀 일직선 관통 탄환과 부채꼴 칼날',
     levels: {
       1: {
         level: 1,
@@ -308,12 +312,12 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
         maxAmmo: 5,
         reloadDurationMs: 1400,
         fireIntervalMs: 280,
-        skillNameKo: '오프너 불릿 타임 & 참격',
+        skillNameKo: '오프너 참격',
         skillDamage: 0.6,
         skillBossDamage: 4,
         skillStunMs: 0,
-        skillSlowRatio: 0.40,
-        skillSlowMs: 3500,
+        skillSlowRatio: 0,
+        skillSlowMs: 0,
         skillKnockbackM: 0,
         skillArcDeg: 0,
         skillPlungerCount: 0,
@@ -331,12 +335,12 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
         maxAmmo: 6,
         reloadDurationMs: 1200,
         fireIntervalMs: 250,
-        skillNameKo: '오프너 불릿 타임 & 참격',
+        skillNameKo: '오프너 참격',
         skillDamage: 0.8,
         skillBossDamage: 5,
         skillStunMs: 0,
-        skillSlowRatio: 0.45,
-        skillSlowMs: 4000,
+        skillSlowRatio: 0,
+        skillSlowMs: 0,
         skillKnockbackM: 0,
         skillArcDeg: 0,
         skillPlungerCount: 0,
@@ -354,12 +358,12 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
         maxAmmo: 6,
         reloadDurationMs: 1100,
         fireIntervalMs: 230,
-        skillNameKo: '오프너 불릿 타임 & 참격',
+        skillNameKo: '오프너 참격',
         skillDamage: 1.1,
         skillBossDamage: 6,
         skillStunMs: 0,
-        skillSlowRatio: 0.50,
-        skillSlowMs: 4500,
+        skillSlowRatio: 0,
+        skillSlowMs: 0,
         skillKnockbackM: 0,
         skillArcDeg: 0,
         skillPlungerCount: 0,
@@ -377,12 +381,12 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
         maxAmmo: 7,
         reloadDurationMs: 1000,
         fireIntervalMs: 210,
-        skillNameKo: '오프너 불릿 타임 & 참격',
+        skillNameKo: '오프너 참격',
         skillDamage: 1.4,
         skillBossDamage: 7,
         skillStunMs: 0,
-        skillSlowRatio: 0.60,
-        skillSlowMs: 5000,
+        skillSlowRatio: 0,
+        skillSlowMs: 0,
         skillKnockbackM: 0,
         skillArcDeg: 0,
         skillPlungerCount: 0,
@@ -498,20 +502,25 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
  * 기본 무기 표에 난이도 수치를 덮어쓴 복사본을 만든다. 원본 객체는 바꾸지 않는다.
  */
 function applyWeaponTuning(
-  base: Record<WeaponKind, WeaponArchetypeSpec>
+  base: Record<WeaponKind, BaseWeaponArchetypeSpec>
 ): Record<WeaponKind, WeaponArchetypeSpec> {
   const out = {} as Record<WeaponKind, WeaponArchetypeSpec>;
   (Object.keys(base) as WeaponKind[]).forEach((kind) => {
     const levels = {} as WeaponArchetypeSpec['levels'];
     ([1, 2, 3, 4] as WeaponLevel[]).forEach((lv) => {
       const b = base[kind].levels[lv];
+      const damagePerHit = Number((b.damagePerHit * GAME_TUNING.weaponDamageScale[kind]).toFixed(3));
+      const blade = GAME_TUNING.skills.blade;
       levels[lv] = {
         ...b,
         skillCooldownMs: GAME_TUNING.skillCooldownMsByLevel[lv],
         fireIntervalMs: Math.round(b.fireIntervalMs * GAME_TUNING.fire.intervalScale),
         reloadDurationMs: Math.round(b.reloadDurationMs * GAME_TUNING.fire.reloadScale),
-        damagePerHit: Number((b.damagePerHit * GAME_TUNING.weaponDamageScale[kind]).toFixed(3)),
+        damagePerHit,
         maxAmmo: GAME_TUNING.maxAmmoByWeapon[kind][lv],
+        skillBladeCount: kind === 'revolver' ? blade.countByLevel[lv] : 0,
+        skillBladePierce: kind === 'revolver' ? blade.pierceByLevel[lv] : 0,
+        ...(kind === 'revolver' ? { skillDamage: damagePerHit, skillBossDamage: blade.bossDamageByLevel[lv] } : {}),
       };
     });
     out[kind] = { ...base[kind], levels };

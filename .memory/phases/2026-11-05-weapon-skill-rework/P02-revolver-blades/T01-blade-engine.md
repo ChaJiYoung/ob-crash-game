@@ -1,6 +1,6 @@
 # Task: T01 칼날 수치와 엔진 판정
 
-## Status: pending
+## Status: done
 
 ## Goal
 리볼버 스킬이 필드 전체 즉시 피해 + 둔화 대신, 엔진이 관리하는 칼날을 부채꼴로 날려 닿은 대상만 맞히게 한다. 화면 연출은 다음 Task에서 얹으므로, 이 Task 완료 시점에는 기존 부메랑이 그대로 보인다.
@@ -228,6 +228,6 @@ Task: T01-blade-engine
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
