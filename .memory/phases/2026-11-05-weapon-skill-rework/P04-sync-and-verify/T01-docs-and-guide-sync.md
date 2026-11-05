@@ -82,9 +82,9 @@
   `expected`를 `const` 배열로 만든 뒤 push한다.
 
 ## Acceptance Criteria
-- [ ] 게임 내 가이드와 문서에 불릿 타임, 오프너 부메랑, 160도, 오버히트가 없다.
-- [ ] 가이드의 칼날 수·관통·밀기 값이 `GAME_TUNING`을 읽는다.
-- [ ] 새 스크린샷이 칼날과 거품을 실제로 보여 준다.
+- [x] 게임 내 가이드와 문서에 불릿 타임, 오프너 부메랑, 160도, 오버히트가 없다.
+- [x] 가이드의 칼날 수·관통·밀기 값이 `GAME_TUNING`을 읽는다.
+- [x] 새 스크린샷이 칼날과 거품을 실제로 보여 준다.
 
 ## Validation
 - `npx vitest run tests/docs-sync.test.ts tests/tutorial-and-guide.test.ts` — 통과
@@ -107,4 +107,4 @@ Task: T01-docs-and-guide-sync
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: ba178bf

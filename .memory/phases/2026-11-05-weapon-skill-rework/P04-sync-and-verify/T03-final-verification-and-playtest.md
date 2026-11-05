@@ -51,7 +51,7 @@
 4. 모든 Phase를 `done`으로 표시하고 `.memory/current.md`를 정리한다.
 
 ## Acceptance Criteria
-- [ ] `npm test`, `tsc`, `build`, 봇 플레이, 라이브 검증이 통과하고 결과가 체크리스트에 기록된다.
+- [x] `npm test`, `tsc`, `build`, 봇 플레이, 라이브 검증이 통과하고 결과가 체크리스트에 기록된다.
 - [ ] 사람이 플레이한 결과가 기록되고 `gameTuning.ts` 조정 또는 "그대로 OK"로 확정된다.
 - [ ] v5 여부가 사용자 답변으로 정해진다.
 - [ ] 이전 두 계획의 플레이 확인 Task가 닫힌다.
@@ -76,3 +76,7 @@ Task: T03-final-verification-and-playtest
 - [ ] 구현 완료
 - [ ] 검증 통과
 - commit: pending
+
+## 재개 리뷰 (2026-11-05)
+- P04 리뷰 및 자동 재검증 완료. 세부 결과는 플레이 체크리스트의 "P04 재개 리뷰" 참조.
+- 사용자: 아직 플레이하지 않음. 따라서 Status는 in_progress로 유지하고 사람 플레이 및 v5 결정을 기다린다.

@@ -10,7 +10,7 @@
 [T03 최종 자동 검증과 직접 플레이 (사람)](./phases/2026-11-05-weapon-skill-rework/P04-sync-and-verify/T03-final-verification-and-playtest.md)
 
 ## Status
-- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 리뷰 반영 완료, P02 전체 완료 + Opus 리뷰 반영(칼날 지난 구간만 판정, 종료 시 칼날 정리). P03 완료 + Opus 리뷰 반영, P04-T01·T02 완료, P04-T03 자동 검증 완료(npm test 376, tsc, build, 봇 VICTORY, 라이브 통과). **사람 직접 플레이 대기 중**
+- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 리뷰 반영 완료, P02 전체 완료 + Opus 리뷰 반영(칼날 지난 구간만 판정, 종료 시 칼날 정리). P03 완료 + Opus 리뷰 반영, P04-T01·T02 완료, P04-T03 자동 검증 완료(npm test 376, tsc, build, 봇 VICTORY, 라이브 통과). **P04 재개 리뷰·자동 재검증 완료(376 테스트, tsc, build, 봇 VICTORY, 라이브 오류 0). 사용자가 아직 플레이하지 않았다고 답변하여 사람 직접 플레이 대기 중**
 - 결정: [무기 스킬 개편 결정 문서](./decisions/2026-11-05-weapon-skill-rework.md)
 
 ## Paused Plan

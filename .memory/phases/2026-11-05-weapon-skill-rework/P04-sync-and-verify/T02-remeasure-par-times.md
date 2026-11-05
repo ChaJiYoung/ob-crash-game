@@ -27,9 +27,9 @@
    - 어떤 무기든 아주 부정확 봇이 70% 아래로 떨어지거나, 한 판 시간이 예측(약 200~245초)보다 크게 늘면 수치를 임의로 고치지 말고 사용자에게 보고한다.
 
 ## Acceptance Criteria
-- [ ] `parTimeSec` 7개가 새 측정값으로 바뀌고 근거가 주석에 남는다.
-- [ ] 세 무기의 봇 수치가 기록되고 예측과의 차이가 보고된다.
-- [ ] `RANKING_RULESET_VERSION`은 4 그대로다.
+- [x] `parTimeSec` 7개가 새 측정값으로 바뀌고 근거가 주석에 남는다.
+- [x] 세 무기의 봇 수치가 기록되고 예측과의 차이가 보고된다.
+- [x] `RANKING_RULESET_VERSION`은 4 그대로다.
 
 ## Validation
 - `npx tsx .memory/references/scripts/measure-wave-times.ts 30 all` — 웨이브별 시간이 출력된다
@@ -50,4 +50,4 @@ Task: T02-remeasure-par-times
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: 9e0176b
