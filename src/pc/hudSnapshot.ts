@@ -1,5 +1,5 @@
 import { ActiveBuffState, WeaponKind, WeaponLevel, TutorialStep } from '../shared/types';
-import { BeerCrusherEngine, WaveProgressInfo } from './engine/BeerCrusherEngine';
+import { BeerCrusherEngine, PassiveCardStack, WaveProgressInfo } from './engine/BeerCrusherEngine';
 
 /**
  * 전투 HUD가 그리는 값의 스냅샷.
@@ -48,6 +48,9 @@ export interface HudSnapshot {
   bossHpKey: string;
   bosses: BossHudInfo[];
   isBossWarning: boolean;
+  passiveCards: PassiveCardStack[];
+  /** passiveCards의 변화 감지용. 배열은 매번 새로 만들어지므로 이 문자열로 비교한다. */
+  passiveCardsKey: string;
   /** 마지막 보스를 잡은 뒤 연출이 진행 중이다. "BOSS DOWN!" 배너를 띄운다. */
   bossDown: boolean;
   /** `${wave}|${seconds}|${bonus}` while the wave-clear banner is up, '' otherwise. */
@@ -61,6 +64,7 @@ export const roundTo100Ms = (ms: number): number => Math.round(ms / 100) * 100;
 export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudSnapshot {
   const feverState = engine.scoreManager.getState();
   const weaponState = engine.weaponSystem.getState();
+  const passiveCards = engine.getPassiveCardStacks();
   const activeBuffs = engine.getActiveBuffs(nowMs).map((b) => ({
     ...b,
     remainingMs: roundTo100Ms(b.remainingMs),
@@ -104,6 +108,8 @@ export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudS
       maxHp: b.maxHp,
     })),
     isBossWarning: nowMs < engine.bossWarningUntilMs,
+    passiveCards,
+    passiveCardsKey: passiveCards.map((c) => `${c.kind}:${c.count}`).join(','),
     bossDown: engine.isBossClearSequence(),
     waveClearKey:
       engine.lastWaveClear && nowMs - engine.lastWaveClear.atMs < WAVE_CLEAR_BANNER_MS
@@ -116,7 +122,7 @@ export function isHudSnapshotEqual(a: HudSnapshot, b: HudSnapshot): boolean {
   if (a === b) return true;
   const keys = Object.keys(a) as (keyof HudSnapshot)[];
   for (const key of keys) {
-    if (key === 'activeBuffs' || key === 'waveProgress' || key === 'bosses') continue;
+    if (key === 'activeBuffs' || key === 'waveProgress' || key === 'bosses' || key === 'passiveCards') continue;
     if (a[key] !== b[key]) return false;
   }
   if (JSON.stringify(a.activeBuffs) !== JSON.stringify(b.activeBuffs)) return false;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActiveBuffState, PlayerProfile, TargetKind, WeaponKind, WeaponLevel } from '../../shared/types';
-import { ITEM_BUFF_SPECS, STAGE_CONSTANTS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
-import { WaveProgressInfo } from '../engine/BeerCrusherEngine';
+import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, STAGE_CONSTANTS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
+import { PassiveCardStack, WaveProgressInfo } from '../engine/BeerCrusherEngine';
 import type { BossHudInfo } from '../hudSnapshot';
 
 export interface MonsterHudProjection {
@@ -156,6 +156,7 @@ export interface ArcadeOverlayHUDProps {
   ammo: number;
   maxAmmo: number;
   isReloading: boolean;
+  passiveCards?: PassiveCardStack[];
   feverGauge: number;
   isFeverReady: boolean;
   isFeverActive: boolean;
@@ -172,6 +173,37 @@ export interface ArcadeOverlayHUDProps {
   onPause?: () => void;
 }
 
+/** 적용 중인 패시브 카드와 누적 수. 없으면 그리지 않는다. */
+export const PassiveCardBar: React.FC<{ cards: PassiveCardStack[] }> = ({ cards }) => {
+  if (cards.length === 0) return null;
+  return (
+    <div data-testid="passive-card-bar" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {cards.map((c) => (
+        <div
+          key={c.kind}
+          title={REWARD_CARD_SPECS[c.kind].nameKo}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '3px 8px',
+            borderRadius: '8px',
+            background: 'rgba(17, 24, 39, 0.96)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            fontSize: '13px',
+            fontWeight: 800,
+            color: '#e2e8f0',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span>{REWARD_CARD_SPECS[c.kind].icon}</span>
+          <span>×{c.count}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   player,
   score,
@@ -184,6 +216,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   ammo,
   maxAmmo,
   isReloading,
+  passiveCards = [],
   feverGauge,
   isFeverReady,
   isFeverActive,
@@ -556,6 +589,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
 
       {/* BOTTOM BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
         {/* BOTTOM-LEFT: Weapon Archetype, Dynamic Ammo & Active Skill Badge */}
         <div
           style={{
@@ -668,6 +702,9 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
               {skillBadge.skillStatusText}
             </span>
           </div>
+        </div>
+
+        <PassiveCardBar cards={passiveCards} />
         </div>
 
         {/* BOTTOM-RIGHT: Fever Gauge & Lock Badge */}

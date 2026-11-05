@@ -1,6 +1,6 @@
 # Task: T01 패시브 카드 HUD
 
-## Status: pending
+## Status: done
 
 ## Goal
 전투 중 무기 칸 옆에서 적용 중인 패시브 카드와 누적 수를 볼 수 있다.
@@ -41,8 +41,8 @@
 - 카드가 없으면 빈 배열, 누적 수 반영, 즉시 효과 카드 제외, 새 게임에서 초기화. 같은 상태의 스냅샷 두 개가 같다고 판단되고 카드를 얻으면 다르다고 판단됨. HUD 렌더링에 아이콘과 `×2`가 나오고 빈 경우 칸이 없음.
 
 ## Acceptance Criteria
-- [ ] 카드를 고르면 무기 칸 옆 표시가 늘어나고, 조준점과 스킬 표시를 가리지 않는다.
-- [ ] 값이 그대로면 HUD가 다시 그려지지 않는다.
+- [x] 카드를 고르면 무기 칸 옆 표시가 늘어나고, 조준점과 스킬 표시를 가리지 않는다.
+- [x] 값이 그대로면 HUD가 다시 그려지지 않는다.
 
 ## Validation
 - `npx vitest run tests/passive-card-hud.test.ts`, `npm test`, `npx tsc --noEmit`, `npm run build` — 통과
@@ -62,6 +62,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

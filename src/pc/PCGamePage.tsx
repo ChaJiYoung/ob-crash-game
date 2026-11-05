@@ -1105,6 +1105,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           <MonsterHpBarLayer ref={hpLayerRef} />
           <ArcadeOverlayHUD
             player={pairedPlayer}
+            passiveCards={hudState.passiveCards}
             score={hudState.score}
             combo={hudState.combo}
             comboMultiplier={hudState.comboMultiplier}

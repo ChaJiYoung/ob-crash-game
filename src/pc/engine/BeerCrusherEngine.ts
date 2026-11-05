@@ -152,6 +152,11 @@ export type BossClearEvent =
 
 export type SkillHitSource = 'blade' | 'foam' | 'blast';
 
+export interface PassiveCardStack {
+  kind: RewardCardKind;
+  count: number;
+}
+
 export interface HanmacBlastEvent {
   x: number;
   y: number;
@@ -1857,6 +1862,19 @@ export class BeerCrusherEngine {
       weaponLevel: weapon.weaponLevel,
       cardStacks: { ...this.cardStacks },
     };
+  }
+
+  /** 적용 중인 패시브 카드. 즉시 효과 카드(레벨업, 수리, 피버 부스터)는 쌓이지 않으므로 없다. */
+  public getPassiveCardStacks(): PassiveCardStack[] {
+    const stacks: PassiveCardStack[] = [
+      { kind: 'damage_up', count: this.cardStacks.damage_up },
+      { kind: 'skill_cooldown', count: this.cardStacks.skill_cooldown },
+      { kind: 'fever_extend', count: this.cardStacks.fever_extend },
+      { kind: 'hit_zone_up', count: this.cardStacks.hit_zone_up },
+      { kind: 'rapid_reload', count: this.weaponSystem.getRapidReloadStacks() },
+      { kind: 'lucky_drop', count: this.luckyDropStacks },
+    ];
+    return stacks.filter((s) => s.count > 0);
   }
 
   private declareVictory(): void {
