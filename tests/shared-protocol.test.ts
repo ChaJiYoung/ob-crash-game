@@ -30,7 +30,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(TARGET_SPECS.obi.maxHp).toBe(2);
     expect(TARGET_SPECS.hanmac.maxHp).toBe(3); // Rebalanced from 2 -> 3
     expect(TARGET_SPECS.bottle.maxHp).toBe(4); // Rebalanced from 3 -> 4
-    expect(TARGET_SPECS.bottle.speedMps).toBe(1.5);
+    expect(TARGET_SPECS.bottle.speedMps).toBe(2.0);
     expect(TARGET_SPECS.bottle.killBonusScore).toBe(160);
     expect(TARGET_SPECS.bottle.isAirborne).toBe(false);
     expect(TARGET_SPECS.boss.maxHp).toBe(60); // Rebalanced from 50 -> 60

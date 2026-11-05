@@ -99,8 +99,8 @@ export const GAME_TUNING = {
   },
   /** 일반 몬스터 처치 시 아이템 드롭 기본 확률(행운 배율 전). */
   itemDropChance: 0.04,
-  /** 웨이브당 일반 몬스터 속도 증가율(체력은 웨이브별로 올리지 않는다). */
-  speedPerWave: 0.04,
+  /** 웨이브당 일반 몬스터 속도 증가율(체력은 웨이브별로 올리지 않는다). 7웨이브에서 기본 속도의 1.48배. */
+  speedPerWave: 0.08,
   boss: {
     startRadiusM: 16,
     stopRadiusM: 10,

@@ -70,7 +70,7 @@ const MONSTER_DETAILS: Record<
   },
   obi: {
     role: '지상 방패병 · 방패를 들었다 내리는 타이밍형 (2HP)',
-    speedText: '1.9 m/s',
+    speedText: '2.2 m/s',
     description: `푸른 방패를 ${GAME_TUNING.monsters.obi.guardUpMs / 1000}초 들고 ${GAME_TUNING.monsters.obi.guardDownMs / 1000}초 내리기를 반복합니다. 방패가 올라가 있으면 총알이 튕겨 나가고(점수·피버 없음) 탄약만 소모됩니다.`,
     tip: '방패가 내려간 순간에만 쏘세요! 액티브 스킬은 방패를 뚫습니다. 개체마다 방패 타이밍이 달라 다른 오비를 먼저 노리는 것도 방법입니다.',
     imageSrc: '/docs/screens/monster-03-obi.png',
@@ -84,7 +84,7 @@ const MONSTER_DETAILS: Record<
   },
   bottle: {
     role: '지상 대형 탱커 · 깨지면 작은 병 2마리로 분열 (4HP)',
-    speedText: '1.5 m/s',
+    speedText: '2.0 m/s',
     description: '대형 카스 500ml 투명병. 깨지는 순간 작고 빠른 병 2마리(체력 1)로 갈라져 양옆에서 달려옵니다. 작은 병은 다시 나뉘지 않습니다.',
     tip: '체력 4! 큰 병을 깬 뒤 양옆으로 갈라지는 작은 병을 바로 이어서 잡으세요. 작은 병까지 잡아야 웨이브가 끝납니다.',
     imageSrc: '/docs/screens/monster-05-cass-bottle.png',

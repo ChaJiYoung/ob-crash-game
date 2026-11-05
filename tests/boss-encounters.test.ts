@@ -177,7 +177,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     expect(boss / normal).toBeCloseTo(GAME_TUNING.boss.hitZoneScale, 2);
   });
 
-  it('scales normal monster speed by +4% per wave but not boss speed', () => {
+  it('scales normal monster speed by the per-wave rate but not boss speed', () => {
     const spy = vi.spyOn(Math, 'random').mockReturnValue(0); // always the first kind in the wave list: pilgood
     try {
       const speedAt = (wave: number) => {
@@ -191,7 +191,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       };
       const w1 = speedAt(1);
       const w4 = speedAt(4);
-      expect(w4 / w1).toBeCloseTo(1.12, 3);
+      expect(w4 / w1).toBeCloseTo((1 + GAME_TUNING.speedPerWave * 3) / 1, 3);
     } finally {
       spy.mockRestore();
     }
