@@ -843,6 +843,32 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         </div>
       )}
 
+      {/* Boss defeated: shown while the clear sequence runs, then the cards (or the result) follow */}
+      {gamePhase === 'PLAYING' && hudState.bossDown && (
+        <div
+          data-testid="boss-down-banner"
+          style={{
+            position: 'absolute',
+            top: '38%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 125,
+            color: '#fbbf24',
+            fontSize: '56px',
+            fontWeight: 900,
+            letterSpacing: '0.08em',
+            textShadow: '0 0 18px rgba(251, 191, 36, 0.8), 0 4px 0 #78350f, 0 0 2px #000',
+            WebkitTextStroke: '2px #78350f',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+            animation: 'boss-down-pop 0.35s ease-out',
+          }}
+        >
+          <style>{`@keyframes boss-down-pop { from { transform: translateX(-50%) scale(0.4); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }`}</style>
+          BOSS DOWN!
+        </div>
+      )}
+
       {/* Wave clear: clear time and time bonus */}
       {gamePhase === 'PLAYING' && hudState.waveClearKey !== '' && (() => {
         const [waveStr, secStr, bonusStr] = hudState.waveClearKey.split('|');

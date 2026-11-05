@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import * as THREE from 'three';
+import fs from 'node:fs';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
+import { buildHudSnapshot } from '../src/pc/hudSnapshot';
+import { ParticleEffects3D } from '../src/pc/three/ParticleEffects3D';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 
 const DUR = GAME_TUNING.boss.clear.durationMs;
@@ -160,5 +164,28 @@ describe('boss clear sequence', () => {
     engine.startWave(4);
     expect(engine.isBossClearSequence()).toBe(false);
     expect(engine.drainBossClearEvents()).toEqual([]);
+  });
+
+  it('the HUD snapshot raises bossDown only while the sequence runs', () => {
+    startBossWave(engine, 3, now);
+    expect(buildHudSnapshot(engine, now).bossDown).toBe(false);
+    killBoss(bosses(engine)[0]);
+    expect(buildHudSnapshot(engine, now).bossDown).toBe(true);
+    for (let t = 0; t < DUR + 200; t += 50) step();
+    expect(buildHudSnapshot(engine, now).bossDown).toBe(false);
+  });
+
+  it('the page renders a BOSS DOWN banner from that value, away from the wave-clear banner', () => {
+    const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    expect(page).toContain('data-testid="boss-down-banner"');
+    expect(page).toContain('hudState.bossDown');
+    expect(page).toContain('BOSS DOWN!');
+  });
+
+  it('the defeat burst adds many particles at the boss position', () => {
+    const fx = new ParticleEffects3D();
+    const before = fx.activeParticleCount;
+    fx.spawnBossDefeatBurst(new THREE.Vector3(0, 1.5, -10));
+    expect(fx.activeParticleCount - before).toBeGreaterThanOrEqual(40);
   });
 });

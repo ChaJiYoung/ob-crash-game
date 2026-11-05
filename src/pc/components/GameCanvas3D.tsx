@@ -533,6 +533,18 @@ export const GameCanvas3D = React.memo(
           if (ev.source === 'blade') particles.spawnSlashMark(pos);
         }
 
+        // 보스 처치 연출: 큰 폭발 한 번, 남은 몬스터는 연쇄로 터진다(점수 없음).
+        for (const ev of engine.drainBossClearEvents()) {
+          if (ev.type === 'defeated') {
+            particles.spawnBossDefeatBurst(new THREE.Vector3(ev.x, ev.y + 0.6, ev.z));
+            continue;
+          }
+          const nowMs = performance.now();
+          const canSound = nowMs - lastSkillHitSoundMs >= SKILL_HIT_SOUND_GAP_MS;
+          if (canSound) lastSkillHitSoundMs = nowMs;
+          playTargetBurst(particles, soundSynth, ev.target, computeSkillHitFxPosition(ev.target), true, canSound);
+        }
+
         // Sync 3D Target Meshes
         activeIds.clear();
         for (let i = 0; i < engine.activeTargets.length; i++) {

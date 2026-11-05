@@ -1,6 +1,6 @@
 # Task: T02 보스 처치 화면 연출
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진의 보스 처치 사건을 받아 큰 폭발, 연쇄 폭발, 중앙 "BOSS DOWN!" 배너를 보여 준다.
@@ -80,6 +80,6 @@ Task: T02-boss-clear-visuals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

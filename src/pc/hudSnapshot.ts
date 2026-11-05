@@ -48,6 +48,8 @@ export interface HudSnapshot {
   bossHpKey: string;
   bosses: BossHudInfo[];
   isBossWarning: boolean;
+  /** 마지막 보스를 잡은 뒤 연출이 진행 중이다. "BOSS DOWN!" 배너를 띄운다. */
+  bossDown: boolean;
   /** `${wave}|${seconds}|${bonus}` while the wave-clear banner is up, '' otherwise. */
   waveClearKey: string;
 }
@@ -102,6 +104,7 @@ export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudS
       maxHp: b.maxHp,
     })),
     isBossWarning: nowMs < engine.bossWarningUntilMs,
+    bossDown: engine.isBossClearSequence(),
     waveClearKey:
       engine.lastWaveClear && nowMs - engine.lastWaveClear.atMs < WAVE_CLEAR_BANNER_MS
         ? `${engine.lastWaveClear.wave}|${engine.lastWaveClear.seconds.toFixed(1)}|${engine.lastWaveClear.bonus}`

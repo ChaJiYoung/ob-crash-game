@@ -4,13 +4,13 @@
 [후반 속도, 보스 소환 개편, 똥 모양 포탄, 보스 처치 연출](./plans/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Active Phase
-[P02 보스 처치 연출](./phases/2026-11-05-boss-summon-shell-and-speed/P02-boss-clear-effect/phase.md)
+[P03 똥 모양 포탄](./phases/2026-11-05-boss-summon-shell-and-speed/P03-poop-shell/phase.md)
 
 ## Active Task
-[T02 보스 처치 화면 연출](./phases/2026-11-05-boss-summon-shell-and-speed/P02-boss-clear-effect/T02-boss-clear-visuals.md)
+[T01 똥 모양 포탄과 발사 연출](./phases/2026-11-05-boss-summon-shell-and-speed/P03-poop-shell/T01-poop-shell.md)
 
 ## Status
-- P01 완료(속도, 방패 제거, 체력 구간 소환)
+- P01~P02 완료(속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
 - 결정: [결정 문서](./decisions/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Paused Plan
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단은 P04-T03 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-P02-T02: HUD 스냅샷 bossDown 값, BOSS DOWN! 배너, 3D 큰 폭발·연쇄 폭발 연출을 넣는다.
+P03-T01: 똥 모델, 굴러오는 움직임, 발사 사건·분출 연출, 갈색 파편.

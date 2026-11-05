@@ -729,6 +729,13 @@ export class ParticleEffects3D {
     }
   }
 
+  /** 보스가 터지는 큰 폭발: 금색·흰색 파편과 유리 조각을 한꺼번에 뿜는다. */
+  public spawnBossDefeatBurst(position: THREE.Vector3): void {
+    this.spawnHitEffect(position, '#fbbf24', 30);
+    this.spawnHitEffect(position, '#ffffff', 30);
+    this.triggerBottleCrash(position, 5);
+  }
+
   public spawnHitEffect(origin: THREE.Vector3, colorHex: string, count: number = HIT_PARTICLE_COUNTS.hit): void {
     const color = new THREE.Color(colorHex);
     for (let i = 0; i < count; i++) {
