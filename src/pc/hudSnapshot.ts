@@ -25,6 +25,8 @@ export interface HudSnapshot {
   ammo: number;
   maxAmmo: number;
   isReloading: boolean;
+  /** 현재 무기·레벨·카드 보정이 반영된 장전 시간(ms). 장전 게이지 링의 애니메이션 길이. */
+  reloadDurationMs: number;
   feverGauge: number;
   isFeverReady: boolean;
   isFeverActive: boolean;
@@ -74,6 +76,7 @@ export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudS
     ammo: weaponState.ammo,
     maxAmmo: weaponState.maxAmmo,
     isReloading: weaponState.isReloading,
+    reloadDurationMs: engine.weaponSystem.getReloadDurationMs(),
     feverGauge: feverState.feverGauge,
     isFeverReady: feverState.isFeverReady,
     isFeverActive: feverState.isFeverActive,

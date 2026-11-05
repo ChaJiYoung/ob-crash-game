@@ -1,6 +1,6 @@
 # Task: T01 HUD 스냅샷에 장전 시간 추가
 
-## Status: pending
+## Status: done
 
 ## Goal
 게이지 링이 "얼마 동안 채울지" 알도록 HUD 스냅샷에 현재 무기의 장전 시간(`reloadDurationMs`)을 넣는다. 링을 그리는 컴포넌트가 엔진을 직접 읽지 않고 스냅샷만 보게 하려는 것이다.
@@ -61,6 +61,6 @@ Task: T01-hud-snapshot-reload-duration
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

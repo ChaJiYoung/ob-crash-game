@@ -70,4 +70,17 @@ describe('HUD snapshot (gameplay-polish P01-T07)', () => {
     expect(withBoss.bossHpKey).toContain('boss_1');
     expect(isHudSnapshotEqual(pending, withBoss)).toBe(false);
   });
+
+  it('exposes the reload duration and notices a rapid_reload change', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    const before = buildHudSnapshot(engine, 1000);
+    expect(before.reloadDurationMs).toBe(engine.weaponSystem.getReloadDurationMs());
+    expect(before.reloadDurationMs).toBe(1680); // shotgun Lv.1: 1400 x 1.2
+
+    engine.weaponSystem.applyRapidReloadBuff();
+    const after = buildHudSnapshot(engine, 1000);
+    expect(after.reloadDurationMs).toBe(1344); // 1680 x 0.8
+    expect(isHudSnapshotEqual(before, after)).toBe(false);
+  });
 });
