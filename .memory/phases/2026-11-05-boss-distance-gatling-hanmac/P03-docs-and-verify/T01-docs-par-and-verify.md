@@ -1,6 +1,6 @@
 # Task: T01 기준 시간, 문서, 스크린샷, 검증
 
-## Status: pending
+## Status: done
 
 ## Goal
 웨이브 기준 시간과 문서가 새 규칙과 맞고 자동 검증을 통과한다.
@@ -18,7 +18,7 @@
 - `scripts/capture-boss-and-shell.mjs` 재실행.
 
 ## Acceptance Criteria
-- [ ] 문서에 옛 규칙이 없고 전체 검증이 통과한다.
+- [x] 문서에 옛 규칙이 없고 전체 검증이 통과한다.
 
 ## Validation
 - `npm test && npx tsc --noEmit && npm run build`, `node scripts/playtest-bot.mjs`, `node scripts/verify-live.mjs` — 통과
@@ -38,6 +38,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

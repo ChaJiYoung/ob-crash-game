@@ -8,6 +8,6 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 튜닝 값 변경(거리, 탄창, 오비 비중) | [P01](../phases/2026-11-05-boss-distance-gatling-hanmac/P01-rule-values/phase.md) |
-| P02 | `pending` | 한맥 발사 제거와 폭탄 캔 | [P02](../phases/2026-11-05-boss-distance-gatling-hanmac/P02-hanmac-bomb/phase.md) |
-| P03 | `pending` | 기준 시간, 문서, 스크린샷, 최종 검증 | [P03](../phases/2026-11-05-boss-distance-gatling-hanmac/P03-docs-and-verify/phase.md) |
+| P01 | `done` | 튜닝 값 변경(거리, 탄창, 오비 비중) | [P01](../phases/2026-11-05-boss-distance-gatling-hanmac/P01-rule-values/phase.md) |
+| P02 | `done` | 한맥 발사 제거와 폭탄 캔 | [P02](../phases/2026-11-05-boss-distance-gatling-hanmac/P02-hanmac-bomb/phase.md) |
+| P03 | `done` | 기준 시간, 문서, 스크린샷, 최종 검증 | [P03](../phases/2026-11-05-boss-distance-gatling-hanmac/P03-docs-and-verify/phase.md) |
