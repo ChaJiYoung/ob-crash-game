@@ -10,5 +10,5 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | PC 방 코드 유지, 폰 자동 재연결, 재연결 뒤 PC 화면 동기화 | [P01](../phases/2026-11-06-controller-persistence-and-pause/P01-connection-persistence/phase.md) |
-| P02 | `pending` | 일시정지 메뉴, 끊김 자동 일시정지, 문서·전체 검증 | [P02](../phases/2026-11-06-controller-persistence-and-pause/P02-pause-menu/phase.md) |
+| P01 | `done` | PC 방 코드 유지, 폰 자동 재연결, 재연결 뒤 PC 화면 동기화 | [P01](../phases/2026-11-06-controller-persistence-and-pause/P01-connection-persistence/phase.md) |
+| P02 | `in_progress` | 일시정지 메뉴, 끊김 자동 일시정지, 문서·전체 검증 | [P02](../phases/2026-11-06-controller-persistence-and-pause/P02-pause-menu/phase.md) |

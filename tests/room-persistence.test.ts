@@ -119,3 +119,73 @@ describe('room persistence on the server', () => {
     expect(roomId).toMatch(/^[A-Z0-9]{3,8}$/);
   });
 });
+
+describe('resume flag relay', () => {
+  let tempDir: string;
+  let server: BeerCrusherServerInstance;
+  const sockets: WebSocket[] = [];
+
+  beforeEach(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bc-resume-'));
+    server = await createBeerCrusherServer({ port: 0, storePath: path.join(tempDir, 'players.json') });
+  });
+
+  afterEach(async () => {
+    for (const s of sockets.splice(0)) s.close();
+    await server.close();
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  async function open() {
+    const ws = new WebSocket(`ws://127.0.0.1:${server.port}`);
+    const inbox: ServerToClientMessage[] = [];
+    ws.on('message', (raw) => inbox.push(JSON.parse(raw.toString())));
+    await new Promise<void>((resolve) => ws.on('open', () => resolve()));
+    sockets.push(ws);
+    const waitFor = async (type: ServerToClientMessage['type'], from = 0) => {
+      for (let i = 0; i < 100; i++) {
+        const found = inbox.slice(from).find((m) => m.type === type);
+        if (found) return found;
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      throw new Error(`timed out waiting for ${type}`);
+    };
+    return { ws, inbox, waitFor, send: (m: unknown) => ws.send(JSON.stringify(m)) };
+  }
+
+  it('relays resume only when the phone asked for it', async () => {
+    const pc = await open();
+    pc.send({ type: 'CREATE_ROOM' });
+    const { roomId } = (await pc.waitFor('ROOM_CREATED')) as { roomId: string };
+    const phone = await open();
+
+    phone.send({ type: 'CALIBRATE_ZERO', roomId, deviceId: 'dev-1', resume: true });
+    const resumed = (await pc.waitFor('ZERO_CALIBRATED')) as { resume?: boolean };
+    expect(resumed.resume).toBe(true);
+
+    const before = pc.inbox.length;
+    phone.send({ type: 'CALIBRATE_ZERO', roomId, deviceId: 'dev-1' });
+    const plain = (await pc.waitFor('ZERO_CALIBRATED', before)) as Record<string, unknown>;
+    expect('resume' in plain).toBe(false);
+  });
+
+  it('tells the PC when a registered phone drops and comes back', async () => {
+    const pc = await open();
+    pc.send({ type: 'CREATE_ROOM' });
+    const { roomId } = (await pc.waitFor('ROOM_CREATED')) as { roomId: string };
+
+    const phone1 = await open();
+    phone1.send({ type: 'REGISTER_NICKNAME', roomId, deviceId: 'dev-9', nickname: '재접속' });
+    await pc.waitFor('CONTROLLER_PAIRED');
+
+    const mark = pc.inbox.length;
+    phone1.ws.close();
+    const dropped = (await pc.waitFor('ERROR', mark)) as { code: string };
+    expect(dropped.code).toBe('CONTROLLER_DISCONNECTED');
+
+    const mark2 = pc.inbox.length;
+    const phone2 = await open();
+    phone2.send({ type: 'DEVICE_CHECK', roomId, deviceId: 'dev-9' });
+    await pc.waitFor('CONTROLLER_PAIRED', mark2);
+  });
+});

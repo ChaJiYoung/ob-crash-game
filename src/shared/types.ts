@@ -163,7 +163,7 @@ export type ClientToServerMessage =
   | { type: 'CREATE_ROOM'; roomId?: string }
   | { type: 'DEVICE_CHECK'; roomId: string; deviceId: string }
   | { type: 'REGISTER_NICKNAME'; roomId: string; deviceId: string; nickname: string }
-  | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string }
+  | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string; resume?: boolean }
   | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string }
   | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean }
@@ -190,7 +190,7 @@ export type ServerToClientMessage =
   | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; lanIp?: string }
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile }
-  | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string }
+  | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
   | { type: 'GAME_STARTED'; roomId: string }
   | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string }

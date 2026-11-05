@@ -281,6 +281,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             break;
 
           case 'ZERO_CALIBRATED':
+            if (msg.resume) {
+              // Only the phone's socket came back: keep the zero offset, and only move a lobby on to zeroing.
+              setIsZeroCalibrated(true);
+              if (gamePhaseRef.current === 'PAIRING') {
+                setGamePhase('ZEROING');
+              }
+              break;
+            }
             setIsZeroCalibrated(true);
             zeroOffsetRef.current = { offsetX: 0, offsetY: 0 };
             if (gamePhaseRef.current === 'PAIRING') {

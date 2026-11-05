@@ -45,6 +45,10 @@ export const MobileControllerPage: React.FC = () => {
 
   const [connectionState, setConnectionState] = useState<'CONNECTING' | 'CONNECTED' | 'RECONNECTING'>('CONNECTING');
   const hasConnectedBeforeRef = useRef<boolean>(false);
+  // True when the socket that just opened replaced an earlier one (the phone slept, the PC reloaded, ...).
+  const isReconnectOpenRef = useRef<boolean>(false);
+  const stepRef = useRef<'LOGIN_GATE' | 'ZEROING' | 'PAD'>('LOGIN_GATE');
+  stepRef.current = step;
   const wsRef = useRef<WebSocket | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const startCountdownRef = useRef<(sec?: number) => void>(() => {});
@@ -112,6 +116,7 @@ export const MobileControllerPage: React.FC = () => {
       socket.onopen = () => {
         if (wsRef.current !== socket) return;
         attempt = 0;
+        isReconnectOpenRef.current = hasConnectedBeforeRef.current;
         hasConnectedBeforeRef.current = true;
         setConnectionState('CONNECTED');
         socket.send(
@@ -141,7 +146,15 @@ export const MobileControllerPage: React.FC = () => {
               setIsNewUser(msg.isNewUser);
               if (msg.player) {
                 setPlayer(msg.player);
+                // The phone is already aimed (pad screen) and only its socket came back: tell the PC so a reloaded
+                // lobby can move on to the zeroing step. The phone's own zero is untouched.
+                if (isReconnectOpenRef.current && stepRef.current === 'PAD') {
+                  socket.send(
+                    JSON.stringify({ type: 'CALIBRATE_ZERO', roomId, deviceId, resume: true })
+                  );
+                }
               }
+              isReconnectOpenRef.current = false;
               break;
 
             case 'FEVER_STATUS_RELAY':

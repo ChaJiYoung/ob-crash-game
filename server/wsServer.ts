@@ -209,6 +209,8 @@ export async function createBeerCrusherServer(options?: {
                 type: 'ZERO_CALIBRATED',
                 roomId,
                 deviceId,
+                // Only a phone that re-attached its socket sets this; the PC then keeps its zero offset.
+                ...(msg.resume === true ? { resume: true } : {}),
               });
             }
             break;

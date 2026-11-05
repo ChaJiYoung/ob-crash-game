@@ -1,6 +1,6 @@
 # Task: T03 재연결 뒤 PC 화면 동기화
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC를 새로고침해 PAIRING으로 돌아온 상태에서 폰이 재연결되면, 폰이 이미 조준 완료 상태(`step === 'PAD'`)이므로 PC가 ZEROING으로 넘어가 '중앙을 쏘면 시작'이 동작한다. 게임 도중 폰만 재연결되면 PC의 영점 오프셋과 게임 상태는 건드리지 않는다.
@@ -79,6 +79,6 @@ Task: T03-resume-sync
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (this commit)
