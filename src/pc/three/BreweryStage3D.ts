@@ -225,29 +225,23 @@ export function buildBreweryStage3D(scene: THREE.Scene, onEnvironmentReady?: () 
   root.add(mainDirLight);
 
   // Emissive neon meshes replace the decorative point lights (D16): no per-pixel light cost.
-  const amberStripMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-  const amberStrip = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 0.12), amberStripMat);
-  amberStrip.position.set(0, 6, -14);
-  root.add(amberStrip);
 
   const cyanTubeMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
   const cyanTubeMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.2, 8), cyanTubeMat);
   cyanTubeMesh.position.set(-10, 5, -8);
   root.add(cyanTubeMesh);
 
-  const neonStrips: THREE.Mesh[] = [amberStrip, cyanTubeMesh];
+  const neonStrips: THREE.Mesh[] = [cyanTubeMesh];
 
   scene.add(root);
 
   const updateStageAnimation = (elapsedSec: number, isFeverActive: boolean, dangerAlert: boolean) => {
     // Neon strips + hemisphere light carry the fever/danger mood (no point lights).
     if (isFeverActive) {
-      amberStripMat.color.setHex(0xffd700);
       cyanTubeMat.color.setHex(0xf59e0b);
       hemiLight.color.setHex(0xffe08a);
       hemiLight.intensity = 1.05 + Math.sin(elapsedSec * 4) * 0.1;
     } else {
-      amberStripMat.color.setHex(0xf59e0b);
       cyanTubeMat.color.setHex(0x06b6d4);
       hemiLight.color.setHex(0xfff0d8);
       hemiLight.intensity = 0.85 + Math.sin(elapsedSec * 2) * 0.05;

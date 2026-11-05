@@ -146,7 +146,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(rig.root).toBeInstanceOf(THREE.Group);
     expect(rig.defenseArcMesh).toBeInstanceOf(THREE.Mesh);
     expect(rig.healPulseMesh).toBeInstanceOf(THREE.Mesh);
-    expect(rig.neonStrips.length).toBeGreaterThanOrEqual(2);
+    expect(rig.neonStrips.length).toBeGreaterThanOrEqual(1);
 
     // Initial state: heal pulse invisible
     expect(rig.healPulseMesh.visible).toBe(false);
@@ -178,12 +178,9 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     });
     expect(hasAmberSignBox).toBe(false);
 
-    // Verify the amber neon strip replaced the amber point light (D16)
-    const amberStrip = rig.neonStrips.find((m) => {
-      const hex = (m.material as THREE.MeshBasicMaterial).color.getHex();
-      return hex === 0xf59e0b || hex === 0xffd700;
-    });
-    expect(amberStrip).toBeDefined();
+    // The bare amber strip on the back wall read as a stray box and was removed too
+    const amberStrip = rig.neonStrips.find((m) => (m.geometry as THREE.BoxGeometry).type === 'BoxGeometry');
+    expect(amberStrip).toBeUndefined();
   });
 
   it('should not contain any point lights and should switch strips to gold in fever (gameplay-polish P01-T04)', () => {
@@ -197,11 +194,11 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(pointLights).toBe(0);
 
     rig.updateStageAnimation(1, true, false);
-    const amberMat = rig.neonStrips[0].material as THREE.MeshBasicMaterial;
-    expect(amberMat.color.getHex()).toBe(0xffd700);
+    const tubeMat = rig.neonStrips[0].material as THREE.MeshBasicMaterial;
+    expect(tubeMat.color.getHex()).toBe(0xf59e0b);
 
     rig.updateStageAnimation(1, false, false);
-    expect(amberMat.color.getHex()).toBe(0xf59e0b);
+    expect(tubeMat.color.getHex()).toBe(0x06b6d4);
   });
 
   it('should draw the defense line and heal pulse in front of the player (-Z), not behind (gameplay-polish P02-T01)', () => {
