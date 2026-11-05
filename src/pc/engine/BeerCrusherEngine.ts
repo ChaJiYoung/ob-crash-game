@@ -206,8 +206,6 @@ export class BeerCrusherEngine {
 
   public readonly scoreManager = new ScoreAndFeverManager();
   /** Game-clock start of the current wave; null until the wave's first running tick (shifted by freezeTimers). */
-  /** Game-clock start of the current boss encounter (summon acceleration ramp); null outside one. */
-  public bossEncounterStartMs: number | null = null;
   private waveStartMs: number | null = null;
   public waveTimeBonusTotal = 0;
   public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
@@ -228,8 +226,8 @@ export class BeerCrusherEngine {
 
   // Boss summon state
   public bossSummonActionUntilMs = 0;
-  public lastBossSummonTimeMs = 0;
-  public lastBossSummonHpThreshold = 45;
+  /** 보스 id별로 지나간 체력 구간 소환 횟수. */
+  private bossSummonCrossed: Map<string, number> = new Map();
   public bossWarningUntilMs = 0;
   private bossShooterIndex = 0;
 
@@ -377,13 +375,11 @@ export class BeerCrusherEngine {
     this.cardKillCount = 0;
     this.pendingWaveAdvance = false;
     this.bossSummonActionUntilMs = 0;
-    this.lastBossSummonTimeMs = 0;
-    this.lastBossSummonHpThreshold = 45;
+    this.bossSummonCrossed.clear();
     this.scoreManager.reset();
     this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
     this.precisionBonusApplied = 0;
     this.waveStartMs = null;
-    this.bossEncounterStartMs = null;
     this.waveTimeBonusTotal = 0;
     this.lastWaveClear = null;
     this.weaponSystem.reset();
@@ -416,10 +412,8 @@ export class BeerCrusherEngine {
     this.pendingWaveAdvance = false;
     this.cardKillCount = 0;
     this.bossSummonActionUntilMs = 0;
-    this.lastBossSummonTimeMs = 0;
-    this.lastBossSummonHpThreshold = 45;
+    this.bossSummonCrossed.clear();
     this.waveStartMs = null;
-    this.bossEncounterStartMs = null;
   }
 
   public spawnWeaponSelectTargets(nowMs = 0): void {
@@ -991,13 +985,18 @@ export class BeerCrusherEngine {
     return itemEntity;
   }
 
-  /** Summon gap: shrinks linearly the longer the boss fight drags on (stalling gets more dangerous). */
-  public getBossSummonIntervalMs(nowMs: number): number {
-    const base = GAME_TUNING.boss.summonIntervalMs;
-    if (this.bossEncounterStartMs === null) return base;
-    const { minIntervalMs, rampMs } = GAME_TUNING.boss.summonAccel;
-    const t = Math.min(1, Math.max(0, (nowMs - this.bossEncounterStartMs) / rampMs));
-    return Math.round(base + (minIntervalMs - base) * t);
+  /** 각 보스가 자기 최대 체력 대비 구간 값 아래로 내려갈 때마다 summonCount마리를 소환한다(시간이 아니라 체력 기준). */
+  private checkBossHpSummons(nowMs: number): void {
+    const thresholds = GAME_TUNING.boss.summonHpThresholds;
+    for (const boss of this.getBossEntities()) {
+      let crossed = this.bossSummonCrossed.get(boss.id) ?? 0;
+      const ratio = boss.hp / boss.maxHp;
+      while (crossed < thresholds.length && ratio <= thresholds[crossed]) {
+        crossed += 1;
+        this.spawnBossMinionWave(nowMs, GAME_TUNING.boss.summonCount);
+      }
+      this.bossSummonCrossed.set(boss.id, crossed);
+    }
   }
 
   /** False while a summoned minion is still falling in (it cannot be hit and does not act yet). */
@@ -1025,7 +1024,6 @@ export class BeerCrusherEngine {
   }
 
   public spawnBossMinionWave(nowMs: number, count = 4): ActiveTargetEntity[] {
-    this.lastBossSummonTimeMs = nowMs;
     this.bossSummonActionUntilMs = nowMs + 1800;
     const waveBoss = this.waveDefinitions[this.currentWave]?.boss;
     const kinds: readonly TargetKind[] = waveBoss
@@ -1081,11 +1079,9 @@ export class BeerCrusherEngine {
     this.scoreManager.shiftFeverTimer(deltaMs);
     this.weaponSystem.shiftReloadTimer(deltaMs);
     if (this.waveStartMs !== null) this.waveStartMs += deltaMs;
-    if (this.bossEncounterStartMs !== null) this.bossEncounterStartMs += deltaMs;
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
     if (this.lastBossProjectileMs > 0) this.lastBossProjectileMs += deltaMs;
-    if (this.lastBossSummonTimeMs !== 0) this.lastBossSummonTimeMs += deltaMs;
     for (const target of this.activeTargets) {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
@@ -1349,26 +1345,8 @@ export class BeerCrusherEngine {
       this.spawnMonsterProjectile(nowMs, 'boss', { thetaRad: shooter.thetaRad, radiusM: shooter.radiusM });
     }
 
-    // Boss encounter: one shared summon timer for the whole fight (no charging; bosses summon minions instead)
-    if (this.isBossEncounterActive) {
-      const inRange = this.getBossEntities().some((b) => b.radiusM <= GAME_TUNING.boss.summonRadiusM);
-      if (inRange && nowMs - this.lastBossSummonTimeMs >= this.getBossSummonIntervalMs(nowMs)) {
-        const activeMinions = this.activeTargets.filter(
-          (t) =>
-            !t.isItem &&
-            !t.isProjectile &&
-            !t.isGoldenCan &&
-            !t.weaponSelectKind &&
-            !t.rewardCardKind &&
-            t.kind !== 'boss'
-        ).length;
-
-        // Too many minions: skip now and check again next frame
-        if (activeMinions < GAME_TUNING.boss.summonMaxActive) {
-          this.spawnBossMinionWave(nowMs, GAME_TUNING.boss.summonCount);
-        }
-      }
-    }
+    // Boss encounter: minions drop in when a boss crosses an HP threshold (not on a timer)
+    if (this.isBossEncounterActive) this.checkBossHpSummons(nowMs);
 
     // 4. Check wave completion
     const monsterTargets = this.activeTargets.filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind);
@@ -1514,9 +1492,7 @@ export class BeerCrusherEngine {
     this.bossSpawned = true;
     this.isBossEncounterActive = true;
     this.bossWarningUntilMs = nowMs + 2000;
-    this.bossEncounterStartMs = nowMs;
-    this.lastBossSummonTimeMs = nowMs - GAME_TUNING.boss.summonIntervalMs + GAME_TUNING.boss.firstSummonDelayMs;
-    this.lastBossSummonHpThreshold = 0;
+    this.bossSummonCrossed.clear();
     this.bossShooterIndex = 0;
     this.lastBossProjectileMs = nowMs;
 
@@ -1616,8 +1592,7 @@ export class BeerCrusherEngine {
     if (target.kind === 'boss') {
       if (this.getBossEntities().length > 0) return; // other bosses remain
       this.isBossEncounterActive = false;
-      this.bossEncounterStartMs = null;
-      this.activeTargets = [];
+        this.activeTargets = [];
       this.isRewardCardPending = false;
       if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
         this.awardWaveTimeBonus(nowMs);

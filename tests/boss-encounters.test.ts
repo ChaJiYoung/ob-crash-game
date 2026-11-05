@@ -38,12 +38,12 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     expect(GAME_TUNING.waves.filter((w) => w.boss).map((w) => w.waveIndex)).toEqual([3, 5, 7]);
   });
 
-  it('spawns one 45hp cooler after the wave-3 mini-wave', () => {
+  it('spawns one cooler after the wave-3 mini-wave', () => {
     finishMiniWave(engine, 3, 1000);
     expect(engine.isBossEncounterActive).toBe(true);
     const b = bosses(engine);
     expect(b.length).toBe(1);
-    expect(b[0].hp).toBe(45);
+    expect(b[0].hp).toBe(GAME_TUNING.waves[2].boss!.coolerHp[0]);
     expect(b[0].bossRole).toBe('cooler');
     expect(b[0].thetaRad).toBe(0);
     expect(b[0].radiusM).toBe(GAME_TUNING.boss.startRadiusM);
@@ -68,7 +68,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     finishMiniWave(engine, 5, 1000);
     const b = bosses(engine);
     expect(b.length).toBe(2);
-    expect(b.map((x) => x.hp)).toEqual([40, 40]);
+    expect(b.map((x) => x.hp)).toEqual([...GAME_TUNING.waves[4].boss!.coolerHp]);
     expect(b[0].thetaRad).not.toBe(b[1].thetaRad);
     expect(Math.abs(b[0].thetaRad)).toBeCloseTo(GAME_TUNING.boss.coolerSpreadRad, 5);
 
@@ -84,9 +84,9 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     finishMiniWave(engine, 7, 1000);
     const b = bosses(engine);
     expect(b.length).toBe(3);
-    expect(b.filter((x) => x.bossRole === 'cooler').map((x) => x.hp)).toEqual([50, 50]);
+    expect(b.filter((x) => x.bossRole === 'cooler').map((x) => x.hp)).toEqual([...GAME_TUNING.waves[6].boss!.coolerHp]);
     const king = b.find((x) => x.bossRole === 'king')!;
-    expect(king.hp).toBe(120);
+    expect(king.hp).toBe(GAME_TUNING.waves[6].boss!.kingHp);
     expect(king.hitRadiusM).toBeCloseTo(2.1 * GAME_TUNING.boss.kingScale, 5);
 
     b.forEach((boss, i) => {
@@ -263,55 +263,6 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(opposite).toBeGreaterThan(100);
     });
 
-    it('summons 4 minions per summon (first after 2.5s, gaps shrinking from 8s), once per encounter even with two bosses', () => {
-      finishMiniWave(engine, 5, 100_000);
-      let now = 100_000;
-      const summons: { at: number; minions: number }[] = [];
-      let prev = (engine as any).lastBossSummonTimeMs; // the encounter's initial timer value is not a summon
-      for (let i = 0; i < 1000; i++) {
-        now += 50;
-        engine.update(now, 0.05);
-        const t = (engine as any).lastBossSummonTimeMs;
-        if (t !== prev) {
-          // Count the minions that appeared in this very frame (two bosses must still summon only 4)
-          summons.push({ at: t, minions: engine.activeTargets.filter((x) => x.id.startsWith('boss_minion_')).length });
-          prev = t;
-        }
-        engine.activeTargets = engine.activeTargets.filter((t2) => !t2.id.startsWith('boss_minion_') && !t2.isProjectile);
-      }
-      expect(summons.length).toBeGreaterThanOrEqual(5);
-      summons.forEach((sm) => expect(sm.minions).toBe(GAME_TUNING.boss.summonCount));
-      const gaps = summons.slice(1).map((sm, i) => sm.at - summons[i].at);
-      gaps.forEach((gap) => {
-        expect(gap).toBeGreaterThanOrEqual(GAME_TUNING.boss.summonAccel.minIntervalMs - 60);
-        expect(gap).toBeLessThan(GAME_TUNING.boss.summonIntervalMs + 200);
-      });
-      expect(gaps[gaps.length - 1]).toBeLessThan(gaps[0]); // the fight drags on -> summons come faster
-      // The very first summon arrives ~2.5s after the encounter spawned (once the bosses are in range)
-      expect(summons[0].at - 100_000).toBeGreaterThanOrEqual(GAME_TUNING.boss.firstSummonDelayMs - 100);
-    });
-
-    it('does not summon while 7 or more minions are on the field, and general spawns do not restart', () => {
-      finishMiniWave(engine, 5, 100_000);
-      const b = bosses(engine);
-      b.forEach((x) => {
-        x.radiusM = 10;
-        x.z = -10;
-      });
-      (engine as any).lastBossSummonTimeMs = 0;
-      const fillers = Array.from({ length: 7 }, (_, i) => ({
-        id: `f${i}`, kind: 'obi' as const, hp: 2, maxHp: 2, radiusM: 9, thetaRad: 0.01 * i, x: 0, z: -9, speedMps: 0,
-        hitRadiusM: 1, killBonusScore: 1, breached: false,
-      }));
-      engine.activeTargets.push(...fillers);
-      engine.update(100_100, 0.05);
-      expect(engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_')).length).toBe(0);
-
-      const spawnedBefore = (engine as any).spawnedInWave;
-      run(engine, 100_100, 120_000);
-      expect((engine as any).spawnedInWave).toBe(spawnedBefore); // no regular spawns during the boss fight
-    });
-
     it('two coolers fire projectiles in turn from their own positions; one left fires only from it', () => {
       finishMiniWave(engine, 5, 100_000);
       const [a, c] = bosses(engine);
@@ -320,7 +271,6 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       const collect = (into: string[], steps: number) => {
         for (let i = 0; i < steps; i++) {
           now += 50;
-          (engine as any).lastBossSummonTimeMs = now; // keep summons out of the way
           engine.update(now, 0.05);
           engine.activeTargets
             .filter((t) => t.isProjectile && !(t as any).seen)
@@ -441,7 +391,6 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       engine.activeTargets.push(...hans);
       for (let i = 0; i < 800; i++) {
         now += 50;
-        (engine as any).lastBossSummonTimeMs = now;
         engine.update(now, 0.05);
         engine.activeTargets
           .filter((t) => t.isProjectile && !(t as any).seen)

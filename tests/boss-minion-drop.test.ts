@@ -106,24 +106,6 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
       expect(engine.activeTargets.find((t: any) => t.id === 'second').hp).toBeLessThan(5);
     });
 
-    it('counts toward the active minion cap', () => {
-      const cap = GAME_TUNING.boss.summonMaxActive;
-      engine.isBossEncounterActive = true;
-      engine.bossEncounterStartMs = 1000;
-      engine.lastBossSummonTimeMs = -1e9;
-      const boss = {
-        id: 'b', kind: 'boss', bossRole: 'cooler', hp: 50, maxHp: 50, radiusM: 10, thetaRad: 0, x: 0, z: -10,
-        speedMps: 0, hitRadiusM: 1, killBonusScore: 0, breached: false,
-      };
-      engine.activeTargets = [boss];
-      engine.dropRng = seeded(99);
-      engine.spawnBossMinionWave(1000, cap); // all still falling
-      expect(engine.activeTargets.filter((t: any) => t.isSummonedMinion)).toHaveLength(cap);
-      engine.lastBossSummonTimeMs = -1e9;
-      engine.update(1100, 0.05);
-      expect(engine.activeTargets.filter((t: any) => t.isSummonedMinion)).toHaveLength(cap);
-    });
-
     it('shifts its landing time when the game clock is frozen', () => {
       engine.freezeTimers(5000);
       expect(m.dropLandAtMs).toBe(1000 + drop.dropMs + 5000);

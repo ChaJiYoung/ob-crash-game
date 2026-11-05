@@ -104,24 +104,20 @@ export const GAME_TUNING = {
   boss: {
     startRadiusM: 16,
     stopRadiusM: 10,
-    summonRadiusM: 12.5,
     hitZoneScale: 0.6,
     kingScale: 1.5,
     coolerSpreadRad: 0.34,
     /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
     summonDropChance: 0.20,
-    summonIntervalMs: 8000,
-    /** 보스 조우가 길어질수록 소환 간격이 summonIntervalMs에서 minIntervalMs까지 rampMs에 걸쳐 선형으로 줄어든다. */
-    summonAccel: { minIntervalMs: 5000, rampMs: 60000 },
     /**
      * 보스 부하는 보스 뒤가 아니라 필드 곳곳(방어선에서 minRadiusM~maxRadiusM, 좌우 ±thetaRangeRad)에
      * 위에서 떨어진다. 착지(dropMs) 전에는 맞힐 수도 움직일 수도 없다. minSeparationM는 같은 소환 안 부하 사이 최소 거리.
      */
     minionDrop: { minRadiusM: 6, maxRadiusM: 14, thetaRangeRad: 0.55, dropMs: 1200, minSeparationM: 1.5 },
-    summonCount: 3,
-    summonMaxActive: 7,
-    firstSummonDelayMs: 2500,
+    /** 각 보스가 자기 최대 체력 대비 이 비율 아래로 내려갈 때마다 summonCount마리를 소환한다(무기와 상관없이 보스당 같은 횟수, 필드 상한 없음). */
+    summonHpThresholds: [0.99, 0.66, 0.33],
+    summonCount: 4,
     movement: {
       singleAmplitudeRad: 0.32, singleSpeed: 0.9,
       crossAmplitudeRad: 0.34, crossSpeed: 0.8,
@@ -137,10 +133,10 @@ export const GAME_TUNING = {
   waves: [
     { waveIndex: 1, parTimeSec: 15, totalSpawns: 20, maxSimultaneous: 5, spawnIntervalMs: 700, kinds: ['pilgood', 'caslight'], cardKillTarget: null, boss: null },
     { waveIndex: 2, parTimeSec: 19, totalSpawns: 26, maxSimultaneous: 6, spawnIntervalMs: 650, kinds: ['pilgood', 'obi'], cardKillTarget: null, boss: null },
-    { waveIndex: 3, parTimeSec: 21, totalSpawns: 15, maxSimultaneous: 6, spawnIntervalMs: 700, kinds: ['obi', 'caslight', 'hanmac'], cardKillTarget: null, boss: { coolerHp: [45], kingHp: null, summonKinds: ['obi', 'caslight', 'hanmac'] } },
+    { waveIndex: 3, parTimeSec: 21, totalSpawns: 15, maxSimultaneous: 6, spawnIntervalMs: 700, kinds: ['obi', 'caslight', 'hanmac'], cardKillTarget: null, boss: { coolerHp: [75], kingHp: null, summonKinds: ['obi', 'caslight', 'hanmac'] } },
     { waveIndex: 4, parTimeSec: 24, totalSpawns: 34, maxSimultaneous: 6, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'bottle'], cardKillTarget: 22, boss: null },
-    { waveIndex: 5, parTimeSec: 23, totalSpawns: 20, maxSimultaneous: 7, spawnIntervalMs: 600, kinds: ['obi', 'hanmac', 'bottle'], cardKillTarget: null, boss: { coolerHp: [40, 40], kingHp: null, summonKinds: ['pilgood', 'obi', 'hanmac', 'bottle'] } },
+    { waveIndex: 5, parTimeSec: 23, totalSpawns: 20, maxSimultaneous: 7, spawnIntervalMs: 600, kinds: ['obi', 'hanmac', 'bottle'], cardKillTarget: null, boss: { coolerHp: [70, 70], kingHp: null, summonKinds: ['pilgood', 'obi', 'hanmac', 'bottle'] } },
     { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'], cardKillTarget: 26, boss: null },
-    { waveIndex: 7, parTimeSec: 50, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], cardKillTarget: null, boss: { coolerHp: [50, 50], kingHp: 120, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
+    { waveIndex: 7, parTimeSec: 50, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], cardKillTarget: null, boss: { coolerHp: [90, 90], kingHp: 200, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
   ],
 } as const;

@@ -1,6 +1,6 @@
 # Task: T03 보스 체력 상향과 체력 구간 소환
 
-## Status: pending
+## Status: done
 
 ## Goal
 시간 간격 소환을 없애고, 각 보스가 체력 99 / 66 / 33% 아래로 내려갈 때마다 4마리를 소환한다. 보스 체력을 올린다.
@@ -94,6 +94,6 @@ Task: T03-hp-threshold-summons
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

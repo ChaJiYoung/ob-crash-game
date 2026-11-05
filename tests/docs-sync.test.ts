@@ -16,7 +16,7 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /불릿 타임|오프너 부메랑|160도|오버히트/, why: 'the revolver skill is fan blades and the foam wave covers the whole field' },
   { pattern: /쉴드를 두른|방패가 풀립니다|대왕 쉴드|쉴드를 풀/, why: 'the king shield was removed' },
   { pattern: /MISS 페널티 완전 폐지/, why: 'misses now cost ammo and reload time' },
-  { pattern: /8초마다 (부하|소환)|부하를 8초마다|부하 4마리|4마리를 (공유|소환)/, why: 'boss summons are 3 minions with an interval that shrinks from 8s to 5s, dropped at 6-14m' },
+  { pattern: /8초마다 (부하|소환)|부하를 8초마다|4마리를 공유/, why: 'boss summons are HP-driven now, not a shared timer' },
   { pattern: /\+150 PTS|\+100 PTS|\+50 PTS|\+500점|\+1,500점|2배 화력|기본 피해의 3배/, why: 'scores are scaled by GAME_TUNING.score.scale (x0.1) and fever no longer boosts damage' },
 ];
 
@@ -137,24 +137,20 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
   });
 
   it('describes the boss summon in every document that talks about it', () => {
-    const ramp = `${sec(b.summonIntervalMs)}초에서 시작해 보스전이 길어질수록 ${sec(b.summonAccel.minIntervalMs)}초까지`;
-    expect(read('README.md')).toContain(ramp);
+    const pct = '99% / 66% / 33%';
+    expect(b.summonHpThresholds.map((v) => Math.round(v * 100))).toEqual([99, 66, 33]);
+    expect(read('README.md')).toContain(`체력이 ${pct} 아래로 내려갈 때마다`);
     expect(read('README.md')).toContain(`${b.summonCount}마리씩 필드 ${area}`);
-    expect(read('docs/몬스터_도감_설명서.md')).toContain(ramp);
     expect(read('docs/몬스터_도감_설명서.md')).toContain(`부하 ${b.summonCount}마리를 필드 ${area}`);
-    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`부하 ${b.summonCount}마리를 소환(${ramp} 단축)`);
+    expect(read('docs/몬스터_도감_설명서.md')).toContain(`체력이 ${pct} 아래로 내려갈 때마다`);
+    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`부하 ${b.summonCount}마리를 소환`);
     expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain(`필드 ${area}에 위에서 떨어지고`);
-    expect(read('docs/비어 크러셔 상세설계서.md')).toContain(
-      `간격은 ${sec(b.summonIntervalMs)}초에서 ${sec(b.summonAccel.minIntervalMs)}초까지(${sec(b.summonAccel.rampMs)}초에 걸쳐)`
-    );
     expect(read('docs/비어 크러셔 상세설계서.md')).toContain(`한 번에 ${b.summonCount}마리를 필드 ${area}`);
-    expect(read('docs/튜토리얼_훈련장_가이드.md')).toContain(`필드 ${area}에 위에서 떨어지며`);
+    expect(read('docs/튜토리얼_훈련장_가이드.md')).toContain(`필드 ${area}에 위에서 떨어집니다`);
   });
 
   it('keeps the in-game guide numbers tied to GAME_TUNING instead of hard-coded text', () => {
     const guide = read('src/pc/components/GuideModal.tsx');
-    expect(guide).toContain('GAME_TUNING.boss.summonIntervalMs');
-    expect(guide).toContain('GAME_TUNING.boss.summonAccel.minIntervalMs');
     expect(guide).toContain('GAME_TUNING.boss.summonCount');
     expect(guide).toContain('GAME_TUNING.boss.minionDrop.minRadiusM');
     expect(guide).toContain('GAME_TUNING.score.timeBonus.maxPerWave');

@@ -252,8 +252,6 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
         breached: false,
       };
       engine.isBossEncounterActive = true;
-      // The shared summon timer starts 2.5s after the encounter spawns; make it due now
-      engine.lastBossSummonTimeMs = -8000;
       engine.activeTargets = [boss];
 
       // Update by 2 seconds: speed is 2.0m/s so it would reach 7.0m, but clamped to 10.0m!
@@ -262,7 +260,10 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(boss.breached).toBe(false);
       expect(engine.lives).toBe(5); // Defense line unharmed!
 
-      // Boss summon action should have triggered since boss.radiusM <= 12.5 and the shared timer was due
+      // Time alone never summons: the boss is at full HP. Knock it under the first threshold and it summons.
+      expect(engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_')).length).toBe(0);
+      boss.hp = boss.maxHp * 0.9;
+      engine.update(1100, 0.05);
       expect(engine.isBossSummoning(1500)).toBe(true);
       const minions = engine.activeTargets.filter((t) => t.id.startsWith('boss_minion_'));
       expect(minions.length).toBe(GAME_TUNING.boss.summonCount);
