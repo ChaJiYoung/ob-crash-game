@@ -1,6 +1,6 @@
 # Task: T02 웨이브 기준 시간 재측정
 
-## Status: pending
+## Status: done
 
 ## Goal
 칼날·거품의 비행 시간과 개틀링의 큰 밀기로 웨이브 클리어 시간이 달라졌다. 시간 보너스 기준인 `parTimeSec`를 다시 재서 반영하고 실제 구현 기준 봇 수치를 기록한다.
@@ -48,6 +48,6 @@ Task: T02-remeasure-par-times
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
