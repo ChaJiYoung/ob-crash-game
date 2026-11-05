@@ -121,6 +121,29 @@ describe('gatling foam wave', () => {
     expect(m.hp).toBeGreaterThan(0);
   });
 
+  it('pierces a raised obi shield and skips cards and weapon-select targets', () => {
+    const obi = mk('obi', 10, { isGuarding: true });
+    const card = mk('obi', 10, { rewardCardKind: 'bar_repair' as any });
+    const pick = mk('obi', 10, { weaponSelectKind: 'shotgun' as any });
+    engine.activeTargets = [obi, card, pick];
+    (engine as any).isRewardCardPending = false;
+    cast(1);
+    tick(30);
+    expect(obi.hp).toBeLessThan(99);
+    expect(card.hp).toBe(99);
+    expect(pick.hp).toBe(99);
+  });
+
+  it('small bottles born from a foam kill are not hit again by the same wave', () => {
+    const big = mk('bottle', 10, { hp: 0.1, maxHp: 4 });
+    engine.activeTargets = [big];
+    cast(1);
+    tick(60);
+    const kids = engine.activeTargets.filter((t) => t.isSplitChild);
+    expect(kids.length).toBe(2);
+    kids.forEach((k) => expect(k.hp).toBe(k.maxHp));
+  });
+
   it('freezes while a card choice is pending', () => {
     const m = mk('hanmac', 12);
     engine.activeTargets = [m];
@@ -129,6 +152,7 @@ describe('gatling foam wave', () => {
     engine.isRewardCardPending = true;
     tick(5);
     expect(engine.activeSkillFoamWaves[0].radiusM).toBe(r0);
+    expect(engine.activeSkillFoamWaves[0].prevRadiusM).toBeLessThanOrEqual(r0);
   });
 
   it('a monster entering the field behind the wave front is not hit', () => {
@@ -152,6 +176,6 @@ describe('gatling foam wave', () => {
       maxStep = Math.max(maxStep, Math.abs(c.thetaRad - prev));
       prev = c.thetaRad;
     }
-    expect(maxStep).toBeLessThan(0.05);
+    expect(maxStep).toBeLessThan(0.025);
   });
 });

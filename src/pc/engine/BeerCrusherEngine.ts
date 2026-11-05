@@ -2224,7 +2224,10 @@ export class BeerCrusherEngine {
         if (!this.activeTargets.includes(t)) continue;
         wave.hitTargetIds.add(t.id);
         const blocked = Boolean(t.isShielded);
+        const idsBefore = new Set(this.activeTargets.map((x) => x.id));
         const killed = this.applySkillDamage(t, t.kind === 'boss' ? wave.bossDamage : wave.damage, nowMs);
+        // 분열로 새로 생긴 작은 병은 파도 뒤에서 태어난 것이므로 이 파도에 다시 맞지 않는다.
+        for (const x of this.activeTargets) if (!idsBefore.has(x.id)) wave.hitTargetIds.add(x.id);
         if (!killed && t.kind !== 'boss') {
           t.slideRemainingM = Math.max(t.slideRemainingM ?? 0, wave.knockbackM);
           t.slowUntilMs = nowMs + wave.slowMs;
@@ -2273,7 +2276,9 @@ export class BeerCrusherEngine {
         blade.hitsLeft -= 1;
         blade.hitTargetIds.add(t.id);
         const blocked = Boolean(t.isShielded);
+        const idsBefore = new Set(this.activeTargets.map((x) => x.id));
         const killed = this.applySkillDamage(t, t.kind === 'boss' ? blade.bossDamage : blade.damage, nowMs);
+        for (const x of this.activeTargets) if (!idsBefore.has(x.id)) blade.hitTargetIds.add(x.id);
         this.pushSkillHitEvent({ source: 'blade', target: t, killed, blocked });
         if (this.gamePhase === 'VICTORY') {
           this.activeSkillBlades = [];

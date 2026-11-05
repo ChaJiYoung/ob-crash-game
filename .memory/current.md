@@ -10,7 +10,7 @@
 [T01 문서와 게임 내 가이드 동기화](./phases/2026-11-05-weapon-skill-rework/P04-sync-and-verify/T01-docs-and-guide-sync.md)
 
 ## Status
-- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 리뷰 반영 완료, P02 전체 완료 + Opus 리뷰 반영(칼날 지난 구간만 판정, 종료 시 칼날 정리). P03 완료(거품 엔진·렌더링), P03 Opus 리뷰 진행
+- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 리뷰 반영 완료, P02 전체 완료 + Opus 리뷰 반영(칼날 지난 구간만 판정, 종료 시 칼날 정리). P03 완료 + Opus 리뷰 반영
 - 결정: [무기 스킬 개편 결정 문서](./decisions/2026-11-05-weapon-skill-rework.md)
 
 ## Paused Plan

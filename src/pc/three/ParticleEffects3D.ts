@@ -61,7 +61,8 @@ export interface ProjectileItem {
   bounceOffPos?: THREE.Vector3;
 }
 
-const FOAM_WAVE_CAPACITY = 600; // Lv.4 파도 두 개(280 x 2)를 담는다
+/** 파도 세 개가 겹쳐도(황금 캔으로 충전한 연속 사용) 모두 담는다. */
+const FOAM_WAVE_CAPACITY = 3 * Math.max(...Object.values(GAME_TUNING.skills.foam.countByLevel));
 const FOAM_COLORS = [new THREE.Color(0xffffff), new THREE.Color(0xe0f2fe), new THREE.Color(0x7dd3fc)];
 
 interface FoamWaveSeeds {
@@ -900,6 +901,7 @@ export class ParticleEffects3D {
 
   /** 엔진의 거품 파도 상태를 작은 거품 수백 개로 그린다. 거품 위치는 파도 앞면에서 정해진다. */
   public syncSkillFoam(waves: ReadonlyArray<{ id: string; radiusM: number; count: number }>, spreadHalfRad: number): void {
+    if (waves.length === 0 && this.foamWaveSeeds.size === 0 && this.foamWaveMesh.count === 0) return;
     const live = new Set(waves.map((w) => w.id));
     this.foamWaveSeeds.forEach((_v, id) => {
       if (!live.has(id)) this.foamWaveSeeds.delete(id);

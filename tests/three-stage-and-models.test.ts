@@ -578,11 +578,17 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(posOf(0).length()).toBeGreaterThan(before);
     fx.syncSkillFoam([{ id: 'a', radiusM: 8, count: 280 }, { id: 'b', radiusM: 6, count: 280 }], 0.8);
     expect(fx.foamWaveInstanceCount).toBe(560);
-    fx.syncSkillFoam([{ id: 'a', radiusM: 8, count: 280 }, { id: 'b', radiusM: 6, count: 280 }, { id: 'c', radiusM: 4, count: 280 }], 0.8);
-    expect(fx.foamWaveInstanceCount).toBe(600);
+    fx.syncSkillFoam([{ id: 'a', radiusM: 8, count: 280 }, { id: 'b', radiusM: 6, count: 280 }, { id: 'c', radiusM: 4, count: 280 }, { id: 'd', radiusM: 3, count: 280 }], 0.8);
+    expect(fx.foamWaveInstanceCount).toBe(840); // three Lv.4 waves fit; the fourth is cut
     fx.syncSkillFoam([], 0.8);
     expect(fx.foamWaveInstanceCount).toBe(0);
+    fx.syncSkillFoam([{ id: 'z', radiusM: 8, count: 50 }], 0.8);
+    fx.clear();
+    expect(fx.foamWaveInstanceCount).toBe(0);
+    expect((fx as any).foamWaveSeeds.size).toBe(0);
     const warm = fx.createWarmupObjects();
+    const foamWarm = warm.find((o) => (o as THREE.InstancedMesh).isInstancedMesh && (o as THREE.InstancedMesh).material === (fx as any).foamWaveMesh.material) as THREE.InstancedMesh;
+    expect(foamWarm.instanceColor).toBeTruthy();
     expect(warm.some((o) => (o as THREE.InstancedMesh).isInstancedMesh && (o as THREE.InstancedMesh).material === (fx as any).foamWaveMesh.material)).toBe(true);
   });
 
