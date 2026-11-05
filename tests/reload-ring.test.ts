@@ -9,8 +9,16 @@ describe('reload progress ring spec', () => {
     const ring = getReloadRingSpec({ isReloading: true, isFeverActive: false, reloadDurationMs: 1680, sizePx: 120 });
     expect(ring.visible).toBe(true);
     expect(ring.diameterPx).toBe(136);
-    expect(ring.radiusPx).toBe(65);
+    expect(ring.radiusPx).toBe(62);
+    expect(ring.strokeWidthPx).toBe(8);
+    expect(ring.outlineWidthPx).toBe(12);
+    expect(ring.reticleOpacity).toBe(0.45);
     expect(ring.durationMs).toBe(1680);
+  });
+
+  it('keeps the reticle at full brightness when not reloading and during fever', () => {
+    expect(getReloadRingSpec({ isReloading: false, reloadDurationMs: 1680, sizePx: 88 }).reticleOpacity).toBe(1);
+    expect(getReloadRingSpec({ isReloading: true, isFeverActive: true, reloadDurationMs: 1680, sizePx: 88 }).reticleOpacity).toBe(1);
   });
 
   it('hides the ring when not reloading, during fever, or without a duration', () => {
@@ -54,6 +62,13 @@ describe('reload ring wiring', () => {
     expect(src).toContain('pathLength={1}');
     const ring = src.slice(src.indexOf('const ReloadRing'), src.indexOf('export interface CrosshairOverlayHandle'));
     expect(ring).not.toContain('<style>');
+  });
+
+  it('renders the ring after the dimmed reticle wrapper closes, so only the reticle dims', () => {
+    const src = overlaySource();
+    const lastBadge = src.lastIndexOf("spec.weaponLevel === 4 ? 'MAX'");
+    expect(src.indexOf('opacity: ring.reticleOpacity')).toBeLessThan(lastBadge);
+    expect(src.indexOf('{ring.visible && <ReloadRing')).toBeGreaterThan(lastBadge);
   });
 
   it('no longer uses the undefined "spin" animation', () => {

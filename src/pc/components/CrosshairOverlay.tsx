@@ -118,6 +118,10 @@ export interface ReloadRingSpec {
   radiusPx: number;
   durationMs: number;
   color: string;
+  strokeWidthPx: number;
+  outlineWidthPx: number;
+  /** 링 바깥 조준점의 투명도. 링이 보일 때 0.45, 아니면 1. */
+  reticleOpacity: number;
 }
 
 /** 장전 게이지 링을 그릴지와 크기를 정한다. 피버(무한 탄약) 중에는 장전이 없으므로 그리지 않는다. */
@@ -129,13 +133,19 @@ export function getReloadRingSpec(options: {
 }): ReloadRingSpec {
   const durationMs = options.reloadDurationMs ?? 0;
   const diameterPx = options.sizePx + 16;
-  const radiusPx = diameterPx / 2 - 3;
+  const outlineWidthPx = 12;
+  // 외곽선 절반만큼 안쪽에 그려야 SVG 밖으로 잘리지 않는다.
+  const radiusPx = diameterPx / 2 - outlineWidthPx / 2;
+  const visible = Boolean(options.isReloading) && !options.isFeverActive && durationMs > 0;
   return {
-    visible: Boolean(options.isReloading) && !options.isFeverActive && durationMs > 0,
+    visible,
     diameterPx,
     radiusPx,
     durationMs,
     color: '#f87171',
+    strokeWidthPx: 8,
+    outlineWidthPx,
+    reticleOpacity: visible ? 0.45 : 1,
   };
 }
 
@@ -171,14 +181,15 @@ const ReloadRing: React.FC<{
       style={{ position: 'absolute', transform: 'rotate(-90deg)', pointerEvents: 'none' }}
       aria-hidden
     >
-      <circle cx={center} cy={center} r={spec.radiusPx} fill="none" stroke="rgba(248,113,113,0.25)" strokeWidth={4} />
+      <circle cx={center} cy={center} r={spec.radiusPx} fill="none" stroke="rgba(0,0,0,0.85)" strokeWidth={spec.outlineWidthPx} />
+      <circle cx={center} cy={center} r={spec.radiusPx} fill="none" stroke="rgba(248,113,113,0.35)" strokeWidth={spec.strokeWidthPx} />
       <circle
         cx={center}
         cy={center}
         r={spec.radiusPx}
         fill="none"
         stroke={spec.color}
-        strokeWidth={4}
+        strokeWidth={spec.strokeWidthPx}
         strokeLinecap="round"
         pathLength={1}
         strokeDasharray={1}
@@ -361,6 +372,18 @@ export const CrosshairOverlay = React.memo(
         {/* Fixed keyframes (always mounted): crosshair-spin rotates the reticle rings (rotation only, no translate), reload-ring-fill uses pathLength=1. */}
         <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }`}</style>
 
+        {/* Reticle: dimmed while reloading. The ring stays outside so it keeps full brightness. */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: ring.reticleOpacity,
+            transition: 'opacity 0.12s linear',
+          }}
+        >
         {/* 1. 🪠 SHOTGUN SPECIFIC HUD: Large Pellet Circle + 8-radial dots + Octagon Brackets */}
         {spec.weaponKind === 'shotgun' && (
           <>
@@ -513,9 +536,6 @@ export const CrosshairOverlay = React.memo(
           </>
         )}
 
-        {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
-        {ring.visible && <ReloadRing spec={ring} getRemainingMs={getReloadRemainingMs} isPaused={isPaused} />}
-
         {/* 4 Corner Targeting Brackets ┌ ┐ └ ┘ */}
         <div
           style={{
@@ -588,6 +608,10 @@ export const CrosshairOverlay = React.memo(
                   : '🍺 GATLING'
               } Lv.${spec.weaponLevel === 4 ? 'MAX' : spec.weaponLevel}`}
         </div>
+        </div>
+
+        {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
+        {ring.visible && <ReloadRing spec={ring} getRemainingMs={getReloadRemainingMs} isPaused={isPaused} />}
       </div>
     );
   })
