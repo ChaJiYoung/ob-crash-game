@@ -1,6 +1,6 @@
 # Task: T02 자동 검증과 사람 직접 플레이
 
-## Status: pending
+## Status: in_progress (자동 검증 완료, 사람 직접 플레이 대기)
 
 ## Goal
 자동 검증을 모두 돌리고, 사람이 직접 플레이해 다섯 가지 소감이 해결됐는지 확인한다.
@@ -34,7 +34,7 @@
 - Plan과 Phase를 `done`으로 표시하고 `current.md`를 갱신한다. 이전 계획의 플레이 Task와 랭킹 v5 여부는 사용자가 개틀링을 해 본 뒤 묻는다.
 
 ## Acceptance Criteria
-- [ ] 자동 검증이 통과하고 결과가 기록된다.
+- [x] 자동 검증이 통과하고 결과가 기록된다.
 - [ ] 사람 플레이 결과가 기록되고 조정 또는 "그대로 OK"로 확정된다.
 
 ## Validation
@@ -54,6 +54,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
+- [x] 구현 완료
 - [ ] 검증 통과
 - commit: pending

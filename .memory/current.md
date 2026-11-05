@@ -4,13 +4,13 @@
 [플레이 소감 반영 (장전 링, 스프링 똥, 피격 효과, 보스 경고, 냉각기 디자인)](./plans/2026-11-05-playtest-visual-feedback.md)
 
 ## Active Phase
-[P01 화면 표시](./phases/2026-11-05-playtest-visual-feedback/P01-screen-feedback/phase.md)
+[P03 문서 동기화와 최종 검증](./phases/2026-11-05-playtest-visual-feedback/P03-docs-and-verify/phase.md)
 
 ## Active Task
-[T01 장전 링 강화와 장전 중 조준점 흐림](./phases/2026-11-05-playtest-visual-feedback/P01-screen-feedback/T01-reload-ring.md)
+[T02 자동 검증과 사람 직접 플레이](./phases/2026-11-05-playtest-visual-feedback/P03-docs-and-verify/T02-final-verification-and-playtest.md)
 
 ## Status
-- T01 구현 시작 준비 완료
+- P01~P03-T01 구현 완료, 자동 검증 통과. **사람 직접 플레이 대기**
 - 결정: [결정 문서](./decisions/2026-11-05-playtest-visual-feedback.md)
 
 ## Paused Plan
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부는 개틀링 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/pc/components/CrosshairOverlay.tsx` 구현 시작
+사용자가 플레이한 뒤 채팅으로 느낌을 말한다. 에이전트는 기록만 하고 대신 통과로 표시하지 않는다. 체크리스트: `.memory/references/playtest-2026-11-05-skill-guard-ammo.md` 끝. 피드백이 오면 조정하고 `npm test`를 다시 돌린 뒤 이 Task를 닫는다. 개틀링 소감이 오면 이전 계획의 플레이 Task와 랭킹 v5 여부도 함께 처리한다.
