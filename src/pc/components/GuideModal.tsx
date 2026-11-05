@@ -375,7 +375,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                       borderRadius: '6px',
                     }}
                   >
-                    근접 산탄
+                    넓은 범위 산탄
                   </span>
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>

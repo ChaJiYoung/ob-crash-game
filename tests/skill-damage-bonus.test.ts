@@ -38,7 +38,7 @@ describe('the damage card applies to skill damage', () => {
     expect(b2.hp).toBeCloseTo(100 - spec.skillBossDamage * 1.3, 3);
   });
 
-  it('a skill kill is counted and still splits a big bottle', () => {
+  it('a skill kill is counted and removes the monster', () => {
     const e = setup();
     e.weaponSystem.selectWeapon('shotgun', 4);
     const m = mk('pilgood', 0.1, 'p');

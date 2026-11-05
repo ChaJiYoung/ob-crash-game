@@ -7,7 +7,7 @@
 [P02 리볼버 칼날](./phases/2026-11-05-weapon-skill-rework/P02-revolver-blades/phase.md)
 
 ## Active Task
-[T01 칼날 수치와 엔진 판정](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/T01-blade-engine.md)
+[T01 칼날 수치와 엔진 판정](./phases/2026-11-05-weapon-skill-rework/P02-revolver-blades/T01-blade-engine.md)
 
 ## Status
 - P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 5.5 리뷰 진행

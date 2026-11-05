@@ -115,4 +115,4 @@ Task: T03-skill-damage-bonus-and-shotgun-text
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: done

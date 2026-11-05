@@ -143,6 +143,18 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     expect(boss.slowUntilMs).toBeUndefined();
   });
 
+  it('a Lv.4 shotgun hit still slows a normal monster', () => {
+    const m: ActiveTargetEntity = {
+      id: 'm', kind: 'hanmac', hp: 99, maxHp: 99, radiusM: 10, thetaRad: 0, x: 0, z: -10, speedMps: 0,
+      hitRadiusM: 0.95, killBonusScore: 0, breached: false,
+    };
+    engine.activeTargets = [m];
+    engine.weaponSystem.selectWeapon('shotgun', 4);
+    const p = engine.computeTargetAimCoords(m);
+    engine.shootAt(p.targetNormX, p.targetNormY, 3000, 'press');
+    expect(m.slowUntilMs).toBe(4000);
+  });
+
   it('normal monsters are still stunned by the shotgun skill', () => {
     const m: ActiveTargetEntity = {
       id: 'm', kind: 'hanmac', hp: 3, maxHp: 3, radiusM: 10, thetaRad: 0, x: 0, z: -10, speedMps: 0,
