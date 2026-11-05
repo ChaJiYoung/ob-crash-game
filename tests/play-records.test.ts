@@ -7,7 +7,7 @@ import { PlayRunStats } from '../src/shared/types';
 
 export const stats = (over: Partial<PlayRunStats> = {}): PlayRunStats => ({
   outcome: 'VICTORY', waveReached: 7, livesLeft: 3, durationSec: 200, totalScore: 20000, baseScore: 12000,
-  timeBonus: 5000, precisionBonus: 3000, maxCombo: 90, kills: 180,
+  timeBonus: 5000, precisionBonus: 3000, levelBonus: 0, maxCombo: 90, kills: 180,
   waves: [{ wave: 1, seconds: 14, bonus: 500 }],
   shots: { PERFECT: 30, GREAT: 40, GOOD: 10, MISS: 20 }, accuracy: 0.7,
   weaponKind: 'gatling', weaponLevel: 4,

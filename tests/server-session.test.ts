@@ -422,7 +422,7 @@ describe('PlayerStore & WebSocket Server', () => {
     // With stats the run reaches the ranking, with a mismatched total it does not
     const runStats = {
       outcome: 'GAMEOVER', waveReached: 3, livesLeft: 0, durationSec: 60, totalScore: 7000, baseScore: 7000, timeBonus: 0,
-      precisionBonus: 0, maxCombo: 24, kills: 40, waves: [], shots: { PERFECT: 1, GREAT: 1, GOOD: 1, MISS: 1 }, accuracy: 0.5,
+      precisionBonus: 0, levelBonus: 0, maxCombo: 24, kills: 40, waves: [], shots: { PERFECT: 1, GREAT: 1, GOOD: 1, MISS: 1 }, accuracy: 0.5,
       weaponKind: 'shotgun', weaponLevel: 2, cardStacks: { damage_up: 0, skill_cooldown: 0, fever_extend: 0, hit_zone_up: 0 },
     };
     const submitRun = (score: number) =>

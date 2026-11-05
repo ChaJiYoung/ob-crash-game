@@ -162,6 +162,23 @@
           g.add(drop);
         }
 
+        if (kind === 'hanmac') {
+          const bombMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0xdc2626, emissiveIntensity: 0.7, roughness: 0.4 });
+          [h * 0.3, -h * 0.3].forEach((y) => {
+            const band = new THREE.Mesh(new THREE.TorusGeometry(r, 0.022, 8, 28), bombMat);
+            band.rotation.x = Math.PI / 2;
+            band.position.y = y;
+            g.add(band);
+          });
+          const spark = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 10), bombMat);
+          spark.position.set(0.08, h / 2 + 0.28, 0);
+          g.add(spark);
+          const fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), capMat);
+          fuse.position.set(0.05, h / 2 + 0.2, 0);
+          fuse.rotation.z = -0.35;
+          g.add(fuse);
+        }
+
         if (kind === 'pilgood' || kind === 'hanmac') {
           const foam = new THREE.Mesh(new THREE.SphereGeometry(r * 0.65, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
           foam.scale.set(1, 0.45, 1);

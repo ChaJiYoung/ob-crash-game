@@ -37,7 +37,7 @@ describe('play run stats', () => {
     expect(s.weaponKind).toBe('revolver');
     expect(s.weaponLevel).toBe(2);
     expect(s.waves).toEqual([expect.objectContaining({ wave: 1, seconds: 5 })]);
-    expect(s.totalScore).toBe(s.baseScore + s.timeBonus + s.precisionBonus);
+    expect(s.totalScore).toBe(s.baseScore + s.timeBonus + s.precisionBonus + s.levelBonus);
   });
 
   it('play time leaves out pauses', () => {
@@ -61,5 +61,23 @@ describe('play run stats', () => {
     e.startGame({ withWeaponSelect: false });
     e.gamePhase = 'GAMEOVER';
     expect(e.getPlayRunStats()!.kills).toBe(0);
+  });
+
+  it.each([[1, 1.2], [2, 1.1], [3, 1.05], [4, 1]] as const)('a win at Lv.%i multiplies only the base score by %f', (level, mult) => {
+    e.weaponSystem.selectWeapon('revolver', level);
+    e.scoreManager.addBonusScore(1000);
+    e.waveTimeBonusTotal = 0;
+    (e as any).declareVictory();
+    const s = e.getPlayRunStats()!;
+    expect(s.baseScore).toBe(1000);
+    expect(s.levelBonus).toBe(Math.round(1000 * (mult - 1)));
+    expect(s.totalScore).toBe(s.baseScore + s.timeBonus + s.precisionBonus + s.levelBonus);
+  });
+
+  it('a defeat gets no level bonus', () => {
+    e.weaponSystem.selectWeapon('revolver', 1);
+    e.scoreManager.addBonusScore(1000);
+    e.gamePhase = 'GAMEOVER';
+    expect(e.getPlayRunStats()!.levelBonus).toBe(0);
   });
 });

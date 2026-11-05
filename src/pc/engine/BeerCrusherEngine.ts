@@ -235,6 +235,7 @@ export class BeerCrusherEngine {
   public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
   private shotStats: Record<'PERFECT' | 'GREAT' | 'GOOD' | 'MISS', number> = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
   private precisionBonusApplied = 0;
+  private levelBonusApplied = 0;
   public readonly weaponSystem = new WeaponSystem();
 
   private activeBuffUntilMs: Map<ItemBuffKind, number> = new Map();
@@ -412,6 +413,7 @@ export class BeerCrusherEngine {
     this.playTimeSec = 0;
     this.waveClears = [];
     this.precisionBonusApplied = 0;
+    this.levelBonusApplied = 0;
     this.waveStartMs = null;
     this.waveTimeBonusTotal = 0;
     this.lastWaveClear = null;
@@ -1811,11 +1813,12 @@ export class BeerCrusherEngine {
     this.waveClears.push({ wave: this.currentWave, seconds, bonus });
   }
 
-  public getScoreBreakdown(): { total: number; timeBonus: number; precisionBonus: number; base: number } {
+  public getScoreBreakdown(): { total: number; timeBonus: number; precisionBonus: number; levelBonus: number; base: number } {
     const total = this.scoreManager.getState().totalScore;
     const timeBonus = this.waveTimeBonusTotal;
     const precisionBonus = this.precisionBonusApplied;
-    return { total, timeBonus, precisionBonus, base: total - timeBonus - precisionBonus };
+    const levelBonus = this.levelBonusApplied;
+    return { total, timeBonus, precisionBonus, levelBonus, base: total - timeBonus - precisionBonus - levelBonus };
   }
 
   /** Weighted accuracy of this run (0..1) and the bonus it earns at VICTORY. */
@@ -1843,6 +1846,7 @@ export class BeerCrusherEngine {
       baseScore: breakdown.base,
       timeBonus: breakdown.timeBonus,
       precisionBonus: breakdown.precisionBonus,
+      levelBonus: breakdown.levelBonus,
       maxCombo: this.scoreManager.getState().maxCombo,
       kills: this.totalKills,
       waves: this.waveClears.map((w) => ({ ...w, seconds: Number(w.seconds.toFixed(2)) })),
@@ -1859,7 +1863,11 @@ export class BeerCrusherEngine {
     this.gamePhase = 'VICTORY';
     this.clearSkillProjectiles();
     if (!this.isTutorialMode && !this.isSandboxMode) {
+      // 레벨 보너스는 기본 점수에만 곱하므로 다른 보너스를 더하기 전에 계산한다.
+      const { base } = this.getScoreBreakdown();
+      const mult = GAME_TUNING.score.weaponLevelBonusMult[this.weaponSystem.getState().weaponLevel];
       this.precisionBonusApplied = this.scoreManager.addBonusScore(this.getPrecisionStats().bonus);
+      this.levelBonusApplied = this.scoreManager.addBonusScore(base * (mult - 1));
     }
   }
 

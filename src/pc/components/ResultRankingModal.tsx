@@ -6,7 +6,7 @@ export interface ResultRankingModalProps {
   gamePhase: GamePhase;
   score: number;
   /** Score split shown under the total (base hits and kills / wave time / precision). */
-  breakdown?: { base: number; timeBonus: number; precisionBonus: number };
+  breakdown?: { base: number; timeBonus: number; precisionBonus: number; levelBonus?: number };
   /** The final wave ends the game, so its clear time/bonus is shown here instead of a banner. */
   lastWaveClear?: { wave: number; seconds: number; bonus: number } | null;
   maxCombo: number;
@@ -132,6 +132,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
                   </div>
                 )}
                 {breakdown.precisionBonus > 0 && <div>정밀도 보너스 +{breakdown.precisionBonus}점</div>}
+                {(breakdown.levelBonus ?? 0) > 0 && <div>저레벨 클리어 보너스 +{breakdown.levelBonus}점</div>}
               </div>
             )}
             {isNewRecord && (

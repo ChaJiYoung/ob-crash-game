@@ -4,9 +4,9 @@
  */
 /**
  * 랭킹 규칙 버전. 점수가 서로 비교되지 않을 만큼 규칙이 크게 바뀌면 올린다.
- * 서버는 시작할 때 버전이 다른 `players.json`을 백업한 뒤 점수만 초기화한다. (v2: 7웨이브 보스 러시, v3: 점수 규칙 개편, v4: 스킬·방패·탄창 완화)
+ * 서버는 시작할 때 버전이 다른 `players.json`을 백업한 뒤 점수만 초기화한다. (v2: 7웨이브 보스 러시, v3: 점수 규칙 개편, v4: 스킬·방패·탄창 완화, v5: 보스 거리·한맥 개편과 무기 레벨 보너스)
  */
-export const RANKING_RULESET_VERSION = 4;
+export const RANKING_RULESET_VERSION = 5;
 
 export const GAME_TUNING = {
   fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50 },
@@ -25,6 +25,8 @@ export const GAME_TUNING = {
      * parTimeSec는 정확 봇(세 무기 평균)의 웨이브별 클리어 시간이다(measure-wave-times.ts, 2026-11-05).
      * 현재 값은 보스·속도 개편 후 30판씩 재측정한 결과다(2026-11-05, 15/19/31/24/37/23/45초). 직전 값(무기 스킬 개편 후, 15/19/21/24/23/24/50초)은 대체됐다.
      */
+    /** 클리어할 때의 무기 레벨이 낮을수록 기본 점수에 곱하는 배율. MAX는 1이다. */
+    weaponLevelBonusMult: { 1: 1.2, 2: 1.1, 3: 1.05, 4: 1 },
     timeBonus: { maxPerWave: 700, bossWaveWeight: 2, zeroAtParMult: 1.6 },
   },
   skillCooldownMsByLevel: { 1: 21000, 2: 19000, 3: 16000, 4: 14000 },

@@ -113,6 +113,7 @@ export interface PlayRunStats {
   baseScore: number;
   timeBonus: number;
   precisionBonus: number;
+  levelBonus: number;
   maxCombo: number;
   kills: number;
   waves: { wave: number; seconds: number; bonus: number }[];

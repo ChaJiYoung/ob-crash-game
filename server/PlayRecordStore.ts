@@ -13,7 +13,7 @@ export interface PlayRecordInput {
 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const WEAPONS: readonly WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
-const NUMBER_KEYS = ['waveReached', 'livesLeft', 'durationSec', 'totalScore', 'baseScore', 'timeBonus', 'precisionBonus', 'maxCombo', 'kills', 'accuracy', 'weaponLevel'] as const;
+const NUMBER_KEYS = ['waveReached', 'livesLeft', 'durationSec', 'totalScore', 'baseScore', 'timeBonus', 'precisionBonus', 'levelBonus', 'maxCombo', 'kills', 'accuracy', 'weaponLevel'] as const;
 const SHOT_KEYS = ['PERFECT', 'GREAT', 'GOOD', 'MISS'] as const;
 const CARD_KEYS = ['damage_up', 'skill_cooldown', 'fever_extend', 'hit_zone_up'] as const;
 
@@ -41,6 +41,7 @@ function pickStats(s: PlayRunStats): PlayRunStats {
     baseScore: s.baseScore,
     timeBonus: s.timeBonus,
     precisionBonus: s.precisionBonus,
+    levelBonus: s.levelBonus,
     maxCombo: s.maxCombo,
     kills: s.kills,
     waves: s.waves.map((w) => ({ wave: w.wave, seconds: w.seconds, bonus: w.bonus })),
