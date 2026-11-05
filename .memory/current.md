@@ -10,7 +10,7 @@
 [T03 최종 자동 검증과 직접 플레이 (사람)](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/T03-final-verification-and-playtest.md)
 
 ## Status
-- P01~P04-T02 완료·자동 검증 통과, **사람 직접 플레이 대기**(똥 포탄, 속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
+- P01~P04-T02 완료·자동 검증 통과, Opus 리뷰 반영 완료, **사람 직접 플레이 대기**(똥 포탄, 속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
 - 결정: [결정 문서](./decisions/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Paused Plan

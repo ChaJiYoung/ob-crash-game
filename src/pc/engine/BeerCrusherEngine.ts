@@ -1514,7 +1514,7 @@ export class BeerCrusherEngine {
     }
   }
 
-  /** 일반 몬스터 속도 배율: 웨이브마다 +4%. 보스·아이템·금색 캔·투사체에는 쓰지 않는다. */
+  /** 일반 몬스터 속도 배율: 웨이브마다 GAME_TUNING.speedPerWave(+8%). 보스·아이템·금색 캔·투사체에는 쓰지 않는다. */
   private getWaveSpeedMultiplier(): number {
     return 1 + GAME_TUNING.speedPerWave * (this.currentWave - 1);
   }
@@ -1628,6 +1628,8 @@ export class BeerCrusherEngine {
       this.startBossClearSequence(target, nowMs);
       return;
     }
+
+    if (this.bossClearUntilMs > 0) return; // 연출 중에는 분열·드롭·킬 카운트가 없다
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
       if (!this.isTutorialMode && !this.isSandboxMode) {
@@ -2119,7 +2121,7 @@ export class BeerCrusherEngine {
     return Number((base * this.weaponSystem.getDamageBonusMultiplier()).toFixed(3));
   }
 
-  /** 스킬 피해를 주고, 죽었으면 점수와 웨이브 처리까지 한다. 대왕 쉴드에는 피해가 없다. 죽었으면 true. */
+  /** 스킬 피해를 주고, 죽었으면 점수와 웨이브 처리까지 한다. 죽었으면 true. */
   private applySkillDamage(monster: ActiveTargetEntity, damage: number, nowMs: number): boolean {
     monster.hp = Number(Math.max(0, monster.hp - damage).toFixed(3));
     if (monster.hp > 0) return false;
@@ -2168,7 +2170,9 @@ export class BeerCrusherEngine {
     this.activeTargets = this.activeTargets.filter(
       (t) => !(t.isItem || t.isGoldenCan || t.isProjectile || t.weaponSelectKind || t.rewardCardKind)
     );
-    this.clearSkillProjectiles();
+    // 칼날·거품은 비우되, 같은 프레임에 이미 쌓인 타격 사건은 남겨 연출이 사라지지 않게 한다.
+    this.activeSkillBlades = [];
+    this.activeSkillFoamWaves = [];
     this.bossClearUntilMs = nowMs + GAME_TUNING.boss.clear.durationMs;
     this.bossClearNextCascadeMs = nowMs + GAME_TUNING.boss.clear.cascadeGapMs;
     this.bossClearEvents.push({
@@ -2186,7 +2190,9 @@ export class BeerCrusherEngine {
 
     if (nowMs >= this.bossClearNextCascadeMs) {
       this.bossClearNextCascadeMs += GAME_TUNING.boss.clear.cascadeGapMs;
-      const next = [...this.activeTargets].sort((a, b) => a.radiusM - b.radiusM)[0];
+      const next = this.activeTargets
+        .filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind)
+        .sort((a, b) => a.radiusM - b.radiusM)[0];
       if (next) {
         this.activeTargets.splice(this.activeTargets.indexOf(next), 1);
         this.bossClearEvents.push({ type: 'cascade', target: next });

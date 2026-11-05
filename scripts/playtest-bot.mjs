@@ -90,7 +90,7 @@ async function runPlaytest() {
 
       // Pick the target: golden can > projectile > nearest vulnerable monster/boss
       const pool = eng.activeTargets.filter((t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind);
-      const ok = pool.filter((t) => !t.isGuarding && !t.isShielded && eng.isTargetLanded(t, now));
+      const ok = pool.filter((t) => !t.isGuarding && eng.isTargetLanded(t, now));
       const list = ok.length ? ok : pool;
       if (list.length === 0) return out;
       list.sort((a, b) => {

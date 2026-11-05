@@ -63,4 +63,4 @@ Task: T03-final-verification-and-playtest
 ## Progress
 - [x] 구현 완료 (자동 검증·체크리스트 작성)
 - [ ] 검증 통과 (사람 플레이 대기)
-- commit: pending
+- commit: pending (사람 플레이 뒤)

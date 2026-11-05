@@ -188,4 +188,38 @@ describe('boss clear sequence', () => {
     fx.spawnBossDefeatBurst(new THREE.Vector3(0, 1.5, -10));
     expect(fx.activeParticleCount - before).toBeGreaterThanOrEqual(40);
   });
+
+  it('a pierce kill of the last boss does not let the primary target score, split or drop during the sequence', () => {
+    startBossWave(engine, 3, now);
+    const boss = bosses(engine)[0];
+    boss.radiusM = 12; boss.z = -12; boss.thetaRad = 0; boss.x = 0; boss.hp = 0.1;
+    const front: ActiveTargetEntity = { ...mkMonster('front', 8), kind: 'bottle', hp: 0.1, maxHp: 4 };
+    engine.activeTargets.push(front);
+    engine.weaponSystem.selectWeapon('revolver', 1);
+    const p = engine.computeTargetAimCoords(front);
+    engine.shootAt(p.targetNormX, p.targetNormY, now);
+    expect(engine.isBossClearSequence()).toBe(true);
+    expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(0);
+    expect(engine.activeTargets.filter((t) => t.isItem).length).toBe(0);
+  });
+
+  it('the cascade only removes monsters, never items, shells or cards', () => {
+    startBossWave(engine, 3, now);
+    killBoss(bosses(engine)[0]);
+    const events: string[] = [];
+    for (let i = 0; i < 40; i++) {
+      step(GAP);
+      for (const ev of engine.drainBossClearEvents()) if (ev.type === 'cascade') events.push(ev.target.id);
+    }
+    expect(events.every((id) => !id.startsWith('item_') && !id.startsWith('proj_'))).toBe(true);
+  });
+
+  it('hit events queued earlier in the same frame survive the start of the sequence', () => {
+    startBossWave(engine, 3, now);
+    const m = mkMonster('m', 6);
+    engine.activeTargets.push(m);
+    (engine as any).pushSkillHitEvent({ source: 'blade', target: m, killed: true });
+    killBoss(bosses(engine)[0]);
+    expect(engine.drainSkillHitEvents().some((e) => e.target.id === 'm')).toBe(true);
+  });
 });

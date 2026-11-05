@@ -1074,7 +1074,7 @@ export function createProjectileMesh3D(): THREE.Group {
   const eyeGeo = getCachedGeometry('projectile-poop-eye-geo', () => new THREE.SphereGeometry(0.035, 8, 8));
   [-0.1, 0.1].forEach((x) => {
     const eye = new THREE.Mesh(eyeGeo, eyeMat);
-    eye.position.set(x, 0.05, 0.3);
+    eye.position.set(x, 0.04, 0.41); // 아래 단 표면 바깥에 놓아야 보인다
     inner.add(eye);
   });
 
