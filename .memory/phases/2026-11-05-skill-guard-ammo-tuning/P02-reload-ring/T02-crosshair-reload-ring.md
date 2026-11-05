@@ -1,6 +1,6 @@
 # Task: T02 조준점 장전 게이지 링
 
-## Status: pending
+## Status: done
 
 ## Goal
 장전 중에 PC 조준점 둘레에 링이 장전 시간(`reloadDurationMs`) 동안 시계 방향으로 차오르게 한다. 장전이 끝나거나 피버가 시작되면 사라진다. 플레이어가 "왜 안 쏴지지?"를 조준점에서 바로 알게 하려는 것이다.
@@ -94,6 +94,6 @@ Task: T02-crosshair-reload-ring
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -937,6 +937,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isAimLocked={isAimLocked}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
+            isReloading={hudState.isReloading}
+            reloadDurationMs={hudState.reloadDurationMs}
+            isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>
@@ -966,6 +969,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isAimLocked={isAimLocked}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
+            isReloading={hudState.isReloading}
+            reloadDurationMs={hudState.reloadDurationMs}
+            isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>
@@ -1049,6 +1055,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isAimLocked={isAimLocked}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
+            isReloading={hudState.isReloading}
+            reloadDurationMs={hudState.reloadDurationMs}
+            isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>

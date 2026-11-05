@@ -112,6 +112,35 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
   };
 }
 
+export interface ReloadRingSpec {
+  visible: boolean;
+  diameterPx: number;
+  radiusPx: number;
+  circumferencePx: number;
+  durationMs: number;
+  color: string;
+}
+
+/** 장전 게이지 링을 그릴지와 크기를 정한다. 피버(무한 탄약) 중에는 장전이 없으므로 그리지 않는다. */
+export function getReloadRingSpec(options: {
+  isReloading?: boolean;
+  isFeverActive?: boolean;
+  reloadDurationMs?: number;
+  sizePx: number;
+}): ReloadRingSpec {
+  const durationMs = options.reloadDurationMs ?? 0;
+  const diameterPx = options.sizePx + 16;
+  const radiusPx = diameterPx / 2 - 3;
+  return {
+    visible: Boolean(options.isReloading) && !options.isFeverActive && durationMs > 0,
+    diameterPx,
+    radiusPx,
+    circumferencePx: 2 * Math.PI * radiusPx,
+    durationMs,
+    color: '#f87171',
+  };
+}
+
 export interface CrosshairOverlayHandle {
   updatePosition: (aimX: number, aimY: number, immediate?: boolean) => void;
   /** 발사 반동 연출(120ms). 부모 리렌더 없이 직접 호출한다. */
@@ -127,6 +156,12 @@ export interface CrosshairOverlayProps {
   isAimLocked?: boolean;
   weaponKind?: WeaponKind;
   weaponLevel?: WeaponLevel;
+  /** 장전 중이면 true. 피버 중에는 링을 그리지 않는다. */
+  isReloading?: boolean;
+  /** 링이 차오르는 시간(ms). HudSnapshot.reloadDurationMs. */
+  reloadDurationMs?: number;
+  /** 일시정지·카드 선택 중이면 true: 링 애니메이션을 멈춘다. */
+  isPaused?: boolean;
 }
 
 export const CrosshairOverlay = React.memo(
@@ -139,6 +174,9 @@ export const CrosshairOverlay = React.memo(
     isAimLocked = false,
     weaponKind = 'shotgun',
     weaponLevel = 1,
+    isReloading = false,
+    reloadDurationMs = 0,
+    isPaused = false,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const targetPosRef = useRef({ x: aimX, y: aimY });
@@ -247,6 +285,7 @@ export const CrosshairOverlay = React.memo(
     kickScaleRef.current = spec.weaponKind === 'shotgun' ? 1.32 : spec.weaponKind === 'revolver' ? 0.90 : 1.20;
 
     const cornerSize = spec.sizePx * 0.22;
+    const ring = getReloadRingSpec({ isReloading, isFeverActive, reloadDurationMs, sizePx: spec.sizePx });
 
     return (
       <div
@@ -415,6 +454,42 @@ export const CrosshairOverlay = React.memo(
                 background: spec.primaryColor,
               }}
             />
+          </>
+        )}
+
+        {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
+        {ring.visible && (
+          <>
+            <style>{`@keyframes reload-ring-fill { from { stroke-dashoffset: ${ring.circumferencePx}; } to { stroke-dashoffset: 0; } }`}</style>
+            <svg
+              width={ring.diameterPx}
+              height={ring.diameterPx}
+              style={{ position: 'absolute', transform: 'rotate(-90deg)', pointerEvents: 'none' }}
+              aria-hidden
+            >
+              <circle
+                cx={ring.diameterPx / 2}
+                cy={ring.diameterPx / 2}
+                r={ring.radiusPx}
+                fill="none"
+                stroke="rgba(248,113,113,0.25)"
+                strokeWidth={4}
+              />
+              <circle
+                cx={ring.diameterPx / 2}
+                cy={ring.diameterPx / 2}
+                r={ring.radiusPx}
+                fill="none"
+                stroke={ring.color}
+                strokeWidth={4}
+                strokeLinecap="round"
+                strokeDasharray={ring.circumferencePx}
+                style={{
+                  animation: `reload-ring-fill ${ring.durationMs}ms linear forwards`,
+                  animationPlayState: isPaused ? 'paused' : 'running',
+                }}
+              />
+            </svg>
           </>
         )}
 
