@@ -76,3 +76,39 @@ describe('PauseMenuOverlay', () => {
     expect(html).not.toContain('disabled');
   });
 });
+
+describe('controller lost state', () => {
+  const render = (props: Partial<React.ComponentProps<typeof PauseMenuOverlay>>) =>
+    renderToStaticMarkup(
+      React.createElement(PauseMenuOverlay, {
+        reason: 'USER',
+        isControllerConnected: true,
+        onResume: () => {},
+        onRestart: () => {},
+        ...props,
+      })
+    );
+
+  it('waits for the phone and blocks resume while it is gone', () => {
+    const html = render({ reason: 'CONTROLLER_LOST', isControllerConnected: false });
+    expect(html).toContain('폰 재연결 중');
+    expect(html).toContain('disabled');
+    expect(html).toContain('다시시작');
+  });
+
+  it('re-enables resume once the phone is back', () => {
+    const html = render({ reason: 'CONTROLLER_LOST', isControllerConnected: true });
+    expect(html).toContain('다시 연결되었습니다');
+    expect(html).not.toContain('disabled');
+  });
+
+  it('a manual pause never depends on the phone', () => {
+    expect(render({ reason: 'USER', isControllerConnected: false })).not.toContain('disabled');
+  });
+
+  it('the page guards resume and the guide against a missing phone', () => {
+    const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    expect(source).toContain("pauseMenuReasonRef.current === 'CONTROLLER_LOST' && !isControllerConnectedRef.current");
+    expect(source).toContain("handleOpenPauseRef.current('CONTROLLER_LOST')");
+  });
+});

@@ -75,9 +75,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownSecRef = useRef<number | null>(null);
   countdownSecRef.current = countdownSec;
+  // Optimistic until the server reports a drop, so mouse-only play (no phone) is never held up by this flag.
+  const [isControllerConnected, setIsControllerConnected] = useState<boolean>(true);
+  const isControllerConnectedRef = useRef<boolean>(true);
+  isControllerConnectedRef.current = isControllerConnected;
+  // The socket callback lives in an effect that never re-runs, so it reaches the latest pause opener through a ref.
+  const handleOpenPauseRef = useRef<(reason?: PauseReason) => void>(() => {});
   const [pauseMenu, setPauseMenu] = useState<{ open: boolean; reason: PauseReason }>({ open: false, reason: 'USER' });
   const pauseMenuOpenRef = useRef<boolean>(false);
   pauseMenuOpenRef.current = pauseMenu.open;
+  const pauseMenuReasonRef = useRef<PauseReason>('USER');
+  pauseMenuReasonRef.current = pauseMenu.reason;
 
   const [diagnostics, setDiagnostics] = useState<SensorDiagnosticsState>({
     aimX: 0,
@@ -287,6 +295,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'CONTROLLER_PAIRED':
             setPairedPlayer(msg.player);
+            setIsControllerConnected(true);
             soundSynth.unlockAudio();
             break;
 
@@ -506,6 +515,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               if (rapidFireTimerRef.current) {
                 clearInterval(rapidFireTimerRef.current);
                 rapidFireTimerRef.current = null;
+              }
+              isControllerConnectedRef.current = false;
+              setIsControllerConnected(false);
+              if (gamePhaseRef.current === 'PLAYING') {
+                if (pauseMenuOpenRef.current) {
+                  // The player had already paused: keep the menu, but it must now wait for the phone.
+                  setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
+                } else {
+                  handleOpenPauseRef.current('CONTROLLER_LOST');
+                }
               }
             }
             break;
@@ -748,7 +767,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     [engine]
   );
 
+  handleOpenPauseRef.current = handleOpenPause;
+
   const handleResumeFromPause = useCallback(() => {
+    // Without the phone nobody can aim, so a resume would only let the countdown end in a free hit.
+    if (pauseMenuReasonRef.current === 'CONTROLLER_LOST' && !isControllerConnectedRef.current) return;
     setPauseMenu({ open: false, reason: 'USER' });
     startResumeCountdown();
   }, [startResumeCountdown]);
@@ -795,6 +818,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleCloseGuide = useCallback(() => {
     setIsGuideOpen(false);
+    if (gamePhaseRef.current === 'PLAYING' && !isControllerConnectedRef.current) {
+      // The phone dropped while the guide was open: wait in the pause menu instead of counting down.
+      setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
+      return;
+    }
     if (gamePhaseRef.current === 'PLAYING' || gamePhaseRef.current === 'TUTORIAL') {
       startResumeCountdown();
     }
@@ -1276,7 +1304,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       {gamePhase === 'PLAYING' && pauseMenu.open && (
         <PauseMenuOverlay
           reason={pauseMenu.reason}
-          isControllerConnected={true}
+          isControllerConnected={isControllerConnected}
           onResume={handleResumeFromPause}
           onRestart={handleRestartFromPause}
         />

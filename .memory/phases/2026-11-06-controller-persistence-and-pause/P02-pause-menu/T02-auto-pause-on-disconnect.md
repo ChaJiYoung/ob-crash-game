@@ -1,6 +1,6 @@
 # Task: T02 폰 끊김 자동 일시정지
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 중 폰 연결이 끊기면 자동으로 일시정지 메뉴가 뜨고 '폰 재연결 중'을 보여 준다. 폰이 돌아오면 메뉴가 '다시 연결됨'으로 바뀌고, 사용자가 이어하기를 누를 때까지 게임은 멈춰 있다.
@@ -69,6 +69,6 @@ Task: T02-auto-pause-on-disconnect
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (this commit)
