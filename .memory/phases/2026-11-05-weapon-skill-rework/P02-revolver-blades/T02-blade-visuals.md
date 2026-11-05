@@ -1,6 +1,6 @@
 # Task: T02 칼날 렌더링과 타격 연출
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진의 칼날을 세로 초승달로 그리고, 칼날이나 거품이 닿는 순간 몬스터 높이에 타격 연출과 베인 자국을 보여 준다. "맞는 건지 모르겠다"를 해결하는 핵심 Task다.
@@ -123,6 +123,6 @@ Task: T02-blade-visuals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

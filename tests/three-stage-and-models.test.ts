@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { GAME_TUNING } from '../src/shared/gameTuning';
 import * as THREE from 'three';
 import { ItemBuffKind, TargetKind } from '../src/shared/types';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../src/shared/constants';
@@ -24,7 +25,7 @@ import { buildShaderAnchorGroup } from '../src/pc/three/ShaderWarmup';
 import { DraftTapGun3D, createRealisticPlungerMesh } from '../src/pc/three/DraftTapGun3D';
 import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../src/pc/three/ParticleEffects3D';
 import { SoundSynthesizer } from '../src/pc/audio/SoundSynthesizer';
-import { computeAimWorldPoint, disposeSceneGroup, resolveHitFxColor } from '../src/pc/components/GameCanvas3D';
+import { computeAimWorldPoint, computeSkillHitFxPosition, disposeSceneGroup, resolveHitFxColor } from '../src/pc/components/GameCanvas3D';
 import { aimToNdc } from '../src/pc/components/CrosshairOverlay';
 
 describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
@@ -546,13 +547,20 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
       expect(p.group.position.y).toBeGreaterThanOrEqual(-1.20);
     });
 
-    // 2. Revolver Skill: Giant Golden Opener Boomerang
+    // 2. Revolver Skill: the blades are engine state drawn by syncSkillBlades, not a one-shot effect
+    const fxBefore = fx.activeSkillEffects.length;
     fx.spawnSkillEffect('revolver', 3, monsterPos);
-    expect(fx.boomerangBlade).toBeDefined();
-    expect(fx.boomerangBlade?.group.visible).toBe(true);
-    const initYaw = fx.boomerangBlade!.group.rotation.y;
-    fx.update(0.05);
-    expect(fx.boomerangBlade!.group.rotation.y).not.toBe(initYaw);
+    expect(fx.activeSkillEffects.length).toBe(fxBefore);
+    fx.syncSkillBlades([{ id: 'a', thetaRad: 0.2, radiusM: 10 }]);
+    expect(fx.activeBladeMeshCount).toBe(1);
+    fx.syncSkillBlades([]);
+    expect(fx.activeBladeMeshCount).toBe(0);
+
+    fx.spawnSlashMark(new THREE.Vector3(0, 1, -5));
+    const marks = fx.activeSkillEffects.length;
+    expect(marks).toBeGreaterThan(fxBefore);
+    for (let i = 0; i < 20; i++) fx.update(0.016);
+    expect(fx.activeSkillEffects.length).toBeLessThan(marks);
 
     // 3. Gatling Skill: 160-degree Foam Tsunami
     fx.spawnSkillEffect('gatling', 4, monsterPos);
@@ -560,6 +568,24 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     const initialDist = fx.tsunamiBubbles[0].userData.dist;
     fx.update(0.05);
     expect(fx.tsunamiBubbles[0].userData.dist).toBeGreaterThan(initialDist);
+  });
+
+  it('the crescent blade is as wide as the hit width and as tall as the monsters', () => {
+    const fx = new ParticleEffects3D();
+    fx.syncSkillBlades([{ id: 'a', thetaRad: 0, radiusM: 10 }]);
+    const mesh = fx.group.children.find((c) => (c as THREE.Mesh).geometry instanceof THREE.ShapeGeometry) as THREE.Mesh;
+    mesh.geometry.computeBoundingBox();
+    const size = mesh.geometry.boundingBox!.getSize(new THREE.Vector3());
+    expect(size.y).toBeCloseTo(1.9, 1);
+    expect(size.x).toBeGreaterThan(GAME_TUNING.skills.blade.halfWidthM);
+    expect(size.x).toBeLessThan(GAME_TUNING.skills.blade.halfWidthM * 2.5);
+  });
+
+  it('hit effect position uses the monster height, not the floor', () => {
+    const ground = computeSkillHitFxPosition({ kind: 'hanmac', x: 1, z: -8 } as any);
+    const shell = computeSkillHitFxPosition({ kind: 'pilgood', x: 0, z: -8, customBaseY: 1.45 } as any);
+    expect(ground.y).toBeCloseTo(0.9, 5);
+    expect(shell.y).toBeCloseTo(1.8, 5);
   });
 
   it('plungers aimed at a boss bounce off instead of sticking', () => {

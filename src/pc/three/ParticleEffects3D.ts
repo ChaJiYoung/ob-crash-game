@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ItemBuffKind, WeaponKind, WeaponLevel } from '../../shared/types';
 import { ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
+import { GAME_TUNING } from '../../shared/gameTuning';
 import { createRealisticPlungerMesh } from './DraftTapGun3D';
 
 export const HIT_PARTICLE_COUNTS = { hit: 5, kill: 10, boss: 15 } as const;
@@ -123,10 +124,6 @@ export class ParticleEffects3D {
     return this.projectiles.filter((p) => p.velocity !== undefined);
   }
 
-  public get boomerangBlade(): SkillEffectItem | undefined {
-    return this.skillEffects.find((s) => s.kind === 'revolver');
-  }
-
   public get tsunamiBubbles(): THREE.Mesh[] {
     const s = this.skillEffects.find((fx) => fx.kind === 'gatling');
     return s ? (s.group.children as THREE.Mesh[]) : [];
@@ -146,9 +143,12 @@ export class ParticleEffects3D {
   private sharedShotgunPelletMat: THREE.MeshBasicMaterial;
   private skillFoamGeo: THREE.SphereGeometry;
   private skillFoamMats: THREE.MeshBasicMaterial[];
-  private skillGoldMat: THREE.MeshStandardMaterial;
-  private skillBladeGeo: THREE.TorusGeometry;
-  private skillHookGeo: THREE.BoxGeometry;
+  private bladeGeo: THREE.ShapeGeometry;
+  private bladeMat: THREE.MeshBasicMaterial;
+  private slashGeo: THREE.PlaneGeometry;
+  private slashMat: THREE.MeshBasicMaterial;
+  private bladeMeshes: Map<string, THREE.Mesh> = new Map();
+  private bladeMeshPool: THREE.Mesh[] = [];
 
   // Object Pools
   private tracerPool: TracerBeamItem[] = [];
@@ -251,18 +251,33 @@ export class ParticleEffects3D {
       m.userData.isShared = true;
       return m;
     });
-    this.skillGoldMat = new THREE.MeshStandardMaterial({
+    // Crescent blade: a vertical moon as wide as the hit width and as tall as the monsters.
+    const w = GAME_TUNING.skills.blade.halfWidthM;
+    const h = 0.95;
+    const shape = new THREE.Shape();
+    shape.moveTo(-w, h);
+    shape.quadraticCurveTo(3 * w, 0, -w, -h);
+    shape.quadraticCurveTo(w + 0.4, 0, -w, h);
+    this.bladeGeo = new THREE.ShapeGeometry(shape);
+    this.bladeGeo.userData.isShared = true;
+    this.bladeMat = new THREE.MeshBasicMaterial({
       color: 0xffd700,
-      emissive: 0xf59e0b,
-      emissiveIntensity: 1.5,
-      metalness: 0.95,
-      roughness: 0.1,
+      transparent: true,
+      opacity: 0.6,
+      side: THREE.DoubleSide,
+      depthWrite: false,
     });
-    this.skillGoldMat.userData.isShared = true;
-    this.skillBladeGeo = new THREE.TorusGeometry(1.35, 0.12, 16, 36);
-    this.skillBladeGeo.userData.isShared = true;
-    this.skillHookGeo = new THREE.BoxGeometry(0.75, 0.22, 0.24);
-    this.skillHookGeo.userData.isShared = true;
+    this.bladeMat.userData.isShared = true;
+    this.slashGeo = new THREE.PlaneGeometry(1.6, 0.12);
+    this.slashGeo.userData.isShared = true;
+    this.slashMat = new THREE.MeshBasicMaterial({
+      color: 0xfff7cc,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    this.slashMat.userData.isShared = true;
   }
 
   private createBatch(
@@ -647,6 +662,9 @@ export class ParticleEffects3D {
   ): void {
     const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
 
+    // The revolver blades are engine state drawn by syncSkillBlades, not a one-shot effect.
+    if (kind === 'revolver') return;
+
     if (kind === 'shotgun') {
       // 1. 사방 뚫어뻥 폭풍: 12~22 3D Plungers in Parabolic Trajectories
       const count = spec.skillPlungerCount || 16;
@@ -695,40 +713,6 @@ export class ParticleEffects3D {
           maxLifeSec: isSticking ? 1.6 : 1.2,
         });
       }
-    } else if (kind === 'revolver') {
-      // 2. 오프너 불릿 타임 & 참격: Giant Golden Bottle Opener Boomerang
-      const boomerangGroup = new THREE.Group();
-      const goldMat = this.skillGoldMat;
-
-      // Opener Ring Blade (Large 2.7m diameter golden blade tilted toward camera)
-      const blade = new THREE.Mesh(this.skillBladeGeo, goldMat);
-      blade.rotation.x = Math.PI / 3.5;
-      boomerangGroup.add(blade);
-
-      const hook = new THREE.Mesh(this.skillHookGeo, goldMat);
-      hook.position.set(0.95, 0, 0);
-      boomerangGroup.add(hook);
-
-      // Eye-level starting position right in front of camera
-      boomerangGroup.position.set(0, 1.35, -2.2);
-      this.group.add(boomerangGroup);
-
-      this.skillEffects.push({
-        group: boomerangGroup,
-        kind: 'revolver',
-        lifeSec: 0,
-        maxLifeSec: 1.8,
-        updateFn: (dt, life) => {
-          boomerangGroup.rotation.y += dt * 26.0;
-          boomerangGroup.rotation.z += dt * 12.0;
-          // Elliptical arc trajectory centered on monsters
-          const t = (life / 1.8) * Math.PI * 2;
-          boomerangGroup.position.x = Math.sin(t) * 2.8;
-          boomerangGroup.position.y = 1.35 + Math.sin(t * 2.0) * 0.25;
-          boomerangGroup.position.z = -2.2 - Math.sin(t * 0.5) * 6.5;
-          return life >= 1.8;
-        },
-      });
     } else {
       // 3. gatling: 거품 해일 160도 오버히트: 반투명 크리미 폼 웨이브
       const waveGroup = new THREE.Group();
@@ -915,7 +899,59 @@ export class ParticleEffects3D {
     }
   }
 
+  /** 엔진의 칼날 상태를 그대로 그린다. 목록에 없는 칼날 메시는 풀로 돌려보낸다. */
+  public syncSkillBlades(blades: ReadonlyArray<{ id: string; thetaRad: number; radiusM: number }>): void {
+    const seen = new Set<string>();
+    for (const blade of blades) {
+      seen.add(blade.id);
+      let mesh = this.bladeMeshes.get(blade.id);
+      if (!mesh) {
+        mesh = this.bladeMeshPool.pop() ?? new THREE.Mesh(this.bladeGeo, this.bladeMat);
+        this.bladeMeshes.set(blade.id, mesh);
+        this.group.add(mesh);
+      }
+      const x = Math.sin(blade.thetaRad) * blade.radiusM;
+      const z = -Math.cos(blade.thetaRad) * blade.radiusM;
+      mesh.position.set(x, 0.95, z);
+      mesh.rotation.y = Math.atan2(-x, -z);
+    }
+    this.bladeMeshes.forEach((mesh, id) => {
+      if (seen.has(id)) return;
+      this.group.remove(mesh);
+      this.bladeMeshes.delete(id);
+      if (this.bladeMeshPool.length < 16) this.bladeMeshPool.push(mesh);
+    });
+  }
+
+  public get activeBladeMeshCount(): number {
+    return this.bladeMeshes.size;
+  }
+
+  /** 칼날이 닿은 몬스터 높이에 0.2초 동안 사선 베인 자국을 띄운다. */
+  public spawnSlashMark(position: THREE.Vector3): void {
+    const mark = new THREE.Mesh(this.slashGeo, this.slashMat);
+    mark.rotation.z = Math.PI / 4;
+    const group = new THREE.Group();
+    group.add(mark);
+    group.position.copy(position);
+    group.lookAt(0, 1.65, 2.2);
+    this.group.add(group);
+    this.skillEffects.push({
+      group,
+      kind: 'revolver',
+      lifeSec: 0,
+      maxLifeSec: 0.2,
+      updateFn: (_dt, life) => {
+        const t = Math.min(1, life / 0.2);
+        mark.scale.set(1 + t * 0.4, Math.max(0.01, 1 - t), 1);
+        return false;
+      },
+    });
+  }
+
   public clear(): void {
+    this.bladeMeshes.forEach((mesh) => this.group.remove(mesh));
+    this.bladeMeshes.clear();
     for (const batch of this.batches) {
       batch.items.length = 0;
       batch.mesh.count = 0;
@@ -960,7 +996,8 @@ export class ParticleEffects3D {
     objs.push(new THREE.Mesh(this.gatlingBubbleGeo, this.gatlingMat));
     objs.push(new THREE.Mesh(this.sharedShotgunPelletGeo, this.sharedShotgunPelletMat));
     objs.push(createRealisticPlungerMesh(0.28));
-    objs.push(new THREE.Mesh(this.skillBladeGeo, this.skillGoldMat));
+    objs.push(new THREE.Mesh(this.bladeGeo, this.bladeMat));
+    objs.push(new THREE.Mesh(this.slashGeo, this.slashMat));
     objs.push(new THREE.Mesh(this.skillFoamGeo, this.skillFoamMats[0]));
 
     // Instanced variants (USE_INSTANCING / USE_INSTANCING_COLOR) are separate shader programs.

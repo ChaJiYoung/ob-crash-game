@@ -34,6 +34,48 @@ export function resolveHitFxColor(target: ActiveTargetEntity): string {
   return TARGET_SPECS[target.kind]?.brandColorHex || '#fbbf24';
 }
 
+/** 칼날·거품이 닿았을 때 효과가 나올 위치: 몬스터가 실제로 있는 높이. 죽은 몬스터의 메시는 곧 지워지므로 대상 좌표에서 계산한다. */
+export function computeSkillHitFxPosition(target: ActiveTargetEntity): THREE.Vector3 {
+  const baseY = target.customBaseY ?? getTargetBaseY(target.kind, target.isItem);
+  return new THREE.Vector3(target.x, baseY + 0.35, target.z);
+}
+
+/** 맞은 몬스터에서 나는 파편과(선택) 소리. 평타와 스킬이 같이 쓴다. */
+export function playTargetBurst(
+  particles: ParticleEffects3D,
+  soundSynth: SoundSynthesizer,
+  target: ActiveTargetEntity,
+  pos: THREE.Vector3,
+  killed: boolean,
+  withSound: boolean
+): void {
+  const hitColor = resolveHitFxColor(target);
+  if (killed) {
+    if (target.isProjectile) {
+      // Intercepted projectiles burst like monsters; the intercept sound is played by the caller.
+      // (A projectile's kind is 'pilgood', so it must not fall through to the can-crush sound.)
+      particles.spawnHitEffect(pos, hitColor, HIT_PARTICLE_COUNTS.kill);
+    } else if (target.kind === 'bottle' && target.isSplitChild) {
+      if (withSound) soundSynth.playCanCrushSound();
+      particles.spawnHitEffect(pos, hitColor, HIT_PARTICLE_COUNTS.kill);
+    } else if (target.kind === 'bottle') {
+      if (withSound) soundSynth.playBottleShatterSound();
+      particles.triggerBottleCrash(pos);
+    } else if (target.kind === 'boss') {
+      if (withSound) soundSynth.playBossExplosionSound();
+      particles.spawnHitEffect(pos, hitColor, HIT_PARTICLE_COUNTS.boss);
+    } else {
+      if (withSound) soundSynth.playCanCrushSound();
+      particles.spawnHitEffect(pos, hitColor, HIT_PARTICLE_COUNTS.kill);
+    }
+  } else {
+    if (withSound) soundSynth.playMetallicHitSound();
+    particles.spawnHitEffect(pos, hitColor, HIT_PARTICLE_COUNTS.hit);
+  }
+}
+
+const SKILL_HIT_SOUND_GAP_MS = 70;
+
 export function computeAimWorldPoint(
   camera: THREE.PerspectiveCamera,
   aimX: number,
@@ -178,28 +220,7 @@ export const GameCanvas3D = React.memo(
 
                 const hitColor = resolveHitFxColor(result.target);
 
-                if (result.killed) {
-                  if (result.target.isProjectile) {
-                    // Intercepted projectiles burst like monsters; the intercept sound is played by the page.
-                    // (A projectile's kind is 'pilgood', so it must not fall through to the can-crush sound.)
-                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
-                  } else if (result.target.kind === 'bottle' && result.target.isSplitChild) {
-                    soundSynth.playCanCrushSound();
-                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
-                  } else if (result.target.kind === 'bottle') {
-                    soundSynth.playBottleShatterSound();
-                    particlesRef.current.triggerBottleCrash(targetPos);
-                  } else if (result.target.kind === 'boss') {
-                    soundSynth.playBossExplosionSound();
-                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.boss);
-                  } else {
-                    soundSynth.playCanCrushSound();
-                    particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.kill);
-                  }
-                } else {
-                  soundSynth.playMetallicHitSound();
-                  particlesRef.current.spawnHitEffect(targetPos, hitColor, HIT_PARTICLE_COUNTS.hit);
-                }
+                playTargetBurst(particlesRef.current, soundSynth, result.target, targetPos, Boolean(result.killed), true);
 
                 if (result.target.isItem && result.target.itemKind) {
                   particlesRef.current.spawnFloatingLabel(targetPos, result.target.itemKind);
@@ -459,6 +480,7 @@ export const GameCanvas3D = React.memo(
       let animId = 0;
       let lastTime = performance.now();
       let lastProjUpdateTime = 0;
+      let lastSkillHitSoundMs = 0;
       let lastMetricsReportMs = performance.now();
       let fpsFrameCount = 0;
       const activeIds = new Set<string>();
@@ -483,6 +505,24 @@ export const GameCanvas3D = React.memo(
         const { reloadedJustNow } = engine.update(time, dtSec);
         if (reloadedJustNow) {
           soundSynth.playAutoReload();
+        }
+
+        // 칼날·거품이 닿은 순간의 연출. 사격과 같은 파편·소리를 쓰고 소리는 70ms에 한 번만 낸다.
+        for (const ev of engine.drainSkillHitEvents()) {
+          const pos = computeSkillHitFxPosition(ev.target);
+          const nowMs = performance.now();
+          const canSound = nowMs - lastSkillHitSoundMs >= SKILL_HIT_SOUND_GAP_MS;
+          if (canSound) lastSkillHitSoundMs = nowMs;
+          if (ev.blocked) {
+            particles.spawnHitEffect(pos, '#e2e8f0', 2);
+            if (canSound) soundSynth.playShieldBlockSound();
+            continue;
+          }
+          const hitMesh = targetMeshMap.get(ev.target.id);
+          if (hitMesh && !ev.killed) applyTargetHitFlash3D(hitMesh, nowMs / 1000);
+          playTargetBurst(particles, soundSynth, ev.target, pos, ev.killed, canSound);
+          if (ev.target.isProjectile && canSound) soundSynth.playInterceptSound();
+          if (ev.source === 'blade') particles.spawnSlashMark(pos);
         }
 
         // Sync 3D Target Meshes
@@ -685,6 +725,7 @@ export const GameCanvas3D = React.memo(
         }
 
         // Update particles and tracer beams
+        particles.syncSkillBlades(engine.activeSkillBlades);
         particles.update(dtSec);
 
         if (renderer) renderer.render(scene, camera);
