@@ -562,12 +562,28 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     for (let i = 0; i < 20; i++) fx.update(0.016);
     expect(fx.activeSkillEffects.length).toBeLessThan(marks);
 
-    // 3. Gatling Skill: 160-degree Foam Tsunami
+    // 3. Gatling Skill: the foam wave is engine state drawn by syncSkillFoam
+    const fxBefore2 = fx.activeSkillEffects.length;
     fx.spawnSkillEffect('gatling', 4, monsterPos);
-    expect(fx.tsunamiBubbles.length).toBeGreaterThanOrEqual(45);
-    const initialDist = fx.tsunamiBubbles[0].userData.dist;
-    fx.update(0.05);
-    expect(fx.tsunamiBubbles[0].userData.dist).toBeGreaterThan(initialDist);
+    expect(fx.activeSkillEffects.length).toBe(fxBefore2);
+    fx.syncSkillFoam([{ id: 'w', radiusM: 8, count: 120 }], 0.8);
+    expect(fx.foamWaveInstanceCount).toBe(120);
+    const posOf = (i: number) => {
+      const m = new THREE.Matrix4();
+      (fx as any).foamWaveMesh.getMatrixAt(i, m);
+      return new THREE.Vector3().setFromMatrixPosition(m);
+    };
+    const before = posOf(0).length();
+    fx.syncSkillFoam([{ id: 'w', radiusM: 14, count: 120 }], 0.8);
+    expect(posOf(0).length()).toBeGreaterThan(before);
+    fx.syncSkillFoam([{ id: 'a', radiusM: 8, count: 280 }, { id: 'b', radiusM: 6, count: 280 }], 0.8);
+    expect(fx.foamWaveInstanceCount).toBe(560);
+    fx.syncSkillFoam([{ id: 'a', radiusM: 8, count: 280 }, { id: 'b', radiusM: 6, count: 280 }, { id: 'c', radiusM: 4, count: 280 }], 0.8);
+    expect(fx.foamWaveInstanceCount).toBe(600);
+    fx.syncSkillFoam([], 0.8);
+    expect(fx.foamWaveInstanceCount).toBe(0);
+    const warm = fx.createWarmupObjects();
+    expect(warm.some((o) => (o as THREE.InstancedMesh).isInstancedMesh && (o as THREE.InstancedMesh).material === (fx as any).foamWaveMesh.material)).toBe(true);
   });
 
   it('the crescent blade is as wide as the hit width and as tall as the monsters', () => {

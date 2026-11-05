@@ -1,6 +1,6 @@
 # Task: T02 작은 거품 렌더링
 
-## Status: pending
+## Status: done
 
 ## Goal
 작은 거품을 많이 뿌려 파도처럼 쓸고 가는 모습을 그리고, 레벨업하면 거품이 많아 보이게 한다. 지금은 큰 거품 50개라 레벨 차이도 없고 파도 앞면과도 맞지 않는다.
@@ -107,6 +107,6 @@ Task: T02-foam-visuals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

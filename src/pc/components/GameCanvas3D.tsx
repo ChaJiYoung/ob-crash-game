@@ -27,6 +27,7 @@ import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
+import { computeHorizontalHalfFovRad } from '../engine/FanSpawner';
 
 export function resolveHitFxColor(target: ActiveTargetEntity): string {
   if (target.isProjectile) return '#f87171';
@@ -738,6 +739,10 @@ export const GameCanvas3D = React.memo(
 
         // Update particles and tracer beams
         particles.syncSkillBlades(engine.activeSkillBlades);
+        particles.syncSkillFoam(
+          engine.activeSkillFoamWaves,
+          computeHorizontalHalfFovRad(engine.vFovDeg, engine.aspect) + 0.15 // 화면 양옆 끝까지
+        );
         particles.update(dtSec);
 
         if (renderer) renderer.render(scene, camera);

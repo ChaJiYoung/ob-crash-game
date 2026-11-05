@@ -61,6 +61,18 @@ export interface ProjectileItem {
   bounceOffPos?: THREE.Vector3;
 }
 
+const FOAM_WAVE_CAPACITY = 600; // Lv.4 파도 두 개(280 x 2)를 담는다
+const FOAM_COLORS = [new THREE.Color(0xffffff), new THREE.Color(0xe0f2fe), new THREE.Color(0x7dd3fc)];
+
+interface FoamWaveSeeds {
+  theta: Float32Array;
+  /** 파도 앞면 뒤쪽으로 얼마나 처져 있는지(m). */
+  back: Float32Array;
+  y: Float32Array;
+  scale: Float32Array;
+  color: Uint8Array;
+}
+
 export interface SkillEffectItem {
   group: THREE.Group;
   kind: WeaponKind;
@@ -124,11 +136,6 @@ export class ParticleEffects3D {
     return this.projectiles.filter((p) => p.velocity !== undefined);
   }
 
-  public get tsunamiBubbles(): THREE.Mesh[] {
-    const s = this.skillEffects.find((fx) => fx.kind === 'gatling');
-    return s ? (s.group.children as THREE.Mesh[]) : [];
-  }
-
   private labelTextureCache = new Map<ItemBuffKind, THREE.Texture>();
   private foamGeo = new THREE.SphereGeometry(0.08, 6, 6);
   private shardGeo = new THREE.BufferGeometry();
@@ -141,8 +148,8 @@ export class ParticleEffects3D {
   });
   private sharedShotgunPelletGeo: THREE.CylinderGeometry;
   private sharedShotgunPelletMat: THREE.MeshBasicMaterial;
-  private skillFoamGeo: THREE.SphereGeometry;
-  private skillFoamMats: THREE.MeshBasicMaterial[];
+  private foamWaveMesh: THREE.InstancedMesh;
+  private foamWaveSeeds: Map<string, FoamWaveSeeds> = new Map();
   private bladeGeo: THREE.ShapeGeometry;
   private bladeMat: THREE.MeshBasicMaterial;
   private slashGeo: THREE.PlaneGeometry;
@@ -244,13 +251,19 @@ export class ParticleEffects3D {
     this.sharedShotgunPelletMat = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
     this.sharedShotgunPelletMat.userData.isShared = true;
 
-    this.skillFoamGeo = new THREE.SphereGeometry(1, 8, 8);
-    this.skillFoamGeo.userData.isShared = true;
-    this.skillFoamMats = [0xffffff, 0xe0f2fe, 0x7dd3fc].map((c) => {
-      const m = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.42 });
-      m.userData.isShared = true;
-      return m;
-    });
+    // 거품 해일: 작은 거품 수백 개를 인스턴싱 한 번으로 그린다. createBatch를 쓰면 매 프레임 count를 덮어쓴다.
+    const foamGeo = new THREE.SphereGeometry(1, 6, 6);
+    foamGeo.userData.isShared = true;
+    const foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthWrite: false });
+    foamMat.userData.isShared = true;
+    this.foamWaveMesh = new THREE.InstancedMesh(foamGeo, foamMat, FOAM_WAVE_CAPACITY);
+    this.foamWaveMesh.frustumCulled = false;
+    this.foamWaveMesh.count = 0;
+    this.foamWaveMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.foamWaveMesh.setColorAt(0, FOAM_COLORS[0]);
+    this.foamWaveMesh.instanceColor!.setUsage(THREE.DynamicDrawUsage);
+    this.group.add(this.foamWaveMesh);
+
     // Crescent blade: a vertical moon as wide as the hit width and as tall as the monsters.
     const w = GAME_TUNING.skills.blade.halfWidthM;
     const h = 0.95;
@@ -660,12 +673,11 @@ export class ParticleEffects3D {
     monsterPositions: THREE.Vector3[],
     noStickFlags?: boolean[] // monsterPositions와 같은 순서. true면 그 대상에는 박히지 않는다.
   ): void {
+    // The revolver blades and the gatling foam are engine state drawn by syncSkillBlades / syncSkillFoam.
+    if (kind !== 'shotgun') return;
     const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
 
-    // The revolver blades are engine state drawn by syncSkillBlades, not a one-shot effect.
-    if (kind === 'revolver') return;
-
-    if (kind === 'shotgun') {
+    {
       // 1. 사방 뚫어뻥 폭풍: 12~22 3D Plungers in Parabolic Trajectories
       const count = spec.skillPlungerCount || 16;
       for (let i = 0; i < count; i++) {
@@ -713,43 +725,6 @@ export class ParticleEffects3D {
           maxLifeSec: isSticking ? 1.6 : 1.2,
         });
       }
-    } else {
-      // 3. gatling: 거품 해일 160도 오버히트: 반투명 크리미 폼 웨이브
-      const waveGroup = new THREE.Group();
-      const halfArc = Math.PI / 4;
-      const foamCount = 50;
-
-      for (let k = 0; k < foamCount; k++) {
-        const radius = 0.15 + Math.random() * 0.14;
-        const fMesh = new THREE.Mesh(this.skillFoamGeo, this.skillFoamMats[k % 3]);
-        fMesh.scale.setScalar(radius);
-        const theta = (Math.random() * 2 - 1) * halfArc;
-        fMesh.userData.theta = theta;
-        fMesh.userData.speed = 10.0 + Math.random() * 5.0;
-        fMesh.userData.dist = 0.6 + Math.random() * 0.6;
-        fMesh.userData.initY = 0.75 + (Math.random() - 0.5) * 0.45;
-        waveGroup.add(fMesh);
-      }
-      this.group.add(waveGroup);
-
-      this.skillEffects.push({
-        group: waveGroup,
-        kind: 'gatling',
-        lifeSec: 0,
-        maxLifeSec: 1.4,
-        updateFn: (dt) => {
-          waveGroup.children.forEach((child) => {
-            child.userData.dist += dt * child.userData.speed;
-            const th = child.userData.theta;
-            child.position.set(
-              Math.sin(th) * child.userData.dist,
-              child.userData.initY + Math.sin(child.userData.dist * 1.5) * 0.25,
-              -Math.cos(th) * child.userData.dist
-            );
-          });
-          return false;
-        },
-      });
     }
   }
 
@@ -923,6 +898,57 @@ export class ParticleEffects3D {
     });
   }
 
+  /** 엔진의 거품 파도 상태를 작은 거품 수백 개로 그린다. 거품 위치는 파도 앞면에서 정해진다. */
+  public syncSkillFoam(waves: ReadonlyArray<{ id: string; radiusM: number; count: number }>, spreadHalfRad: number): void {
+    const live = new Set(waves.map((w) => w.id));
+    this.foamWaveSeeds.forEach((_v, id) => {
+      if (!live.has(id)) this.foamWaveSeeds.delete(id);
+    });
+    const mesh = this.foamWaveMesh;
+    const matrix = new THREE.Matrix4();
+    let n = 0;
+    for (const wave of waves) {
+      let seeds = this.foamWaveSeeds.get(wave.id);
+      if (!seeds) {
+        const c = wave.count;
+        seeds = {
+          theta: new Float32Array(c),
+          back: new Float32Array(c),
+          y: new Float32Array(c),
+          scale: new Float32Array(c),
+          color: new Uint8Array(c),
+        };
+        for (let i = 0; i < c; i++) {
+          seeds.theta[i] = (Math.random() * 2 - 1) * spreadHalfRad;
+          seeds.back[i] = Math.random() * 2.4;
+          seeds.y[i] = 0.1 + Math.random() * 1.6;
+          seeds.scale[i] = 0.045 + Math.random() * 0.065;
+          seeds.color[i] = Math.floor(Math.random() * 3);
+        }
+        this.foamWaveSeeds.set(wave.id, seeds);
+      }
+      for (let i = 0; i < seeds.theta.length && n < FOAM_WAVE_CAPACITY; i++) {
+        const r = Math.max(0.6, wave.radiusM - seeds.back[i]);
+        const s = seeds.scale[i] * (1 + r * 0.04); // 멀어져도 보이게
+        const y = seeds.y[i] + Math.sin(r * 1.5 + i) * 0.12;
+        matrix.makeScale(s, s, s).setPosition(Math.sin(seeds.theta[i]) * r, y, -Math.cos(seeds.theta[i]) * r);
+        mesh.setMatrixAt(n, matrix);
+        mesh.setColorAt(n, FOAM_COLORS[seeds.color[i]]);
+        n++;
+      }
+    }
+    const changed = n > 0 || mesh.count > 0;
+    mesh.count = n;
+    if (changed) {
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
+  }
+
+  public get foamWaveInstanceCount(): number {
+    return this.foamWaveMesh.count;
+  }
+
   public get activeBladeMeshCount(): number {
     return this.bladeMeshes.size;
   }
@@ -952,6 +978,8 @@ export class ParticleEffects3D {
   public clear(): void {
     this.bladeMeshes.forEach((mesh) => this.group.remove(mesh));
     this.bladeMeshes.clear();
+    this.foamWaveMesh.count = 0;
+    this.foamWaveSeeds.clear();
     for (const batch of this.batches) {
       batch.items.length = 0;
       batch.mesh.count = 0;
@@ -998,7 +1026,10 @@ export class ParticleEffects3D {
     objs.push(createRealisticPlungerMesh(0.28));
     objs.push(new THREE.Mesh(this.bladeGeo, this.bladeMat));
     objs.push(new THREE.Mesh(this.slashGeo, this.slashMat));
-    objs.push(new THREE.Mesh(this.skillFoamGeo, this.skillFoamMats[0]));
+    const foamInst = new THREE.InstancedMesh(this.foamWaveMesh.geometry, this.foamWaveMesh.material, 1);
+    foamInst.setMatrixAt(0, new THREE.Matrix4().makeScale(0.001, 0.001, 0.001));
+    foamInst.setColorAt(0, new THREE.Color(0xffffff));
+    objs.push(foamInst);
 
     // Instanced variants (USE_INSTANCING / USE_INSTANCING_COLOR) are separate shader programs.
     for (const batch of this.batches) {
