@@ -231,11 +231,18 @@ export const GameCanvas3D = React.memo(
         },
         triggerSkillEffect(kind: WeaponKind, level?: WeaponLevel) {
           if (!particlesRef.current) return;
-          const monsterPositions = engine.activeTargets
-            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetLanded(t, performance.now()))
-            .map((t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z));
+          const skillTargets = engine.activeTargets
+            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetLanded(t, performance.now()));
+          const monsterPositions = skillTargets.map(
+            (t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z)
+          );
           const actualLevel = level ?? engine.weaponSystem.getState().weaponLevel;
-          particlesRef.current.spawnSkillEffect(kind, actualLevel, monsterPositions);
+          particlesRef.current.spawnSkillEffect(
+            kind,
+            actualLevel,
+            monsterPositions,
+            skillTargets.map((t) => t.kind === 'boss')
+          );
         },
         playShotFx,
       }),

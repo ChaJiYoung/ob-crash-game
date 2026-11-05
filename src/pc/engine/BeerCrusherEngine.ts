@@ -1961,7 +1961,7 @@ export class BeerCrusherEngine {
           this.pushTargetBack(target, levelSpec.knockbackM);
         }
         // Lv.4 MAX slow
-        if (levelSpec.slowDurationMs > 0) {
+        if (levelSpec.slowDurationMs > 0 && target.kind !== 'boss') {
           target.slowUntilMs = nowMs + levelSpec.slowDurationMs;
           target.slowRatio = 0.3;
         }
@@ -2114,8 +2114,10 @@ export class BeerCrusherEngine {
         const monster = activeMonsters[i];
         const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
         if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
-        monster.stunUntilMs = nowMs + levelSpec.skillStunMs;
-        monster.stuckPlungerCount = 2;
+        if (monster.kind !== 'boss') {
+          monster.stunUntilMs = nowMs + levelSpec.skillStunMs;
+          monster.stuckPlungerCount = 2;
+        }
         affectedTargets.push(monster);
 
         if (monster.hp <= 0) {
@@ -2142,8 +2144,10 @@ export class BeerCrusherEngine {
         const monster = activeMonsters[i];
         const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
         if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
-        monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
-        monster.slowRatio = levelSpec.skillSlowRatio;
+        if (monster.kind !== 'boss') {
+          monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
+          monster.slowRatio = levelSpec.skillSlowRatio;
+        }
         affectedTargets.push(monster);
 
         if (monster.hp <= 0) {
@@ -2173,9 +2177,9 @@ export class BeerCrusherEngine {
           if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
           if (monster.kind !== 'boss') {
             this.pushTargetBack(monster, levelSpec.skillKnockbackM);
+            monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
+            monster.slowRatio = levelSpec.skillSlowRatio;
           }
-          monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
-          monster.slowRatio = levelSpec.skillSlowRatio;
           affectedTargets.push(monster);
 
           if (monster.hp <= 0) {

@@ -7,10 +7,10 @@
 [P01 세 무기 공통 규칙](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/phase.md)
 
 ## Active Task
-[T02 보스 기절·둔화 면역](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/T02-boss-status-immunity.md)
+[T03 스킬 피해 공용 함수, 카드 적용, spreadRad 삭제, 샷건 설명](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/T03-skill-damage-bonus-and-shotgun-text.md)
 
 ## Status
-- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`)
+- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역)
 - 결정: [무기 스킬 개편 결정 문서](./decisions/2026-11-05-weapon-skill-rework.md)
 
 ## Paused Plan
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단(이전 리뷰 1)은 P04-T03 플레이 뒤에 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 보스에 기절·둔화가 걸리지 않게 하고 뚫어뻥이 보스에 박히지 않고 튕기게 한다. P01 세 Task가 끝나면 Opus 5.5 리뷰를 받는다(사용자 요청).
+T03 청사진을 읽고 `getSkillDamage`/`applySkillDamage`를 만들고 `spreadRad`를 지운다. P01 세 Task가 끝나면 Opus 5.5 리뷰를 받는다(사용자 요청).

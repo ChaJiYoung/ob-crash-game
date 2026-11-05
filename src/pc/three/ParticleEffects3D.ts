@@ -56,6 +56,8 @@ export interface ProjectileItem {
   lifeSec: number;
   maxLifeSec: number;
   isBouncing?: boolean;
+  /** 이 위치에 닿으면 박히지 않고 튕겨 나간다(보스). */
+  bounceOffPos?: THREE.Vector3;
 }
 
 export interface SkillEffectItem {
@@ -640,7 +642,8 @@ export class ParticleEffects3D {
   public spawnSkillEffect(
     kind: WeaponKind,
     level: WeaponLevel,
-    monsterPositions: THREE.Vector3[]
+    monsterPositions: THREE.Vector3[],
+    noStickFlags?: boolean[] // monsterPositions와 같은 순서. true면 그 대상에는 박히지 않는다.
   ): void {
     const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
 
@@ -658,13 +661,18 @@ export class ParticleEffects3D {
         plunger.position.set(spawnX, spawnY, spawnZ);
         this.group.add(plunger);
 
-        let target = monsterPositions[i % Math.max(1, monsterPositions.length)];
+        const targetIdx = i % Math.max(1, monsterPositions.length);
+        let target = monsterPositions[targetIdx];
         let isSticking = true;
+        let bounceOff = false;
 
         if (!target || monsterPositions.length === 0 || i >= monsterPositions.length * 2) {
           // Missed plunger targets far pub floor/wall (NEVER blocks camera)
           target = new THREE.Vector3((Math.random() - 0.5) * 8.0, -1.15, -10.0 - Math.random() * 4.0);
           isSticking = false;
+        } else if (noStickFlags?.[targetIdx]) {
+          isSticking = false;
+          bounceOff = true;
         }
 
         const dir = new THREE.Vector3().subVectors(target, plunger.position).normalize();
@@ -681,6 +689,7 @@ export class ParticleEffects3D {
           velocity,
           isStuck: false,
           stuckTargetPos: isSticking ? target.clone() : undefined,
+          bounceOffPos: bounceOff ? target.clone() : undefined,
           isBouncing: !isSticking,
           lifeSec: 0,
           maxLifeSec: isSticking ? 1.6 : 1.2,
@@ -870,6 +879,11 @@ export class ParticleEffects3D {
         // Check monster sticking hit
         if (pj.stuckTargetPos && pj.group.position.distanceTo(pj.stuckTargetPos) < 0.6) {
           pj.isStuck = true;
+        }
+        if (pj.bounceOffPos && pj.group.position.distanceTo(pj.bounceOffPos) < 1.2) {
+          pj.velocity.multiplyScalar(-0.35);
+          pj.velocity.y = 4.0;
+          pj.bounceOffPos = undefined;
         }
       } else {
         // Linear direct flight

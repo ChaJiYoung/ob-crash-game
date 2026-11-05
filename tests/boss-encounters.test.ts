@@ -115,6 +115,46 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     expect(boss.radiusM).toBe(12);
   });
 
+  it('bosses are immune to stun and slow from skills and the Lv.4 shotgun shot, but still take damage', () => {
+    finishMiniWave(engine, 3, 1000);
+    const boss = bosses(engine)[0];
+    boss.radiusM = 12; boss.x = 0; boss.z = -12;
+    const hp0 = boss.hp;
+
+    engine.weaponSystem.selectWeapon('shotgun', 1);
+    expect(engine.triggerWeaponSkill(3000).activated).toBe(true);
+    expect(boss.hp).toBeLessThan(hp0);
+    expect(boss.stunUntilMs).toBeUndefined();
+    expect(boss.stuckPlungerCount).toBeFalsy();
+
+    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant();
+    engine.triggerWeaponSkill(3100);
+    expect(boss.slowUntilMs).toBeUndefined();
+
+    engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.weaponSystem.refillSkillInstant();
+    engine.triggerWeaponSkill(3200);
+    expect(boss.slowUntilMs).toBeUndefined();
+
+    engine.weaponSystem.selectWeapon('shotgun', 4);
+    const p = engine.computeTargetAimCoords(boss);
+    engine.shootAt(p.targetNormX, p.targetNormY, 3300, 'press');
+    expect(boss.slowUntilMs).toBeUndefined();
+  });
+
+  it('normal monsters are still stunned by the shotgun skill', () => {
+    const m: ActiveTargetEntity = {
+      id: 'm', kind: 'hanmac', hp: 3, maxHp: 3, radiusM: 10, thetaRad: 0, x: 0, z: -10, speedMps: 0,
+      hitRadiusM: 0.95, killBonusScore: 0, breached: false,
+    };
+    engine.activeTargets = [m];
+    engine.weaponSystem.selectWeapon('shotgun', 1);
+    engine.triggerWeaponSkill(1000);
+    expect(m.stunUntilMs).toBe(2000);
+    expect(m.stuckPlungerCount).toBe(2);
+  });
+
   it('boss hit zone is 0.6x of an equivalent normal monster zone', () => {
     const mk = (kind: 'boss' | 'bottle'): ActiveTargetEntity => ({
       id: kind, kind, hp: 10, maxHp: 10, radiusM: 10, thetaRad: 0, x: 0, z: -10, speedMps: 0,

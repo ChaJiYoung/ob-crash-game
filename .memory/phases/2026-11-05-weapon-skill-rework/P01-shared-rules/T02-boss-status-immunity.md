@@ -1,6 +1,6 @@
 # Task: T02 보스 기절·둔화 면역
 
-## Status: pending
+## Status: done
 
 ## Goal
 보스에게 스킬의 기절·둔화와 샷건 Lv.4 평타의 둔화가 걸리지 않게 하고, 뚫어뻥 부착과 파란 표시도 사라지게 한다. 지금은 표시가 뜨지만 보스의 이동, 소환, 포격은 그대로여서 표시와 실제가 다르다.
@@ -87,6 +87,6 @@ Task: T02-boss-status-immunity
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

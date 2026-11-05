@@ -562,6 +562,14 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(fx.tsunamiBubbles[0].userData.dist).toBeGreaterThan(initialDist);
   });
 
+  it('plungers aimed at a boss bounce off instead of sticking', () => {
+    const fx = new ParticleEffects3D();
+    fx.spawnSkillEffect('shotgun', 1, [new THREE.Vector3(0, 1.0, -10)], [true]);
+    for (let i = 0; i < 120; i++) fx.update(0.016);
+    expect(fx.parabolicPlungers.some((p) => p.isStuck)).toBe(false);
+    fx.parabolicPlungers.forEach((p) => expect(p.group.position.y).toBeGreaterThanOrEqual(-1.2));
+  });
+
   it('should synthesize procedural audio for 3 weapons and 3 active skills', () => {
     const synth = new SoundSynthesizer();
 
