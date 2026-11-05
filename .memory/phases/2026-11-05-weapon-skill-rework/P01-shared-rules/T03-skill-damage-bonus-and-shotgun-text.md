@@ -1,6 +1,6 @@
 # Task: T03 스킬 피해 공용 함수, 카드 적용, spreadRad 삭제, 샷건 설명
 
-## Status: pending
+## Status: done
 
 ## Goal
 공격력 강화 카드가 세 스킬 피해에 적용되게 하고, 판정에 쓰이지 않는 `spreadRad`와 실제와 다른 샷건 설명을 정리한다.
@@ -113,6 +113,6 @@ Task: T03-skill-damage-bonus-and-shotgun-text
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

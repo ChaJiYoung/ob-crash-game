@@ -12,6 +12,7 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /1\.5배 데미지|1\.5x|0\.8배|0\.8x/, why: 'judgment damage is 2.0 / 1.0 / 0.5' },
   { pattern: /5단계 (아케이드|테마)/, why: 'the game has 7 waves' },
   { pattern: /카드 5종|5종 보상 카드|보상 카드 5종/, why: 'there are 9 reward cards' },
+  { pattern: /탄착군 확산|근접 넉백|넉백 밀쳐내기/, why: 'shotgun has no spread stat and its knockback is minor' },
   { pattern: /MISS 페널티 완전 폐지/, why: 'misses now cost ammo and reload time' },
   { pattern: /8초마다 (부하|소환)|부하를 8초마다|부하 4마리|4마리를 (공유|소환)/, why: 'boss summons are 3 minions with an interval that shrinks from 8s to 5s, dropped at 6-14m' },
   { pattern: /\+150 PTS|\+100 PTS|\+50 PTS|\+500점|\+1,500점|2배 화력|기본 피해의 3배/, why: 'scores are scaled by GAME_TUNING.score.scale (x0.1) and fever no longer boosts damage' },

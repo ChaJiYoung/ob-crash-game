@@ -20,7 +20,6 @@ export interface WeaponLevelSpec {
   level: WeaponLevel;
   damagePerHit: number;
   pelletCount: number;
-  spreadRad: number;
   pierceCount: number;
   pierceDamageRatio: number;
   knockbackM: number;

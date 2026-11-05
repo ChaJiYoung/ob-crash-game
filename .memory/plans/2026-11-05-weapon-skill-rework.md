@@ -18,8 +18,8 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 세 무기 공통 규칙: 밀어내기 버그 수정, 보스 면역, 카드 적용, `spreadRad` 삭제, 샷건 설명 | [P01](../phases/2026-11-05-weapon-skill-rework/P01-shared-rules/phase.md) |
-| P02 | `pending` | 리볼버: 칼날 판정(엔진), 칼날·타격 연출(화면), 평타 관통 표시 | [P02](../phases/2026-11-05-weapon-skill-rework/P02-revolver-blades/phase.md) |
+| P01 | `done` | 세 무기 공통 규칙: 밀어내기 버그 수정, 보스 면역, 카드 적용, `spreadRad` 삭제, 샷건 설명 | [P01](../phases/2026-11-05-weapon-skill-rework/P01-shared-rules/phase.md) |
+| P02 | `in_progress` | 리볼버: 칼날 판정(엔진), 칼날·타격 연출(화면), 평타 관통 표시 | [P02](../phases/2026-11-05-weapon-skill-rework/P02-revolver-blades/phase.md) |
 | P03 | `pending` | 개틀링: 거품 파도와 미끄러짐(엔진), 작은 거품 인스턴싱(화면) | [P03](../phases/2026-11-05-weapon-skill-rework/P03-gatling-foam/phase.md) |
 | P04 | `pending` | 문서·문구 동기화, 기준 시간 재측정, 최종 검증과 직접 플레이 | [P04](../phases/2026-11-05-weapon-skill-rework/P04-sync-and-verify/phase.md) |
 

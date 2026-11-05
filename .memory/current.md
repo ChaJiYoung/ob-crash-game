@@ -4,13 +4,13 @@
 [무기 스킬 개편과 효용성 정리](./plans/2026-11-05-weapon-skill-rework.md)
 
 ## Active Phase
-[P01 세 무기 공통 규칙](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/phase.md)
+[P02 리볼버 칼날](./phases/2026-11-05-weapon-skill-rework/P02-revolver-blades/phase.md)
 
 ## Active Task
-[T03 스킬 피해 공용 함수, 카드 적용, spreadRad 삭제, 샷건 설명](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/T03-skill-damage-bonus-and-shotgun-text.md)
+[T01 칼날 수치와 엔진 판정](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/T01-blade-engine.md)
 
 ## Status
-- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역)
+- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`), P01-T02 완료(보스 면역), P01-T03 완료(스킬 피해 공용 함수·spreadRad 삭제). P01 Opus 5.5 리뷰 진행
 - 결정: [무기 스킬 개편 결정 문서](./decisions/2026-11-05-weapon-skill-rework.md)
 
 ## Paused Plan
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단(이전 리뷰 1)은 P04-T03 플레이 뒤에 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-T03 청사진을 읽고 `getSkillDamage`/`applySkillDamage`를 만들고 `spreadRad`를 지운다. P01 세 Task가 끝나면 Opus 5.5 리뷰를 받는다(사용자 요청).
+P01 Opus 리뷰 결과를 반영한 뒤, P02-T01 청사진을 읽고 칼날 수치와 엔진 판정을 구현한다.

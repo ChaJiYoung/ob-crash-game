@@ -361,7 +361,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                         맥주관 뚫어뻥 샷건 (Shotgun)
                       </span>
                       <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px' }}>
-                        근접 산탄 폭딜 & 넉백 밀쳐내기
+                        넓은 명중 범위 & 한 발 강한 화력
                       </span>
                     </div>
                   </div>

@@ -9,6 +9,7 @@ import {
   TutorialStep,
   WeaponKind,
   WeaponLevel,
+  WeaponLevelSpec,
 } from '../../shared/types';
 import {
   ITEM_BUFF_SPECS,
@@ -2088,6 +2089,26 @@ export class BeerCrusherEngine {
     target.swayPhaseOffsetRad = (target.swayPhaseOffsetRad ?? 0) - moved * 0.7;
   }
 
+  /** 공격력 강화 카드까지 반영한 스킬 피해. 보스는 보스 피해 값을 쓴다. */
+  private getSkillDamage(target: ActiveTargetEntity, levelSpec: WeaponLevelSpec): number {
+    const base = target.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
+    return Number((base * this.weaponSystem.getDamageBonusMultiplier()).toFixed(3));
+  }
+
+  /** 스킬 피해를 주고, 죽었으면 점수와 웨이브 처리까지 한다. 대왕 쉴드에는 피해가 없다. 죽었으면 true. */
+  private applySkillDamage(monster: ActiveTargetEntity, damage: number, nowMs: number): boolean {
+    if (monster.isShielded) return false;
+    monster.hp = Number(Math.max(0, monster.hp - damage).toFixed(3));
+    if (monster.hp > 0) return false;
+    const idx = this.activeTargets.indexOf(monster);
+    if (idx < 0) return false;
+    this.activeTargets.splice(idx, 1);
+    this.killedInWave += 1;
+    this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
+    this.handleMonsterKilled(monster, nowMs);
+    return true;
+  }
+
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
     const weaponState = this.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
@@ -2112,24 +2133,14 @@ export class BeerCrusherEngine {
       // 1. 사방 뚫어뻥 폭풍: All active monsters take skill damage and get stunned
       for (let i = activeMonsters.length - 1; i >= 0; i--) {
         const monster = activeMonsters[i];
-        const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-        if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
         if (monster.kind !== 'boss') {
           monster.stunUntilMs = nowMs + levelSpec.skillStunMs;
           monster.stuckPlungerCount = 2;
         }
         affectedTargets.push(monster);
 
-        if (monster.hp <= 0) {
-          const idx = this.activeTargets.indexOf(monster);
-          if (idx >= 0) {
-            this.activeTargets.splice(idx, 1);
-            this.killedInWave += 1;
-            this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
-            this.handleMonsterKilled(monster, nowMs);
-            if (this.gamePhase === 'VICTORY') break;
-          }
-        }
+        this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
+        if (this.gamePhase === 'VICTORY') break;
       }
       return {
         activated: true,
@@ -2142,24 +2153,14 @@ export class BeerCrusherEngine {
       // 2. 오프너 불릿 타임 & 참격: All monsters get slowed & slashed
       for (let i = activeMonsters.length - 1; i >= 0; i--) {
         const monster = activeMonsters[i];
-        const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-        if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
         if (monster.kind !== 'boss') {
           monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
           monster.slowRatio = levelSpec.skillSlowRatio;
         }
         affectedTargets.push(monster);
 
-        if (monster.hp <= 0) {
-          const idx = this.activeTargets.indexOf(monster);
-          if (idx >= 0) {
-            this.activeTargets.splice(idx, 1);
-            this.killedInWave += 1;
-            this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
-            this.handleMonsterKilled(monster, nowMs);
-            if (this.gamePhase === 'VICTORY') break;
-          }
-        }
+        this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
+        if (this.gamePhase === 'VICTORY') break;
       }
       return {
         activated: true,
@@ -2173,8 +2174,6 @@ export class BeerCrusherEngine {
       for (let i = activeMonsters.length - 1; i >= 0; i--) {
         const monster = activeMonsters[i];
         if (Math.abs(monster.thetaRad) <= halfArcRad) {
-          const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-          if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
           if (monster.kind !== 'boss') {
             this.pushTargetBack(monster, levelSpec.skillKnockbackM);
             monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
@@ -2182,16 +2181,8 @@ export class BeerCrusherEngine {
           }
           affectedTargets.push(monster);
 
-          if (monster.hp <= 0) {
-            const idx = this.activeTargets.indexOf(monster);
-            if (idx >= 0) {
-              this.activeTargets.splice(idx, 1);
-              this.killedInWave += 1;
-              this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
-              this.handleMonsterKilled(monster, nowMs);
-              if (this.gamePhase === 'VICTORY') break;
-            }
-          }
+          this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
+          if (this.gamePhase === 'VICTORY') break;
         }
       }
       return {
