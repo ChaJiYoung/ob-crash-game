@@ -115,6 +115,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   // Snapshot for HUD: only replaced when a displayed value changes.
   const [hudState, setHudState] = useState<HudSnapshot>(() => buildHudSnapshot(engine, performance.now()));
 
+  const playerHitFlashRef = useRef<HTMLDivElement>(null);
+  // A ref animation: a hit must not re-render the page, and a stable callback keeps the memoized canvas untouched.
+  const handlePlayerHit = useCallback(() => {
+    soundSynth.playPlayerHitSound();
+    playerHitFlashRef.current?.animate?.([{ opacity: 1 }, { opacity: 0 }], { duration: 400, easing: 'ease-out' });
+  }, [soundSynth]);
+
   const handleProjections = useCallback((projections: MonsterHudProjection[]) => {
     hpLayerRef.current?.update(projections);
   }, []);
@@ -784,6 +791,21 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         soundSynth={soundSynth}
         onMonsterProjectionsUpdate={handleProjections}
         onRenderMetrics={handleRenderMetrics}
+        onPlayerHit={handlePlayerHit}
+      />
+
+      {/* Player hit: red screen edge flash */}
+      <div
+        ref={playerHitFlashRef}
+        data-testid="player-hit-flash"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 110,
+          opacity: 0,
+          boxShadow: 'inset 0 0 120px 40px rgba(220, 38, 38, 0.85)',
+        }}
       />
 
       {/* Golden Can Screen Border Flash Indicator */}

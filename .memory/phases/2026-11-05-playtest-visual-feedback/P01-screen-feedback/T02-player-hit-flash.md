@@ -1,6 +1,6 @@
 # Task: T02 체력 감소 때 빨간 번쩍임과 피격음
 
-## Status: pending
+## Status: done
 
 ## Goal
 체력이 줄어드는 순간 화면 가장자리가 빨갛게 번쩍이고 피격음이 나서, 맞았다는 것을 바로 알 수 있다.
@@ -55,9 +55,9 @@
 - 소스: `GameCanvas3D.tsx`에 `onPlayerHitRef`, `PCGamePage.tsx`에 `player-hit-flash`와 `onPlayerHit={handlePlayerHit}`가 있다. 일반 몬스터 생성은 `tests/monster-traits.test.ts`의 `mk` 도우미를 참고한다.
 
 ## Acceptance Criteria
-- [ ] 몬스터나 똥이 방어선을 넘어 체력이 줄 때 0.4초 번쩍임과 소리가 나온다.
-- [ ] 튜토리얼·샌드박스·아이템 통과 때는 나오지 않는다.
-- [ ] 번쩍임이 클릭과 조준을 막지 않는다(`pointerEvents: none`).
+- [x] 몬스터나 똥이 방어선을 넘어 체력이 줄 때 0.4초 번쩍임과 소리가 나온다.
+- [x] 튜토리얼·샌드박스·아이템 통과 때는 나오지 않는다.
+- [x] 번쩍임이 클릭과 조준을 막지 않는다(`pointerEvents: none`).
 
 ## Validation
 - `npx vitest run tests/player-hit-feedback.test.ts` — 통과
@@ -78,6 +78,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -462,6 +462,25 @@ export class SoundSynthesizer {
     });
   }
 
+  /** 체력이 줄었을 때 나는 둔탁한 짧은 소리. */
+  public playPlayerHitSound(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
   public playBossExplosionSound(): void {
     const ctx = this.ensureContext();
     if (!ctx) return;

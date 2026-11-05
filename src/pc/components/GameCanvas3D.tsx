@@ -152,6 +152,8 @@ export interface GameCanvas3DProps {
   soundSynth: SoundSynthesizer;
   onMonsterProjectionsUpdate?: (projections: MonsterHudProjection[]) => void;
   onRenderMetrics?: (metrics: RenderPerformanceMetrics) => void;
+  /** 체력이 줄어든 프레임에 한 번 호출한다. */
+  onPlayerHit?: () => void;
 }
 
 export const GameCanvas3D = React.memo(
@@ -164,6 +166,7 @@ export const GameCanvas3D = React.memo(
     soundSynth,
     onMonsterProjectionsUpdate,
     onRenderMetrics,
+    onPlayerHit,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
@@ -174,6 +177,8 @@ export const GameCanvas3D = React.memo(
     onShootRef.current = onShoot;
     const onMonsterProjectionsUpdateRef = useRef(onMonsterProjectionsUpdate);
     onMonsterProjectionsUpdateRef.current = onMonsterProjectionsUpdate;
+    const onPlayerHitRef = useRef(onPlayerHit);
+    onPlayerHitRef.current = onPlayerHit;
     const onRenderMetricsRef = useRef(onRenderMetrics);
     onRenderMetricsRef.current = onRenderMetrics;
 
@@ -514,7 +519,8 @@ export const GameCanvas3D = React.memo(
         const curAim = currentAimRef.current;
 
         // Update Engine
-        const { reloadedJustNow } = engine.update(time, dtSec);
+        const { reloadedJustNow, breaches } = engine.update(time, dtSec);
+        if (breaches.length > 0) onPlayerHitRef.current?.();
         if (reloadedJustNow) {
           soundSynth.playAutoReload();
         }
