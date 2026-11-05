@@ -61,6 +61,8 @@ export interface ActiveTargetEntity {
   slowUntilMs?: number;
   slowRatio?: number;
   stuckPlungerCount?: number;
+  /** 밀려난 거리만큼 흔들림 위상을 되돌려, 밀어내기가 카스 라이트 좌우 위치를 튀게 하지 않는다. */
+  swayPhaseOffsetRad?: number;
   isGoldenCan?: boolean;
   isProjectile?: boolean;
   weaponSelectKind?: WeaponKind;
@@ -1101,7 +1103,7 @@ export class BeerCrusherEngine {
         if (target.kind === 'caslight' && target.initialThetaRad !== undefined) {
           const { swayAmplitudeRad, swayFrequency } = GAME_TUNING.monsters.caslight;
           target.thetaRad =
-            target.initialThetaRad + Math.sin(nowMs * swayFrequency + target.radiusM * 0.7) * swayAmplitudeRad;
+            target.initialThetaRad + Math.sin(nowMs * swayFrequency + target.radiusM * 0.7 + (target.swayPhaseOffsetRad ?? 0)) * swayAmplitudeRad;
           target.x = Math.sin(target.thetaRad) * target.radiusM;
           target.z = -Math.cos(target.thetaRad) * target.radiusM;
         }
@@ -1144,7 +1146,7 @@ export class BeerCrusherEngine {
       if (target.kind === 'caslight' && isPlainMonster && target.initialThetaRad !== undefined) {
         const { swayAmplitudeRad, swayFrequency } = GAME_TUNING.monsters.caslight;
         target.thetaRad =
-          target.initialThetaRad + Math.sin(nowMs * swayFrequency + target.radiusM * 0.7) * swayAmplitudeRad;
+          target.initialThetaRad + Math.sin(nowMs * swayFrequency + target.radiusM * 0.7 + (target.swayPhaseOffsetRad ?? 0)) * swayAmplitudeRad;
       }
 
       // Fast horizontal crossing for Golden Can
@@ -1956,7 +1958,7 @@ export class BeerCrusherEngine {
 
         // Knockback on Lv.2+
         if (levelSpec.knockbackM > 0 && target.kind !== 'boss') {
-          target.radiusM = Math.min(16.0, target.radiusM + levelSpec.knockbackM);
+          this.pushTargetBack(target, levelSpec.knockbackM);
         }
         // Lv.4 MAX slow
         if (levelSpec.slowDurationMs > 0) {
@@ -2074,6 +2076,18 @@ export class BeerCrusherEngine {
     };
   }
 
+  /** 몬스터를 뒤로 민다. 등장 거리를 넘지 않고, 앞으로 끌어오지 않는다. */
+  private pushTargetBack(target: ActiveTargetEntity, meters: number): void {
+    if (meters <= 0) return;
+    const next = Math.min(STAGE_CONSTANTS.SPAWN_RADIUS_M, target.radiusM + meters);
+    const moved = next - target.radiusM;
+    if (moved <= 0) return;
+    target.radiusM = next;
+    target.x = Math.sin(target.thetaRad) * next;
+    target.z = -Math.cos(target.thetaRad) * next;
+    target.swayPhaseOffsetRad = (target.swayPhaseOffsetRad ?? 0) - moved * 0.7;
+  }
+
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
     const weaponState = this.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
@@ -2158,7 +2172,7 @@ export class BeerCrusherEngine {
           const dmg = monster.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
           if (!monster.isShielded) monster.hp = Number(Math.max(0, monster.hp - dmg).toFixed(3));
           if (monster.kind !== 'boss') {
-            monster.radiusM = Math.min(16.0, monster.radiusM + levelSpec.skillKnockbackM);
+            this.pushTargetBack(monster, levelSpec.skillKnockbackM);
           }
           monster.slowUntilMs = nowMs + levelSpec.skillSlowMs;
           monster.slowRatio = levelSpec.skillSlowRatio;

@@ -1,25 +1,23 @@
 # Current Context
 
 ## Active Plan
-[스킬·오비 방패·탄창 조정 + 장전 게이지 링](./plans/2026-11-05-skill-guard-ammo-tuning.md)
+[무기 스킬 개편과 효용성 정리](./plans/2026-11-05-weapon-skill-rework.md)
 
 ## Active Phase
-[P03 재보정과 검증](./phases/2026-11-05-skill-guard-ammo-tuning/P03-retune-and-verify/phase.md)
+[P01 세 무기 공통 규칙](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/phase.md)
 
 ## Active Task
-[T02 최종 자동 검증과 직접 플레이 (사람)](./phases/2026-11-05-skill-guard-ammo-tuning/P03-retune-and-verify/T02-final-verification-and-playtest.md)
+[T02 보스 기절·둔화 면역](./phases/2026-11-05-weapon-skill-rework/P01-shared-rules/T02-boss-status-immunity.md)
 
 ## Status
-- P01~P02 완료, P03-T01 완료(기준 시간 재측정, 랭킹 규칙 v4), P04(Opus 코드리뷰 반영) 완료
-- P03-T02: 자동 검증 통과(npm test 321, tsc, build, 봇 플레이 VICTORY, 라이브 검증, 장전 링 확인). **사람 직접 플레이 대기 중**
-- 보통 봇 클리어율이 모든 무기에서 100%로 올랐다(직전 35~55%). 사람이 보고 너무 쉬우면 조정한다.
-
-- 리뷰 1(난이도·시간 보너스 구조·v5 초기화 여부)은 사용자의 직접 플레이 뒤에 정한다. 이전에는 첫 보스까지 겨우 갔다는 피드백이 있었다.
+- P01-T01 완료(밀어내기 공용 함수 `pushTargetBack`)
+- 결정: [무기 스킬 개편 결정 문서](./decisions/2026-11-05-weapon-skill-rework.md)
 
 ## Paused Plan
-- `2026-11-05-score-differentiation` P03-T04(사람 직접 플레이)는 이 계획의 직접 플레이와 합쳐서 닫는다.
-- 더 이전 계획 `2026-11-04-gameplay-polish-and-perf-optimization`의 P05-T04·T05도 남아 있다(T05는 UI 확정 뒤).
+- `2026-11-05-skill-guard-ammo-tuning` P03-T02(사람 직접 플레이): 이 계획의 P04-T03 플레이에 합쳐 닫는다.
+- `2026-11-05-score-differentiation` P03-T04(사람 직접 플레이): 같은 플레이로 닫는다.
+- `2026-11-04-gameplay-polish-and-perf-optimization` P05-T04·T05: 그대로 남는다(T05는 UI 확정 뒤).
+- 랭킹 v5 여부와 전체 난이도 판단(이전 리뷰 1)은 P04-T03 플레이 뒤에 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-사용자가 `.memory/references/playtest-2026-11-05-skill-guard-ammo.md` 체크리스트를 폰 자이로·마우스로 직접 플레이해 채운다. 에이전트가 대신 통과로 표시하지 않는다.
-피드백이 오면 `src/shared/gameTuning.ts`만 조정하고(조정 위치는 체크리스트 하단) `npm test`와 시뮬레이터를 다시 돌린다. 확정되면 결정 문서에 최종값을 적고 P03-T02와 모든 Phase를 `done`으로 표시한다.
+T02 청사진을 읽고 보스에 기절·둔화가 걸리지 않게 하고 뚫어뻥이 보스에 박히지 않고 튕기게 한다. P01 세 Task가 끝나면 Opus 5.5 리뷰를 받는다(사용자 요청).
