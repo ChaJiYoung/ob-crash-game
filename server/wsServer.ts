@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
 import { RoomManager } from './RoomManager';
 import { ClientToServerMessage, ServerToClientMessage } from '../src/shared/types';
+import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface BeerCrusherServerInstance {
   server: http.Server;
@@ -290,6 +291,16 @@ export async function createBeerCrusherServer(options?: {
                 type: 'ERROR',
                 code: 'INVALID_REQUEST',
                 message: 'roomId, valid deviceId, and numeric score are required for GAME_SCORE_SUBMIT',
+              });
+              return;
+            }
+
+            // A client built for other ranking rules (or an old build that sends no version) must not write into this board
+            if (msg.rulesetVersion !== RANKING_RULESET_VERSION) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'RULESET_MISMATCH',
+                message: `Score rejected: client ranking ruleset ${String(msg.rulesetVersion)} does not match server ruleset ${RANKING_RULESET_VERSION}. Reload the game.`,
               });
               return;
             }

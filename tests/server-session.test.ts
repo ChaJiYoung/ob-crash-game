@@ -383,7 +383,25 @@ describe('PlayerStore & WebSocket Server', () => {
     expect(configRelay.config.isStabilizedMode).toBe(true);
     expect(configRelay.config.preset).toBe('stabilized_galaxy');
 
-    // 6. Submit score and receive updated rankings
+    // 6a. A client built for other ranking rules (or an old build without a version) is rejected and records nothing
+    for (const stale of [{ rulesetVersion: RANKING_RULESET_VERSION - 1 }, {}]) {
+      const rejected = waitForMessage(mobileWs, 'ERROR');
+      mobileWs.send(
+        JSON.stringify({
+          type: 'GAME_SCORE_SUBMIT',
+          roomId,
+          deviceId: 'phone-xyz-123',
+          score: 99999,
+          waveReached: 7,
+          maxCombo: 99,
+          ...stale,
+        })
+      );
+      const rejection = await rejected;
+      expect(rejection.code).toBe('RULESET_MISMATCH');
+    }
+
+    // 6. Submit score and receive updated rankings (the rejected 99999 must not appear)
     const rankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
     mobileWs.send(
       JSON.stringify({
@@ -393,6 +411,7 @@ describe('PlayerStore & WebSocket Server', () => {
         score: 6400,
         waveReached: 3,
         maxCombo: 24,
+        rulesetVersion: RANKING_RULESET_VERSION,
       })
     );
     const rankingMsg = await rankingPromise;

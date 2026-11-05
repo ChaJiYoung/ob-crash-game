@@ -61,8 +61,6 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(FEVER_CONSTANTS.DURATION_MS).toBe(4000); // 4s ultra burst
     expect(FEVER_CONSTANTS.LOCK_WHEN_FULL).toBe(true);
 
-    expect(WEAPON_CONSTANTS.MAX_AMMO).toBe(10);
-    expect(WEAPON_CONSTANTS.AUTO_RELOAD_MS).toBe(1200);
     expect(WEAPON_CONSTANTS.RAPID_FIRE_HOLD_MS).toBe(250);
     expect(WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS).toBe(300);
     expect(WEAPON_CONSTANTS.SNAP_ACCEL_THRESHOLD_MPS2).toBe(4.8);

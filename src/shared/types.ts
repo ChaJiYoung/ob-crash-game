@@ -144,7 +144,8 @@ export type ClientToServerMessage =
       skillCooldownRemainingMs: number;
       skillCooldownTotalMs: number;
     }
-  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number }
+  /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
+  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number; rulesetVersion: number }
   | {
       type: 'SENSOR_CONFIG_UPDATE';
       roomId: string;

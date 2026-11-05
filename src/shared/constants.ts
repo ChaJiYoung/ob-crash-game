@@ -167,8 +167,6 @@ export const FEVER_CONSTANTS = {
 } as const;
 
 export const WEAPON_CONSTANTS = {
-  MAX_AMMO: 10,
-  AUTO_RELOAD_MS: 1200,
   RAPID_FIRE_HOLD_MS: 250,
   RAPID_FIRE_INTERVAL_MS: 115,
   FEVER_DOUBLE_TAP_MS: 300,
@@ -186,6 +184,10 @@ export const STAGE_CONSTANTS = {
   ITEM_DURATION_MS: 8000,
 } as const;
 
+/**
+ * 기본 무기 표. maxAmmo·reloadDurationMs·skillCooldownMs(·fireIntervalMs·damagePerHit)는 아래 applyWeaponTuning이
+ * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다. 난이도는 gameTuning.ts에서 조정한다.
+ */
 const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, WeaponArchetypeSpec> = {
   shotgun: {
     kind: 'shotgun',

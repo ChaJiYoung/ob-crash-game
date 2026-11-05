@@ -21,6 +21,7 @@ import {
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
+import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
 
 export interface PCGamePageProps {
   initialPhase?: GamePhase;
@@ -586,6 +587,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           score,
           waveReached,
           maxCombo,
+          rulesetVersion: RANKING_RULESET_VERSION,
         })
       );
     }

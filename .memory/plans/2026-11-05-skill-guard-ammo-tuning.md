@@ -20,7 +20,7 @@
 | P01 | `done` | 튜닝 값 변경(스킬·방패·장전·탄수), 테스트·무기 가이드 표 동기화, 하드코딩 문구 정리 | [P01](../phases/2026-11-05-skill-guard-ammo-tuning/P01-tuning-values/phase.md) |
 | P02 | `done` | 장전 진행 게이지 링(HUD 스냅샷 값 추가 + 조준점 오버레이 + 카드 효과 동기화·죽은 spin 수정) | [P02](../phases/2026-11-05-skill-guard-ammo-tuning/P02-reload-ring/phase.md) |
 | P03 | `in_progress` | 웨이브 기준 시간 재측정·보정, 랭킹 규칙 버전 상승, 최종 자동 검증, 직접 플레이 | [P03](../phases/2026-11-05-skill-guard-ammo-tuning/P03-retune-and-verify/phase.md) |
-| P04 | `in_progress` | Opus 코드리뷰 반영(문서 오류, 링 정확도, 점수 제출 규칙 버전 검사). 난이도 판단(리뷰 1)은 직접 플레이 뒤 | [P04](../phases/2026-11-05-skill-guard-ammo-tuning/P04-review-fixes/phase.md) |
+| P04 | `done` | Opus 코드리뷰 반영(문서 오류, 링 정확도, 점수 제출 규칙 버전 검사). 난이도 판단(리뷰 1)은 직접 플레이 뒤 | [P04](../phases/2026-11-05-skill-guard-ammo-tuning/P04-review-fixes/phase.md) |
 
 ## 순서의 이유
 - P01 먼저: 수치가 바뀌면 `docs-sync` 테스트(무기 가이드 표)와 여러 테스트의 기대값이 함께 깨진다. 값 변경과 그 값을 가리키는 테스트·표를 같은 Task에서 고쳐야 Task마다 `npm test`가 통과한다.

@@ -1,6 +1,6 @@
 # Task: T03 점수 제출 규칙 버전 검사와 남은 정리
 
-## Status: pending
+## Status: done
 
 ## Goal
 옛 빌드 클라이언트가 v4 랭킹에 옛 규칙 점수를 넣지 못하게 점수 제출에 규칙 버전을 싣고 서버가 검사한다. 쓰이지 않는 `WEAPON_CONSTANTS.MAX_AMMO`·`AUTO_RELOAD_MS`를 지우고 base 무기 표의 덮어쓰기 주석을 추가한다.
@@ -49,6 +49,6 @@ Task: T03-ruleset-check-and-leftovers
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
