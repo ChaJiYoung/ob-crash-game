@@ -116,7 +116,7 @@ export const GAME_TUNING = {
     coolerSpreadRad: 0.34,
     /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
-    summonDropChance: 0.20,
+    summonDropChance: 0.10,
     /** 마지막 보스를 잡은 뒤 연출 시간. 이 동안 남은 몬스터가 cascadeGapMs 간격으로 연쇄로 터진다. */
     clear: { durationMs: 1500, cascadeGapMs: 100 },
     /**

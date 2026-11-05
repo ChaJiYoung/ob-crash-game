@@ -355,12 +355,12 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(engine.scoreManager.getState().feverGauge).toBeGreaterThan(0);
     });
 
-    it('summoned minions drop items at 20% while regular monsters stay at 4%', () => {
+    it('summoned minions drop items at 10% while regular monsters stay at 4%', () => {
       const dropsFor = (summoned: boolean) => {
         const e = new BeerCrusherEngine();
         e.startGame({ withWeaponSelect: false });
         e.activeTargets = [];
-        e.dropRng = () => 0.1;
+        e.dropRng = () => 0.09;
         (e as any).handleMonsterKilled(
           {
             id: 'm', kind: 'obi', hp: 0, maxHp: 2, radiusM: 9, thetaRad: 0, x: 0, z: -9, speedMps: 1,
