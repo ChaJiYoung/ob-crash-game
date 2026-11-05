@@ -169,6 +169,7 @@ export interface ArcadeOverlayHUDProps {
   skillCooldownRemainingMs?: number;
   onOpenGuide?: () => void;
   onOpenSensorLab?: () => void;
+  onPause?: () => void;
 }
 
 export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
@@ -196,6 +197,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   skillCooldownRemainingMs = 0,
   onOpenGuide,
   onOpenSensorLab,
+  onPause,
 }) => {
   const ammoText = formatAmmoStatusText(ammo, maxAmmo, isReloading, isFeverActive);
   const feverBadge = formatFeverStatusBadge(feverGauge, isFeverReady, isFeverActive);
@@ -457,6 +459,28 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 }}
               >
                 🎯 센서 진단
+              </button>
+            )}
+
+            {onPause && (
+              <button
+                onClick={onPause}
+                style={{
+                  pointerEvents: 'auto',
+                  background: 'rgba(17, 24, 39, 0.96)',
+                  border: '1px solid rgba(148, 163, 184, 0.6)',
+                  borderRadius: '10px',
+                  padding: '6px 14px',
+                  color: '#e2e8f0',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ⏸ 일시정지
               </button>
             )}
 

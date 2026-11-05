@@ -8,6 +8,8 @@ import { HudSnapshot, buildHudSnapshot, isHudSnapshotEqual } from './hudSnapshot
 import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
 import { JudgmentBanner, JudgmentBannerHandle } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
+import { PauseMenuOverlay } from './components/PauseMenuOverlay';
+import { canOpenPauseMenu, PauseReason } from './pauseFlow';
 import { loadSavedRoomId, saveRoomId, clearSavedRoomId } from './roomMemory';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
@@ -45,6 +47,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [topRankings, setTopRankings] = useState<RunRankingEntry[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
+  const isGuideOpenRef = useRef<boolean>(false);
+  isGuideOpenRef.current = isGuideOpen;
   const [isSensorLabOpen, setIsSensorLabOpen] = useState<boolean>(false);
   const isSensorLabOpenRef = useRef<boolean>(isSensorLabOpen);
   isSensorLabOpenRef.current = isSensorLabOpen;
@@ -69,6 +73,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [isAimLocked, setIsAimLocked] = useState<boolean>(false);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownSecRef = useRef<number | null>(null);
+  countdownSecRef.current = countdownSec;
+  const [pauseMenu, setPauseMenu] = useState<{ open: boolean; reason: PauseReason }>({ open: false, reason: 'USER' });
+  const pauseMenuOpenRef = useRef<boolean>(false);
+  pauseMenuOpenRef.current = pauseMenu.open;
 
   const [diagnostics, setDiagnostics] = useState<SensorDiagnosticsState>({
     aimX: 0,
@@ -218,6 +227,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [engine, soundSynth]);
 
   const executeSkill = useCallback(() => {
+    if (pauseMenuOpenRef.current) return;
     const now = performance.now();
     const res = engine.triggerWeaponSkill(now);
     if (res.activated) {
@@ -367,6 +377,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             const offsetRawY = Math.max(-1, Math.min(1, (signedRawY - zeroOffsetRef.current.offsetY) * curTuning.sensitivityY));
 
             updateAimDirect(effectiveAimX, effectiveAimY, false);
+
+            // The pause menu swallows every action; the aim still follows so the crosshair is right on resume.
+            if (pauseMenuOpenRef.current) {
+              if (rapidFireTimerRef.current) {
+                clearInterval(rapidFireTimerRef.current);
+                rapidFireTimerRef.current = null;
+              }
+              break;
+            }
 
             if (isDiagnosticsNeeded && now - lastDiagUpdateTimeRef.current >= 60) {
               lastDiagUpdateTimeRef.current = now;
@@ -706,6 +725,67 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }, 1000);
   }, [engine, roomId, soundSynth]);
 
+  const handleOpenPause = useCallback(
+    (reason: PauseReason = 'USER') => {
+      if (
+        !canOpenPauseMenu({
+          phase: gamePhaseRef.current,
+          isPaused: engine.isPaused,
+          isMenuOpen: pauseMenuOpenRef.current,
+          isGuideOpen: isGuideOpenRef.current,
+          countdownSec: countdownSecRef.current,
+        })
+      ) {
+        return;
+      }
+      if (rapidFireTimerRef.current) {
+        clearInterval(rapidFireTimerRef.current);
+        rapidFireTimerRef.current = null;
+      }
+      engine.setPaused(true, performance.now());
+      setPauseMenu({ open: true, reason });
+    },
+    [engine]
+  );
+
+  const handleResumeFromPause = useCallback(() => {
+    setPauseMenu({ open: false, reason: 'USER' });
+    startResumeCountdown();
+  }, [startResumeCountdown]);
+
+  const handleRestartFromPause = useCallback(() => {
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setCountdownSec(null);
+    // startGame() does not clear the pause flag, so lift it first (this also shifts the frozen timers).
+    engine.setPaused(false, performance.now());
+    setPauseMenu({ open: false, reason: 'USER' });
+    handleStartGame();
+  }, [engine, handleStartGame]);
+
+  // Esc: open the menu while playing, resume when it is open.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== 'Escape' || e.repeat) return;
+      if (pauseMenuOpenRef.current) {
+        handleResumeFromPause();
+      } else {
+        handleOpenPause('USER');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleOpenPause, handleResumeFromPause]);
+
+  // Leaving the run (lobby, game over) closes the menu.
+  useEffect(() => {
+    if (gamePhase !== 'PLAYING' && pauseMenuOpenRef.current) {
+      setPauseMenu({ open: false, reason: 'USER' });
+    }
+  }, [gamePhase]);
+
   const handleOpenGuide = useCallback(() => {
     setIsGuideOpen(true);
     if (gamePhaseRef.current === 'PLAYING' || gamePhaseRef.current === 'TUTORIAL') {
@@ -1020,6 +1100,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             skillCooldownRemainingMs={hudState.skillCooldownRemainingMs}
             onOpenGuide={handleOpenGuide}
             onOpenSensorLab={handleOpenSensorLab}
+            onPause={gamePhase === 'PLAYING' ? () => handleOpenPause('USER') : undefined}
           />
           <CrosshairOverlay
             ref={crosshairRef}
@@ -1192,6 +1273,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       )}
 
       {/* 3-B. 3-Second Countdown Overlay */}
+      {gamePhase === 'PLAYING' && pauseMenu.open && (
+        <PauseMenuOverlay
+          reason={pauseMenu.reason}
+          isControllerConnected={true}
+          onResume={handleResumeFromPause}
+          onRestart={handleRestartFromPause}
+        />
+      )}
+
       {countdownSec !== null && (
         <div
           style={{

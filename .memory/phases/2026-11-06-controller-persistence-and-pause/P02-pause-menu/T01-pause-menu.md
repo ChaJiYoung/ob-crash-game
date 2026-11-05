@@ -1,6 +1,6 @@
 # Task: T01 일시정지 메뉴
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 중(PLAYING) PC 화면의 `⏸ 일시정지` 버튼 또는 Esc로 게임을 멈추고, 메뉴에서 `이어하기`(3초 카운트다운 뒤 재개)와 `다시시작`(점수 저장 없이 무기 선택부터 새 게임)을 고를 수 있다.
@@ -113,6 +113,6 @@ Task: T01-pause-menu
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (this commit)

@@ -1,0 +1,108 @@
+import React from 'react';
+import type { PauseReason } from '../pauseFlow';
+
+export interface PauseMenuOverlayProps {
+  reason: PauseReason;
+  isControllerConnected: boolean;
+  onResume: () => void;
+  onRestart: () => void;
+}
+
+const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+
+export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
+  reason,
+  isControllerConnected,
+  onResume,
+  onRestart,
+}) => {
+  const waitingForController = reason === 'CONTROLLER_LOST' && !isControllerConnected;
+  const title = waitingForController
+    ? '📡 폰 재연결 중...'
+    : reason === 'CONTROLLER_LOST'
+      ? '✅ 폰이 다시 연결되었습니다'
+      : '⏸ 일시정지';
+  const subtitle = waitingForController
+    ? '폰 화면을 켜고 연결을 기다려 주세요'
+    : reason === 'CONTROLLER_LOST'
+      ? '준비되면 이어하기를 눌러 주세요'
+      : '게임이 멈춰 있습니다';
+
+  return (
+    <div
+      onMouseDown={stop}
+      onClick={stop}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(5, 8, 15, 0.72)',
+        pointerEvents: 'auto',
+        fontFamily: "'Noto Sans KR', sans-serif",
+      }}
+    >
+      <div
+        style={{
+          width: 'min(420px, 90vw)',
+          padding: '28px 26px',
+          borderRadius: '18px',
+          background: 'rgba(17, 24, 39, 0.98)',
+          border: '1px solid rgba(245, 158, 11, 0.45)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+          textAlign: 'center',
+          color: '#f8fafc',
+        }}
+      >
+        <div style={{ fontSize: '26px', fontWeight: 900, color: '#fbbf24' }}>{title}</div>
+        <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '8px' }}>{subtitle}</div>
+
+        <button
+          onClick={onResume}
+          disabled={waitingForController}
+          style={{
+            width: '100%',
+            marginTop: '22px',
+            padding: '14px',
+            borderRadius: '12px',
+            border: 'none',
+            background: waitingForController ? 'rgba(100, 116, 139, 0.35)' : 'linear-gradient(180deg, #f59e0b, #d97706)',
+            color: waitingForController ? '#64748b' : '#1c1917',
+            fontSize: '17px',
+            fontWeight: 900,
+            cursor: waitingForController ? 'not-allowed' : 'pointer',
+          }}
+        >
+          ▶ 이어하기 (Esc)
+        </button>
+
+        <button
+          onClick={onRestart}
+          style={{
+            width: '100%',
+            marginTop: '10px',
+            padding: '12px',
+            borderRadius: '12px',
+            border: '1px solid rgba(248, 113, 113, 0.5)',
+            background: 'rgba(248, 113, 113, 0.08)',
+            color: '#fca5a5',
+            fontSize: '15px',
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          🔁 다시시작 (무기 선택부터)
+        </button>
+        <div style={{ marginTop: '8px', fontSize: '12px', color: '#64748b' }}>
+          다시시작하면 이번 판 점수는 저장되지 않습니다
+        </div>
+      </div>
+    </div>
+  );
+};
