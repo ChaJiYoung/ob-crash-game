@@ -272,7 +272,20 @@ function createFloorShadowMesh(radius: number): THREE.Mesh {
   return shadowMesh;
 }
 
-export function createTargetMesh3D(kind: TargetKind): THREE.Group {
+let obLogoTexture: THREE.Texture | null = null;
+
+/** 냉각기 이름판의 실제 OB 로고. 브라우저 밖(테스트)에서는 null이라 흰 이름판이 된다. */
+function getObLogoTexture(): THREE.Texture | null {
+  if (typeof document === 'undefined') return null;
+  if (!obLogoTexture) {
+    const tex = new THREE.TextureLoader().load('/textures/labels/ob-logo.jpg');
+    tex.colorSpace = THREE.SRGBColorSpace;
+    obLogoTexture = markShared(tex);
+  }
+  return obLogoTexture;
+}
+
+export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king'): THREE.Group {
   const spec = TARGET_SPECS[kind];
   const root = new THREE.Group();
   root.name = `Target_${kind}`;
@@ -287,7 +300,8 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   // Floor-locked circular drop shadow (snapped directly to world ground y=0.01)
   const baseY = getTargetBaseY(kind);
   const shadowMesh = createFloorShadowMesh(spec.hitRadiusM * 0.72);
-  shadowMesh.position.y = -baseY + 0.01;
+  // 대왕은 kingScale만큼 올려 세우므로 그림자도 그만큼 내려 바닥에 맞춘다.
+  shadowMesh.position.y = -(bossRole === 'king' ? baseY * GAME_TUNING.boss.kingScale : baseY) + 0.01;
   root.add(shadowMesh);
 
   const capMat = getCachedMaterial('target-cap-mat', () => {
@@ -356,83 +370,128 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     neckLabelMesh.position.y = 0.38;
     inner.add(neckLabelMesh);
   } else if (kind === 'boss') {
-    // 🧊 Boss: Commercial Stainless Beer Dispenser Cooler
-    const r = 0.85;
-    const h = 1.75;
+    // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
+    const isKing = bossRole === 'king';
+    const W = 1.3;
+    const H = 1.75;
+    const D = 1.2;
+    const floorY = -baseY / baseScale;
+    const cy = floorY + H / 2;
 
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x334155,
-      metalness: 0.82,
-      roughness: 0.28,
-    });
-    const panelTexture = getOrCreateTargetLabelTexture('boss');
-    const panelMat = new THREE.MeshStandardMaterial({
-      map: panelTexture,
-      metalness: 0.45,
-      roughness: 0.3,
-    });
-
-    const cabinetGeo = getCachedGeometry('boss-cabinet-geo', () => new THREE.BoxGeometry(r * 1.8, h * 0.82, r * 1.4));
-    const cabinet = new THREE.Mesh(
-      cabinetGeo,
-      [bodyMat, bodyMat, capMat, bodyMat, panelMat, bodyMat]
+    // 얼음 효과가 몸통 재질 색을 바꾸므로 몸통에는 공유 재질을 쓰지 않는다.
+    const bodyMat = new THREE.MeshStandardMaterial(
+      isKing
+        ? { color: 0x17191d, metalness: 0.55, roughness: 0.42 }
+        : { color: 0xc4cad2, metalness: 0.75, roughness: 0.32 }
     );
-    cabinet.userData.isBodyMaterial = true;
-    inner.add(cabinet);
+    const topMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, metalness: 0.6, roughness: 0.4 });
+    const bodyGeo = getCachedGeometry('boss-body-geo', () => new THREE.BoxGeometry(W, H, D));
+    const body = new THREE.Mesh(bodyGeo, [bodyMat, bodyMat, topMat, bodyMat, bodyMat, bodyMat]);
+    body.position.y = cy;
+    body.userData.isBodyMaterial = true;
+    inner.add(body);
 
-    // Louver grille on front bottom
-    const grilleGeo = getCachedGeometry('boss-grille-geo', () => new THREE.BoxGeometry(r * 1.5, h * 0.22, 0.06));
-    const grilleMat = getCachedMaterial('boss-grille-mat', () => new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.95 }));
-    const grille = new THREE.Mesh(grilleGeo, grilleMat);
-    grille.position.set(0, -h * 0.24, r * 0.71);
-    inner.add(grille);
+    // Side vents
+    const slitMat = getCachedMaterial('boss-slit-mat', () => new THREE.MeshStandardMaterial({ color: 0x050608, roughness: 0.9 }));
+    const slitGeo = getCachedGeometry('boss-slit-geo', () => new THREE.BoxGeometry(0.015, 0.035, D * 0.55));
+    [W / 2 + 0.008, -W / 2 - 0.008].forEach((x) => {
+      [cy + H / 2 - 0.14, floorY + 0.5].forEach((top) => {
+        for (let i = 0; i < 5; i++) {
+          const slit = new THREE.Mesh(slitGeo, slitMat);
+          slit.position.set(x, top - i * 0.07, 0);
+          inner.add(slit);
+        }
+      });
+    });
 
-    // Top Chrome Draft Tower
-    const towerGeo = getCachedGeometry('boss-tower-geo', () => new THREE.CylinderGeometry(0.18, 0.22, 0.55, 18));
-    const tower = new THREE.Mesh(towerGeo, capMat);
-    tower.position.set(0, h * 0.41 + 0.26, 0);
-    inner.add(tower);
-
-    // Dual Gold Beer Tap Spouts & Handles
+    // Front taps: the levers tilt when the boss summons
     const handles: THREE.Mesh[] = [];
     bossTapHandles = handles;
-    const spoutGeo = getCachedGeometry('boss-spout-geo', () => {
-      const g = new THREE.CylinderGeometry(0.035, 0.035, 0.24, 12);
+    const leverMat = isKing
+      ? goldMat
+      : getCachedMaterial('boss-lever-mat', () => new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.1, roughness: 0.5 }));
+    const k = isKing ? 1.3 : 1.6;
+    const collarGeo = getCachedGeometry(`boss-tap-collar-${k}`, () => {
+      const g = new THREE.CylinderGeometry(0.06 * k, 0.06 * k, 0.1 * k, 14);
       g.rotateX(Math.PI / 2);
       return g;
     });
-    const handleGeo = getCachedGeometry('boss-handle-geo', () => new THREE.CylinderGeometry(0.026, 0.018, 0.28, 12));
-    const handleMat = getCachedMaterial('boss-handle-mat', () => new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.2 }));
-
-    [-0.14, 0.14].forEach((tapX) => {
-      const tapSpout = new THREE.Mesh(spoutGeo, goldMat);
-      tapSpout.position.set(tapX, h * 0.41 + 0.38, 0.17);
-      inner.add(tapSpout);
-
-      const tapHandle = new THREE.Mesh(handleGeo, handleMat);
-      tapHandle.position.set(tapX, h * 0.41 + 0.53, 0.23);
-      tapHandle.rotation.x = -0.22;
-      inner.add(tapHandle);
-      handles.push(tapHandle);
+    const tapBodyGeo = getCachedGeometry(`boss-tap-body-${k}`, () => new THREE.CylinderGeometry(0.055 * k, 0.05 * k, 0.2 * k, 14));
+    const spoutGeo = getCachedGeometry(`boss-tap-spout-${k}`, () => new THREE.CylinderGeometry(0.03 * k, 0.022 * k, 0.16 * k, 10));
+    const leverGeo = getCachedGeometry(`boss-tap-lever-${k}`, () => new THREE.CylinderGeometry(0.036 * k, 0.024 * k, 0.34 * k, 12));
+    const tapY = cy + 0.46;
+    (isKing ? [-0.34, 0, 0.34] : [0]).forEach((x) => {
+      const collar = new THREE.Mesh(collarGeo, capMat);
+      collar.position.set(x, tapY, D / 2 + 0.05 * k);
+      inner.add(collar);
+      const tapBody = new THREE.Mesh(tapBodyGeo, capMat);
+      tapBody.position.set(x, tapY - 0.01 * k, D / 2 + 0.14 * k);
+      inner.add(tapBody);
+      const spout = new THREE.Mesh(spoutGeo, capMat);
+      spout.position.set(x, tapY - 0.18 * k, D / 2 + 0.14 * k);
+      inner.add(spout);
+      const lever = new THREE.Mesh(leverGeo, leverMat);
+      lever.position.set(x, tapY + 0.24 * k, D / 2 + 0.12 * k);
+      lever.rotation.x = -0.22;
+      inner.add(lever);
+      handles.push(lever);
     });
 
-    // 4 Caster Wheels
-    const wheelMat = getCachedMaterial('boss-wheel-mat', () => new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 }));
-    const wheelGeo = getCachedGeometry('boss-wheel-geo', () => {
-      const g = new THREE.CylinderGeometry(0.08, 0.08, 0.09, 14);
-      g.rotateZ(Math.PI / 2);
-      return g;
+    // Drip tray with a grate
+    const trayMat = getCachedMaterial('boss-tray-mat', () => new THREE.MeshStandardMaterial({ color: 0x17191d, metalness: 0.55, roughness: 0.42 }));
+    const trayGeo = getCachedGeometry('boss-tray-geo', () => new THREE.BoxGeometry(W * 0.86, 0.16, 0.42));
+    const tray = new THREE.Mesh(trayGeo, trayMat);
+    const trayY = floorY + 0.2;
+    tray.position.set(0, trayY, D / 2 + 0.2);
+    inner.add(tray);
+    const grateMat = getCachedMaterial('boss-grate-mat', () => new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.8, roughness: 0.35 }));
+    const grateGeo = getCachedGeometry('boss-grate-geo', () => new THREE.BoxGeometry(W * 0.74, 0.012, 0.018));
+    for (let i = 0; i < 9; i++) {
+      const bar = new THREE.Mesh(grateGeo, grateMat);
+      bar.position.set(0, trayY + 0.085, D / 2 + 0.03 + i * 0.043);
+      inner.add(bar);
+    }
+
+    // Name plate with the real OB logo
+    const frameGeo = getCachedGeometry('boss-plate-frame-geo', () => new THREE.BoxGeometry(0.66, 0.26, 0.01));
+    const frame = new THREE.Mesh(frameGeo, isKing ? goldMat : capMat);
+    frame.position.set(0, cy - 0.2, D / 2 + 0.006);
+    inner.add(frame);
+    const plateMat = getCachedMaterial('boss-logo-plate-mat', () => {
+      const logo = getObLogoTexture();
+      return new THREE.MeshStandardMaterial(logo ? { map: logo, roughness: 0.5 } : { color: 0xffffff, roughness: 0.5 });
     });
-    [
-      [-r * 0.75, -r * 0.55],
-      [r * 0.75, -r * 0.55],
-      [-r * 0.75, r * 0.55],
-      [r * 0.75, r * 0.55],
-    ].forEach(([wx, wz]) => {
-      const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-      wheel.position.set(wx, -h * 0.41 - 0.05, wz);
-      inner.add(wheel);
-    });
+    const plateGeo = getCachedGeometry('boss-logo-plate-geo', () => new THREE.PlaneGeometry(0.6, 0.2));
+    const plate = new THREE.Mesh(plateGeo, plateMat);
+    plate.name = 'bossLogoPlate';
+    plate.position.set(0, cy - 0.2, D / 2 + 0.012);
+    inner.add(plate);
+
+    if (isKing) {
+      const crown = new THREE.Group();
+      crown.name = 'bossCrown';
+      crown.position.y = floorY + H + 0.08;
+      const R = 0.42;
+      const bandGeo = getCachedGeometry('boss-crown-band-geo', () => new THREE.CylinderGeometry(R, R * 0.92, 0.16, 16));
+      crown.add(new THREE.Mesh(bandGeo, goldMat));
+      const spikeGeo = getCachedGeometry('boss-crown-spike-geo', () => new THREE.ConeGeometry(0.095, 0.3, 6));
+      const gemGeo = getCachedGeometry('boss-crown-gem-geo', () => new THREE.SphereGeometry(0.05, 10, 10));
+      const gemMat = getCachedMaterial('boss-crown-gem-mat', () =>
+        new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.6, roughness: 0.25 })
+      );
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const spike = new THREE.Mesh(spikeGeo, goldMat);
+        spike.position.set(Math.sin(a) * R * 0.9, 0.22, Math.cos(a) * R * 0.9);
+        crown.add(spike);
+        if (i % 2 === 0) {
+          const gem = new THREE.Mesh(gemGeo, gemMat);
+          gem.position.set(Math.sin(a) * (R + 0.01), 0, Math.cos(a) * (R + 0.01));
+          crown.add(gem);
+        }
+      }
+      inner.add(crown);
+    }
   } else {
     // 🥫 4 Realistic Aluminum Beer Cans (pilgood, caslight, obi, hanmac)
     const r = 0.26;
@@ -624,6 +683,7 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     inner,
     wings,
     bossTapHandles: bossTapHandles || undefined,
+    bossRole,
     shadowMesh,
     lockOnMarker,
     frostRing,

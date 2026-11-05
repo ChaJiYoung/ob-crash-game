@@ -1,6 +1,6 @@
 # Task: T02 소형·대형 냉각기 모델, OB 로고, 대왕 바닥 맞춤
 
-## Status: pending
+## Status: done
 
 ## Goal
 소형은 은색 1구, 대형은 검정 3구·금색 레버·왕관으로 한눈에 구분되고, 이름판에 실제 OB 로고가 있으며, 둘 다 바닥에 서 있다.
@@ -76,10 +76,10 @@
   - 예열 그룹에 `bossRole === 'king'`인 메시가 있다.
 
 ## Acceptance Criteria
-- [ ] 7웨이브에서 소형 둘과 대왕이 색, 탭 수, 왕관으로 바로 구분된다.
-- [ ] 이름판에 실제 OB 로고가 보이고, 파일을 바꾸면 로고가 바뀐다.
-- [ ] 소형과 대왕이 바닥에 서 있고 물받이가 보인다.
-- [ ] 소환 때 모든 레버가 젖혀지고, 얼음 효과가 다른 모델 색을 바꾸지 않는다.
+- [x] 7웨이브에서 소형 둘과 대왕이 색, 탭 수, 왕관으로 바로 구분된다.
+- [x] 이름판에 실제 OB 로고가 보이고, 파일을 바꾸면 로고가 바뀐다.
+- [x] 소형과 대왕이 바닥에 서 있고 물받이가 보인다.
+- [x] 소환 때 모든 레버가 젖혀지고, 얼음 효과가 다른 모델 색을 바꾸지 않는다.
 
 ## Validation
 - `npx vitest run tests/three-stage-and-models.test.ts tests/boss-model-roles.test.ts tests/boss-encounters.test.ts tests/boss-clear-sequence.test.ts tests/boss-hp-summons.test.ts` — 통과
@@ -101,6 +101,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

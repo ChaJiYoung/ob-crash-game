@@ -622,7 +622,7 @@ export const GameCanvas3D = React.memo(
             } else if (target.isItem && target.itemKind) {
               mesh = createItemMesh3D(target.itemKind);
             } else {
-              mesh = createTargetMesh3D(target.kind);
+              mesh = createTargetMesh3D(target.kind, target.bossRole);
               if (target.modelScaleMult) {
                 // Big bottle (x1.2) and split children (x0.5); the boss king uses the same hook
                 const innerGroup = mesh.userData.inner as THREE.Group;

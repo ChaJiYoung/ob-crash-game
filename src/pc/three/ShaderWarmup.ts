@@ -25,6 +25,7 @@ export function buildShaderAnchorGroup(particles: ParticleEffects3D): THREE.Grou
   group.name = 'ShaderAnchorGroup';
 
   WARMUP_TARGET_KINDS.forEach((kind) => group.add(createTargetMesh3D(kind)));
+  group.add(createTargetMesh3D('boss', 'king'));
   WARMUP_ITEM_KINDS.forEach((kind) => group.add(createItemMesh3D(kind)));
   group.add(createGoldenCanMesh3D());
   group.add(createProjectileMesh3D());

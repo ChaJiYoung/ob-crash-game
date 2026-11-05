@@ -7,4 +7,4 @@
 | T02 | `in_progress 🔵` | 소형·대형 냉각기 모델, OB 로고, 대왕 바닥 맞춤 | [T02](./T02-boss-cooler-models.md) |
 
 ## Progress
-- done: 1/2 (active: T02)
+- done: 1/2 (active: 없음)

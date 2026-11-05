@@ -1568,6 +1568,8 @@ export class BeerCrusherEngine {
     if (kingHp !== null) {
       const king = make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
       king.modelScaleMult = GAME_TUNING.boss.kingScale;
+      // The model scales around its center, so lift it to stand on the floor (the hit center follows).
+      king.customBaseY = getTargetBaseY('boss', false) * GAME_TUNING.boss.kingScale;
       this.activeTargets.push(king);
     }
     this.lastSpawnTimeMs = nowMs;
