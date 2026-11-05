@@ -1,6 +1,6 @@
 # Task: T02 Retune Boss Pressure
 
-## Status: todo
+## Status: done
 
 ## Goal
 소환 가속과 6~14m 낙하 소환으로 보스전이 어려워진 만큼 보통 봇 클리어율을 직전 수준으로 되돌린다.
@@ -36,9 +36,9 @@
 
 
 ## Acceptance Criteria
-- [ ] 보통 봇 클리어율이 직전 수준(샷건 35%, 리볼버 38%, 개틀링 55%) 근처로 유지된다.
-- [ ] 보스 러시의 샷건·리볼버 클리어율이 낮고 스톨은 점수에서 이득이 없다.
-- [ ] 조정한 수치가 결정 문서에 기록된다.
+- [x] 보통 봇 클리어율이 직전 수준(샷건 35%, 리볼버 38%, 개틀링 55%) 근처로 유지된다.
+- [x] 보스 러시의 샷건·리볼버 클리어율이 낮고 스톨은 점수에서 이득이 없다.
+- [x] 조정한 수치가 결정 문서에 기록된다.
 
 ## Validation
 - `npx tsx .memory/references/scripts/boss-strategy-compare.ts 30` — 세 전략 비교
@@ -58,6 +58,6 @@ Task: T02-retune-boss-pressure
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit:
