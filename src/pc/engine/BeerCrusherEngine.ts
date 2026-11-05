@@ -10,6 +10,7 @@ import {
   WeaponKind,
   WeaponLevel,
   WeaponLevelSpec,
+  PlayRunStats,
 } from '../../shared/types';
 import {
   ITEM_BUFF_SPECS,
@@ -282,6 +283,11 @@ export class BeerCrusherEngine {
   private spawnedInWave = 0;
   private itemsSpawnedInWave = 0;
   private killedInWave = 0;
+  /** 판 전체 처치 수. killedInWave와 달리 웨이브가 바뀌어도 유지된다. */
+  private totalKills = 0;
+  /** 판 전체 게임 시계. 일시정지와 카드 정지는 빠진다. */
+  private playTimeSec = 0;
+  private waveClears: { wave: number; seconds: number; bonus: number }[] = [];
   private bossSpawned = false;
   private cardStacks: Record<'damage_up' | 'skill_cooldown' | 'fever_extend' | 'hit_zone_up', number> = {
     damage_up: 0,
@@ -402,6 +408,9 @@ export class BeerCrusherEngine {
     this.bossSummonCrossed.clear();
     this.scoreManager.reset();
     this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+    this.totalKills = 0;
+    this.playTimeSec = 0;
+    this.waveClears = [];
     this.precisionBonusApplied = 0;
     this.waveStartMs = null;
     this.waveTimeBonusTotal = 0;
@@ -1181,6 +1190,7 @@ export class BeerCrusherEngine {
       }
     }
 
+    this.playTimeSec += dtSec;
     this.processHanmacBlasts(nowMs);
 
     const breaches: ActiveTargetEntity[] = [];
@@ -1798,6 +1808,7 @@ export class BeerCrusherEngine {
     const bonus = this.scoreManager.addBonusScore(this.computeWaveTimeBonus(this.currentWave, seconds));
     this.waveTimeBonusTotal += bonus;
     this.lastWaveClear = { wave: this.currentWave, seconds, bonus, atMs: nowMs };
+    this.waveClears.push({ wave: this.currentWave, seconds, bonus });
   }
 
   public getScoreBreakdown(): { total: number; timeBonus: number; precisionBonus: number; base: number } {
@@ -1816,6 +1827,31 @@ export class BeerCrusherEngine {
     const ratio = shots > 0 ? weighted / shots : 0;
     const bonus = shots >= cfg.minShots ? Math.round(cfg.k * Math.pow(ratio, cfg.power)) : 0;
     return { shots, ratio, bonus, applied: this.precisionBonusApplied };
+  }
+
+  /** 끝난 판의 통계. 7웨이브 정밀 보너스가 정산된 뒤의 값이 되도록 판이 끝난 뒤에만 돌려준다. */
+  public getPlayRunStats(): PlayRunStats | null {
+    if (this.gamePhase !== 'GAMEOVER' && this.gamePhase !== 'VICTORY') return null;
+    const breakdown = this.getScoreBreakdown();
+    const weapon = this.weaponSystem.getState();
+    return {
+      outcome: this.gamePhase,
+      waveReached: this.currentWave,
+      livesLeft: this.lives,
+      durationSec: Number(this.playTimeSec.toFixed(2)),
+      totalScore: breakdown.total,
+      baseScore: breakdown.base,
+      timeBonus: breakdown.timeBonus,
+      precisionBonus: breakdown.precisionBonus,
+      maxCombo: this.scoreManager.getState().maxCombo,
+      kills: this.totalKills,
+      waves: this.waveClears.map((w) => ({ ...w, seconds: Number(w.seconds.toFixed(2)) })),
+      shots: { ...this.shotStats },
+      accuracy: Number(this.getPrecisionStats().ratio.toFixed(4)),
+      weaponKind: weapon.weaponKind,
+      weaponLevel: weapon.weaponLevel,
+      cardStacks: { ...this.cardStacks },
+    };
   }
 
   private declareVictory(): void {
@@ -2012,6 +2048,7 @@ export class BeerCrusherEngine {
               if (rearIdx >= 0) {
                 this.activeTargets.splice(rearIdx, 1);
                 this.killedInWave += 1;
+                this.totalKills += 1;
                 this.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
                 this.handleMonsterKilled(rear, nowMs);
               }
@@ -2050,6 +2087,7 @@ export class BeerCrusherEngine {
         }
         if (!target.isItem) {
           this.killedInWave += 1;
+          this.totalKills += 1;
         }
 
         if (this.isTutorialMode) {
@@ -2121,6 +2159,7 @@ export class BeerCrusherEngine {
     if (idx < 0) return false;
     this.activeTargets.splice(idx, 1);
     this.killedInWave += 1;
+    this.totalKills += 1;
     this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
     this.handleMonsterKilled(monster, nowMs);
     return true;

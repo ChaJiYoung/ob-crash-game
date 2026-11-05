@@ -103,6 +103,27 @@ export interface ActiveBuffState {
   totalDurationMs: number;
 }
 
+/** 끝난 한 판의 통계. 서버가 data/play-records.jsonl에 저장한다. */
+export interface PlayRunStats {
+  outcome: 'GAMEOVER' | 'VICTORY';
+  waveReached: number;
+  livesLeft: number;
+  durationSec: number;
+  totalScore: number;
+  baseScore: number;
+  timeBonus: number;
+  precisionBonus: number;
+  maxCombo: number;
+  kills: number;
+  waves: { wave: number; seconds: number; bonus: number }[];
+  shots: { PERFECT: number; GREAT: number; GOOD: number; MISS: number };
+  /** 0..1 */
+  accuracy: number;
+  weaponKind: WeaponKind;
+  weaponLevel: WeaponLevel;
+  cardStacks: { damage_up: number; skill_cooldown: number; fever_extend: number; hit_zone_up: number };
+}
+
 export interface PlayerProfile {
   deviceId: string;
   nickname: string;

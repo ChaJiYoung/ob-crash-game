@@ -1,6 +1,6 @@
 # Task: T01 엔진 통계 수집
 
-## Status: pending
+## Status: done
 
 ## Goal
 판이 끝났을 때 저장할 값을 엔진 함수 하나로 얻는다.
@@ -52,7 +52,7 @@
 - 진행 중 `null`. 게임오버에서 outcome, 체력, 처치 수(웨이브를 넘어 누적), 판정 수. 일시정지 시간 제외. 새 게임에서 초기화. 반환값 수정이 엔진에 영향 없음. 웨이브 클리어 후 `waves` 항목.
 
 ## Acceptance Criteria
-- [ ] 끝난 판의 모든 항목을 함수 하나로 얻는다.
+- [x] 끝난 판의 모든 항목을 함수 하나로 얻는다.
 
 ## Validation
 - `npx vitest run tests/play-run-stats.test.ts` — 통과
@@ -72,6 +72,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
