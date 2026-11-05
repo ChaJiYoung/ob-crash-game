@@ -88,7 +88,7 @@ const MONSTER_DETAILS: Record<
   boss: {
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (10m 정지, 좌우 이동)',
-    description: '스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 8초마다 소환하고 투사체를 쏩니다. 넉백이 통하지 않습니다.',
+    description: '스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 쉴드를 두른 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 부하를 소환하고(소환 간격은 8초에서 5초까지 짧아지고 3마리씩 필드 6~14m에 위에서 떨어집니다) 투사체를 쏩니다. 넉백이 통하지 않습니다.',
     tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 대왕의 쉴드는 부하 6마리 또는 냉각기 1대를 처치하면 풀리고, 체력이 2/3·1/3 아래로 내려가면 다시 켜집니다. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
@@ -334,6 +334,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   • <strong>PERFECT (오차 25% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+{Math.round(150 * GAME_TUNING.score.scale)} PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
                   • <strong>GREAT (오차 55% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+{Math.round(100 * GAME_TUNING.score.scale)} PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
                   • <strong>GOOD (오차 100% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+{Math.round(50 * GAME_TUNING.score.scale)} PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
+                  • <strong>웨이브 시간 보너스:</strong> 웨이브마다 정해진 기준 시간 안에 끝내면 웨이브당 최대 {GAME_TUNING.score.timeBonus.maxPerWave}점(보스 웨이브는 {GAME_TUNING.score.timeBonus.maxPerWave * GAME_TUNING.score.timeBonus.bossWaveWeight}점)을 받고, 기준 시간의 {GAME_TUNING.score.timeBonus.zeroAtParMult}배에서 0점이 될 때까지 줄어듭니다. 보스를 살려 두고 시간을 끌면 소환이 빨라져 위험합니다.<br />
                   • <strong>정밀도 보너스:</strong> 클리어하면 한 판 동안의 판정 비율(PERFECT 100% · GREAT 50% · GOOD 20% 가중, MISS 포함)에 따라 최대 약 {GAME_TUNING.score.precisionBonus.k.toLocaleString()}점이 더해집니다. 많이 쏘는 것보다 정확히 맞히는 것이 랭킹에 유리합니다.<br />
                   • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {Math.round(GAME_TUNING.fire.reloadScale)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
                   • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르세요.
