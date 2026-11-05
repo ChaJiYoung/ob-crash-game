@@ -223,8 +223,6 @@ export const GameCanvas3D = React.memo(
               } else {
                 applyTargetHitFlash3D(mesh, performance.now() / 1000);
 
-                const hitColor = resolveHitFxColor(result.target);
-
                 playTargetBurst(particlesRef.current, soundSynth, result.target, targetPos, Boolean(result.killed), true);
 
                 if (result.target.isItem && result.target.itemKind) {
@@ -236,7 +234,7 @@ export const GameCanvas3D = React.memo(
                   const rearKilled = rear.hp <= 0;
                   const rearMesh = targetMeshMapRef.current.get(rear.id);
                   if (rearMesh && !rearKilled) applyTargetHitFlash3D(rearMesh, performance.now() / 1000);
-                  playTargetBurst(particlesRef.current!, soundSynth, rear, computeSkillHitFxPosition(rear), rearKilled, false);
+                  playTargetBurst(particlesRef.current!, soundSynth, rear, computeSkillHitFxPosition(rear), rearKilled, rearKilled);
                 });
               }
             } else {
@@ -524,8 +522,9 @@ export const GameCanvas3D = React.memo(
         for (const ev of engine.drainSkillHitEvents()) {
           const pos = computeSkillHitFxPosition(ev.target);
           const nowMs = performance.now();
-          const canSound = nowMs - lastSkillHitSoundMs >= SKILL_HIT_SOUND_GAP_MS;
-          if (canSound) lastSkillHitSoundMs = nowMs;
+          const bigKill = ev.killed && (ev.target.kind === 'boss' || ev.target.kind === 'bottle');
+          const canSound = bigKill || nowMs - lastSkillHitSoundMs >= SKILL_HIT_SOUND_GAP_MS;
+          if (canSound && !bigKill) lastSkillHitSoundMs = nowMs;
           if (ev.blocked) {
             particles.spawnHitEffect(pos, '#e2e8f0', 2);
             if (canSound) soundSynth.playShieldBlockSound();

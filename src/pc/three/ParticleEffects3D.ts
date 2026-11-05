@@ -652,7 +652,7 @@ export class ParticleEffects3D {
   }
 
   /**
-   * ⚡ 2. 3 Active Skill Physics FX (Plunger Storm / Boomerang / Foam Tsunami)
+   * ⚡ 2. 3 Active Skill Physics FX (Plunger Storm / Foam Tsunami; revolver blades are drawn by syncSkillBlades)
    */
   public spawnSkillEffect(
     kind: WeaponKind,
@@ -885,7 +885,7 @@ export class ParticleEffects3D {
       }
     }
 
-    // 5. Update Skill FX (Boomerang & Foam Wave)
+    // 5. Update Skill FX (Foam Wave & slash marks)
     for (let i = this.skillEffects.length - 1; i >= 0; i--) {
       const fx = this.skillEffects[i];
       fx.lifeSec += dtSec;

@@ -230,4 +230,4 @@ Task: T01-blade-engine
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: done

@@ -91,7 +91,10 @@ describe('revolver fan blades', () => {
     cast(4);
     tick(30);
     const dmg = WEAPON_ARCHETYPE_SPECS.revolver.levels[4].skillDamage;
-    expect(99 - m.hp).toBeGreaterThanOrEqual(dmg * 2 - 1e-6);
+    // 7 blades at Lv.4 sweep a 5m target; the lanes within the hit width all connect
+    const hits = (99 - m.hp) / dmg;
+    expect(hits).toBeGreaterThanOrEqual(2);
+    expect(Number.isInteger(Math.round(hits * 1000) / 1000)).toBe(true);
   });
 
   it('boss takes boss damage and the damage card raises it', () => {
@@ -161,5 +164,45 @@ describe('revolver fan blades', () => {
     cast(1);
     tick(40);
     expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(2);
+  });
+
+  it('a monster that enters a lane behind the blade front is not hit', () => {
+    cast(2);
+    engine.activeSkillBlades = engine.activeSkillBlades.filter((b) => Math.abs(b.thetaRad) < 1e-6);
+    tick(25); // front is now around 19m
+    const late = mk('hanmac', 6);
+    const shell = engine.spawnMonsterProjectile(now, 'hanmac', { thetaRad: 0, radiusM: 7 });
+    engine.activeTargets.push(late);
+    tick(3);
+    expect(late.hp).toBe(99);
+    expect(engine.activeTargets).toContain(shell);
+  });
+
+  it('blades are cleared on victory, when leaving sandbox, and when the phase ends', () => {
+    cast(4);
+    engine.activeTargets = [mk('hanmac', 12)];
+    expect(engine.activeSkillBlades.length).toBe(7);
+    (engine as any).declareVictory();
+    expect(engine.activeSkillBlades.length).toBe(0);
+
+    const e2 = new BeerCrusherEngine();
+    e2.startSandboxMode();
+    e2.weaponSystem.selectWeapon('revolver', 4);
+    e2.triggerWeaponSkill(1000);
+    expect(e2.activeSkillBlades.length).toBe(7);
+    e2.exitSandboxMode();
+    expect(e2.activeSkillBlades.length).toBe(0);
+  });
+
+  it('killing the final boss with a blade ends the game and clears the blades', () => {
+    engine.startWave(7);
+    (engine as any).spawnedInWave = 999;
+    (engine as any).isBossEncounterActive = true;
+    const boss = mk('boss', 12, { hp: 0.5, maxHp: 50, bossRole: 'cooler' });
+    engine.activeTargets = [boss];
+    cast(1);
+    tick(40);
+    expect(engine.gamePhase).toBe('VICTORY');
+    expect(engine.activeSkillBlades.length).toBe(0);
   });
 });

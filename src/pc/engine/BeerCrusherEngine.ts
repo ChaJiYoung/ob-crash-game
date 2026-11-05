@@ -114,6 +114,8 @@ export interface SkillBlade {
   thetaRad: number;
   /** 칼날 앞면의 거리. */
   radiusM: number;
+  /** 지난 프레임의 앞면 거리. 이번 프레임에 앞면이 훑고 지나간 구간만 맞힌다. */
+  prevRadiusM: number;
   /** 남은 타격 수(관통 + 1). 포탄은 줄이지 않는다. */
   hitsLeft: number;
   hitTargetIds: Set<string>;
@@ -734,6 +736,7 @@ export class BeerCrusherEngine {
     this.isTutorialMode = false;
     this.tutorialStep = 1;
     this.activeTargets = [];
+    this.clearSkillProjectiles();
     this.gamePhase = 'PAIRING';
   }
 
@@ -748,6 +751,7 @@ export class BeerCrusherEngine {
   public exitSandboxMode(): void {
     this.isSandboxMode = false;
     this.activeTargets = [];
+    this.clearSkillProjectiles();
     this.gamePhase = 'PAIRING';
   }
 
@@ -1092,6 +1096,7 @@ export class BeerCrusherEngine {
     }
 
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
+      this.clearSkillProjectiles();
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
     }
 
@@ -1826,6 +1831,7 @@ export class BeerCrusherEngine {
   private declareVictory(): void {
     if (this.gamePhase === 'VICTORY') return;
     this.gamePhase = 'VICTORY';
+    this.clearSkillProjectiles();
     if (!this.isTutorialMode && !this.isSandboxMode) {
       this.precisionBonusApplied = this.scoreManager.addBonusScore(this.getPrecisionStats().bonus);
     }
@@ -2174,6 +2180,8 @@ export class BeerCrusherEngine {
     const maxRadiusM = STAGE_CONSTANTS.SPAWN_RADIUS_M + 1;
     for (let b = this.activeSkillBlades.length - 1; b >= 0; b--) {
       const blade = this.activeSkillBlades[b];
+      const sweepFrom = blade.prevRadiusM - 0.5; // 안쪽으로 다가오는 몬스터를 놓치지 않는 여유
+      blade.prevRadiusM = blade.radiusM;
       blade.radiusM += speedMps * dtSec;
       const candidates = this.activeTargets
         .filter(
@@ -2182,6 +2190,7 @@ export class BeerCrusherEngine {
             this.isTargetLanded(t, nowMs) &&
             !blade.hitTargetIds.has(t.id) &&
             t.radiusM <= blade.radiusM &&
+            t.radiusM > sweepFrom &&
             Math.cos(t.thetaRad - blade.thetaRad) > 0 &&
             Math.abs(t.radiusM * Math.sin(t.thetaRad - blade.thetaRad)) <= halfWidthM + t.hitRadiusM
         )
@@ -2260,6 +2269,7 @@ export class BeerCrusherEngine {
           id: `blade_${this.skillEntityCounter}`,
           thetaRad: -range + ((2 * i + 1) * range) / count,
           radiusM: GAME_TUNING.skills.blade.startRadiusM,
+          prevRadiusM: 0,
           hitsLeft: levelSpec.skillBladePierce + 1,
           hitTargetIds: new Set(),
           damage: Number((levelSpec.skillDamage * bonus).toFixed(3)),

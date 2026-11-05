@@ -577,8 +577,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     mesh.geometry.computeBoundingBox();
     const size = mesh.geometry.boundingBox!.getSize(new THREE.Vector3());
     expect(size.y).toBeCloseTo(1.9, 1);
-    expect(size.x).toBeGreaterThan(GAME_TUNING.skills.blade.halfWidthM);
-    expect(size.x).toBeLessThan(GAME_TUNING.skills.blade.halfWidthM * 2.5);
+    expect(size.x).toBeCloseTo(GAME_TUNING.skills.blade.halfWidthM * 2, 1);
   });
 
   it('hit effect position uses the monster height, not the floor', () => {
