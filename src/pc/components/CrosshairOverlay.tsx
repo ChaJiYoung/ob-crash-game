@@ -116,7 +116,6 @@ export interface ReloadRingSpec {
   visible: boolean;
   diameterPx: number;
   radiusPx: number;
-  circumferencePx: number;
   durationMs: number;
   color: string;
 }
@@ -135,11 +134,62 @@ export function getReloadRingSpec(options: {
     visible: Boolean(options.isReloading) && !options.isFeverActive && durationMs > 0,
     diameterPx,
     radiusPx,
-    circumferencePx: 2 * Math.PI * radiusPx,
     durationMs,
     color: '#f87171',
   };
 }
+
+/**
+ * 링 애니메이션 길이와 시작 지연. HUD는 100ms 주기로 갱신되므로 링은 장전이 시작된 뒤에야 마운트될 수 있다.
+ * 이미 지난 만큼은 음수 지연으로 건너뛰어 실제 장전 종료 시각에 맞춰 가득 찬다.
+ */
+export function computeReloadRingTiming(
+  startDurationMs: number,
+  remainingMs: number | undefined
+): { durationMs: number; delayMs: number } {
+  const duration = Number.isFinite(startDurationMs) ? Math.max(0, startDurationMs) : 0;
+  if (remainingMs === undefined || !Number.isFinite(remainingMs)) return { durationMs: duration, delayMs: 0 };
+  const remaining = Math.min(duration, Math.max(0, remainingMs));
+  return { durationMs: duration, delayMs: remaining - duration };
+}
+
+/**
+ * 장전 게이지 링. 장전 중에만 마운트되므로 마운트 시점의 길이·남은 시간을 한 번 고정한다.
+ * (장전 도중 rapid_reload 카드를 받아도 진행 중인 장전은 처음 길이로 끝나므로 링도 그대로 둔다.)
+ */
+const ReloadRing: React.FC<{
+  spec: ReloadRingSpec;
+  getRemainingMs?: () => number;
+  isPaused: boolean;
+}> = ({ spec, getRemainingMs, isPaused }) => {
+  const [timing] = useState(() => computeReloadRingTiming(spec.durationMs, getRemainingMs?.()));
+  const center = spec.diameterPx / 2;
+  return (
+    <svg
+      width={spec.diameterPx}
+      height={spec.diameterPx}
+      style={{ position: 'absolute', transform: 'rotate(-90deg)', pointerEvents: 'none' }}
+      aria-hidden
+    >
+      <circle cx={center} cy={center} r={spec.radiusPx} fill="none" stroke="rgba(248,113,113,0.25)" strokeWidth={4} />
+      <circle
+        cx={center}
+        cy={center}
+        r={spec.radiusPx}
+        fill="none"
+        stroke={spec.color}
+        strokeWidth={4}
+        strokeLinecap="round"
+        pathLength={1}
+        strokeDasharray={1}
+        style={{
+          animation: `reload-ring-fill ${timing.durationMs}ms linear ${timing.delayMs}ms forwards`,
+          animationPlayState: isPaused ? 'paused' : 'running',
+        }}
+      />
+    </svg>
+  );
+};
 
 export interface CrosshairOverlayHandle {
   updatePosition: (aimX: number, aimY: number, immediate?: boolean) => void;
@@ -162,6 +212,8 @@ export interface CrosshairOverlayProps {
   reloadDurationMs?: number;
   /** 일시정지·카드 선택 중이면 true: 링 애니메이션을 멈춘다. */
   isPaused?: boolean;
+  /** 장전 종료까지 남은 시간(ms). 링이 마운트될 때 한 번만 읽는다(스냅샷에 매 프레임 값을 넣지 않기 위해). */
+  getReloadRemainingMs?: () => number;
 }
 
 export const CrosshairOverlay = React.memo(
@@ -177,6 +229,7 @@ export const CrosshairOverlay = React.memo(
     isReloading = false,
     reloadDurationMs = 0,
     isPaused = false,
+    getReloadRemainingMs,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const targetPosRef = useRef({ x: aimX, y: aimY });
@@ -285,17 +338,7 @@ export const CrosshairOverlay = React.memo(
     kickScaleRef.current = spec.weaponKind === 'shotgun' ? 1.32 : spec.weaponKind === 'revolver' ? 0.90 : 1.20;
 
     const cornerSize = spec.sizePx * 0.22;
-    // The real reload ends at the time it started with; a rapid_reload card taken mid-reload only
-    // affects the next one. Pin the ring to the duration seen when this reload began.
-    const startDurationMsRef = useRef(0);
-    if (!isReloading || isFeverActive) startDurationMsRef.current = 0;
-    else if (startDurationMsRef.current === 0 && reloadDurationMs > 0) startDurationMsRef.current = reloadDurationMs;
-    const ring = getReloadRingSpec({
-      isReloading,
-      isFeverActive,
-      reloadDurationMs: startDurationMsRef.current || reloadDurationMs,
-      sizePx: spec.sizePx,
-    });
+    const ring = getReloadRingSpec({ isReloading, isFeverActive, reloadDurationMs, sizePx: spec.sizePx });
 
     return (
       <div
@@ -315,8 +358,8 @@ export const CrosshairOverlay = React.memo(
           transition: 'transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
         }}
       >
-        {/* The reticle rings used an undefined "spin" animation; define it here (rotation only, no translate). */}
-        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        {/* Fixed keyframes (always mounted): crosshair-spin rotates the reticle rings (rotation only, no translate), reload-ring-fill uses pathLength=1. */}
+        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }`}</style>
 
         {/* 1. 🪠 SHOTGUN SPECIFIC HUD: Large Pellet Circle + 8-radial dots + Octagon Brackets */}
         {spec.weaponKind === 'shotgun' && (
@@ -471,40 +514,7 @@ export const CrosshairOverlay = React.memo(
         )}
 
         {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
-        {ring.visible && (
-          <>
-            <style>{`@keyframes reload-ring-fill { from { stroke-dashoffset: ${ring.circumferencePx}; } to { stroke-dashoffset: 0; } }`}</style>
-            <svg
-              width={ring.diameterPx}
-              height={ring.diameterPx}
-              style={{ position: 'absolute', transform: 'rotate(-90deg)', pointerEvents: 'none' }}
-              aria-hidden
-            >
-              <circle
-                cx={ring.diameterPx / 2}
-                cy={ring.diameterPx / 2}
-                r={ring.radiusPx}
-                fill="none"
-                stroke="rgba(248,113,113,0.25)"
-                strokeWidth={4}
-              />
-              <circle
-                cx={ring.diameterPx / 2}
-                cy={ring.diameterPx / 2}
-                r={ring.radiusPx}
-                fill="none"
-                stroke={ring.color}
-                strokeWidth={4}
-                strokeLinecap="round"
-                strokeDasharray={ring.circumferencePx}
-                style={{
-                  animation: `reload-ring-fill ${ring.durationMs}ms linear forwards`,
-                  animationPlayState: isPaused ? 'paused' : 'running',
-                }}
-              />
-            </svg>
-          </>
-        )}
+        {ring.visible && <ReloadRing spec={ring} getRemainingMs={getReloadRemainingMs} isPaused={isPaused} />}
 
         {/* 4 Corner Targeting Brackets ┌ ┐ └ ┘ */}
         <div

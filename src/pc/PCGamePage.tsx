@@ -95,6 +95,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const canvasRef = useRef<GameCanvas3DHandle>(null);
   const crosshairRef = useRef<CrosshairOverlayHandle>(null);
+  // Read once by the reload ring when it mounts, so it can skip the part of the reload already elapsed.
+  const getReloadRemainingMs = useCallback(
+    () => Math.max(0, engine.weaponSystem.getState().reloadEndTimeMs - performance.now()),
+    [engine]
+  );
 
   const judgmentRef = useRef<JudgmentBannerHandle>(null);
   const hpLayerRef = useRef<MonsterHpBarLayerHandle>(null);
@@ -940,6 +945,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isReloading={hudState.isReloading}
             reloadDurationMs={hudState.reloadDurationMs}
             isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
+            getReloadRemainingMs={getReloadRemainingMs}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>
@@ -971,7 +977,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             weaponLevel={hudState.weaponLevel}
             isReloading={hudState.isReloading}
             reloadDurationMs={hudState.reloadDurationMs}
-            isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
+            isPaused={hudState.isPaused}
+            getReloadRemainingMs={getReloadRemainingMs}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>
@@ -1057,7 +1064,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             weaponLevel={hudState.weaponLevel}
             isReloading={hudState.isReloading}
             reloadDurationMs={hudState.reloadDurationMs}
-            isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
+            isPaused={hudState.isPaused}
+            getReloadRemainingMs={getReloadRemainingMs}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>

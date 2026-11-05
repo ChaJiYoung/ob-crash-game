@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
-import { getReloadRingSpec } from '../src/pc/components/CrosshairOverlay';
+import { computeReloadRingTiming, getReloadRingSpec } from '../src/pc/components/CrosshairOverlay';
 
-describe('reload progress ring', () => {
+const overlaySource = () => fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
+
+describe('reload progress ring spec', () => {
   it('shows a ring around the crosshair for the reload duration', () => {
     const ring = getReloadRingSpec({ isReloading: true, isFeverActive: false, reloadDurationMs: 1680, sizePx: 120 });
     expect(ring.visible).toBe(true);
     expect(ring.diameterPx).toBe(136);
+    expect(ring.radiusPx).toBe(65);
     expect(ring.durationMs).toBe(1680);
-    expect(ring.circumferencePx).toBeCloseTo(2 * Math.PI * 65, 5);
   });
 
   it('hides the ring when not reloading, during fever, or without a duration', () => {
@@ -17,38 +19,60 @@ describe('reload progress ring', () => {
     expect(getReloadRingSpec({ isReloading: true, reloadDurationMs: 0, sizePx: 88 }).visible).toBe(false);
     expect(getReloadRingSpec({ isReloading: true, sizePx: 88 }).visible).toBe(false);
   });
+});
 
-  it('defines its own keyframes instead of relying on a global stylesheet', () => {
-    const src = fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
-    expect(src).toContain('@keyframes reload-ring-fill');
+describe('reload ring timing (the ring mounts up to ~100ms after the reload really started)', () => {
+  it('starts from zero when the whole reload is still ahead', () => {
+    expect(computeReloadRingTiming(1680, 1680)).toEqual({ durationMs: 1680, delayMs: 0 });
   });
 
-  it('every in-game CrosshairOverlay in PCGamePage (the ones with a weapon) receives the reload props', () => {
+  it('skips the part that already elapsed with a negative delay, so it ends with the real reload', () => {
+    const t = computeReloadRingTiming(1680, 1580); // 100ms late
+    expect(t.durationMs).toBe(1680);
+    expect(t.delayMs).toBe(-100);
+    expect(t.durationMs + t.delayMs).toBe(1580); // visible time left == real time left
+  });
+
+  it('is already full when nothing remains, and never delays past the start', () => {
+    expect(computeReloadRingTiming(1680, 0).delayMs).toBe(-1680);
+    expect(computeReloadRingTiming(1680, 9999).delayMs).toBe(0);
+    expect(computeReloadRingTiming(1680, -50).delayMs).toBe(-1680);
+  });
+
+  it('falls back to a plain run when the remaining time is unknown or invalid', () => {
+    expect(computeReloadRingTiming(1680, undefined).delayMs).toBe(0);
+    expect(computeReloadRingTiming(1680, NaN).delayMs).toBe(0);
+    expect(computeReloadRingTiming(NaN, 500)).toEqual({ durationMs: 0, delayMs: 0 });
+  });
+});
+
+describe('reload ring wiring', () => {
+  it('defines its keyframes once, in the always-mounted style tag, without a per-reload <style>', () => {
+    const src = overlaySource();
+    expect((src.match(/@keyframes reload-ring-fill/g) || []).length).toBe(1);
+    expect((src.match(/@keyframes crosshair-spin/g) || []).length).toBe(1);
+    expect(src).toContain('pathLength={1}');
+    const ring = src.slice(src.indexOf('const ReloadRing'), src.indexOf('export interface CrosshairOverlayHandle'));
+    expect(ring).not.toContain('<style>');
+  });
+
+  it('no longer uses the undefined "spin" animation', () => {
+    expect(overlaySource()).not.toMatch(/'spin \d/);
+  });
+
+  it('PCGamePage passes the reload props to the three in-game crosshairs and pauses correctly per mode', () => {
     const src = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
-    // The lobby and result overlays pass no weapon, so they never reload.
-    const gameplay = (src.match(/<CrosshairOverlay\b[^>]*?weaponKind=\{hudState\.weaponKind\}[\s\S]*?\/>/g) || []);
+    // In-game crosshairs are the ones that receive a weapon; the lobby and result ones do not.
+    const gameplay = src.match(/<CrosshairOverlay\b[\s\S]*?\/>/g)!.filter((b) => b.includes('weaponKind={hudState.weaponKind}'));
     expect(gameplay.length).toBe(3);
     gameplay.forEach((block) => {
-      expect(block).toContain('reloadDurationMs={hudState.reloadDurationMs}');
       expect(block).toContain('isReloading={hudState.isReloading}');
+      expect(block).toContain('reloadDurationMs={hudState.reloadDurationMs}');
+      expect(block).toContain('getReloadRemainingMs={getReloadRemainingMs}');
+      expect(block).toContain('isPaused=');
     });
-  });
-
-  it('keeps the reload ring tied to the duration the reload started with', () => {
-    const src = fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
-    expect(src).toContain('startDurationMsRef');
-  });
-
-  it('defines the crosshair-spin keyframes and no longer uses the undefined "spin"', () => {
-    const src = fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
-    expect(src).toContain('@keyframes crosshair-spin');
-    expect(src).not.toMatch(/'spin \d/);
-  });
-
-  it('the ring spec is pure: same input, same output', () => {
-    const a = getReloadRingSpec({ isReloading: true, reloadDurationMs: 1200, sizePx: 76 });
-    const b = getReloadRingSpec({ isReloading: true, reloadDurationMs: 1200, sizePx: 76 });
-    expect(a).toEqual(b);
-    expect(a.durationMs).toBe(1200);
+    // Only the regular run freezes its clock for cards; tutorial and sandbox pause on the user pause only.
+    const freezing = gameplay.filter((b) => b.includes('hudState.isRewardCardPending'));
+    expect(freezing.length).toBe(1);
   });
 });
