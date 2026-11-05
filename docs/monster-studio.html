@@ -202,49 +202,89 @@
         const billboard = new THREE.Mesh(billboardGeo, billboardMat);
         billboard.position.y = 0.10;
         g.add(billboard);
-      } else if (kind === 'boss') {
-        const r = 0.88;
-        const h = 1.8;
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.82, roughness: 0.28 });
-        const panelTex = loadLabelTex('boss');
-        const panelMat = new THREE.MeshStandardMaterial({ map: panelTex, metalness: 0.45, roughness: 0.3 });
+      } else if (kind === 'boss' || kind === 'boss-king') {
+        // 게임 모델(TargetModels3D.ts)과 같은 치수: 세로로 긴 몸통 앞면에 탭, 소형은 은색 1구, 대왕은 검정 3구와 왕관.
+        const isKing = kind === 'boss-king';
+        const W = 1.3, H = 1.75, D = 1.2;
+        const cy = 0;
+        const floorY = cy - H / 2;
+        const bodyMat = new THREE.MeshStandardMaterial(isKing
+          ? { color: 0x17191d, metalness: 0.55, roughness: 0.42 }
+          : { color: 0xc4cad2, metalness: 0.75, roughness: 0.32 });
+        const topMat = new THREE.MeshStandardMaterial({ color: 0x3a4048, metalness: 0.6, roughness: 0.4 });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), [bodyMat, bodyMat, topMat, bodyMat, bodyMat, bodyMat]);
+        body.position.y = cy;
+        g.add(body);
 
-        const cabinet = new THREE.Mesh(
-          new THREE.BoxGeometry(r * 1.8, h * 0.82, r * 1.4),
-          [bodyMat, bodyMat, capMat, bodyMat, panelMat, bodyMat]
-        );
-        g.add(cabinet);
-
-        const grille = new THREE.Mesh(new THREE.BoxGeometry(r * 1.5, h * 0.22, 0.06), new THREE.MeshStandardMaterial({ color: 0x050810, roughness: 0.95 }));
-        grille.position.set(0, -h * 0.24, r * 0.71);
-        g.add(grille);
-
-        const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.58, 20), capMat);
-        tower.position.set(0, h * 0.41 + 0.28, 0);
-        g.add(tower);
-
-        [-0.15, 0.15].forEach((tapX) => {
-          const tapSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.26, 12), goldMat);
-          tapSpout.rotation.x = Math.PI / 2;
-          tapSpout.position.set(tapX, h * 0.41 + 0.4, 0.18);
-          g.add(tapSpout);
-
-          const tapHandle = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.028, 0.02, 0.3, 12),
-            new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.7, roughness: 0.2 })
-          );
-          tapHandle.position.set(tapX, h * 0.41 + 0.56, 0.24);
-          tapHandle.rotation.x = -0.22;
-          g.add(tapHandle);
+        const slitMat = new THREE.MeshStandardMaterial({ color: 0x050608, roughness: 0.9 });
+        [W / 2 + 0.008, -W / 2 - 0.008].forEach((x) => {
+          [cy + H / 2 - 0.14, floorY + 0.5].forEach((top) => {
+            for (let i = 0; i < 5; i++) {
+              const slit = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.035, D * 0.55), slitMat);
+              slit.position.set(x, top - i * 0.07, 0);
+              g.add(slit);
+            }
+          });
         });
 
-        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 });
-        [[-r * 0.75, -r * 0.55], [r * 0.75, -r * 0.55], [-r * 0.75, r * 0.55], [r * 0.75, r * 0.55]].forEach(([wx, wz]) => {
-          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.09, 14), wheelMat);
-          wheel.rotation.z = Math.PI / 2;
-          wheel.position.set(wx, -h * 0.41 - 0.05, wz);
-          g.add(wheel);
+        const leverMat = isKing ? goldMat : new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.1, roughness: 0.5 });
+        const k = isKing ? 1.3 : 1.6;
+        const tapY = cy + 0.46;
+        (isKing ? [-0.34, 0, 0.34] : [0]).forEach((x) => {
+          const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * k, 0.06 * k, 0.1 * k, 14), capMat);
+          collar.rotation.x = Math.PI / 2;
+          collar.position.set(x, tapY, D / 2 + 0.05 * k);
+          g.add(collar);
+          const tapBody = new THREE.Mesh(new THREE.CylinderGeometry(0.055 * k, 0.05 * k, 0.2 * k, 14), capMat);
+          tapBody.position.set(x, tapY - 0.01 * k, D / 2 + 0.14 * k);
+          g.add(tapBody);
+          const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.03 * k, 0.022 * k, 0.16 * k, 10), capMat);
+          spout.position.set(x, tapY - 0.18 * k, D / 2 + 0.14 * k);
+          g.add(spout);
+          const lever = new THREE.Mesh(new THREE.CylinderGeometry(0.036 * k, 0.024 * k, 0.34 * k, 12), leverMat);
+          lever.position.set(x, tapY + 0.24 * k, D / 2 + 0.12 * k);
+          lever.rotation.x = -0.22;
+          g.add(lever);
         });
+
+        const trayY = floorY + 0.2;
+        const tray = new THREE.Mesh(new THREE.BoxGeometry(W * 0.86, 0.16, 0.42), new THREE.MeshStandardMaterial({ color: 0x17191d, metalness: 0.55, roughness: 0.42 }));
+        tray.position.set(0, trayY, D / 2 + 0.2);
+        g.add(tray);
+        const grateMat = new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.8, roughness: 0.35 });
+        for (let i = 0; i < 9; i++) {
+          const bar = new THREE.Mesh(new THREE.BoxGeometry(W * 0.74, 0.012, 0.018), grateMat);
+          bar.position.set(0, trayY + 0.085, D / 2 + 0.03 + i * 0.043);
+          g.add(bar);
+        }
+
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.26, 0.01), isKing ? goldMat : capMat);
+        frame.position.set(0, cy - 0.2, D / 2 + 0.006);
+        g.add(frame);
+        const logoTex = texLoader.load('/textures/labels/ob-logo.jpg');
+        logoTex.colorSpace = THREE.SRGBColorSpace;
+        const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.2), new THREE.MeshStandardMaterial({ map: logoTex, roughness: 0.5 }));
+        plate.position.set(0, cy - 0.2, D / 2 + 0.012);
+        g.add(plate);
+
+        if (isKing) {
+          const R = 0.42, crownY = floorY + H + 0.08;
+          const band = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 0.92, 0.16, 16), goldMat);
+          band.position.y = crownY;
+          g.add(band);
+          const gemMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.6, roughness: 0.25 });
+          for (let i = 0; i < 8; i++) {
+            const a = (i / 8) * Math.PI * 2;
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.095, 0.3, 6), goldMat);
+            spike.position.set(Math.sin(a) * R * 0.9, crownY + 0.22, Math.cos(a) * R * 0.9);
+            g.add(spike);
+            if (i % 2 === 0) {
+              const gem = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), gemMat);
+              gem.position.set(Math.sin(a) * (R + 0.01), crownY, Math.cos(a) * (R + 0.01));
+              g.add(gem);
+            }
+          }
+        }
       }
 
       return g;
@@ -383,7 +423,8 @@
       obi: { badge: 'TANK · 지상 바운스', name: '오비 라거 (OB Lager)', hp: '2', speed: '3.0 m/s', score: '+70점', color: '#f59e0b' },
       hanmac: { badge: 'ELITE · 지상 바운스', name: '한맥 (HANMAC)', hp: '2', speed: '3.2 m/s', score: '+90점', color: '#047857' },
       bottle: { badge: 'HEAVY · 투명 유리병', name: '카스 프레시 병맥주 (Cass Fresh Bottle)', hp: '3', speed: '2.3 m/s', score: '+160점', color: '#004b91' },
-      boss: { badge: 'BOSS · 보스 레이드', name: '업소용 생맥주 냉각기 (Boss)', hp: '40', speed: '1.10 m/s', score: '+1,500점', color: '#ef4444' }
+      boss: { badge: 'BOSS · 보스 레이드', name: '업소용 생맥주 냉각기 (Boss)', hp: '70~90', speed: '0.85 m/s', score: '+1,500점', color: '#ef4444' },
+      'boss-king': { badge: 'BOSS · 7웨이브', name: '대왕 냉각기 (King)', hp: '200', speed: '0.85 m/s', score: '+1,500점', color: '#fbbf24' }
     };
 
     const ITEM_SPECS = {
@@ -401,8 +442,8 @@
       activeModel.rotation.y = kind === 'bottle' ? 0.0 : 0.35;
       scene.add(activeModel);
 
-      if (kind === 'boss') {
-        camera.position.set(0, 0.6, 5.2);
+      if (kind === 'boss' || kind === 'boss-king') {
+        camera.position.set(0, 0.1, 6.6);
       } else {
         camera.position.set(0, 0.4, 3.6);
       }

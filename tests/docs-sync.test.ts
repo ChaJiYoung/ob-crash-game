@@ -17,6 +17,8 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /쉴드를 두른|방패가 풀립니다|대왕 쉴드|쉴드를 풀/, why: 'the king shield was removed' },
   { pattern: /붉은 포탄|빛나는 구|거품 투사체|거품\/병뚜껑 투사체/, why: 'enemy shells are brown poop now' },
   { pattern: /8초에서 시작|5초까지 짧아|소환이 빨라져|시간을 끌면 소환/, why: 'boss summons follow boss HP, not a timer' },
+  { pattern: /듀얼 골드 탭|듀얼 탭 레버|크롬 드래프트 타워/, why: 'the coolers have front taps now' },
+  { pattern: /공중에서 (사격|요격)|⚠️ 보스 등장/, why: 'shells stay on the floor and the warning is a WARNING band' },
   { pattern: /MISS 페널티 완전 폐지/, why: 'misses now cost ammo and reload time' },
   { pattern: /8초마다 (부하|소환)|부하를 8초마다|4마리를 공유/, why: 'boss summons are HP-driven now, not a shared timer' },
   { pattern: /\+150 PTS|\+100 PTS|\+50 PTS|\+500점|\+1,500점|2배 화력|기본 피해의 3배/, why: 'scores are scaled by GAME_TUNING.score.scale (x0.1) and fever no longer boosts damage' },

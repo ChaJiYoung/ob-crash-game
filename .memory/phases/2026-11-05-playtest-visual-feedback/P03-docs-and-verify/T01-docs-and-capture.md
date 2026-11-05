@@ -1,6 +1,6 @@
 # Task: T01 문서, 가이드, 도감 도구, 스크린샷 갱신
 
-## Status: pending
+## Status: done
 
 ## Goal
 플레이어 안내와 문서가 새 냉각기, 바닥 똥, 경고 띠, 피격 효과를 그대로 설명하고, 옛 설명이 다시 들어오지 못하게 막는다.
@@ -51,9 +51,9 @@
 - 검사 파일에 무기 가이드도 포함되지만 "듀얼 고압관", "듀얼 드럼통"은 패턴에 걸리지 않는다.
 
 ## Acceptance Criteria
-- [ ] 문서와 가이드에 옛 표현이 없고 `docs-sync` 테스트가 통과한다.
-- [ ] 도감 사진에 새 소형·대왕이 나오고, 경고 띠·똥 장면 사진이 실제 화면이다.
-- [ ] 다른 스크린샷은 바뀌지 않는다(`git status`로 확인).
+- [x] 문서와 가이드에 옛 표현이 없고 `docs-sync` 테스트가 통과한다.
+- [x] 도감 사진에 새 소형·대왕이 나오고, 경고 띠·똥 장면 사진이 실제 화면이다.
+- [x] 다른 스크린샷은 바뀌지 않는다(`git status`로 확인).
 
 ## Validation
 - `npx vitest run tests/docs-sync.test.ts` — 통과
@@ -74,6 +74,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

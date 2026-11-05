@@ -92,7 +92,7 @@ const MONSTER_DETAILS: Record<
   boss: {
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (10m 정지, 좌우 이동)',
-    description: `스테인리스 캐비닛과 듀얼 골드 탭을 장착한 보스. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCount}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
+    description: `앞면에 탭이 달린 업소용 냉각기 보스. 소형은 은색 1구, 대왕은 검정 3구에 금색 왕관을 썼습니다. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCount}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
     tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
@@ -500,7 +500,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
                   • <strong>100% 비례 슬림 게이지 체력바:</strong> 모든 몬스터는 100% 비례 연속 게이지 바로 체력이 표시됩니다. 1HP 캔(필굿, 카스라이트)도 스쳐 맞았을 때(hp &lt; maxHp) 즉시 머리 위에 잔여 체력바가 나타납니다!<br />
                   • <strong>🌟 황금 캔 (보너스 타겟):</strong> 웨이브마다 1회 원경을 고속 횡단! 격추 시 +{Math.round(500 * GAME_TUNING.score.scale)}점과 함께 액티브 스킬 1회 충전, 피버 게이지 +{GAME_TUNING.goldenCan.feverGain}%를 받습니다.<br />
-                  • <strong>💩 똥 투사체 요격:</strong> 한맥과 보스가 쏘는 갈색 똥 덩어리(아이템과 달리 빛나지 않고 맞으면 체력이 깎입니다)를 공중에서 사격하면 몬스터처럼 터지며 요격음과 점수를 얻습니다. 놓쳐서 방어선을 통과하면 바 생명이 1 차감됩니다.
+                  • <strong>💩 똥 투사체 요격:</strong> 한맥과 보스가 쏘는 갈색 똥 덩어리(아이템과 달리 빛나지 않고 맞으면 체력이 깎입니다)가 바닥을 따라 다가올 때 사격하면 몬스터처럼 터지며 요격음과 점수를 얻습니다. 놓쳐서 방어선을 통과하면 바 생명이 1 차감됩니다.
                 </div>
               </div>
 
