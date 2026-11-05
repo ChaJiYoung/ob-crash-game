@@ -82,7 +82,7 @@ export async function createBeerCrusherServer(options?: {
       try {
         switch (msg.type) {
           case 'CREATE_ROOM': {
-            const session = roomManager.createRoom(msg.roomId);
+            const session = roomManager.getOrCreateRoom(msg.roomId);
             roomManager.attachPcSocket(session.roomId, ws);
             sendJson(ws, {
               type: 'ROOM_CREATED',

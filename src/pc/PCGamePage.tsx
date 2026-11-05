@@ -8,6 +8,7 @@ import { HudSnapshot, buildHudSnapshot, isHudSnapshotEqual } from './hudSnapshot
 import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
 import { JudgmentBanner, JudgmentBannerHandle } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
+import { loadSavedRoomId, saveRoomId, clearSavedRoomId } from './roomMemory';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
@@ -260,7 +261,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     wsRef.current = socket;
 
     socket.onopen = () => {
-      socket.send(JSON.stringify({ type: 'CREATE_ROOM' }));
+      socket.send(JSON.stringify({ type: 'CREATE_ROOM', roomId: loadSavedRoomId() }));
     };
 
     socket.onmessage = (event) => {
@@ -269,6 +270,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         switch (msg.type) {
           case 'ROOM_CREATED':
             setRoomId(msg.roomId);
+            saveRoomId(msg.roomId);
             if (msg.rankings) setTopRankings(msg.rankings);
             if (msg.lanIp) setLanIp(msg.lanIp);
             break;
@@ -765,6 +767,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     setGamePhase('PAIRING');
   }, [engine]);
 
+  const handleRenewRoom = useCallback(() => {
+    clearSavedRoomId();
+    window.location.reload();
+  }, []);
+
   const handleReturnToLobby = useCallback(() => {
     if (rapidFireTimerRef.current) {
       clearInterval(rapidFireTimerRef.current);
@@ -1158,6 +1165,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onStartWithController={startCountdownAndGame}
             onOpenGuide={handleOpenGuide}
             onStartSandbox={handleStartSandbox}
+            onRenewRoom={handleRenewRoom}
           />
           {(isZeroCalibrated || pairedPlayer) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 120 }}>

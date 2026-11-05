@@ -36,6 +36,18 @@ export class RoomManager {
     return session;
   }
 
+  /**
+   * A PC that comes back with its saved room code must get the same room, not a fresh one:
+   * overwriting it would drop the controller socket that is still attached.
+   */
+  public getOrCreateRoom(requestedRoomId?: string): RoomSession {
+    const normalized = requestedRoomId ? requestedRoomId.toUpperCase().trim() : undefined;
+    if (normalized && /^[A-Z0-9]{3,8}$/.test(normalized)) {
+      return this.getRoom(normalized) ?? this.createRoom(normalized);
+    }
+    return this.createRoom();
+  }
+
   public getRoom(roomId: string): RoomSession | undefined {
     return this.rooms.get(roomId.toUpperCase().trim());
   }

@@ -1,19 +1,20 @@
 # Current Context
 
 ## Active Plan
-[저레벨 보너스, 무대 정리, 도감 정리 (사후 기록)](./plans/2026-11-06-low-level-bonus-and-stage-cleanup.md)
+[컨트롤러 연결 유지 + 일시정지 메뉴](./plans/2026-11-06-controller-persistence-and-pause.md)
 
 ## Active Phase
-[P01 사후 기록](./phases/2026-11-06-low-level-bonus-and-stage-cleanup/P01-retroactive/phase.md)
+[P01 연결 유지](./phases/2026-11-06-controller-persistence-and-pause/P01-connection-persistence/phase.md)
 
 ## Active Task
-없음
+[T02 폰 자동 재연결](./phases/2026-11-06-controller-persistence-and-pause/P01-connection-persistence/T02-controller-auto-reconnect.md)
 
 ## Status
-- 2026-11-05 계획들의 사람 플레이 확인을 닫음(세 무기 클리어). 열린 활성 Task 없음.
+- P01-T01 완료. T02 구현 시작 준비 완료
 
 ## Paused Plan
 - `2026-11-04-gameplay-polish-and-perf-optimization` P05-T04·T05: 그대로 남는다.
+- `2026-11-06-low-level-bonus-and-stage-cleanup`: 사후 기록 계획, 열린 Task 없음.
 
 ## Next Step (IMPORTANT)
-사용자가 게임 서버를 재시작해 v5를 적용한다(점수 초기화, 기존 값은 `.bak`로 백업). 추가 피드백을 기다린다.
+T02 청사진을 읽고 `src/controller/sensors/ReconnectPolicy.ts` 신규 작성부터 시작

@@ -21,6 +21,7 @@ export interface QRPairingModalProps {
   onStartWithController: () => void;
   onOpenGuide?: () => void;
   onStartSandbox?: () => void;
+  onRenewRoom?: () => void;
 }
 
 export const QRPairingModal: React.FC<QRPairingModalProps> = ({
@@ -33,6 +34,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   onStartWithController,
   onOpenGuide,
   onStartSandbox,
+  onRenewRoom,
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [pairingUrl, setPairingUrl] = useState<string>('');
@@ -369,6 +371,25 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               }}
             >
               📖 게임 가이드 & 튜토리얼 (조작법 · 몬스터 도감 · 아이템)
+            </button>
+          )}
+
+          {onRenewRoom && (
+            <button
+              onClick={onRenewRoom}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '12px',
+                border: '1px solid rgba(148, 163, 184, 0.35)',
+                background: 'rgba(148, 163, 184, 0.06)',
+                color: '#94a3b8',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              🔄 새 QR 발급 (다른 폰으로 연결)
             </button>
           )}
 
