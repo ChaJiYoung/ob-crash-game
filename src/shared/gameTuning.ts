@@ -101,6 +101,8 @@ export const GAME_TUNING = {
   itemDropChance: 0.04,
   /** 웨이브당 일반 몬스터 속도 증가율(체력은 웨이브별로 올리지 않는다). 7웨이브에서 기본 속도의 1.48배. */
   speedPerWave: 0.08,
+  /** 똥 포탄. baseY는 아래 단이 바닥에 닿는 높이, spring은 위아래로 늘고 주는 빠르기와 폭. */
+  shell: { baseY: 0.28, springHz: 2.5, springAmount: 0.28 },
   boss: {
     startRadiusM: 16,
     stopRadiusM: 10,

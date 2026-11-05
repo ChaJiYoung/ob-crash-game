@@ -17,6 +17,7 @@ import {
   updateTargetAnimation3D,
   updateItemAnimation3D,
   applyTargetHitFlash3D,
+  updateProjectileAnimation3D,
   getTargetBaseY,
 } from '../three/TargetModels3D';
 import { DraftTapGun3D } from '../three/DraftTapGun3D';
@@ -655,8 +656,8 @@ export const GameCanvas3D = React.memo(
             mesh.rotation.y += dtSec * 3.5;
             mesh.position.y = baseY + Math.sin(time / 200) * 0.12;
           } else if (target.isProjectile) {
-            mesh.rotation.y += dtSec * 6; // 뒤집히지 않고 뱅글뱅글 흔들리며 굴러온다
-            mesh.rotation.z = Math.sin(time / 120) * 0.25;
+            mesh.rotation.y = Math.atan2(-target.x, -target.z); // 몬스터처럼 플레이어를 봐서 눈이 항상 보인다
+            updateProjectileAnimation3D(mesh, time / 1000);
           } else if (target.weaponSelectKind || target.rewardCardKind) {
             mesh.rotation.y = Math.atan2(-target.x, 2.2 - target.z) + Math.sin(time / 300) * 0.08;
             mesh.position.y = baseY + Math.sin(time / 250) * 0.06;

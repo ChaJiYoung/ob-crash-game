@@ -83,7 +83,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     expect(ib - item.radiusM).toBeCloseTo(1 * 0.1, 3);
 
     const projectile = engine.spawnMonsterProjectile(2000, 'hanmac');
-    expect(projectile.customBaseY).toBe(1.45);
+    expect(projectile.customBaseY).toBe(GAME_TUNING.shell.baseY);
+    expect(projectile.customNormY).toBeUndefined();
   });
 
   it('caslight sways widely while pilgood keeps a straight lane', () => {

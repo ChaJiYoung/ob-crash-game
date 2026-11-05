@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ItemBuffKind, TargetKind } from '../../shared/types';
 import { ITEM_BUFF_SPECS, TARGET_SPECS } from '../../shared/constants';
+import { GAME_TUNING } from '../../shared/gameTuning';
 import { createRealisticPlungerMesh } from './DraftTapGun3D';
 
 const labelTextureCache = new Map<string, THREE.Texture>();
@@ -1033,6 +1034,28 @@ export function createGoldenCanMesh3D(): THREE.Group {
   return root;
 }
 
+/** 똥 아래 단의 중심에서 바닥까지 거리(모델 배율 적용 전). */
+const SHELL_BOTTOM_OFFSET = 0.238;
+
+/** 부피를 유지하며 위아래로 늘고 준다. liftY는 아래 단이 바닥에서 뜨거나 파묻히지 않게 옮기는 값. */
+export function computeShellSpring(
+  elapsedSec: number,
+  phase = 0
+): { scaleY: number; scaleXZ: number; liftY: number } {
+  const { springHz, springAmount } = GAME_TUNING.shell;
+  const scaleY = 1 + springAmount * Math.sin(elapsedSec * springHz * Math.PI * 2 + phase);
+  return { scaleY, scaleXZ: 1 / Math.sqrt(scaleY), liftY: (scaleY - 1) * SHELL_BOTTOM_OFFSET };
+}
+
+export function updateProjectileAnimation3D(root: THREE.Group, elapsedSec: number): void {
+  const inner = root.userData.inner as THREE.Group | undefined;
+  if (!inner) return;
+  const base = (root.userData.baseScale as number) || 1.15;
+  const { scaleY, scaleXZ, liftY } = computeShellSpring(elapsedSec, root.id * 0.7); // 여러 개가 같이 움직이지 않게
+  inner.scale.set(base * scaleXZ, base * scaleY, base * scaleXZ);
+  inner.position.y = liftY * base;
+}
+
 /**
  * 🫧 Procedural 3D Monster Projectile Mesh
  */
@@ -1080,9 +1103,14 @@ export function createProjectileMesh3D(): THREE.Group {
 
   inner.scale.setScalar(1.15);
 
+  const shadowMesh = createFloorShadowMesh(0.42);
+  shadowMesh.position.y = -GAME_TUNING.shell.baseY + 0.01;
+  root.add(shadowMesh);
+
   root.userData = {
     isProjectile: true,
     inner,
+    shadowMesh,
     baseScale: 1.15,
     hitRadiusM: 0.95,
   };

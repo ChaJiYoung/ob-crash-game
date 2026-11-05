@@ -1,6 +1,6 @@
 # Task: T01 똥을 바닥으로 내리고 스프링 동작과 판정을 맞춘다
 
-## Status: pending
+## Status: done
 
 ## Goal
 한맥·보스의 똥이 떠다니지 않고 바닥에 붙어 위아래로 늘고 줄며 다가오고, 보이는 곳을 쏘면 맞는다.
@@ -78,9 +78,9 @@
 - 판정 범위가 10m에서 계산상 약 19% 작아진다. 클리어율이 무기별 10%p 넘게 떨어지면 `spawnMonsterProjectile`의 `hitRadiusM`을 0.95에서 1.15로 올려 다시 재고, 고친 값과 결과를 함께 적는다. 다른 난이도 값은 건드리지 않는다.
 
 ## Acceptance Criteria
-- [ ] 똥이 공중으로 뜨지 않고 바닥에서 늘고 줄며 다가오며, 눈이 항상 보인다.
-- [ ] 화면에 보이는 똥을 조준해 쏘면 요격된다.
-- [ ] 변경 전후 시뮬레이션 결과가 기록되어 있다.
+- [x] 똥이 공중으로 뜨지 않고 바닥에서 늘고 줄며 다가오며, 눈이 항상 보인다.
+- [x] 화면에 보이는 똥을 조준해 쏘면 요격된다.
+- [x] 변경 전후 시뮬레이션 결과가 기록되어 있다.
 
 ## Validation
 - `npx vitest run tests/poop-shell.test.ts tests/monster-traits.test.ts tests/three-stage-and-models.test.ts tests/boss-encounters.test.ts` — 통과
@@ -101,6 +101,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

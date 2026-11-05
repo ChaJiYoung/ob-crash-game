@@ -654,11 +654,10 @@ export class BeerCrusherEngine {
       killBonusScore: 80,
       breached: false,
       isProjectile: true,
-      customNormY: 0.1,
-      customBaseY: 1.45, // Projectile kind is 'pilgood' (now ground); keep the mesh at the aimed height
+      customBaseY: GAME_TUNING.shell.baseY, // On the floor; no customNormY so the hit zone follows the model
     };
     this.activeTargets.push(entity);
-    this.projectileLaunchEvents.push({ source: sourceKind, x: pt.x, z: pt.z, y: 1.45 });
+    this.projectileLaunchEvents.push({ source: sourceKind, x: pt.x, z: pt.z, y: GAME_TUNING.shell.baseY + 0.35 });
     if (this.projectileLaunchEvents.length > 32) this.projectileLaunchEvents.shift();
     return entity;
   }
