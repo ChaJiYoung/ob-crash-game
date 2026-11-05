@@ -30,7 +30,7 @@ import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
 import { computeHorizontalHalfFovRad } from '../engine/FanSpawner';
 
 export function resolveHitFxColor(target: ActiveTargetEntity): string {
-  if (target.isProjectile) return '#f87171';
+  if (target.isProjectile) return '#7a4a21';
   if (target.isItem && target.itemKind) return ITEM_BUFF_SPECS[target.itemKind].auraColorHex;
   return TARGET_SPECS[target.kind]?.brandColorHex || '#fbbf24';
 }
@@ -533,6 +533,11 @@ export const GameCanvas3D = React.memo(
           if (ev.source === 'blade') particles.spawnSlashMark(pos);
         }
 
+        // 한맥·보스가 쏘는 순간: 그 자리에서 갈색 덩어리가 뿜어져 나간다.
+        for (const ev of engine.drainProjectileLaunchEvents()) {
+          particles.spawnProjectileLaunchBurst(new THREE.Vector3(ev.x, ev.y, ev.z));
+        }
+
         // 보스 처치 연출: 큰 폭발 한 번, 남은 몬스터는 연쇄로 터진다(점수 없음).
         for (const ev of engine.drainBossClearEvents()) {
           if (ev.type === 'defeated') {
@@ -644,8 +649,8 @@ export const GameCanvas3D = React.memo(
             mesh.rotation.y += dtSec * 3.5;
             mesh.position.y = baseY + Math.sin(time / 200) * 0.12;
           } else if (target.isProjectile) {
-            mesh.rotation.x += dtSec * 10;
-            mesh.rotation.y += dtSec * 14;
+            mesh.rotation.y += dtSec * 6; // 뒤집히지 않고 뱅글뱅글 흔들리며 굴러온다
+            mesh.rotation.z = Math.sin(time / 120) * 0.25;
           } else if (target.weaponSelectKind || target.rewardCardKind) {
             mesh.rotation.y = Math.atan2(-target.x, 2.2 - target.z) + Math.sin(time / 300) * 0.08;
             mesh.position.y = baseY + Math.sin(time / 250) * 0.06;

@@ -1,6 +1,6 @@
 # Task: T01 똥 모양 포탄과 발사 연출
 
-## Status: pending
+## Status: done
 
 ## Goal
 한맥·보스가 쏘는 포탄을 아이템과 확실히 구분되는 갈색 똥 모양으로 바꾸고, 발사 순간 분출 연출과 갈색 요격 파편을 넣는다.
@@ -87,6 +87,6 @@ Task: T01-poop-shell
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

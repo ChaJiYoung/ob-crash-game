@@ -4,13 +4,13 @@
 [후반 속도, 보스 소환 개편, 똥 모양 포탄, 보스 처치 연출](./plans/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Active Phase
-[P03 똥 모양 포탄](./phases/2026-11-05-boss-summon-shell-and-speed/P03-poop-shell/phase.md)
+[P04 문서 동기화와 최종 검증](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/phase.md)
 
 ## Active Task
-[T01 똥 모양 포탄과 발사 연출](./phases/2026-11-05-boss-summon-shell-and-speed/P03-poop-shell/T01-poop-shell.md)
+[T01 문서와 캡처 동기화](./phases/2026-11-05-boss-summon-shell-and-speed/P04-sync-and-verify/T01-docs-and-capture.md)
 
 ## Status
-- P01~P02 완료(속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
+- P01~P03 완료(똥 포탄, 속도, 방패 제거, 체력 구간 소환, 보스 처치 연출)
 - 결정: [결정 문서](./decisions/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Paused Plan
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단은 P04-T03 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-P03-T01: 똥 모델, 굴러오는 움직임, 발사 사건·분출 연출, 갈색 파편.
+P04-T01: 문서·가이드·README 문구와 스크린샷. 그 뒤 T02(기준 시간·합산 난이도 보고), T03(사람 플레이). 전체 구현 후 Opus 리뷰.

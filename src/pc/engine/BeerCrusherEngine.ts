@@ -140,6 +140,13 @@ export interface SkillBlade {
   bossDamage: number;
 }
 
+export interface ProjectileLaunchEvent {
+  source: 'hanmac' | 'boss';
+  x: number;
+  z: number;
+  y: number;
+}
+
 export type BossClearEvent =
   | { type: 'defeated'; x: number; z: number; y: number }
   | { type: 'cascade'; target: ActiveTargetEntity };
@@ -208,6 +215,7 @@ export class BeerCrusherEngine {
   private bossClearUntilMs = 0;
   private bossClearNextCascadeMs = 0;
   private bossClearEvents: BossClearEvent[] = [];
+  private projectileLaunchEvents: ProjectileLaunchEvent[] = [];
   public activeSkillFoamWaves: SkillFoamWave[] = [];
   private skillHitEvents: SkillHitEvent[] = [];
   private skillEntityCounter = 0;
@@ -650,6 +658,8 @@ export class BeerCrusherEngine {
       customBaseY: 1.45, // Projectile kind is 'pilgood' (now ground); keep the mesh at the aimed height
     };
     this.activeTargets.push(entity);
+    this.projectileLaunchEvents.push({ source: sourceKind, x: pt.x, z: pt.z, y: 1.45 });
+    if (this.projectileLaunchEvents.length > 32) this.projectileLaunchEvents.shift();
     return entity;
   }
 
@@ -2130,6 +2140,13 @@ export class BeerCrusherEngine {
     return this.bossClearUntilMs;
   }
 
+  /** 화면이 포탄 발사 연출을 그리려고 가져간다. 돌려주고 비운다. */
+  public drainProjectileLaunchEvents(): ProjectileLaunchEvent[] {
+    const events = this.projectileLaunchEvents;
+    this.projectileLaunchEvents = [];
+    return events;
+  }
+
   /** 화면이 보스 처치 연출을 그리려고 가져간다. 돌려주고 비운다. */
   public drainBossClearEvents(): BossClearEvent[] {
     const events = this.bossClearEvents;
@@ -2141,6 +2158,7 @@ export class BeerCrusherEngine {
     this.bossClearUntilMs = 0;
     this.bossClearNextCascadeMs = 0;
     this.bossClearEvents = [];
+    this.projectileLaunchEvents = [];
   }
 
   /** 마지막 보스가 죽으면 필드를 한꺼번에 비우지 않고 연출 시퀀스를 시작한다. */

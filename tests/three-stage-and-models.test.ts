@@ -254,7 +254,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
 
   it('should resolve hit FX colors for projectiles, items and monsters (gameplay-polish P02-T02)', () => {
     const base = { id: 't', hp: 1, maxHp: 1, radiusM: 5, thetaRad: 0, x: 0, z: -5, speedMps: 1, hitRadiusM: 1, killBonusScore: 0, breached: false };
-    expect(resolveHitFxColor({ ...base, kind: 'pilgood', isProjectile: true })).toBe('#f87171');
+    expect(resolveHitFxColor({ ...base, kind: 'pilgood', isProjectile: true })).toBe('#7a4a21');
     expect(resolveHitFxColor({ ...base, kind: 'pilgood', isItem: true, itemKind: 'power_shot' })).toBe(
       ITEM_BUFF_SPECS.power_shot.auraColorHex
     );

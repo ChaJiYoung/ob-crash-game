@@ -729,6 +729,12 @@ export class ParticleEffects3D {
     }
   }
 
+  /** 포탄이 발사되는 순간: 갈색 덩어리와 짧은 회색 연기. */
+  public spawnProjectileLaunchBurst(position: THREE.Vector3): void {
+    this.spawnHitEffect(position, '#7a4a21', 14);
+    this.spawnHitEffect(position, '#d6d3d1', 6);
+  }
+
   /** 보스가 터지는 큰 폭발: 금색·흰색 파편과 유리 조각을 한꺼번에 뿜는다. */
   public spawnBossDefeatBurst(position: THREE.Vector3): void {
     this.spawnHitEffect(position, '#fbbf24', 30);

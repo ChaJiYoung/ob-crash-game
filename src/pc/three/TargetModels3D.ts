@@ -1043,31 +1043,47 @@ export function createProjectileMesh3D(): THREE.Group {
   const inner = new THREE.Group();
   root.add(inner);
 
-  const orbMat = getCachedMaterial('projectile-orb-mat', () => {
-    return new THREE.MeshStandardMaterial({
-      color: 0xf43f5e,
-      emissive: 0xe11d48,
-      emissiveIntensity: 0.8,
-      roughness: 0.2,
+  // 갈색 3단 소프트아이스(똥 모양). 빛과 고리가 없어서 빛나는 아이템과 확실히 구분된다.
+  const poopMat = getCachedMaterial('projectile-poop-mat', () => {
+    return new THREE.MeshStandardMaterial({ color: 0x7a4a21, roughness: 0.85, metalness: 0 });
+  });
+  const tier = (key: string, radius: number, flatten: number) =>
+    getCachedGeometry(key, () => {
+      const g = new THREE.SphereGeometry(radius, 14, 10);
+      g.scale(flatten, 0.7, flatten);
+      return g;
     });
-  });
-  const orbGeo = getCachedGeometry('projectile-orb-geo', () => new THREE.SphereGeometry(0.28, 16, 16));
-  const orb = new THREE.Mesh(orbGeo, orbMat);
-  inner.add(orb);
 
-  const rimGeo = getCachedGeometry('projectile-rim-geo', () => {
-    const g = new THREE.TorusGeometry(0.32, 0.04, 10, 20);
-    g.rotateX(Math.PI / 2);
-    return g;
+  const bottom = new THREE.Mesh(tier('projectile-poop-bottom', 0.34, 1.25), poopMat);
+  bottom.position.y = 0;
+  inner.add(bottom);
+  const middle = new THREE.Mesh(tier('projectile-poop-middle', 0.26, 1.2), poopMat);
+  middle.position.y = 0.2;
+  inner.add(middle);
+  const top = new THREE.Mesh(tier('projectile-poop-top', 0.18, 1.1), poopMat);
+  top.position.y = 0.38;
+  inner.add(top);
+
+  const tipGeo = getCachedGeometry('projectile-poop-tip', () => new THREE.ConeGeometry(0.1, 0.22, 10));
+  const tip = new THREE.Mesh(tipGeo, poopMat);
+  tip.position.y = 0.58;
+  tip.rotation.z = 0.35; // 꼭대기가 살짝 휜다
+  inner.add(tip);
+
+  const eyeMat = getCachedMaterial('projectile-poop-eye-mat', () => new THREE.MeshBasicMaterial({ color: 0x1c1917 }));
+  const eyeGeo = getCachedGeometry('projectile-poop-eye-geo', () => new THREE.SphereGeometry(0.035, 8, 8));
+  [-0.1, 0.1].forEach((x) => {
+    const eye = new THREE.Mesh(eyeGeo, eyeMat);
+    eye.position.set(x, 0.05, 0.3);
+    inner.add(eye);
   });
-  const rimMat = getCachedMaterial('projectile-rim-mat', () => new THREE.MeshBasicMaterial({ color: 0xfef08a }));
-  const rim = new THREE.Mesh(rimGeo, rimMat);
-  inner.add(rim);
+
+  inner.scale.setScalar(1.15);
 
   root.userData = {
     isProjectile: true,
     inner,
-    baseScale: 1.0,
+    baseScale: 1.15,
     hitRadiusM: 0.95,
   };
 
