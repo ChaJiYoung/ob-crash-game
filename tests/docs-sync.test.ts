@@ -183,3 +183,52 @@ describe('guard cycle and reload multiplier are documented with the tuned number
     expect(readme).toContain(`기본의 ${GAME_TUNING.fire.reloadScale}배`);
   });
 });
+
+describe('doc ranges and wording are derived from the tuned tables', () => {
+  const kinds = ['shotgun', 'revolver', 'gatling'] as const;
+  const levels = [1, 2, 3, 4] as const;
+  const ammoRange = (kind: (typeof kinds)[number]) => {
+    const v = levels.map((lv) => WEAPON_ARCHETYPE_SPECS[kind].levels[lv].maxAmmo);
+    return `${Math.min(...v)} ~ ${Math.max(...v)}발`;
+  };
+  const allReloadSec = kinds.flatMap((k) => levels.map((lv) => WEAPON_ARCHETYPE_SPECS[k].levels[lv].reloadDurationMs / 1000));
+  const reloadMin = Math.min(...allReloadSec).toFixed(1);
+  const reloadMax = Math.max(...allReloadSec).toFixed(1);
+  const allAmmo = kinds.flatMap((k) => levels.map((lv) => WEAPON_ARCHETYPE_SPECS[k].levels[lv].maxAmmo));
+
+  it('the weapon guide overview table lists each weapon magazine range', () => {
+    const doc = fs.readFileSync('docs/무기_및_스킬_가이드.md', 'utf8');
+    kinds.forEach((kind) => {
+      const row = doc.split('\n').find((l) => l.startsWith(`| **\`${kind}\`**`));
+      expect(row, `${kind} overview row`).toBeDefined();
+      expect(row).toContain(ammoRange(kind));
+    });
+  });
+
+  it('reload time ranges in the tutorial guide and the showcase match the specs', () => {
+    const tutorial = fs.readFileSync('docs/튜토리얼_훈련장_가이드.md', 'utf8');
+    const showcase = fs.readFileSync('docs/구동화면_쇼케이스.md', 'utf8');
+    const tutorialRow = tutorial.split('\n').find((l) => l.includes('탄창 재장전'));
+    expect(tutorialRow).toContain(`${reloadMin}s~${reloadMax}s`);
+    const showcaseLine = showcase.split('\n').find((l) => l.includes('자동 재장전'));
+    expect(showcaseLine).toContain(`${reloadMin}~${reloadMax}초`);
+    expect(showcase).toContain(`${Math.min(...allAmmo)}~${Math.max(...allAmmo)}발`);
+  });
+
+  it('the README lists the skill cooldowns from the tuning table', () => {
+    const readme = fs.readFileSync('README.md', 'utf8');
+    const cd = Object.values(GAME_TUNING.skillCooldownMsByLevel).map((ms) => ms / 1000).join('/');
+    expect(readme).toContain(`${cd}초`);
+  });
+
+  it('no document says fever shots pierce the obi shield (only skills do)', () => {
+    ['docs/몬스터_도감_설명서.md', 'docs/비어 크러셔 요구사항 분석서.md', 'docs/비어 크러셔 상세설계서.md'].forEach((file) => {
+      expect(fs.readFileSync(file, 'utf8'), file).not.toMatch(/피버·스킬.{0,8}(관통|뚫)/);
+    });
+  });
+
+  it('the tutorial guide does not claim R reloads (R fires the skill)', () => {
+    const tutorial = fs.readFileSync('docs/튜토리얼_훈련장_가이드.md', 'utf8');
+    expect(tutorial).not.toMatch(/재장전\*\*: `R`/);
+  });
+});
