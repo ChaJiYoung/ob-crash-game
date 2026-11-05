@@ -122,8 +122,6 @@ export const GAME_TUNING = {
     summonCount: 3,
     summonMaxActive: 7,
     firstSummonDelayMs: 2500,
-    shieldReleaseKills: 6,
-    shieldHpThresholds: [2 / 3, 1 / 3],
     movement: {
       singleAmplitudeRad: 0.32, singleSpeed: 0.9,
       crossAmplitudeRad: 0.34, crossSpeed: 0.8,

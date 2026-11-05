@@ -52,8 +52,6 @@ export interface ActiveTargetEntity {
   isGuarding?: boolean;
   isSplitChild?: boolean;
   modelScaleMult?: number;
-  // Boss king shield (invulnerable)
-  isShielded?: boolean;
   isSummonedMinion?: boolean;
   /** Boss minions fall in from above: untargetable and idle until this game-clock time. */
   dropLandAtMs?: number;
@@ -148,8 +146,6 @@ export interface SkillHitEvent {
   source: SkillHitSource;
   target: ActiveTargetEntity;
   killed: boolean;
-  /** 대왕 쉴드에 막혔다. */
-  blocked: boolean;
 }
 
 export interface WaveDefinition {
@@ -236,8 +232,6 @@ export class BeerCrusherEngine {
   public lastBossSummonHpThreshold = 45;
   public bossWarningUntilMs = 0;
   private bossShooterIndex = 0;
-  private shieldKillCount = 0;
-  private shieldThresholdIndex = 0;
 
   // Wave definitions
   private waveDefinitions: Record<number, WaveDefinition> = Object.fromEntries(
@@ -1130,7 +1124,6 @@ export class BeerCrusherEngine {
 
     this.updateGuards(nowMs);
     this.updateBossMovement(nowMs);
-    this.updateKingShield();
     this.advanceSkillBlades(nowMs, dtSec);
     this.advanceSkillFoam(nowMs, dtSec);
     if ((this.gamePhase as GamePhase) === 'VICTORY') {
@@ -1470,26 +1463,6 @@ export class BeerCrusherEngine {
     }
   }
 
-  /** 대왕 쉴드: 체력이 2/3, 1/3 아래로 내려가면 다시 켜진다. */
-  private updateKingShield(): void {
-    if (!this.isBossEncounterActive) return;
-    const king = this.getBossEntities().find((b) => b.bossRole === 'king');
-    if (!king || king.isShielded) return;
-    const thresholds = GAME_TUNING.boss.shieldHpThresholds;
-    const threshold = thresholds[this.shieldThresholdIndex];
-    if (threshold !== undefined && king.hp <= king.maxHp * threshold) {
-      king.isShielded = true;
-      this.shieldThresholdIndex += 1;
-      this.shieldKillCount = 0;
-    }
-  }
-
-  private releaseKingShield(): void {
-    const king = this.activeTargets.find((t) => t.kind === 'boss' && t.bossRole === 'king');
-    if (king) king.isShielded = false;
-    this.shieldKillCount = 0;
-  }
-
   /** 방패 병: 2초 올리고 1초 내리기를 반복한다. 기절하면 방패가 내려간다. */
   private updateGuards(nowMs: number): void {
     const { guardUpMs, guardDownMs } = GAME_TUNING.monsters.obi;
@@ -1546,8 +1519,6 @@ export class BeerCrusherEngine {
     this.lastBossSummonHpThreshold = 0;
     this.bossShooterIndex = 0;
     this.lastBossProjectileMs = nowMs;
-    this.shieldKillCount = 0;
-    this.shieldThresholdIndex = 0;
 
     const spec = TARGET_SPECS.boss;
     const { coolerHp, kingHp } = waveDef.boss;
@@ -1587,7 +1558,6 @@ export class BeerCrusherEngine {
     });
     if (kingHp !== null) {
       const king = make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
-      king.isShielded = true;
       king.modelScaleMult = GAME_TUNING.boss.kingScale;
       this.activeTargets.push(king);
     }
@@ -1644,7 +1614,6 @@ export class BeerCrusherEngine {
     }
 
     if (target.kind === 'boss') {
-      if (target.bossRole === 'cooler') this.releaseKingShield();
       if (this.getBossEntities().length > 0) return; // other bosses remain
       this.isBossEncounterActive = false;
       this.bossEncounterStartMs = null;
@@ -1659,11 +1628,6 @@ export class BeerCrusherEngine {
     }
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
-      if (this.isBossEncounterActive) {
-        this.shieldKillCount += 1;
-        if (this.shieldKillCount >= GAME_TUNING.boss.shieldReleaseKills) this.releaseKingShield();
-      }
-
       if (!this.isTutorialMode && !this.isSandboxMode) {
         if (target.kind === 'bottle' && !target.isSplitChild) {
           this.splitBottle(target);
@@ -1983,20 +1947,6 @@ export class BeerCrusherEngine {
         };
       }
 
-      // King shield: invulnerable until minions or a cooler fall (fever does not help).
-      if (target.isShielded) {
-        return {
-          fired: true,
-          grade: result.grade,
-          target,
-          hitTargets: [target],
-          killed: false,
-          shieldBlocked: true,
-          weaponKind,
-          weaponLevel,
-        };
-      }
-
       // Obi shield: blocks damage while raised. Only skills pierce it.
       if (target.isGuarding) {
         return {
@@ -2050,7 +2000,6 @@ export class BeerCrusherEngine {
                 !t.isProjectile &&
                 !t.isGoldenCan &&
                 !t.isGuarding &&
-                !t.isShielded &&
                 this.isTargetLanded(t, nowMs) &&
                 t.radiusM > target.radiusM &&
                 Math.abs(t.thetaRad - target.thetaRad) <= 0.16
@@ -2169,7 +2118,6 @@ export class BeerCrusherEngine {
 
   /** 스킬 피해를 주고, 죽었으면 점수와 웨이브 처리까지 한다. 대왕 쉴드에는 피해가 없다. 죽었으면 true. */
   private applySkillDamage(monster: ActiveTargetEntity, damage: number, nowMs: number): boolean {
-    if (monster.isShielded) return false;
     monster.hp = Number(Math.max(0, monster.hp - damage).toFixed(3));
     if (monster.hp > 0) return false;
     const idx = this.activeTargets.indexOf(monster);
@@ -2223,7 +2171,6 @@ export class BeerCrusherEngine {
       for (const t of candidates) {
         if (!this.activeTargets.includes(t)) continue;
         wave.hitTargetIds.add(t.id);
-        const blocked = Boolean(t.isShielded);
         const idsBefore = new Set(this.activeTargets.map((x) => x.id));
         const killed = this.applySkillDamage(t, t.kind === 'boss' ? wave.bossDamage : wave.damage, nowMs);
         // 분열로 새로 생긴 작은 병은 파도 뒤에서 태어난 것이므로 이 파도에 다시 맞지 않는다.
@@ -2233,7 +2180,7 @@ export class BeerCrusherEngine {
           t.slowUntilMs = nowMs + wave.slowMs;
           t.slowRatio = wave.slowRatio;
         }
-        this.pushSkillHitEvent({ source: 'foam', target: t, killed, blocked });
+        this.pushSkillHitEvent({ source: 'foam', target: t, killed });
         if ((this.gamePhase as GamePhase) === 'VICTORY') {
           this.activeSkillFoamWaves = [];
           return;
@@ -2269,17 +2216,16 @@ export class BeerCrusherEngine {
         if (t.isProjectile) {
           this.activeTargets.splice(this.activeTargets.indexOf(t), 1);
           this.scoreManager.registerHit('PERFECT', t.killBonusScore, true);
-          this.pushSkillHitEvent({ source: 'blade', target: t, killed: true, blocked: false });
+          this.pushSkillHitEvent({ source: 'blade', target: t, killed: true });
           continue;
         }
         if (blade.hitsLeft <= 0) continue; // 남은 포탄은 계속 벤다
         blade.hitsLeft -= 1;
         blade.hitTargetIds.add(t.id);
-        const blocked = Boolean(t.isShielded);
         const idsBefore = new Set(this.activeTargets.map((x) => x.id));
         const killed = this.applySkillDamage(t, t.kind === 'boss' ? blade.bossDamage : blade.damage, nowMs);
         for (const x of this.activeTargets) if (!idsBefore.has(x.id)) blade.hitTargetIds.add(x.id);
-        this.pushSkillHitEvent({ source: 'blade', target: t, killed, blocked });
+        this.pushSkillHitEvent({ source: 'blade', target: t, killed });
         if (this.gamePhase === 'VICTORY') {
           this.activeSkillBlades = [];
           return;

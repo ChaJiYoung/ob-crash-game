@@ -347,103 +347,21 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(after.every((w) => w === 'C')).toBe(true);
     });
 
-    describe('king shield', () => {
-      const kingFight = () => {
-        finishMiniWave(engine, 7, 100_000);
-        const king = bosses(engine).find((x) => x.bossRole === 'king')!;
-        const coolers = bosses(engine).filter((x) => x.bossRole === 'cooler');
-        king.radiusM = 10;
-        king.z = -10;
-        return { king, coolers };
-      };
-      const aimShot = (t: ActiveTargetEntity, now: number, source: 'press' | 'fever' = 'press') => {
+    it('the king has no shield: it takes damage from any weapon at any HP', () => {
+      finishMiniWave(engine, 7, 100_000);
+      const king = bosses(engine).find((x) => x.bossRole === 'king')!;
+      king.radiusM = 10; king.z = -10; king.thetaRad = 0; king.x = 0;
+      expect((king as any).isShielded).toBeUndefined();
+      let t = 101_000;
+      for (const ratio of [1, 0.6, 0.3]) {
+        t += 1000;
+        king.hp = king.maxHp * ratio;
         engine.weaponSystem.selectWeapon('revolver', 1);
-        const p = engine.computeTargetAimCoords(t);
-        return engine.shootAt(p.targetNormX, p.targetNormY, now, source);
-      };
-
-      it('starts shielded: shots are blocked with no score, fever or damage', () => {
-        const { king } = kingFight();
-        expect(king.isShielded).toBe(true);
-        king.thetaRad = 0;
-        king.x = 0;
-        const res = aimShot(king, 101_000);
-        expect(res.shieldBlocked).toBe(true);
-        expect(res.killed).toBe(false);
-        expect(king.hp).toBe(king.maxHp);
-        expect(engine.scoreManager.getState().totalScore).toBe(0);
-        expect(engine.scoreManager.getState().feverGauge).toBe(0);
-      });
-
-      it('fever does not pierce the king shield', () => {
-        const { king } = kingFight();
-        engine.scoreManager.forceSetFeverGauge(100);
-        engine.scoreManager.activateFever(100_900);
-        const res = aimShot(king, 101_000, 'fever');
-        expect(res.shieldBlocked).toBe(true);
-        expect(king.hp).toBe(king.maxHp);
-      });
-
-      it('skills do not damage a shielded king', () => {
-        const { king } = kingFight();
-        engine.weaponSystem.selectWeapon('shotgun', 1);
-        expect(engine.triggerWeaponSkill(101_000).activated).toBe(true);
-        expect(king.hp).toBe(king.maxHp);
-      });
-
-      it('six minion kills release the shield', () => {
-        const { king } = kingFight();
-        for (let i = 0; i < 5; i++) {
-          (engine as any).handleMonsterKilled(
-            { id: `m${i}`, kind: 'obi', hp: 0, maxHp: 2, radiusM: 9, thetaRad: 0, x: 0, z: -9, speedMps: 1, hitRadiusM: 1, killBonusScore: 1, breached: false },
-            101_000
-          );
-        }
-        expect(king.isShielded).toBe(true);
-        (engine as any).handleMonsterKilled(
-          { id: 'm6', kind: 'obi', hp: 0, maxHp: 2, radiusM: 9, thetaRad: 0, x: 0, z: -9, speedMps: 1, hitRadiusM: 1, killBonusScore: 1, breached: false },
-          101_000
-        );
-        expect(king.isShielded).toBe(false);
-      });
-
-      it('killing a cooler releases the shield; hp thresholds raise it again', () => {
-        const { king, coolers } = kingFight();
-        killBoss(engine, coolers[0], 101_000);
-        expect(king.isShielded).toBe(false);
-
-        king.hp = king.maxHp * (2 / 3) - 1;
-        engine.update(101_500, 0.016);
-        expect(king.isShielded).toBe(true);
-
-        (engine as any).releaseKingShield();
-        king.hp = king.maxHp * (1 / 3) - 1;
-        engine.update(102_000, 0.016);
-        expect(king.isShielded).toBe(true);
-        expect((engine as any).shieldThresholdIndex).toBe(2);
-      });
-
-      it('a shielded king can still be dealt with: the encounter never deadlocks', () => {
-        const { king, coolers } = kingFight();
-        coolers.forEach((c, i) => killBoss(engine, c, 101_000 + i * 700));
-        expect(king.isShielded).toBe(false);
-        expect(engine.gamePhase).toBe('PLAYING');
-        king.hp = 0.1;
-        king.thetaRad = 0;
-        king.x = 0;
-        const res = aimShot(king, 105_000);
-        expect(res.killed).toBe(true);
-        expect(engine.gamePhase).toBe('VICTORY');
-      });
-    });
-
-    it('bosses do not move while cards are pending', () => {
-      finishMiniWave(engine, 3, 100_000);
-      const b = bosses(engine)[0];
-      engine.spawnWaveRewardCards(100_500, false);
-      const before = b.thetaRad;
-      run(engine, 100_500, 105_000, 100);
-      expect(b.thetaRad).toBe(before);
+        const p = engine.computeTargetAimCoords(king);
+        const before = king.hp;
+        engine.shootAt(p.targetNormX, p.targetNormY, t, 'press');
+        expect(king.hp).toBeLessThan(before);
+      }
     });
   });
 
@@ -500,14 +418,13 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       expect(engine.bossWarningUntilMs).toBe(100_000 + 2000);
     });
 
-    it('HUD snapshot lists every boss with role, hp and shield state', () => {
+    it('HUD snapshot lists every boss with role and hp', () => {
       finishMiniWave(engine, 7, 100_000);
       const snap = buildHudSnapshot(engine, 100_500);
       expect(snap.bosses.length).toBe(3);
       expect(snap.bosses.map((b) => b.role).sort()).toEqual(['cooler', 'cooler', 'king']);
       const king = snap.bosses.find((b) => b.role === 'king')!;
-      expect(king.isShielded).toBe(true);
-      expect(king.hp).toBe(120);
+      expect(king.hp).toBe(GAME_TUNING.waves[6].boss!.kingHp);
       expect(snap.isBossWarning).toBe(true);
       expect(buildHudSnapshot(engine, 103_000).isBossWarning).toBe(false);
     });

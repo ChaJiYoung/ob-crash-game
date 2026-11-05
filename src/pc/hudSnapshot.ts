@@ -12,7 +12,6 @@ export interface BossHudInfo {
   role: 'cooler' | 'king';
   hp: number;
   maxHp: number;
-  isShielded: boolean;
 }
 
 export interface HudSnapshot {
@@ -101,7 +100,6 @@ export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudS
       role: b.bossRole ?? 'cooler',
       hp: Math.ceil(b.hp),
       maxHp: b.maxHp,
-      isShielded: Boolean(b.isShielded),
     })),
     isBossWarning: nowMs < engine.bossWarningUntilMs,
     waveClearKey:

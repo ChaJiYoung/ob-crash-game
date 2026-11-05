@@ -526,11 +526,6 @@ export const GameCanvas3D = React.memo(
           const bigKill = ev.killed && (ev.target.kind === 'boss' || ev.target.kind === 'bottle');
           const canSound = bigKill || nowMs - lastSkillHitSoundMs >= SKILL_HIT_SOUND_GAP_MS;
           if (canSound && !bigKill) lastSkillHitSoundMs = nowMs;
-          if (ev.blocked) {
-            particles.spawnHitEffect(pos, '#e2e8f0', 2);
-            if (canSound) soundSynth.playShieldBlockSound();
-            continue;
-          }
           const hitMesh = targetMeshMap.get(ev.target.id);
           if (hitMesh && !ev.killed) applyTargetHitFlash3D(hitMesh, nowMs / 1000);
           playTargetBurst(particles, soundSynth, ev.target, pos, ev.killed, canSound);
@@ -657,7 +652,6 @@ export const GameCanvas3D = React.memo(
               stuckPlungerCount: target.stuckPlungerCount ?? 0,
               isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
               isGuarding: Boolean(target.isGuarding),
-              isShielded: Boolean(target.isShielded),
             });
           }
 

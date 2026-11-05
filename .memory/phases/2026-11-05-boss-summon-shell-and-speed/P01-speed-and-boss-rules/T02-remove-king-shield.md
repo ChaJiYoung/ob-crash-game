@@ -1,6 +1,6 @@
 # Task: T02 대왕 방패 제거
 
-## Status: pending
+## Status: done
 
 ## Goal
 대왕의 방패(체력 2/3, 1/3에서 켜지고 몬스터 6마리를 처치하면 풀리는 규칙)를 코드·모델·HUD·문서에서 없앤다. 오비의 방패(`isGuarding`)는 별개이므로 건드리지 않는다.
@@ -67,6 +67,6 @@ Task: T02-remove-king-shield
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

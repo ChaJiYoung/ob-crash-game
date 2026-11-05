@@ -308,7 +308,6 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
-  let bossShieldMesh: THREE.Mesh | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -415,16 +414,6 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
       inner.add(tapHandle);
       handles.push(tapHandle);
     });
-
-    // King shield bubble (shown while the boss is invulnerable)
-    const bossShieldGeo = getCachedGeometry('boss-shield-geo', () => new THREE.SphereGeometry(1.2, 16, 12));
-    const bossShieldMat = getCachedMaterial('boss-shield-mat', () =>
-      new THREE.MeshBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.22, depthWrite: false })
-    );
-    bossShieldMesh = new THREE.Mesh(bossShieldGeo, bossShieldMat);
-    bossShieldMesh.name = 'bossShield';
-    bossShieldMesh.visible = false;
-    inner.add(bossShieldMesh);
 
     // 4 Caster Wheels
     const wheelMat = getCachedMaterial('boss-wheel-mat', () => new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 }));
@@ -640,7 +629,6 @@ export function createTargetMesh3D(kind: TargetKind): THREE.Group {
     plungerStuckGroup,
     bodyMaterials,
     guardShieldMesh: obiShield || undefined,
-    shieldMesh: bossShieldMesh || undefined,
     baseScale,
     hitFlashUntilSec: 0,
   };
@@ -823,7 +811,6 @@ export interface TargetAnimationOptions {
   stuckPlungerCount?: number;
   isBossSummoning?: boolean;
   isGuarding?: boolean;
-  isShielded?: boolean;
 }
 
 const FROST_TINT_COLOR = new THREE.Color(0x93c5fd);
@@ -846,12 +833,6 @@ export function updateTargetAnimation3D(
   const isIceFreeze = Boolean(options?.isIceFreeze || options?.isSlowed);
   const isWideScope = Boolean(options?.isWideScope);
   const isStunned = Boolean(options?.isStunned);
-
-  // Boss king shield bubble
-  const bossShield = root.userData.shieldMesh as THREE.Mesh | undefined;
-  if (bossShield) {
-    bossShield.visible = Boolean(options?.isShielded);
-  }
 
   // Obi shield visibility
   const guardShield = root.userData.guardShieldMesh as THREE.Mesh | undefined;

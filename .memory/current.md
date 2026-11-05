@@ -7,10 +7,10 @@
 [P01 속도와 보스 규칙](./phases/2026-11-05-boss-summon-shell-and-speed/P01-speed-and-boss-rules/phase.md)
 
 ## Active Task
-[T02 대왕 방패 제거](./phases/2026-11-05-boss-summon-shell-and-speed/P01-speed-and-boss-rules/T02-remove-king-shield.md)
+[T03 보스 체력 상향과 체력 구간 소환](./phases/2026-11-05-boss-summon-shell-and-speed/P01-speed-and-boss-rules/T03-hp-threshold-summons.md)
 
 ## Status
-- P01-T01 완료(속도 값)
+- P01-T01·T02 완료(속도 값, 대왕 방패 제거)
 - 결정: [결정 문서](./decisions/2026-11-05-boss-summon-shell-and-speed.md)
 
 ## Paused Plan
@@ -20,4 +20,4 @@
 - 랭킹 v5 여부와 전체 난이도 판단은 P04-T03 플레이 뒤 사용자에게 묻는다.
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 대왕 방패를 코드·모델·HUD·문서에서 제거한다. 오비 방패(isGuarding)는 건드리지 않는다.
+T03 청사진을 읽고 시간 소환을 걷어내고 체력 구간 소환(99/66/33%, 4마리)과 보스 체력 값을 넣는다.

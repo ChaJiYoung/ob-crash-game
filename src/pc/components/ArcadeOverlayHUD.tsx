@@ -382,7 +382,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                     style={{
                       width: `${width}px`,
                       background: 'rgba(17, 24, 39, 0.96)',
-                      border: boss.isShielded ? '2px solid #67e8f9' : '1px solid rgba(239, 68, 68, 0.7)',
+                      border: '1px solid rgba(239, 68, 68, 0.7)',
                       borderRadius: '12px',
                       padding: '10px 14px',
                     }}
@@ -393,12 +393,12 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                         justifyContent: 'space-between',
                         fontSize: '13px',
                         fontWeight: 800,
-                        color: boss.isShielded ? '#67e8f9' : '#ef4444',
+                        color: '#ef4444',
                         marginBottom: '6px',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      <span>{boss.isShielded ? `🛡️ ${label}` : label}</span>
+                      <span>{label}</span>
                       <span>
                         HP {boss.hp}/{boss.maxHp}
                       </span>
@@ -415,9 +415,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                         style={{
                           height: '100%',
                           width: `${Math.max(0, (boss.hp / boss.maxHp) * 100)}%`,
-                          background: boss.isShielded
-                            ? 'linear-gradient(90deg, #67e8f9, #38bdf8)'
-                            : 'linear-gradient(90deg, #ef4444, #f59e0b)',
+                          background: 'linear-gradient(90deg, #ef4444, #f59e0b)',
                           transition: 'width 0.2s',
                         }}
                       />

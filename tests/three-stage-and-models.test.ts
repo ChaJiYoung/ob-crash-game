@@ -261,15 +261,10 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(resolveHitFxColor({ ...base, kind: 'obi' })).toBe(TARGET_SPECS.obi.brandColorHex);
   });
 
-  it('should show the boss shield bubble only while shielded (gameplay-polish P04-T05)', () => {
+  it('the boss model has no shield bubble', () => {
     const boss = createTargetMesh3D('boss');
-    const shield = boss.userData.shieldMesh as THREE.Mesh;
-    expect(shield).toBeDefined();
-    expect(shield.visible).toBe(false);
-    updateTargetAnimation3D(boss, 'boss', 1.0, 1.0, { isShielded: true });
-    expect(shield.visible).toBe(true);
-    updateTargetAnimation3D(boss, 'boss', 1.1, 1.0, { isShielded: false });
-    expect(shield.visible).toBe(false);
+    expect(boss.userData.shieldMesh).toBeUndefined();
+    expect(boss.getObjectByName('bossShield')).toBeUndefined();
   });
 
   it('should show the obi shield plate only while guarding (gameplay-polish P04-T03)', () => {

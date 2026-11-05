@@ -119,17 +119,17 @@ describe('revolver fan blades', () => {
     expect(m.hp).toBeLessThan(99);
   });
 
-  it('pierces a raised obi shield; a shielded king blocks and takes nothing', () => {
+  it('pierces a raised obi shield and then hits the king behind it', () => {
     const obi = mk('obi', 10, { isGuarding: true });
-    const king = mk('boss', 14, { isShielded: true, hp: 100, maxHp: 100, bossRole: 'king' });
+    const king = mk('boss', 14, { hp: 100, maxHp: 100, bossRole: 'king' });
     engine.activeTargets = [obi, king];
     cast(2); // pierce 1: the obi uses the first hit, the king takes the second
     engine.activeSkillBlades = engine.activeSkillBlades.filter((b) => Math.abs(b.thetaRad) < 1e-6);
     tick(40);
     expect(obi.hp).toBeLessThan(99);
-    expect(king.hp).toBe(100);
+    expect(king.hp).toBeLessThan(100);
     const events = engine.drainSkillHitEvents();
-    expect(events.some((e) => e.target === king && e.blocked)).toBe(true);
+    expect(events.some((e) => e.target === king)).toBe(true);
     expect(engine.drainSkillHitEvents()).toEqual([]);
   });
 

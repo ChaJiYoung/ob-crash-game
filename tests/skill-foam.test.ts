@@ -80,13 +80,13 @@ describe('gatling foam wave', () => {
     expect(boss.slideRemainingM).toBeUndefined();
   });
 
-  it('a shielded king blocks the wave', () => {
-    const king = mk('boss', 12, { hp: 100, maxHp: 100, isShielded: true, bossRole: 'king' });
+  it('the king takes boss damage from the wave like any boss', () => {
+    const king = mk('boss', 12, { hp: 100, maxHp: 100, bossRole: 'king' });
     engine.activeTargets = [king];
     cast(1);
     tick(30);
-    expect(king.hp).toBe(100);
-    expect(engine.drainSkillHitEvents().some((e) => e.target === king && e.blocked && e.source === 'foam')).toBe(true);
+    expect(100 - king.hp).toBeCloseTo(GAME_TUNING.skills.foam.bossDamageByLevel[1], 5);
+    expect(engine.drainSkillHitEvents().some((e) => e.target === king && e.source === 'foam')).toBe(true);
   });
 
   it('ignores shells, items, golden cans and monsters still falling in', () => {
