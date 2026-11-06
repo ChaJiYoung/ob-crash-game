@@ -3,6 +3,12 @@ import { TARGET_SPECS, ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS, REWARD_CARD_SPEC
 import { TargetKind, ItemBuffKind } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
 
+/** 중간 카드가 나오는 웨이브와 처치 수. 가이드 문구가 웨이브 표와 어긋나지 않게 표에서 만든다. */
+const MID_CARD_TEXT = GAME_TUNING.waves
+  .filter((w) => w.cardKillTarget !== null)
+  .map((w) => `${w.waveIndex}웨이브(${w.cardKillTarget}킬)`)
+  .join('·');
+
 export interface GuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -584,7 +590,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   🃏 킬 게이지 보상 카드 (Shoot-to-Select & 전장 일시정지)
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  웨이브를 클리어할 때(3·5웨이브는 보스를 처치한 뒤) 전장이 즉시 일시정지(Combat Freeze)되며 <strong>9종 중 무작위 3장</strong>의 3D 홀로그램 카드가 소환됩니다. 이미 최대치인 카드는 나오지 않고, 무기 레벨 상한은 1웨이브 Lv.2 · 2~4웨이브 Lv.3 · 5웨이브부터 MAX입니다. 카드를 고르는 동안 피버·버프·쿨다운 시간은 모두 멈추고, <strong>누르고 있던 입력은 무시</strong>되니 버튼을 뗐다가 새로 눌러 <strong>직접 사격</strong>하여 획득하세요! (카드 등장 후 0.8초는 입력 잠금)
+                  웨이브를 클리어할 때(3·5웨이브는 보스를 처치한 뒤), 그리고 {MID_CARD_TEXT} 중간에 전장이 즉시 일시정지(Combat Freeze)되며 <strong>9종 중 무작위 3장</strong>의 3D 홀로그램 카드가 소환됩니다. 이미 최대치인 카드는 나오지 않고, 무기 레벨 상한은 1웨이브 Lv.2 · 2~4웨이브 Lv.3 · 5웨이브부터 MAX입니다. 카드를 고르는 동안 피버·버프·쿨다운 시간은 모두 멈추고, <strong>누르고 있던 입력은 무시</strong>되니 버튼을 뗐다가 새로 눌러 <strong>직접 사격</strong>하여 획득하세요! (카드 등장 후 0.8초는 입력 잠금)
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {Object.entries(REWARD_CARD_SPECS).map(([rk, cspec]) => (

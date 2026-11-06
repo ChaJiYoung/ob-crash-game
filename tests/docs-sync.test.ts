@@ -162,7 +162,7 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(guide).toContain('GAME_TUNING.score.timeBonus.zeroAtParMult');
   });
 
-  it('documents the boss HP and the bottle speed with the tuned numbers, and no mid-wave cards', () => {
+  it('documents the boss HP and the bottle speed with the tuned numbers, and mid-wave cards only in waves 4 and 6', () => {
     const w = GAME_TUNING.waves;
     const hp = (i: number) => w[i].boss!;
     const bestiary = read('docs/몬스터_도감_설명서.md');
@@ -172,10 +172,16 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(read('README.md')).toContain(`대왕 냉각기(${hp(6).kingHp})`);
     expect(bestiary).toContain(`${GAME_TUNING.monsters.bottle.childSpeedMps.toFixed(1)} m/s)로 분열`);
 
-    // Cards only come when a wave is cleared, so no wave has a kill target and no document talks about one
-    w.forEach((x) => expect(x.cardKillTarget).toBeNull());
+    // Mid-wave cards exist only in waves 4 and 6; the boss waves have none (that was the card-farming hole)
+    expect(w.map((x) => x.cardKillTarget)).toEqual([null, null, null, 22, null, 26, null]);
+    for (const doc of [read('README.md'), read('docs/구동화면_쇼케이스.md')]) {
+      expect(doc).toContain('4·6웨이브 중간(22킬/26킬)');
+    }
+    expect(read('docs/무기_및_스킬_가이드.md')).toContain('4웨이브(22킬)·6웨이브(26킬) 중간');
+    expect(read('docs/몬스터_도감_설명서.md')).toContain('22킬에 중간 카드');
+    expect(read('docs/몬스터_도감_설명서.md')).toContain('26킬에 중간 카드');
     for (const f of ['README.md', 'docs/무기_및_스킬_가이드.md', 'docs/구동화면_쇼케이스.md', 'docs/몬스터_도감_설명서.md', 'docs/비어 크러셔 요구사항 분석서.md']) {
-      expect(read(f)).not.toMatch(/중간 카드|킬에 중간|웨이브\(\d+킬\)/);
+      expect(read(f)).not.toMatch(/(3|5|7)웨이브 ?\(?(24|40|44)킬/);
     }
   });
 
@@ -189,7 +195,7 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(read('docs/비어 크러셔 상세설계서.md')).toContain('보스가 살아 있는 동안 일반 몬스터는');
     const guide = read('src/pc/components/GuideModal.tsx');
     expect(guide).toContain('GAME_TUNING.boss.encounterStartRatio');
-    expect(guide).not.toContain('MID_CARD_TEXT');
+    expect(guide).toContain('MID_CARD_TEXT');
     expect(pct).toBe('50%');
   });
 

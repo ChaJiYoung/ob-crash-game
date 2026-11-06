@@ -94,11 +94,8 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
   });
 
   describe('T02: Kill-Gauge Reward Cards, Field Freeze & Roguelike Passives', () => {
-    it('still supports a kill-count card when a wave sets a target (22 kills in Wave 4) and freezes monsters on field', () => {
+    it('should spawn 3D cards at 22 kills in Wave 4 and freeze monsters on field', () => {
       engine.startGame({ withWeaponSelect: false });
-      // The shipped tuning has no mid-wave cards (cardKillTarget is null everywhere); the engine mechanism stays
-      // available and is exercised here by giving wave 4 a target of 22.
-      (engine as any).waveCardKillTargets[4] = 22;
       engine.startWave(4);
       engine.activeTargets = [];
       engine.weaponSystem.selectWeapon('revolver', 1);

@@ -186,10 +186,9 @@ describe('boss fights run alongside regular monsters', () => {
       }
     };
 
-    it('never deals a card mid-fight, however many monsters die', () => {
-      for (const wave of [3, 4, 7]) {
-        startWithBoss(wave === 4 ? 3 : wave);
-        engine.startWave(wave);
+    it('never deals a card mid-fight in a boss wave, however many monsters die', () => {
+      for (const wave of [3, 5, 7]) {
+        startWithBoss(wave);
         kill(200);
         expect(engine.isRewardCardPending).toBe(false);
         expect(engine.activeTargets.some((t) => t.rewardCardKind)).toBe(false);
