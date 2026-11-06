@@ -31,7 +31,9 @@ export const GAME_TUNING = {
   },
   skillCooldownMsByLevel: { 1: 21000, 2: 19000, 3: 16000, 4: 14000 },
   goldenCan: { feverGain: 30, skillStockGain: 1 },
-  repairCard: { healAmount: 2 },
+  repairCard: { healAmount: 1 },
+  /** 몬스터 처치 시 드롭되는 아이템 후보. 바 수리는 회복이 카드와 겹쳐 뺐다(튜토리얼·샌드박스·테스트에서는 지정해서 쓸 수 있다). */
+  itemDropKinds: ['power_shot', 'wide_scope', 'ice_freeze'],
   hitZone: {
     scale: 0.75,
     toleranceByWeapon: { shotgun: 1.40, revolver: 0.95, gatling: 1.05 },

@@ -165,24 +165,44 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(extraMonster.radiusM).toBeLessThan(survivorRadiusBefore);
     });
 
-    it('should heal bar_repair reward card by 2 without raising maxLives', () => {
+    it('should heal bar_repair reward card by 1 without raising maxLives', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.lives = 2; // Damaged
       expect(engine.maxLives).toBe(5);
 
       engine.applyRewardCard('bar_repair', 1000);
       expect(engine.maxLives).toBe(5);
-      expect(engine.lives).toBe(4);
+      expect(engine.lives).toBe(3);
 
       // Never heals past maxLives
-      engine.lives = 4;
+      engine.lives = 5;
       engine.applyRewardCard('bar_repair', 1500);
       expect(engine.lives).toBe(5);
+
+      // Reward cards and items both heal exactly 1 now
+      engine.lives = 3;
+      engine.applyRewardCard('bar_repair', 1600);
+      expect(engine.lives).toBe(4);
 
       // Normal item bar_repair only heals 1 HP up to maxLives
       engine.lives = 4;
       engine.activateItemBuff('bar_repair', 2000);
       expect(engine.lives).toBe(5);
+    });
+
+    it('never drops bar_repair as a kill item, but still builds it when asked for', () => {
+      engine.startGame({ withWeaponSelect: false });
+      expect(GAME_TUNING.itemDropKinds).toEqual(['power_shot', 'wide_scope', 'ice_freeze']);
+      const seen = new Set<string>();
+      for (let i = 0; i < 300; i++) {
+        (engine as any).dropRng = () => i / 300; // sweep the whole 0..1 range
+        const item = engine.spawnItemTargetAt(1000, 0, 10);
+        seen.add(item.id.split('_').slice(2).join('_'));
+        engine.activeTargets = [];
+      }
+      expect([...seen].sort()).toEqual(['ice_freeze', 'power_shot', 'wide_scope']);
+      const forced = engine.spawnItemTargetAt(1000, 0, 10, 'bar_repair');
+      expect(forced.id.endsWith('bar_repair')).toBe(true);
     });
 
     it('should stack lucky_drop multiplier up to 4x and drop items on monster kill', () => {

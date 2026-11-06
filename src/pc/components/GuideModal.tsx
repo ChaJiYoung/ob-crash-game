@@ -137,7 +137,7 @@ const ITEM_DETAILS: Record<
     role: '초록 홉 열매 다발 소품',
     durText: '즉시 발동',
     effectText: '바 방어선 체력 +1 즉시 회복 (최대 5개 맥주잔)',
-    tip: '방어선에 닿으면 에메랄드 치유 펄스 파동이 바 전체로 퍼져나갑니다.',
+    tip: '방어선에 닿으면 에메랄드 치유 펄스 파동이 바 전체로 퍼져나갑니다. 실전 처치 드롭에서는 나오지 않고 튜토리얼·훈련장에서만 볼 수 있습니다.',
     imageSrc: '/docs/screens/item-04-bar-repair.png',
   },
 };

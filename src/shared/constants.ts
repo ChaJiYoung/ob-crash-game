@@ -549,8 +549,8 @@ export const REWARD_CARD_SPECS: Record<RewardCardKind, RewardCardSpec> = {
     nameKo: '바리케이드 수리',
     badgeText: 'BAR REPAIR',
     colorHex: '#10b981',
-    descriptionKo: '바 방어선 체력 +2 회복',
-    cardSubtitleKo: '방어선 체력 +2 회복',
+    descriptionKo: '바 방어선 체력 +1 회복',
+    cardSubtitleKo: '방어선 체력 +1 회복',
     icon: '🍺',
   },
   fever_boost: {

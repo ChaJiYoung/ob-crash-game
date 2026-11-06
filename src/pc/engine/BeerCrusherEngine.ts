@@ -1049,7 +1049,7 @@ export class BeerCrusherEngine {
     radiusM: number,
     forcedItemKind?: ItemBuffKind
   ): ActiveTargetEntity {
-    const itemKinds: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
+    const itemKinds = GAME_TUNING.itemDropKinds as readonly ItemBuffKind[];
     const kind = forcedItemKind ?? itemKinds[Math.floor(this.dropRng() * itemKinds.length)];
 
     this.targetCounter += 1;

@@ -196,6 +196,14 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(pct).toBe('50%');
   });
 
+  it('documents the repair card heal amount and that bar repair no longer drops', () => {
+    const heal = GAME_TUNING.repairCard.healAmount;
+    expect(read('README.md')).toContain(`바리케이드 수리\`(체력 +${heal})`);
+    expect(read('docs/몬스터_도감_설명서.md')).toContain('처치 드롭에서는 나오지 않음');
+    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain('펍 아이템 3종(파워샷/빅스코프/프리즈)');
+    expect(read('docs/비어 크러셔 상세설계서.md')).toContain('GAME_TUNING.itemDropKinds');
+  });
+
   it('keeps the fever wording precise: only hit points get x1.5, not kill bonuses', () => {
     for (const f of ['README.md', 'docs/무기_및_스킬_가이드.md']) expect(read(f)).toContain('명중 점수 1.5배');
   });
