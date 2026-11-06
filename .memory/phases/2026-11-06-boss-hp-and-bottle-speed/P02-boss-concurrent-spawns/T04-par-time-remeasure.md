@@ -1,6 +1,6 @@
 # Task: T04 보스 웨이브 기준 시간 재측정
 
-## Status: pending
+## Status: done
 
 ## Goal
 3·5·7웨이브 `parTimeSec`를 새 보스 체력과 병행 흐름에서 측정한 값으로 갱신하고, 측정 결과를 기록으로 남긴다.
@@ -32,9 +32,9 @@
 - 측정 결과가 비정상이면(예: 보스 웨이브 시간이 1·2웨이브보다 짧음) 값을 반영하지 말고 원인을 먼저 찾는다.
 
 ## Acceptance Criteria
-- [ ] 3·5·7웨이브 `parTimeSec`가 30판 측정값으로 갱신되고 주석 날짜가 맞다.
-- [ ] 측정 기록이 `.memory/references/`에 남는다.
-- [ ] `RANKING_RULESET_VERSION`은 5 그대로다.
+- [x] 3·5·7웨이브 `parTimeSec`가 30판 측정값으로 갱신되고 주석 날짜가 맞다.
+- [x] 측정 기록이 `.memory/references/`에 남는다.
+- [x] `RANKING_RULESET_VERSION`은 5 그대로다.
 
 ## Validation
 - `npx vitest run tests/wave-time-bonus.test.ts tests/game-tuning.test.ts tests/docs-sync.test.ts` — 통과
@@ -55,6 +55,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: 측정 스크립트는 수정 없이 새 보스 흐름에서 동작했다(3판 시험 후 30판 측정). 정확 봇 합산 3웨이브 34초, 5웨이브 38초, 7웨이브 45초.

@@ -17,4 +17,4 @@
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 보스 체력·작은 병 속도 수치 변경과 테스트 | [P01](../phases/2026-11-06-boss-hp-and-bottle-speed/P01-tuning-values/phase.md) |
-| P02 | `in_progress` | 보스전 일반 몬스터 병행, 보스전 카드·HUD, 문서 동기화, 기준 시간 재측정 | [P02](../phases/2026-11-06-boss-hp-and-bottle-speed/P02-boss-concurrent-spawns/phase.md) |
+| P02 | `done` | 보스전 일반 몬스터 병행, 보스전 카드·HUD, 문서 동기화, 기준 시간 재측정 | [P02](../phases/2026-11-06-boss-hp-and-bottle-speed/P02-boss-concurrent-spawns/phase.md) |
