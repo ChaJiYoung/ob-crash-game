@@ -213,11 +213,9 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     expect(backToAim.aimY).toBe(0);
   });
 
-  it('hides the wave progress bar during a boss fight but keeps the card counter when the wave has cards', () => {
-    expect(getWaveHudMode(0, null)).toEqual({ showProgressBar: true, showCardCounterOnly: false });
-    expect(getWaveHudMode(0, 22)).toEqual({ showProgressBar: true, showCardCounterOnly: false });
-    expect(getWaveHudMode(1, 24)).toEqual({ showProgressBar: false, showCardCounterOnly: true });
-    expect(getWaveHudMode(3, 44)).toEqual({ showProgressBar: false, showCardCounterOnly: true });
-    expect(getWaveHudMode(2, null)).toEqual({ showProgressBar: false, showCardCounterOnly: false });
+  it('hides the wave progress bar while any boss is on the field', () => {
+    expect(getWaveHudMode(0)).toEqual({ showProgressBar: true });
+    expect(getWaveHudMode(1)).toEqual({ showProgressBar: false });
+    expect(getWaveHudMode(3)).toEqual({ showProgressBar: false });
   });
 });

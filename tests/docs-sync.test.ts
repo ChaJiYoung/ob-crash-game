@@ -162,7 +162,7 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(guide).toContain('GAME_TUNING.score.timeBonus.zeroAtParMult');
   });
 
-  it('documents the boss HP, the bottle speed and the mid-fight cards with the tuned numbers', () => {
+  it('documents the boss HP and the bottle speed with the tuned numbers, and no mid-wave cards', () => {
     const w = GAME_TUNING.waves;
     const hp = (i: number) => w[i].boss!;
     const bestiary = read('docs/몬스터_도감_설명서.md');
@@ -172,14 +172,11 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(read('README.md')).toContain(`대왕 냉각기(${hp(6).kingHp})`);
     expect(bestiary).toContain(`${GAME_TUNING.monsters.bottle.childSpeedMps.toFixed(1)} m/s)로 분열`);
 
-    const mid = w.filter((x) => x.cardKillTarget !== null);
-    expect(mid.map((x) => x.waveIndex)).toEqual([3, 4, 5, 6, 7]);
-    const kills = (x: (typeof w)[number]) => `${x.waveIndex}웨이브 ${x.cardKillTarget}킬`;
-    for (const doc of [read('README.md'), read('docs/구동화면_쇼케이스.md')]) {
-      mid.forEach((x) => expect(doc).toContain(kills(x)));
+    // Cards only come when a wave is cleared, so no wave has a kill target and no document talks about one
+    w.forEach((x) => expect(x.cardKillTarget).toBeNull());
+    for (const f of ['README.md', 'docs/무기_및_스킬_가이드.md', 'docs/구동화면_쇼케이스.md', 'docs/몬스터_도감_설명서.md', 'docs/비어 크러셔 요구사항 분석서.md']) {
+      expect(read(f)).not.toMatch(/중간 카드|킬에 중간|웨이브\(\d+킬\)/);
     }
-    const weaponGuide = read('docs/무기_및_스킬_가이드.md');
-    mid.forEach((x) => expect(weaponGuide).toContain(`${x.waveIndex}웨이브(${x.cardKillTarget}킬)`));
   });
 
   it('describes the boss arriving mid-wave with regular monsters kept coming', () => {
@@ -192,7 +189,7 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(read('docs/비어 크러셔 상세설계서.md')).toContain('보스가 살아 있는 동안 일반 몬스터는');
     const guide = read('src/pc/components/GuideModal.tsx');
     expect(guide).toContain('GAME_TUNING.boss.encounterStartRatio');
-    expect(guide).toContain('MID_CARD_TEXT');
+    expect(guide).not.toContain('MID_CARD_TEXT');
     expect(pct).toBe('50%');
   });
 

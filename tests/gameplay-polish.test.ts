@@ -94,8 +94,11 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
   });
 
   describe('T02: Kill-Gauge Reward Cards, Field Freeze & Roguelike Passives', () => {
-    it('should spawn 3D cards at 22 kills in Wave 4 and freeze monsters on field', () => {
+    it('still supports a kill-count card when a wave sets a target (22 kills in Wave 4) and freezes monsters on field', () => {
       engine.startGame({ withWeaponSelect: false });
+      // The shipped tuning has no mid-wave cards (cardKillTarget is null everywhere); the engine mechanism stays
+      // available and is exercised here by giving wave 4 a target of 22.
+      (engine as any).waveCardKillTargets[4] = 22;
       engine.startWave(4);
       engine.activeTargets = [];
       engine.weaponSystem.selectWeapon('revolver', 1);
@@ -165,24 +168,24 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(extraMonster.radiusM).toBeLessThan(survivorRadiusBefore);
     });
 
-    it('should heal bar_repair reward card by 1 without raising maxLives', () => {
+    it('should heal bar_repair reward card by 2 without raising maxLives', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.lives = 2; // Damaged
       expect(engine.maxLives).toBe(5);
 
       engine.applyRewardCard('bar_repair', 1000);
       expect(engine.maxLives).toBe(5);
-      expect(engine.lives).toBe(3);
+      expect(engine.lives).toBe(4);
 
       // Never heals past maxLives
       engine.lives = 5;
       engine.applyRewardCard('bar_repair', 1500);
       expect(engine.lives).toBe(5);
 
-      // Reward cards and items both heal exactly 1 now
+      // The card heals 2 and the item only 1
       engine.lives = 3;
       engine.applyRewardCard('bar_repair', 1600);
-      expect(engine.lives).toBe(4);
+      expect(engine.lives).toBe(5);
 
       // Normal item bar_repair only heals 1 HP up to maxLives
       engine.lives = 4;

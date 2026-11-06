@@ -232,13 +232,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     expect([...kindsFor(7)].sort()).toEqual(['bottle', 'caslight', 'hanmac', 'obi', 'pilgood']);
   });
 
-  it('has no mid-wave card in waves 1-2 and cards at 24 / 22 / 40 / 26 / 44 kills in waves 3-7', () => {
-    [1, 2].forEach((w) => expect(engine.getCardKillTarget(w)).toBeNull());
-    expect(engine.getCardKillTarget(3)).toBe(24);
-    expect(engine.getCardKillTarget(4)).toBe(22);
-    expect(engine.getCardKillTarget(5)).toBe(40);
-    expect(engine.getCardKillTarget(6)).toBe(26);
-    expect(engine.getCardKillTarget(7)).toBe(44);
+  it('has no mid-wave card in any wave (cards only come when a wave is cleared)', () => {
+    [1, 2, 3, 4, 5, 6, 7].forEach((w) => expect(engine.getCardKillTarget(w)).toBeNull());
 
     engine.startWave(1);
     expect(engine.getWaveProgress().cardKillTarget).toBeNull();

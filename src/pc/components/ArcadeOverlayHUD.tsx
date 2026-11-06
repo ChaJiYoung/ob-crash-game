@@ -36,19 +36,9 @@ export function shouldRenderMonsterHpBar(
   return maxHp >= 2;
 }
 
-/**
- * 상단 중앙에 무엇을 그릴지. 보스가 나오면 웨이브 진행 바(처치 수가 totalSpawns에서 멈춘다)는 숨기고
- * 보스 체력 바만 보여 준다. 카드 처치 카운터는 카드가 계속 나오므로 따로 남긴다.
- */
-export function getWaveHudMode(
-  bossCount: number,
-  cardKillTarget: number | null
-): { showProgressBar: boolean; showCardCounterOnly: boolean } {
-  const inBossFight = bossCount > 0;
-  return {
-    showProgressBar: !inBossFight,
-    showCardCounterOnly: inBossFight && cardKillTarget !== null,
-  };
+/** 상단 중앙에 무엇을 그릴지. 보스가 나오면 웨이브 진행 바(처치 수가 totalSpawns에서 멈춘다)는 숨기고 보스 체력 바만 보여 준다. */
+export function getWaveHudMode(bossCount: number): { showProgressBar: boolean } {
+  return { showProgressBar: bossCount === 0 };
 }
 
 export function formatWeaponSkillBadge(
@@ -367,26 +357,8 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             WAVE {wave} / {totalWaves}
           </div>
 
-          {/* Boss fight: the progress bar is hidden (boss HP bars below), only the card kill counter stays */}
-          {waveProgress && getWaveHudMode(bosses.length, waveProgress.cardKillTarget).showCardCounterOnly && (
-            <div
-              style={{
-                background: 'rgba(17, 24, 39, 0.96)',
-                border: '1px solid rgba(245, 158, 11, 0.4)',
-                borderRadius: '10px',
-                padding: '4px 12px',
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#fbbf24',
-                letterSpacing: '0.5px',
-              }}
-            >
-              🃏 카드: {waveProgress.cardKillCount}/{waveProgress.cardKillTarget} KILL
-            </div>
-          )}
-
           {/* Compact Wave Progress Bar */}
-          {waveProgress && getWaveHudMode(bosses.length, waveProgress.cardKillTarget).showProgressBar && (
+          {waveProgress && getWaveHudMode(bosses.length).showProgressBar && (
             <div
               style={{
                 width: '320px',
@@ -410,9 +382,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 }}
               >
                 <span>🎯 웨이브 토벌 {waveProgress.killedInWave}/{waveProgress.totalSpawns}</span>
-                {waveProgress.cardKillTarget !== null && (
-                  <span>🃏 카드: {waveProgress.cardKillCount}/{waveProgress.cardKillTarget} KILL</span>
-                )}
                 <span>{waveProgress.progressPercent}%</span>
               </div>
               <div
