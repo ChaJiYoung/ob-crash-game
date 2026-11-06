@@ -198,6 +198,7 @@ describe('revolver fan blades', () => {
     engine.startWave(7);
     (engine as any).spawnedInWave = 999;
     (engine as any).isBossEncounterActive = true;
+    (engine as any).bossSpawned = true; // the boss is already out, so the half-way trigger must not add another
     const boss = mk('boss', 12, { hp: 0.5, maxHp: 50, bossRole: 'cooler' });
     engine.activeTargets = [boss];
     cast(1);

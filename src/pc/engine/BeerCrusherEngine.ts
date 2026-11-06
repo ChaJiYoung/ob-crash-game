@@ -1368,10 +1368,14 @@ export class BeerCrusherEngine {
 
     const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[STAGE_CONSTANTS.TOTAL_WAVES];
 
-    // 2. Periodic enemy spawn
+    // 2. Periodic enemy spawn. While a boss is alive the field is refilled past totalSpawns, and only regular monsters
+    // count toward the cap so the boss and its minions do not crowd them out.
+    const fieldCount = this.isBossEncounterActive ? this.countFieldMonsters() : this.activeTargets.length;
+    const bossDefeated = !!waveDef.boss && this.bossSpawned && !this.isBossEncounterActive;
     const canSpawn =
-      this.activeTargets.length < waveDef.maxSimultaneous &&
-      this.spawnedInWave < waveDef.totalSpawns &&
+      fieldCount < waveDef.maxSimultaneous &&
+      !bossDefeated &&
+      (this.spawnedInWave < waveDef.totalSpawns || this.isBossEncounterActive) &&
       (this.spawnedInWave === 0 || nowMs - this.lastSpawnTimeMs >= waveDef.spawnIntervalMs);
 
     if (canSpawn) {
@@ -1383,9 +1387,19 @@ export class BeerCrusherEngine {
       }
     }
 
+    // The boss arrives once enough regular monsters are out; it is checked after the spawn above so a wave that
+    // jumps straight to its spawn total still gets its boss in the same frame.
+    if (
+      waveDef.boss &&
+      !this.bossSpawned &&
+      this.spawnedInWave >= Math.ceil(waveDef.totalSpawns * GAME_TUNING.boss.encounterStartRatio)
+    ) {
+      this.spawnBossEncounter(nowMs);
+    }
+
     // Periodic projectile spawn from the boss
     const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
-    if (hasBossShooter && nowMs - this.lastBossProjectileMs >= 3500 && this.activeTargets.length < waveDef.maxSimultaneous + 2) {
+    if (hasBossShooter && nowMs - this.lastBossProjectileMs >= 3500 && this.countFieldMonsters() < waveDef.maxSimultaneous + 2) {
       // Living coolers fire in turns from their own position; the king fires only if no cooler is left
       const bosses = this.getBossEntities();
       const coolers = bosses.filter((b) => b.bossRole !== 'king');
@@ -1402,15 +1416,12 @@ export class BeerCrusherEngine {
     // 4. Check wave completion
     const monsterTargets = this.activeTargets.filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind);
     const bossAlive = monsterTargets.some((t) => t.kind === 'boss');
-    const miniWaveDone =
-      this.spawnedInWave >= waveDef.totalSpawns && monsterTargets.length === 0 && !bossAlive;
+    // A boss wave is over once its boss is dead (the clear sequence has emptied the field), however many spawns were left.
+    const miniWaveDone = waveDef.boss
+      ? this.bossSpawned && !bossAlive
+      : this.spawnedInWave >= waveDef.totalSpawns && monsterTargets.length === 0;
 
     if (miniWaveDone) {
-      if (waveDef.boss && !this.bossSpawned) {
-        this.spawnBossEncounter(nowMs);
-        return { breaches, phaseChanged: false, reloadedJustNow };
-      }
-
       this.awardWaveTimeBonus(nowMs);
       this.activeTargets = [];
       // Between waves: Spawn Shoot-to-Select Reward Cards (the last wave always ends with its boss fight)
@@ -1419,6 +1430,20 @@ export class BeerCrusherEngine {
     }
 
     return { breaches, phaseChanged: false, reloadedJustNow };
+  }
+
+  /** 필드의 일반 몬스터 수. 보스·소환 부하·투사체·아이템·황금캔·카드는 세지 않는다. */
+  private countFieldMonsters(): number {
+    return this.activeTargets.filter(
+      (t) =>
+        !t.isItem &&
+        !t.isProjectile &&
+        !t.isGoldenCan &&
+        !t.weaponSelectKind &&
+        !t.rewardCardKind &&
+        t.kind !== 'boss' &&
+        !t.isSummonedMinion
+    ).length;
   }
 
   private spawnNextTarget(waveDef: WaveDefinition, nowMs: number): void {

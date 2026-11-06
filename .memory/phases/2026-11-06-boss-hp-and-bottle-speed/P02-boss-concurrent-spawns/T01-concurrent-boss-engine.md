@@ -1,6 +1,6 @@
 # Task: T01 보스전 일반 몬스터 병행 (엔진)
 
-## Status: pending
+## Status: done
 
 ## Goal
 보스 웨이브(3·5·7)에서 일반 몬스터를 `totalSpawns`의 50%(올림) 소환하면 보스가 등장하고, 보스가 하나라도 살아 있는 동안에는 `totalSpawns`를 넘겨서도 `spawnIntervalMs`마다 일반 몬스터를 보충한다. 마지막 보스를 잡으면 기존 처치 연출이 남은 몬스터를 정리하고 웨이브가 끝난다.
@@ -72,6 +72,8 @@
   - 중간 보스 처치 후 흐름은 "마지막 보스 처치 → `startBossClearSequence`(1.5초 연출, 남은 몬스터 연쇄 폭발) → `advanceBossClear`가 필드를 비움 → 다음 `update`의 `miniWaveDone` → `awardWaveTimeBonus` + `spawnWaveRewardCards(nowMs, true)`"이다. 이 경로가 살아 있는지 테스트 5번이 고정한다.
   - 보스 처치 연출이 남은 일반 몬스터를 연쇄로 터뜨리므로 보충 몬스터가 남아 있어도 웨이브는 정상 종료된다. 처치 연출 중 `killedInWave`가 오른다. 이 값은 상한이 있어 문제없다.
   - 튜토리얼·샌드박스는 `update` 앞부분에서 이미 반환한다. 영향 없음.
+  - (구현 중 추가) 보스가 죽은 뒤 `isBossEncounterActive`가 `false`가 되면 `spawnedInWave < totalSpawns`가 다시 참이 되어 연출이 끝난 프레임에 일반 몬스터가 한 마리 더 나올 수 있다. `bossDefeated = waveDef.boss && bossSpawned && !isBossEncounterActive`일 때 `canSpawn`을 막는다.
+  - (구현 중 추가) 테스트가 `isBossEncounterActive`만 직접 켜면 `bossSpawned`가 거짓이라 보스가 한 대 더 나온다(`skill-blade.test.ts`는 `bossSpawned = true`도 같이 설정). 70초 동안 보스만 남기는 `boss-encounters` 포탄 테스트는 보충 몬스터가 방어선에 닿아 게임이 끝나므로 보스 외 타깃을 비운다.
 
 ### I03. 테스트
 - Related Files:
@@ -90,11 +92,11 @@
 - 기존 테스트가 실패하면 보스 등장 시점이 "모두 처치 후"가 아니라 "50% 소환 시점"으로 바뀐 것이 원인인지 확인하고, 의도된 변경일 때만 기대값을 고친다. 원인이 다르면 구현을 고친다.
 
 ## Acceptance Criteria
-- [ ] 3·5·7웨이브에서 보스가 각각 8·10·13번째 소환 시점에 등장한다.
-- [ ] 보스가 살아 있는 동안 `totalSpawns`를 넘어 일반 몬스터가 보충되고, `maxSimultaneous`는 일반 몬스터 기준으로만 센다.
-- [ ] 마지막 보스 처치 후 3·5웨이브는 카드가 나오고 다음 웨이브로 넘어가며 7웨이브는 승리한다. 연출 중과 이후에는 새 스폰이 없다.
-- [ ] 보스 투사체가 필드가 붐비는 상황에서도 계속 발사된다.
-- [ ] 비보스 웨이브의 스폰 동작은 이전과 같다.
+- [x] 3·5·7웨이브에서 보스가 각각 8·10·13번째 소환 시점에 등장한다.
+- [x] 보스가 살아 있는 동안 `totalSpawns`를 넘어 일반 몬스터가 보충되고, `maxSimultaneous`는 일반 몬스터 기준으로만 센다.
+- [x] 마지막 보스 처치 후 3·5웨이브는 카드가 나오고 다음 웨이브로 넘어가며 7웨이브는 승리한다. 연출 중과 이후에는 새 스폰이 없다.
+- [x] 보스 투사체가 필드가 붐비는 상황에서도 계속 발사된다.
+- [x] 비보스 웨이브의 스폰 동작은 이전과 같다.
 
 ## Validation
 - `npx vitest run tests/boss-concurrent-spawns.test.ts tests/boss-encounters.test.ts tests/boss-clear-sequence.test.ts tests/boss-hp-summons.test.ts tests/boss-minion-drop.test.ts tests/boss-drop-chance.test.ts tests/wave-time-bonus.test.ts tests/engine-judgment-and-spawn.test.ts` — 모두 통과
@@ -116,6 +118,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

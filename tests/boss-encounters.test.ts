@@ -297,7 +297,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
               const fromC = Math.abs((t.initialThetaRad ?? 99) - c.thetaRad) < 1e-9;
               into.push(fromA && fromC ? 'both' : fromA ? 'A' : fromC ? 'C' : 'none');
             });
-          engine.activeTargets = engine.activeTargets.filter((t) => !t.isProjectile);
+          // Keep only the coolers: refilled regular monsters would walk into the line and end the game over 70s
+          engine.activeTargets = engine.activeTargets.filter((t) => t.kind === 'boss');
         }
       };
       collect(who, 1400);

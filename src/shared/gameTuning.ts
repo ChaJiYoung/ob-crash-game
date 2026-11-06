@@ -116,6 +116,8 @@ export const GAME_TUNING = {
     coolerSpreadRad: 0.34,
     /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
+    /** 일반 몬스터를 totalSpawns의 이 비율(올림)만큼 소환하면 보스가 등장한다. 보스가 살아 있는 동안 일반 몬스터는 계속 보충된다. */
+    encounterStartRatio: 0.5,
     summonDropChance: 0.10,
     /** 마지막 보스를 잡은 뒤 연출 시간. 이 동안 남은 몬스터가 cascadeGapMs 간격으로 연쇄로 터진다. */
     clear: { durationMs: 1500, cascadeGapMs: 100 },
