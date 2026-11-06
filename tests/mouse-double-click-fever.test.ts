@@ -39,4 +39,10 @@ describe('mouse controls wiring', () => {
     expect(page).not.toContain("'KeyR'");
     expect(page).toContain("'contextmenu'");
   });
+
+  it('fever auto-fire also runs in the tutorial, where the fever training step needs it', () => {
+    const m = page.match(/Auto-fire loop during active Fever mode[\s\S]*?feverAutoFireTimerRef\.current\) \{/);
+    expect(m).not.toBeNull();
+    expect(m![0]).toContain("gamePhase === 'TUTORIAL'");
+  });
 });

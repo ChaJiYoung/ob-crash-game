@@ -562,7 +562,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       lastBossWarningRef.current = nextHud.isBossWarning;
 
       // Auto-fire loop during active Fever mode: polls fast, the weapon's own fire interval gates the actual shots
-      if (feverState.isFeverActive && !engine.isPaused && !engine.isCardSelectPending && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX')) {
+      if (feverState.isFeverActive && !engine.isPaused && !engine.isCardSelectPending && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX' || gamePhase === 'TUTORIAL')) {
         if (!feverAutoFireTimerRef.current) {
           feverAutoFireTimerRef.current = setInterval(() => {
             const curAim = latestAimRef.current;
