@@ -95,11 +95,8 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
         expect(spec.reloadDurationMs).toBeGreaterThan(0);
         expect(spec.fireIntervalMs).toBeGreaterThan(0);
         expect(spec.skillCooldownMs).toBeGreaterThan(0);
-        if (lvl === 4) {
-          expect(spec.maxSkillStock).toBe(2);
-        } else {
-          expect(spec.maxSkillStock).toBe(1);
-        }
+        // Every weapon level can hold two skill charges
+        expect(spec.maxSkillStock).toBe(2);
       });
     });
 
@@ -161,27 +158,33 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(initial.weaponLevel).toBe(1);
     expect(initial.maxAmmo).toBe(14);
     expect(initial.ammo).toBe(14);
-    expect(initial.skillStock).toBe(1);
-    expect(initial.maxSkillStock).toBe(1);
+    expect(initial.skillStock).toBe(2); // selecting a weapon fills the charges
+    expect(initial.maxSkillStock).toBe(2);
     expect(initial.skillCooldownRemainingMs).toBe(0);
 
-    // 1. Consume active skill
-    const skillUsed = ws.consumeSkill(1000);
-    expect(skillUsed).toBe(true);
+    // 1. Consume active skill: choosing a weapon fills both charges, so two casts are available at the start
+    expect(ws.consumeSkill(1000)).toBe(true);
+    expect(ws.getState().skillStock).toBe(1);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(21000); // Lv.1 cooldown starts with the first cast
+    expect(ws.consumeSkill(1050)).toBe(true);
     expect(ws.getState().skillStock).toBe(0);
-    expect(ws.getState().skillCooldownRemainingMs).toBe(21000); // Lv.1 cooldown
 
     // Trying to use skill again without stock fails
-    expect(ws.consumeSkill(1050)).toBe(false);
+    expect(ws.consumeSkill(1100)).toBe(false);
 
-    // 2. Advance time by 10s -> 25s remaining
+    // 2. Advance time by 10s -> 11s remaining
     ws.update(11000, false, 10000);
     expect(ws.getState().skillStock).toBe(0);
     expect(ws.getState().skillCooldownRemainingMs).toBe(11000);
 
-    // Advance remaining 11s -> Skill recharges!
+    // Advance remaining 11s -> one charge is back, and the next one starts charging because the stock is below the max of 2
     ws.update(22000, false, 11000);
     expect(ws.getState().skillStock).toBe(1);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(21000);
+
+    // 21s more -> the second charge arrives and the cooldown stops
+    ws.update(43000, false, 21000);
+    expect(ws.getState().skillStock).toBe(2);
     expect(ws.getState().skillCooldownRemainingMs).toBe(0);
 
     // 3. Upgrade weapon level up to MAX (Lv.4)
@@ -209,6 +212,6 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     ws.selectWeapon('gatling', 1);
     expect(ws.getState().weaponKind).toBe('gatling');
     expect(ws.getState().maxAmmo).toBe(GAME_TUNING.maxAmmoByWeapon.gatling[1] + 2); // Lv.1 magazine + 2 (rapid reload buff active)
-    expect(ws.getState().skillStock).toBe(1);
+    expect(ws.getState().skillStock).toBe(2); // choosing a weapon fills both charges at any level
   });
 });

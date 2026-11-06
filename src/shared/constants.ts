@@ -220,7 +220,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 0,
         skillPlungerCount: 12,
         skillCooldownMs: 25000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       2: {
         level: 2,
@@ -242,7 +242,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 0,
         skillPlungerCount: 15,
         skillCooldownMs: 22000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       3: {
         level: 3,
@@ -264,7 +264,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 0,
         skillPlungerCount: 18,
         skillCooldownMs: 19000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       4: {
         level: 4,
@@ -317,7 +317,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 25000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       2: {
         level: 2,
@@ -339,7 +339,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 22000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       3: {
         level: 3,
@@ -361,7 +361,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 0,
         skillPlungerCount: 0,
         skillCooldownMs: 19000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       4: {
         level: 4,
@@ -414,7 +414,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 1.0,
         skillPlungerCount: 0,
         skillCooldownMs: 25000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       2: {
         level: 2,
@@ -436,7 +436,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 1.0,
         skillPlungerCount: 0,
         skillCooldownMs: 22000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       3: {
         level: 3,
@@ -458,7 +458,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
         skillKnockbackM: 1.2,
         skillPlungerCount: 0,
         skillCooldownMs: 19000,
-        maxSkillStock: 1,
+        maxSkillStock: 2,
       },
       4: {
         level: 4,
