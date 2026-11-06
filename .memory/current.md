@@ -1,10 +1,16 @@
 # Current Context
 
 ## Active Plan
-[마우스 더블클릭 피버 · R/Space 키 제거 · 로비 조작법 안내](./plans/2026-11-06-mouse-controls-and-lobby-hint.md)
+[튜토리얼 스킬 단계 · 로비 튜토리얼/가이드 버튼](./plans/2026-11-06-tutorial-skill-and-lobby-buttons.md)
+
+## Active Phase
+[P01 튜토리얼 스킬과 로비 버튼](./phases/2026-11-06-tutorial-skill-and-lobby-buttons/P01-tutorial-skill-lobby/phase.md)
 
 ## Active Task
-없음 (T01, T02 완료, 사람 플레이 확인 대기)
+[T01 엔진 스킬 3단계와 피버 4단계](./phases/2026-11-06-tutorial-skill-and-lobby-buttons/P01-tutorial-skill-lobby/T01-engine-skill-step.md)
 
 ## Status
-- 자동 검증 통과. 페이지 새로고침 필요.
+- 계획 완료, T01 시작 준비 완료
+
+## Next Step (IMPORTANT)
+T01 청사진을 읽고 src/shared/types.ts, BeerCrusherEngine.ts 구현 시작

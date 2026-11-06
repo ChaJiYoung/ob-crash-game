@@ -753,6 +753,9 @@ export class BeerCrusherEngine {
         },
       ];
     } else if (nextStep === 3) {
+      this.weaponSystem.refillSkillInstant();
+      this.spawnTutorialSkillTargets();
+    } else if (nextStep === 4) {
       this.scoreManager.forceSetFeverGauge(100);
       this.activeTargets = [];
     } else if (nextStep === 'COMPLETED') {
@@ -761,7 +764,35 @@ export class BeerCrusherEngine {
     }
   }
 
-  public spawnTutorialStep3Enemies(): void {
+  /** Tutorial step 3: stationary targets so the skill's area effect is easy to see. */
+  public spawnTutorialSkillTargets(): void {
+    this.activeTargets = [];
+    const kinds: TargetKind[] = ['pilgood', 'caslight', 'pilgood', 'caslight', 'pilgood'];
+    const angles = [-0.3, -0.15, 0, 0.15, 0.3];
+
+    kinds.forEach((kind, i) => {
+      this.targetCounter += 1;
+      const spec = TARGET_SPECS[kind];
+      const radius = 12.0 + (i % 2);
+      const theta = angles[i];
+      this.activeTargets.push({
+        id: `tutorial_skill_${this.targetCounter}_${kind}`,
+        kind,
+        hp: spec.maxHp,
+        maxHp: spec.maxHp,
+        radiusM: radius,
+        thetaRad: theta,
+        x: Math.sin(theta) * radius,
+        z: -Math.cos(theta) * radius,
+        speedMps: 0,
+        hitRadiusM: spec.hitRadiusM,
+        killBonusScore: spec.killBonusScore,
+        breached: false,
+      });
+    });
+  }
+
+  public spawnTutorialFeverEnemies(): void {
     this.activeTargets = [];
     const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'caslight'];
     const angles = [-0.35, -0.20, -0.07, 0.07, 0.20, 0.35];
@@ -1205,7 +1236,7 @@ export class BeerCrusherEngine {
     const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
     this.scoreManager.updateFeverTimer(nowMs);
 
-    if (this.isTutorialMode && this.tutorialStep === 3) {
+    if (this.isTutorialMode && this.tutorialStep === 4) {
       if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
         this.advanceTutorialStep('COMPLETED');
       }
@@ -1328,7 +1359,7 @@ export class BeerCrusherEngine {
             target.z = -14.0;
             target.breached = false;
             continue;
-          } else if (this.tutorialStep === 3) {
+          } else if (this.tutorialStep === 4) {
             this.activeTargets.splice(i, 1);
             if (this.activeTargets.length === 0) {
               this.advanceTutorialStep('COMPLETED');
@@ -2170,6 +2201,11 @@ export class BeerCrusherEngine {
               this.advanceTutorialStep(3);
             }
           } else if (this.tutorialStep === 3) {
+            // The skill step only ends with the skill: if shots cleared the targets, set them up again.
+            if (this.activeTargets.length === 0) {
+              this.spawnTutorialSkillTargets();
+            }
+          } else if (this.tutorialStep === 4) {
             if (this.activeTargets.length === 0) {
               this.advanceTutorialStep('COMPLETED');
             }
@@ -2459,6 +2495,14 @@ export class BeerCrusherEngine {
   }
 
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
+    const result = this.runWeaponSkill(nowMs);
+    if (result.activated && this.isTutorialMode && this.tutorialStep === 3) {
+      this.advanceTutorialStep(4);
+    }
+    return result;
+  }
+
+  private runWeaponSkill(nowMs: number): SkillExecuteResult {
     const weaponState = this.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
     const weaponLevel = weaponState.weaponLevel;

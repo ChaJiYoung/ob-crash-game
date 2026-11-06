@@ -84,8 +84,17 @@ async function captureTutorialScreens() {
   await page.evaluate(() => {
     if (window.__engine) {
       window.__engine.advanceTutorialStep(3);
+    }
+  });
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: path.join(screensDir, 'screen-11b-tutorial-shooting-range-skill.png') });
+
+  console.log('Advancing to Step 4...');
+  await page.evaluate(() => {
+    if (window.__engine) {
+      window.__engine.advanceTutorialStep(4);
       window.__engine.scoreManager.activateFever(performance.now());
-      window.__engine.spawnTutorialStep3Enemies();
+      window.__engine.spawnTutorialFeverEnemies();
     }
   });
   await page.waitForTimeout(800);

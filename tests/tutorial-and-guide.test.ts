@@ -54,7 +54,7 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     expect(bottleTarget.speedMps).toBeGreaterThan(0);
   });
 
-  it('should advance from Step 2 to Step 3 and charge fever to 100%', () => {
+  it('should advance from Step 2 to the fever Step 4 and charge fever to 100%', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
     engine.advanceTutorialStep(2);
@@ -62,10 +62,12 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     expect(engine.tutorialStep).toBe(2);
     expect(engine.scoreManager.getState().isFeverReady).toBe(false);
 
-    // Advance to Step 3
+    // Step 3 is the skill step; the fever gauge is only charged at Step 4
     engine.advanceTutorialStep(3);
+    expect(engine.scoreManager.getState().feverGauge).toBe(0);
+    engine.advanceTutorialStep(4);
 
-    expect(engine.tutorialStep).toBe(3);
+    expect(engine.tutorialStep).toBe(4);
     const feverState = engine.scoreManager.getState();
     expect(feverState.feverGauge).toBe(100);
     expect(feverState.isFeverReady).toBe(true);
@@ -74,14 +76,14 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should activate fever and spawn Step 3 enemies, then complete tutorial on clear', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
-    engine.advanceTutorialStep(3);
+    engine.advanceTutorialStep(4);
 
     const now = 2000;
     const activated = engine.scoreManager.activateFever(now);
     expect(activated).toBe(true);
     expect(engine.scoreManager.getState().isFeverActive).toBe(true);
 
-    engine.spawnTutorialStep3Enemies();
+    engine.spawnTutorialFeverEnemies();
     expect(engine.activeTargets.length).toBe(6);
 
     // Clear all Step 3 enemies

@@ -65,7 +65,7 @@ export interface RewardCardSpec {
   icon: string;
 }
 
-export type TutorialStep = 1 | 2 | 3 | 'COMPLETED';
+export type TutorialStep = 1 | 2 | 3 | 4 | 'COMPLETED';
 
 export interface TutorialState {
   step: TutorialStep;

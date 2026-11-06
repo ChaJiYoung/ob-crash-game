@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Poop Projectile 3D Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: radial-gradient(circle at 50% 40%, #1e1b2e 0%, #0d0f18 70%, #07080d 100%);
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    #info-card {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(23, 15, 35, 0.88);
+      border: 1px solid rgba(245, 184, 61, 0.45);
+      backdrop-filter: blur(14px);
+      border-radius: 20px;
+      padding: 18px 36px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.65), 0 0 24px rgba(245, 184, 61, 0.2);
+      z-index: 10;
+    }
+    .badge {
+      white-space: nowrap;
+      padding: 6px 16px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 800;
+      background: #f59e0b;
+      color: #111;
+      letter-spacing: 0.5px;
+    }
+    .name { font-size: 24px; font-weight: 900; color: #fff; white-space: nowrap; }
+    .stat { font-size: 15px; color: #94a3b8; display: flex; gap: 6px; white-space: nowrap; }
+    .stat b { color: #f5b83d; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="info-card">
+    <span class="badge">PROJECTILE</span>
+    <span class="name">💩 보스 똥 투사체</span>
+    <span class="stat">외형: <b>3단 소프트아이스 + 눈알</b></span>
+    <span class="stat">대응: <b>사격 요격 (체력 1)</b></span>
+    <span class="stat">효과: <b>방어선 파괴</b></span>
+  </div>
+
+  <script>
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+    // 똥 모델 크기가 약 0.7m 정도이므로 카메라를 가까이 가져다 둠
+    camera.position.set(0, 0.45, 2.3);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(2);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    // 조명
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfff5ea, 1.8);
+    keyLight.position.set(3, 4, 3.5);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xa5b4fc, 0.8);
+    fillLight.position.set(-3, 2, 2);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.5);
+    rimLight.position.set(-3, 3, -3);
+    scene.add(rimLight);
+
+    const topWarmLight = new THREE.PointLight(0xf59e0b, 2.2, 10);
+    topWarmLight.position.set(0, 3, 0.5);
+    scene.add(topWarmLight);
+
+    // 원형 받침대 (Pedestal)
+    const pedestalGroup = new THREE.Group();
+    const pedestalMat = new THREE.MeshStandardMaterial({
+      color: 0x181326,
+      metalness: 0.85,
+      roughness: 0.25,
+    });
+    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.35, 0.2, 48), pedestalMat);
+    pedestal.position.y = -0.5;
+    pedestalGroup.add(pedestal);
+
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.02, 16, 64), ringMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = -0.4;
+    pedestalGroup.add(ring);
+    scene.add(pedestalGroup);
+
+    // === 똥 모델 생성 (TargetModels3D.ts 와 동일한 스펙) ===
+    function createPoopModel() {
+      const root = new THREE.Group();
+      root.name = 'Poop_Model';
+
+      const inner = new THREE.Group();
+      root.add(inner);
+
+      // 갈색 매끄러운 똥 재질
+      const poopMat = new THREE.MeshStandardMaterial({
+        color: 0x7a4a21,
+        roughness: 0.55,
+        metalness: 0.05
+      });
+
+      const tier = (radius, flatten) => {
+        const g = new THREE.SphereGeometry(radius, 24, 18);
+        g.scale(flatten, 0.7, flatten);
+        return g;
+      };
+
+      // 1단 (하단)
+      const bottom = new THREE.Mesh(tier(0.34, 1.25), poopMat);
+      bottom.position.y = 0;
+      inner.add(bottom);
+
+      // 2단 (중단)
+      const middle = new THREE.Mesh(tier(0.26, 1.2), poopMat);
+      middle.position.y = 0.2;
+      inner.add(middle);
+
+      // 3단 (상단)
+      const top = new THREE.Mesh(tier(0.18, 1.1), poopMat);
+      top.position.y = 0.38;
+      inner.add(top);
+
+      // 꼭대기 팁 (Cone - 살짝 휨)
+      const tipGeo = new THREE.ConeGeometry(0.1, 0.22, 20);
+      const tip = new THREE.Mesh(tipGeo, poopMat);
+      tip.position.y = 0.58;
+      tip.rotation.z = 0.35; // 꼭대기가 살짝 휨
+      inner.add(tip);
+
+      // 눈알 (반짝이는 검은 눈 + 하얀 하이라이트)
+      const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+      const pupilMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const eyeGeo = new THREE.SphereGeometry(0.04, 16, 16);
+      const pupilGeo = new THREE.SphereGeometry(0.012, 12, 12);
+
+      [-0.11, 0.11].forEach((x) => {
+        const eye = new THREE.Mesh(eyeGeo, eyeMat);
+        eye.position.set(x, 0.05, 0.42);
+        
+        // 반짝이는 하이라이트
+        const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+        pupil.position.set(x > 0 ? 0.012 : -0.012, 0.015, 0.035);
+        eye.add(pupil);
+        
+        inner.add(eye);
+      });
+
+      // 바닥 그림자
+      const shadowCanvas = document.createElement('canvas');
+      shadowCanvas.width = 128; shadowCanvas.height = 128;
+      const ctx = shadowCanvas.getContext('2d');
+      const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 60);
+      grad.addColorStop(0, 'rgba(0,0,0,0.7)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 128, 128);
+
+      const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+      const shadowGeo = new THREE.PlaneGeometry(1.2, 1.2);
+      const shadowMat = new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false });
+      const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+      shadowMesh.rotation.x = -Math.PI / 2;
+      shadowMesh.position.y = -0.38;
+      root.add(shadowMesh);
+
+      inner.scale.setScalar(1.2);
+      inner.position.y = -0.15;
+
+      return root;
+    }
+
+    const poop = createPoopModel();
+    scene.add(poop);
+
+    // 살짝 회전 각도 (정면에서 약간 비스듬히 입체감 살림)
+    poop.rotation.y = 0.2;
+
+    camera.lookAt(0, 0.1, 0);
+
+    function render() {
+      renderer.render(scene, camera);
+    }
+    render();
+
+    window.__setAngle = function(angleY, camDist, showInfo) {
+      poop.rotation.y = angleY;
+      camera.position.z = camDist;
+      document.getElementById('info-card').style.display = showInfo ? 'flex' : 'none';
+      render();
+    };
+  </script>
+</body>
+</html>
