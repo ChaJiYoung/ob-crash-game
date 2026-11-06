@@ -44,7 +44,7 @@ export const GAME_TUNING = {
     holdDamageByWeapon: { shotgun: 0.6, revolver: 0.6, gatling: 0.85 },
     holdIntervalScaleByWeapon: { shotgun: 0.7, revolver: 0.7, gatling: 0.85 },
   },
-  weaponDamageScale: { shotgun: 1.2, revolver: 1.1, gatling: 1.5 },
+  weaponDamageScale: { shotgun: 1.2, revolver: 1.05, gatling: 1.5 },
   /** 스킬 수치. 리볼버 칼날 피해는 평타 GREAT 한 발과 같아 무기 표에서 자동으로 맞춘다. */
   skills: {
     blade: {
