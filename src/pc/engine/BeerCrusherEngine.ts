@@ -1561,7 +1561,7 @@ export class BeerCrusherEngine {
     return 1 + GAME_TUNING.speedPerWave * (this.currentWave - 1);
   }
 
-  /** 미니웨이브가 끝나면 냉각기(들)와 필요하면 대왕을 좌우로 벌려 등장시킨다. */
+  /** 일반 몬스터를 encounterStartRatio만큼 소환하면 냉각기(들)와 필요하면 대왕을 좌우로 벌려 등장시킨다. */
   private spawnBossEncounter(nowMs: number): void {
     const waveDef = this.waveDefinitions[this.currentWave];
     if (!waveDef?.boss) return;
@@ -2310,6 +2310,11 @@ export class BeerCrusherEngine {
     this.activeTargets = this.activeTargets.filter(
       (t) => !(t.isItem || t.isGoldenCan || t.isProjectile || t.weaponSelectKind || t.rewardCardKind)
     );
+    // 한 타격이 카드 목표를 채우는 몬스터를 잡고 곧바로 마지막 보스까지 잡으면 카드가 이미 떠 있다. 카드 타깃은 위에서
+    // 지웠으니 대기 상태도 풀어야 update()가 카드 대기로 영원히 멈추지 않는다. 웨이브 종료 카드는 연출 뒤에 새로 나온다.
+    this.isRewardCardPending = false;
+    this.pendingWaveAdvance = false;
+    this.cardKillCount = 0;
     // 칼날·거품은 비우되, 같은 프레임에 이미 쌓인 타격 사건은 남겨 연출이 사라지지 않게 한다.
     this.activeSkillBlades = [];
     this.activeSkillFoamWaves = [];

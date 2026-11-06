@@ -250,5 +250,42 @@ describe('boss fights run alongside regular monsters', () => {
       expect(engine.isRewardCardPending).toBe(true);
       expect(engine.scoreManager.getState().totalScore).toBe(bonusAtKill);
     });
+
+    it('does not soft-lock when a mid-fight card and the last boss dying land in the same hit', () => {
+      // A blade or pierce shot can kill a regular monster that completes the card target and then the boss.
+      for (const wave of [3, 7]) {
+        const e = new BeerCrusherEngine();
+        e.startGame({ withWeaponSelect: false });
+        e.lives = e.maxLives = 999;
+        let t = 500_000;
+        e.startWave(wave);
+        e.activeTargets = [];
+        (e as any).spawnedInWave = GAME_TUNING.waves[wave - 1].totalSpawns;
+        e.update(t, 0.016);
+        e.spawnWaveRewardCards(t, false); // the card dealt by the monster killed just before the boss
+        expect(e.isRewardCardPending).toBe(true);
+
+        const all = [...bosses(e)];
+        e.activeTargets = e.activeTargets.filter((x) => x.kind !== 'boss');
+        all.forEach((b) => (e as any).handleMonsterKilled(b, t));
+        expect(e.isBossClearSequence()).toBe(true);
+        expect(e.isRewardCardPending).toBe(false);
+
+        const end = t + GAME_TUNING.boss.clear.durationMs + 300;
+        while (t < end) {
+          t += 50;
+          e.update(t, 0.05);
+        }
+        t += 50;
+        e.update(t, 0.05);
+        if (wave === 7) {
+          expect(e.gamePhase).toBe('VICTORY');
+        } else {
+          expect(e.gamePhase).toBe('PLAYING');
+          expect(e.isRewardCardPending).toBe(true); // the after-boss card, not a stale one
+          expect(e.pendingWaveAdvance).toBe(true);
+        }
+      }
+    });
   });
 });
