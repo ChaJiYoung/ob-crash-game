@@ -3,6 +3,12 @@ import { TARGET_SPECS, ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS, REWARD_CARD_SPEC
 import { TargetKind, ItemBuffKind } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
 
+/** 중간 카드가 나오는 웨이브와 처치 수. 가이드 문구가 웨이브 표와 어긋나지 않게 표에서 만든다. */
+const MID_CARD_TEXT = GAME_TUNING.waves
+  .filter((w) => w.cardKillTarget !== null)
+  .map((w) => `${w.waveIndex}웨이브(${w.cardKillTarget}킬)`)
+  .join('·');
+
 export interface GuideModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -85,14 +91,14 @@ const MONSTER_DETAILS: Record<
   bottle: {
     role: '지상 대형 탱커 · 깨지면 작은 병 2마리로 분열 (4HP)',
     speedText: '2.0 m/s',
-    description: '대형 카스 500ml 투명병. 깨지는 순간 작고 빠른 병 2마리(체력 1)로 갈라져 양옆에서 달려옵니다. 작은 병은 다시 나뉘지 않습니다.',
+    description: `대형 카스 500ml 투명병. 깨지는 순간 작고 빠른 병 2마리(체력 1, ${GAME_TUNING.monsters.bottle.childSpeedMps} m/s)로 갈라져 양옆에서 달려옵니다. 작은 병은 다시 나뉘지 않습니다.`,
     tip: '체력 4! 큰 병을 깬 뒤 양옆으로 갈라지는 작은 병을 바로 이어서 잡으세요. 작은 병까지 잡아야 웨이브가 끝납니다.',
     imageSrc: '/docs/screens/monster-05-cass-bottle.png',
   },
   boss: {
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (14m 정지, 좌우 이동)',
-    description: `앞면에 탭이 달린 업소용 냉각기 보스. 소형은 은색 1구, 대왕은 검정 3구에 금색 왕관을 썼습니다. 3웨이브는 1대, 5웨이브는 2대, 7웨이브는 2대 + 대왕 냉각기(1.5배 크기)가 등장합니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCountByStep.join('·')}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
+    description: `앞면에 탭이 달린 업소용 냉각기 보스. 소형은 은색 1구, 대왕은 검정 3구에 금색 왕관을 썼습니다. 3웨이브는 1대(체력 ${GAME_TUNING.waves[2].boss!.coolerHp[0]}), 5웨이브는 2대(각 ${GAME_TUNING.waves[4].boss!.coolerHp[0]}), 7웨이브는 2대(각 ${GAME_TUNING.waves[6].boss!.coolerHp[0]}) + 대왕 냉각기(체력 ${GAME_TUNING.waves[6].boss!.kingHp}, 1.5배 크기)가 등장합니다. 웨이브의 일반 몬스터가 ${Math.round(GAME_TUNING.boss.encounterStartRatio * 100)}% 나온 시점에 등장하고, 보스가 살아 있는 동안에도 일반 몬스터가 계속 나옵니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCountByStep.join('·')}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
     tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
     imageSrc: '/docs/screens/monster-06-boss-dispenser.png',
   },
@@ -588,7 +594,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   🃏 킬 게이지 보상 카드 (Shoot-to-Select & 전장 일시정지)
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  웨이브를 클리어할 때, 그리고 4웨이브(22킬)·6웨이브(26킬) 중간에 전장이 즉시 일시정지(Combat Freeze)되며 <strong>9종 중 무작위 3장</strong>의 3D 홀로그램 카드가 소환됩니다. 이미 최대치인 카드는 나오지 않고, 무기 레벨 상한은 1웨이브 Lv.2 · 2~4웨이브 Lv.3 · 5웨이브부터 MAX입니다. 카드를 고르는 동안 피버·버프·쿨다운 시간은 모두 멈추고, <strong>누르고 있던 입력은 무시</strong>되니 버튼을 뗐다가 새로 눌러 <strong>직접 사격</strong>하여 획득하세요! (카드 등장 후 0.8초는 입력 잠금)
+                  웨이브를 클리어할 때, 그리고 {MID_CARD_TEXT} 중간에 전장이 즉시 일시정지(Combat Freeze)되며 <strong>9종 중 무작위 3장</strong>의 3D 홀로그램 카드가 소환됩니다. 이미 최대치인 카드는 나오지 않고, 무기 레벨 상한은 1웨이브 Lv.2 · 2~4웨이브 Lv.3 · 5웨이브부터 MAX입니다. 카드를 고르는 동안 피버·버프·쿨다운 시간은 모두 멈추고, <strong>누르고 있던 입력은 무시</strong>되니 버튼을 뗐다가 새로 눌러 <strong>직접 사격</strong>하여 획득하세요! (카드 등장 후 0.8초는 입력 잠금)
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {Object.entries(REWARD_CARD_SPECS).map(([rk, cspec]) => (

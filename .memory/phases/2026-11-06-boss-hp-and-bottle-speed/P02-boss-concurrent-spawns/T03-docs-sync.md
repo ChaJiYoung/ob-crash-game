@@ -1,6 +1,6 @@
 # Task: T03 문서·가이드 문구 동기화
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 안 가이드와 문서가 새 보스 체력, 작은 병 속도, "보스와 일반 몬스터가 함께 나온다"는 흐름을 그대로 설명하고, `docs-sync` 테스트가 이를 고정한다.
@@ -45,8 +45,8 @@
 - 기존 패턴(`read(file)` + `toContain(...)`)을 따른다. 추가 검증: 몬스터 도감과 상세설계서에 `kingHp`(250)와 `coolerHp` 값이, 요구사항 분석서에 "일반 몬스터" 병행 문구가 있는지. 값은 `GAME_TUNING`에서 계산해 문서 문자열과 비교한다.
 
 ## Acceptance Criteria
-- [ ] 문서·가이드 어디에도 옛 체력(70~90, 대왕 200)과 "모두 처치 후 보스 등장" 표현이 남지 않는다.
-- [ ] `docs-sync` 테스트가 새 체력과 병행 흐름을 검증한다.
+- [x] 문서·가이드 어디에도 옛 체력(70~90, 대왕 200)과 "모두 처치 후 보스 등장" 표현이 남지 않는다.
+- [x] `docs-sync` 테스트가 새 체력과 병행 흐름을 검증한다.
 
 ## Validation
 - `npx vitest run tests/docs-sync.test.ts tests/pc-hud-and-banner.test.ts` — 통과
@@ -68,6 +68,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -162,6 +162,40 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     expect(guide).toContain('GAME_TUNING.score.timeBonus.zeroAtParMult');
   });
 
+  it('documents the boss HP, the bottle speed and the mid-fight cards with the tuned numbers', () => {
+    const w = GAME_TUNING.waves;
+    const hp = (i: number) => w[i].boss!;
+    const bestiary = read('docs/몬스터_도감_설명서.md');
+    expect(bestiary).toContain(`| 3 | 냉각기 1대 | ${hp(2).coolerHp[0]} |`);
+    expect(bestiary).toContain(`| 5 | 냉각기 2대 | 각 ${hp(4).coolerHp[0]} |`);
+    expect(bestiary).toContain(`각 ${hp(6).coolerHp[0]} + 대왕 ${hp(6).kingHp}`);
+    expect(read('README.md')).toContain(`대왕 냉각기(${hp(6).kingHp})`);
+    expect(bestiary).toContain(`${GAME_TUNING.monsters.bottle.childSpeedMps.toFixed(1)} m/s)로 분열`);
+
+    const mid = w.filter((x) => x.cardKillTarget !== null);
+    expect(mid.map((x) => x.waveIndex)).toEqual([3, 4, 5, 6, 7]);
+    const kills = (x: (typeof w)[number]) => `${x.waveIndex}웨이브 ${x.cardKillTarget}킬`;
+    for (const doc of [read('README.md'), read('docs/구동화면_쇼케이스.md')]) {
+      mid.forEach((x) => expect(doc).toContain(kills(x)));
+    }
+    const weaponGuide = read('docs/무기_및_스킬_가이드.md');
+    mid.forEach((x) => expect(weaponGuide).toContain(`${x.waveIndex}웨이브(${x.cardKillTarget}킬)`));
+  });
+
+  it('describes the boss arriving mid-wave with regular monsters kept coming', () => {
+    const pct = `${Math.round(GAME_TUNING.boss.encounterStartRatio * 100)}%`;
+    expect(GAME_TUNING.boss.encounterStartRatio).toBe(0.5);
+    for (const f of ['README.md', 'docs/몬스터_도감_설명서.md', 'docs/튜토리얼_훈련장_가이드.md']) {
+      expect(read(f)).toContain('보스가 살아 있는 동안에도 일반 몬스터가 계속 나옵니다');
+    }
+    expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain('보스가 살아 있는 동안에도 일반 몬스터가 계속 나오고');
+    expect(read('docs/비어 크러셔 상세설계서.md')).toContain('보스가 살아 있는 동안 일반 몬스터는');
+    const guide = read('src/pc/components/GuideModal.tsx');
+    expect(guide).toContain('GAME_TUNING.boss.encounterStartRatio');
+    expect(guide).toContain('MID_CARD_TEXT');
+    expect(pct).toBe('50%');
+  });
+
   it('keeps the fever wording precise: only hit points get x1.5, not kill bonuses', () => {
     for (const f of ['README.md', 'docs/무기_및_스킬_가이드.md']) expect(read(f)).toContain('명중 점수 1.5배');
   });
