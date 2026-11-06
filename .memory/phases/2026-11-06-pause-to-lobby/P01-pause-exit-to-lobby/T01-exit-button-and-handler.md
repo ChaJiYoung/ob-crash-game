@@ -1,6 +1,6 @@
 # Task: T01 로비 나가기 버튼·확인 단계·핸들러
 
-## Status: pending
+## Status: done
 
 ## Goal
 일시정지 메뉴에 `🏠 로비로 나가기`를 두고, 누르면 확인 단계 → 확인 시 점수 제출 없이 PAIRING 으로 이동한다.
@@ -42,9 +42,9 @@
 - 소스 검사: `handleExitToLobbyFromPause` 본문에 `engine.setPaused(false` 와 `handleReturnToLobby` 포함, `submitScore` 미포함.
 
 ## Acceptance Criteria
-- [ ] 일시정지 메뉴에서 버튼 → 확인 → 로비로 이동, 점수 제출 없음
-- [ ] 확인 중 Esc 는 게임을 재개하지 않고 확인만 닫음
-- [ ] 로비 후 새 게임을 시작하면 멈춰 있지 않음
+- [x] 일시정지 메뉴에서 버튼 → 확인 → 로비로 이동, 점수 제출 없음
+- [x] 확인 중 Esc 는 게임을 재개하지 않고 확인만 닫음
+- [x] 로비 후 새 게임을 시작하면 멈춰 있지 않음
 
 ## Validation
 - `npx tsc --noEmit && npx vitest run tests/pause-menu.test.ts` — 통과
@@ -64,6 +64,6 @@ Task: T01-exit-button-and-handler
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

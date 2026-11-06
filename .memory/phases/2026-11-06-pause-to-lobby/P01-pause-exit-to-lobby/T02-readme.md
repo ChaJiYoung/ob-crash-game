@@ -1,6 +1,6 @@
 # Task: T02 README 갱신
 
-## Status: pending
+## Status: done
 
 ## Goal
 README 일시정지 항목에 로비 나가기를 반영한다.
@@ -17,7 +17,7 @@ README 일시정지 항목에 로비 나가기를 반영한다.
 - `이어하기` / `다시시작` 뒤에 `/ 로비로 나가기(확인 후 대기실로 이동, 이번 판 점수는 저장되지 않음)` 추가.
 
 ## Acceptance Criteria
-- [ ] README 에 로비 나가기 설명이 있고 docs-sync 테스트 통과
+- [x] README 에 로비 나가기 설명이 있고 docs-sync 테스트 통과
 
 ## Validation
 - `npx vitest run tests/docs-sync.test.ts` — 통과
@@ -32,6 +32,6 @@ Task: T02-readme
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
