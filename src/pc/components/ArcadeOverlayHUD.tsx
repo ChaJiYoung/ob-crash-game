@@ -78,7 +78,7 @@ export function formatWeaponSkillBadge(
   let skillStatusText = '';
   if (isReady) {
     const stockBadge = maxSkillStock > 1 ? ` [★${skillStock}/${maxSkillStock}]` : '';
-    skillStatusText = `⚡ SKILL READY!${stockBadge} [위로 휙! / R키]`;
+    skillStatusText = `⚡ SKILL READY!${stockBadge} [위로 휙! / 우클릭]`;
   } else {
     skillStatusText = `쿨다운 ${(Math.max(0, cooldownRemainingMs) / 1000).toFixed(1)}s`;
   }

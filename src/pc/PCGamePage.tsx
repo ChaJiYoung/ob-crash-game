@@ -490,7 +490,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             if (p.skillSnapTriggered) {
               const isPendingCard = cardPendingBeforeShot || engine.isCardSelectPending;
               const inGrace = performance.now() < skillGraceUntilRef.current;
-              if (gamePhaseRef.current === 'PLAYING' && !isPendingCard && !inGrace) {
+              if ((gamePhaseRef.current === 'PLAYING' || gamePhaseRef.current === 'TUTORIAL') && !isPendingCard && !inGrace) {
                 executeSkill();
               }
             }

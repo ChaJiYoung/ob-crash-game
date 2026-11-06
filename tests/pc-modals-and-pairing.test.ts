@@ -168,7 +168,7 @@ describe('lobby controls hint', () => {
       'src/pc/components/GuideModal.tsx',
     ]) {
       const src = fs.readFileSync(f, 'utf8');
-      expect(src).not.toMatch(/\[Space|Space 키|Space로|R 키/);
+      expect(src).not.toMatch(/\[Space|Space 키|Space로|R 키|R키/);
     }
   });
 });

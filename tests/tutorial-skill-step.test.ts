@@ -64,3 +64,40 @@ describe('tutorial fever step (step 4)', () => {
     expect(engine.tutorialCompleted).toBe(true);
   });
 });
+
+import fs from 'node:fs';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { TutorialGuideOverlay } from '../src/pc/components/TutorialGuideOverlay';
+
+describe('tutorial guide overlay for the skill and fever steps', () => {
+  const render = (step: 1 | 2 | 3 | 4 | 'COMPLETED') =>
+    renderToStaticMarkup(
+      React.createElement(TutorialGuideOverlay, {
+        step,
+        targetsRemaining: 3,
+        isFeverActive: false,
+        ammo: 5,
+        maxAmmo: 5,
+        isReloading: false,
+        onExitToLobby: () => {},
+        onStartRealGame: () => {},
+      } as any)
+    );
+
+  it('step 3 explains the skill and step 4 explains the fever', () => {
+    const skill = render(3);
+    expect(skill).toContain('STEP 3');
+    expect(skill).toContain('우클릭');
+    const fever = render(4);
+    expect(fever).toContain('STEP 4');
+    expect(fever).toContain('더블클릭');
+  });
+
+  it('the phone snap skill is also handled during the tutorial', () => {
+    const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    const m = page.match(/if \(p\.skillSnapTriggered\) \{[\s\S]*?executeSkill\(\);/);
+    expect(m).not.toBeNull();
+    expect(m![0]).toContain("'TUTORIAL'");
+  });
+});

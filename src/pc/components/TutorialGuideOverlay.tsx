@@ -75,7 +75,8 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
             <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>
               {step === 1 && '🎯 STEP 1. 정밀 조준 배율(2.0x/1.0x/0.5x) & 원샷'}
               {step === 2 && '💥 STEP 2. 홀드 자동 연발(투두두두) & 100% 체력 게이지'}
-              {step === 3 && '🔥 STEP 3. 피버 모드 & 무제한 탄창'}
+              {step === 3 && '⚡ STEP 3. 액티브 스킬 (우클릭 / 폰 휙!)'}
+              {step === 4 && '🔥 STEP 4. 피버 모드 & 무제한 탄창'}
               {step === 'COMPLETED' && '🎉 훈련 수료 완료!'}
             </span>
           </div>
@@ -106,6 +107,15 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 3 && (
               <>
+                정지한 몬스터 편대 앞에서 <strong style={{ color: '#fbbf24' }}>마우스 우클릭</strong> 또는 폰을 위로 <strong style={{ color: '#fbbf24' }}>'휙!'</strong> 젖혀 무기 스킬을 발동하세요!
+                <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
+                  💡 샷건 스킬은 화면의 모든 몬스터를 기절시키고 피해를 줍니다. 한 번만 쓰면 통과!
+                </div>
+              </>
+            )}
+
+            {step === 4 && (
+              <>
                 피버 게이지 100% 충전 완료! 화면을 <strong style={{ color: '#fbbf24' }}>따닥! 빠르게 두 번 탭</strong>하거나 PC에서는 <strong style={{ color: '#fbbf24' }}>마우스 더블클릭</strong>으로 피버를 발동하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
@@ -121,9 +131,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 'COMPLETED' && (
               <>
-                모든 건슈팅 조작법(단발 탭 & 홀드 자동 연발, 더블탭 피버 버스트)을 완벽히 마스터하셨습니다!
+                모든 건슈팅 조작법(단발 탭 & 홀드 자동 연발, 액티브 스킬, 더블탭 피버 버스트)을 완벽히 마스터하셨습니다!
                 <div style={{ fontSize: '13px', color: '#10b981', marginTop: '4px' }}>
-                  💡 <strong>전용 액티브 스킬 팁:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히면 강력한 필살기가 발동됩니다! (PC는 R키 / 우클릭)
+                  💡 <strong>전용 액티브 스킬 팁:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히면 강력한 필살기가 발동됩니다! (PC는 우클릭)
                 </div>
               </>
             )}

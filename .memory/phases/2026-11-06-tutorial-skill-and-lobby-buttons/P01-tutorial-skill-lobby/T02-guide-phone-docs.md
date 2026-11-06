@@ -1,6 +1,6 @@
 # Task: T02 튜토리얼 안내·폰 스킬·문서
 
-## Status: pending
+## Status: done
 
 ## Goal
 튜토리얼 화면이 4단계를 안내하고, 폰 "휙"으로도 튜토리얼에서 스킬이 나가며, 문서가 4단계 구성이다.
@@ -31,8 +31,8 @@
 - `renderToStaticMarkup(createElement(TutorialGuideOverlay, …))` 로 step 3 에 `액티브 스킬`·`우클릭`, step 4 에 `피버`·`더블클릭` 포함 검사(props 는 컴포넌트 시그니처 확인 후 채움). 소스 검사: `PCGamePage.tsx` 의 `skillSnapTriggered` 블록에 `'TUTORIAL'` 포함.
 
 ## Acceptance Criteria
-- [ ] 튜토리얼 3단계 안내에 스킬, 4단계에 피버가 보인다
-- [ ] 폰 스냅 스킬이 튜토리얼에서 처리된다
+- [x] 튜토리얼 3단계 안내에 스킬, 4단계에 피버가 보인다
+- [x] 폰 스냅 스킬이 튜토리얼에서 처리된다
 
 ## Validation
 - `npx tsc --noEmit && npx vitest run` — 전체 통과
@@ -51,6 +51,6 @@ Task: T02-guide-phone-docs
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
