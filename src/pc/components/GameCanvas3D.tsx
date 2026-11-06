@@ -23,7 +23,8 @@ import {
 import { DraftTapGun3D } from '../three/DraftTapGun3D';
 import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
-import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, TARGET_SPECS } from '../../shared/constants';
+import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, TARGET_SPECS, WEAPON_CONSTANTS } from '../../shared/constants';
+import { detectDoubleClick } from '../mouseFever';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
@@ -455,9 +456,24 @@ export const GameCanvas3D = React.memo(
         }
       };
 
+      let lastClickMs = 0;
+
+      const tryActivateFever = () => {
+        const activated = engine.activateFever(performance.now());
+        if (activated) {
+          soundSynth.playFeverStart();
+          if (engine.isTutorialMode && engine.tutorialStep === 3) {
+            engine.spawnTutorialStep3Enemies();
+          }
+        }
+      };
+
       const handleMouseDown = (e: MouseEvent) => {
         if (e.button === 0) {
           executeShot('press');
+          const dbl = detectDoubleClick(lastClickMs, performance.now(), WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS);
+          lastClickMs = dbl.nextLastClickMs;
+          if (dbl.triggered) tryActivateFever();
           stopMouseHold();
           mouseHoldInterval = setInterval(() => {
             executeShot('hold');
@@ -475,24 +491,11 @@ export const GameCanvas3D = React.memo(
         stopMouseHold();
       };
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.code === 'Space') {
-          const activated = engine.activateFever(performance.now());
-          if (activated) {
-            soundSynth.playFeverStart();
-            if (engine.isTutorialMode && engine.tutorialStep === 3) {
-              engine.spawnTutorialStep3Enemies();
-            }
-          }
-        }
-      };
-
       container.addEventListener('mousemove', handleMouseMove);
       container.addEventListener('mousedown', handleMouseDown);
       window.addEventListener('mouseup', handleMouseUp);
       container.addEventListener('mouseleave', handleMouseLeave);
       window.addEventListener('blur', stopMouseHold);
-      window.addEventListener('keydown', handleKeyDown);
 
       // 6. Animation loop
       let animId = 0;
@@ -805,7 +808,6 @@ export const GameCanvas3D = React.memo(
         window.removeEventListener('mouseup', handleMouseUp);
         container.removeEventListener('mouseleave', handleMouseLeave);
         window.removeEventListener('blur', stopMouseHold);
-        window.removeEventListener('keydown', handleKeyDown);
 
         // Clean up target meshes
         targetMeshMap.forEach((mesh) => {

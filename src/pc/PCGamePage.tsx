@@ -247,22 +247,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
   }, [engine, soundSynth]);
 
-  // Keyboard 'R' & Mouse Right-Click Skill triggers
+  // Mouse right-click skill trigger
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'KeyR') {
-        executeSkill();
-      }
-    };
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       executeSkill();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('contextmenu', handleContextMenu);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('contextmenu', handleContextMenu);
     };
   }, [executeSkill]);
