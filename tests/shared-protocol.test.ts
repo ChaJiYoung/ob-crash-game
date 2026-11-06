@@ -124,9 +124,9 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     // Check Gatling specifics
     const gat = WEAPON_ARCHETYPE_SPECS.gatling;
-    expect(gat.levels[1].damagePerHit).toBe(0.35); // 0.25 x 1.4 (tuning)
+    expect(gat.levels[1].damagePerHit).toBe(0.375); // 0.25 x 1.5 (tuning)
     expect(gat.levels[1].maxAmmo).toBe(30);
-    expect(gat.levels[4].damagePerHit).toBe(0.7); // 0.50 x 1.4
+    expect(gat.levels[4].damagePerHit).toBe(0.75); // 0.50 x 1.5
     expect(gat.levels[4].maxAmmo).toBe(50);
     expect(gat.levels[4].fireIntervalMs).toBe(Math.round(83 * 0.7));
     expect(gat.levels[4].skillKnockbackM).toBe(5);
