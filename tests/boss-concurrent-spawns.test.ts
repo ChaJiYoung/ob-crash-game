@@ -173,4 +173,82 @@ describe('boss fights run alongside regular monsters', () => {
     }
     expect(engine.gamePhase).toBe('VICTORY');
   });
+
+  describe('mid-fight cards', () => {
+    const kill = (n: number): void => {
+      // Count n regular kills the way a shot would: through the engine's own kill handler.
+      for (let i = 0; i < n; i++) {
+        const t = {
+          id: `k${i}`, kind: 'pilgood', hp: 1, maxHp: 1, radiusM: 12, thetaRad: 0, x: 0, z: -12,
+          speedMps: 0, hitRadiusM: 1, killBonusScore: 1, breached: false,
+        } as ActiveTargetEntity;
+        (engine as any).handleMonsterKilled(t, now);
+      }
+    };
+
+    it('deals a card at the wave target while the boss is alive, and the boss fight goes on after the pick', () => {
+      startWithBoss(3);
+      const target = engine.getCardKillTarget(3)!;
+      expect(target).toBe(24);
+      kill(target - 1);
+      expect(engine.isRewardCardPending).toBe(false);
+      kill(1);
+      expect(engine.isRewardCardPending).toBe(true);
+      expect(engine.cardKillCount).toBe(0);
+
+      now += 1000;
+      const card = engine.activeTargets.find((t) => t.rewardCardKind)!;
+      const p = engine.computeTargetAimCoords(card);
+      engine.shootAt(p.targetNormX, p.targetNormY, now);
+      expect(engine.isRewardCardPending).toBe(false);
+      expect(engine.currentWave).toBe(3);
+      expect(engine.gamePhase).toBe('PLAYING');
+      expect(bosses(engine).length).toBe(1);
+      expect(engine.isBossEncounterActive).toBe(true);
+    });
+
+    it('keeps dealing cards every target kills with no cap', () => {
+      startWithBoss(3);
+      const target = engine.getCardKillTarget(3)!;
+      for (let round = 0; round < 3; round++) {
+        kill(target);
+        expect(engine.isRewardCardPending).toBe(true);
+        now += 1000;
+        const card = engine.activeTargets.find((t) => t.rewardCardKind)!;
+        const p = engine.computeTargetAimCoords(card);
+        engine.shootAt(p.targetNormX, p.targetNormY, now);
+        expect(engine.isRewardCardPending).toBe(false);
+      }
+    });
+
+    it('does not end the game when a wave-7 mid-fight card is picked', () => {
+      startWithBoss(7);
+      kill(engine.getCardKillTarget(7)!);
+      expect(engine.isRewardCardPending).toBe(true);
+      now += 1000;
+      const card = engine.activeTargets.find((t) => t.rewardCardKind)!;
+      const p = engine.computeTargetAimCoords(card);
+      engine.shootAt(p.targetNormX, p.targetNormY, now);
+      expect(engine.gamePhase).toBe('PLAYING');
+      expect(bosses(engine).length).toBe(3);
+    });
+
+    it('still deals the after-boss card in waves 3 and 5 and pays the time bonus only once', () => {
+      startWithBoss(5);
+      for (const b of [...bosses(engine)]) {
+        now += 600;
+        killBoss(engine, b, now);
+      }
+      const bonusAtKill = engine.scoreManager.getState().totalScore;
+      const end = now + GAME_TUNING.boss.clear.durationMs + 300;
+      while (now < end) {
+        now += 50;
+        engine.update(now, 0.05);
+      }
+      now += 50;
+      engine.update(now, 0.05);
+      expect(engine.isRewardCardPending).toBe(true);
+      expect(engine.scoreManager.getState().totalScore).toBe(bonusAtKill);
+    });
+  });
 });

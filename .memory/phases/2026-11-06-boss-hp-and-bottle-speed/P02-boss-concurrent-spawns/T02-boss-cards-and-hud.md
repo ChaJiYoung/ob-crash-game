@@ -1,6 +1,6 @@
 # Task: T02 보스전 중간 카드와 HUD 정리
 
-## Status: pending
+## Status: done
 
 ## Goal
 3·5·7웨이브에서도 처치 수 24 / 40 / 44에 도달하면 중간 카드가 나오고(상한 없이 반복), 보스전 중에는 웨이브 진행 바가 사라지고 보스 체력 바와 카드 처치 카운터만 보인다.
@@ -49,7 +49,7 @@
 - Related Files:
   - `tests/boss-encounters.test.ts` :: 238~243행 `getCardKillTarget` 기대값; modify
   - `tests/boss-concurrent-spawns.test.ts` (T01에서 만든 파일); 케이스 추가
-  - `tests/pc-hud-and-banner.test.ts` 또는 `tests/hud-render-cost.test.ts`; HUD 렌더 검증이 있으면 modify
+  - `tests/pc-hud-and-banner.test.ts` :: `getWaveHudMode`; modify (구현: `ArcadeOverlayHUD.tsx`의 순수 함수 `getWaveHudMode(bossCount, cardKillTarget)`로 조건을 빼 테스트)
 
 #### Details
 - `boss-encounters.test.ts`: `[1, 2].forEach(null)`, `getCardKillTarget(3)` 24, `(4)` 22, `(5)` 40, `(6)` 26, `(7)` 44. `startWave(1)`의 `cardKillTarget`은 null 유지.
@@ -57,9 +57,9 @@
 - HUD: 보스 있음/없음에 따라 진행 바와 카드 카운터가 그려지는지 기존 HUD 테스트 방식(React 렌더 또는 스냅샷)을 따라 확인한다. 기존 방식으로 렌더 검증이 어려우면 조건 로직을 작은 순수 함수로 빼서 테스트한다.
 
 ## Acceptance Criteria
-- [ ] 3·5·7웨이브 `getCardKillTarget`이 24·40·44이고 4·6웨이브는 22·26이다.
-- [ ] 보스전 중 목표 처치 수마다 카드가 나오고, 카드 선택으로 보스전이 끝나거나 승리하지 않는다.
-- [ ] 보스가 있을 때 웨이브 진행 바가 없고 보스 체력 바와 카드 카운터만 보인다. 보스가 없을 때 HUD는 그대로다.
+- [x] 3·5·7웨이브 `getCardKillTarget`이 24·40·44이고 4·6웨이브는 22·26이다.
+- [x] 보스전 중 목표 처치 수마다 카드가 나오고, 카드 선택으로 보스전이 끝나거나 승리하지 않는다.
+- [x] 보스가 있을 때 웨이브 진행 바가 없고 보스 체력 바와 카드 카운터만 보인다. 보스가 없을 때 HUD는 그대로다.
 
 ## Validation
 - `npx vitest run tests/boss-encounters.test.ts tests/boss-concurrent-spawns.test.ts tests/pc-hud-and-banner.test.ts tests/hud-render-cost.test.ts` — 통과
@@ -80,6 +80,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

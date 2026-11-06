@@ -5,6 +5,7 @@ import {
   formatActiveBuffBadge,
   shouldRenderMonsterHpBar,
   formatWeaponSkillBadge,
+  getWaveHudMode,
 } from '../src/pc/components/ArcadeOverlayHUD';
 import { getJudgmentBannerSpec } from '../src/pc/components/JudgmentBanner';
 import {
@@ -210,5 +211,13 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
     const backToAim = viewportRatioToAim(0, 0);
     expect(backToAim.aimX).toBe(0);
     expect(backToAim.aimY).toBe(0);
+  });
+
+  it('hides the wave progress bar during a boss fight but keeps the card counter when the wave has cards', () => {
+    expect(getWaveHudMode(0, null)).toEqual({ showProgressBar: true, showCardCounterOnly: false });
+    expect(getWaveHudMode(0, 22)).toEqual({ showProgressBar: true, showCardCounterOnly: false });
+    expect(getWaveHudMode(1, 24)).toEqual({ showProgressBar: false, showCardCounterOnly: true });
+    expect(getWaveHudMode(3, 44)).toEqual({ showProgressBar: false, showCardCounterOnly: true });
+    expect(getWaveHudMode(2, null)).toEqual({ showProgressBar: false, showCardCounterOnly: false });
   });
 });
