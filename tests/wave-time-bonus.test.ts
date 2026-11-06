@@ -39,6 +39,17 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
       expect(engine.computeWaveTimeBonus(2, 0)).toBe(cfg.maxPerWave);
     });
 
+    it('makes a slow boss kill cost more than farming kills can earn back (>= 100 points per second past par)', () => {
+      // Kill points arrive at roughly 50-70 points per second, so lingering past par must lose faster than that.
+      expect(cfg.maxPerWave * cfg.bossWaveWeight).toBe(2800);
+      expect(cfg.maxPerWave * cfg.bossWaveWeight).toBeLessThanOrEqual(4000);
+      for (const w of [3, 5, 7]) {
+        const full = engine.computeWaveTimeBonus(w, par(w));
+        const tenLater = engine.computeWaveTimeBonus(w, par(w) + 10);
+        expect(full - tenLater).toBeGreaterThanOrEqual(1000);
+      }
+    });
+
     it('falls linearly between par and the zero point', () => {
       const span = cfg.zeroAtParMult - 1;
       const a = engine.computeWaveTimeBonus(1, par(1) * (1 + span * 0.25));

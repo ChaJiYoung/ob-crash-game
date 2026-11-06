@@ -27,7 +27,7 @@ export const GAME_TUNING = {
      */
     /** 클리어할 때의 무기 레벨이 낮을수록 기본 점수에 곱하는 배율. MAX는 1이다. */
     weaponLevelBonusMult: { 1: 1.2, 2: 1.1, 3: 1.05, 4: 1 },
-    timeBonus: { maxPerWave: 700, bossWaveWeight: 2, zeroAtParMult: 1.6 },
+    timeBonus: { maxPerWave: 700, bossWaveWeight: 4, zeroAtParMult: 1.6 },
   },
   skillCooldownMsByLevel: { 1: 21000, 2: 19000, 3: 16000, 4: 14000 },
   goldenCan: { feverGain: 30, skillStockGain: 1 },

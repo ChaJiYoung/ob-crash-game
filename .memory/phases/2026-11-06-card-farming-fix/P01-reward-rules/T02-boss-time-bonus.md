@@ -1,6 +1,6 @@
 # Task: T02 보스 웨이브 시간 보너스 상향
 
-## Status: pending
+## Status: done
 
 ## Goal
 보스 웨이브(3·5·7)의 시간 보너스가 최대 2,800점이 되어, 기준 시간에서 늦어질수록 잃는 점수가 킬 점수 증가 속도(초당 약 50~70점)보다 가파르다.
@@ -40,9 +40,9 @@
 - `game-tuning.test.ts`의 `bossWaveWeight >= 1` 검증은 그대로 둔다. 보스 웨이브 만점이 4,000점을 넘지 않는지(점수 규모 폭주 방지)를 추가로 확인해도 된다.
 
 ## Acceptance Criteria
-- [ ] 보스 웨이브 만점이 2,800점이고 일반 웨이브는 700점이다.
-- [ ] 보스 웨이브에서 par보다 10초 늦으면 100점 이상, 즉 1,000점 이상 줄어든다.
-- [ ] 문서·가이드가 2,800점으로 안내하고 `RANKING_RULESET_VERSION`은 5다.
+- [x] 보스 웨이브 만점이 2,800점이고 일반 웨이브는 700점이다.
+- [x] 보스 웨이브에서 par보다 10초 늦으면 100점 이상, 즉 1,000점 이상 줄어든다.
+- [x] 문서·가이드가 2,800점으로 안내하고 `RANKING_RULESET_VERSION`은 5다.
 
 ## Validation
 - `npx vitest run tests/wave-time-bonus.test.ts tests/game-tuning.test.ts tests/docs-sync.test.ts tests/result-breakdown.test.ts tests/score-fever-multiplier.test.ts` — 통과
@@ -63,6 +63,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
