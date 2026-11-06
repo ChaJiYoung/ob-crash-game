@@ -114,12 +114,13 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     // Check Revolver specifics
     const rev = WEAPON_ARCHETYPE_SPECS.revolver;
-    expect(rev.levels[1].damagePerHit).toBe(1.00);
+    const revScale = GAME_TUNING.weaponDamageScale.revolver; // damagePerHit = base x tuning scale
+    expect(rev.levels[1].damagePerHit).toBeCloseTo(1.0 * revScale, 3);
     expect(rev.levels[1].pierceCount).toBe(1);
     expect(rev.levels[3].pierceCount).toBe(2);
-    expect(rev.levels[2].damagePerHit).toBe(1.05);
-    expect(rev.levels[3].damagePerHit).toBe(1.1);
-    expect(rev.levels[4].damagePerHit).toBe(1.15);
+    expect(rev.levels[2].damagePerHit).toBeCloseTo(1.05 * revScale, 3);
+    expect(rev.levels[3].damagePerHit).toBeCloseTo(1.1 * revScale, 3);
+    expect(rev.levels[4].damagePerHit).toBeCloseTo(1.15 * revScale, 3);
     expect(rev.levels[4].pierceDamageRatio).toBe(1.0);
 
     // Check Gatling specifics

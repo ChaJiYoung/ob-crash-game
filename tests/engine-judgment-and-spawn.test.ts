@@ -551,8 +551,9 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot2 = engine.shootAt(projRev.targetNormX, projRev.targetNormY, 2000);
     expect(shot2.fired).toBe(true);
     expect(shot2.hitTargets?.length).toBe(2);
-    expect(revFront.hp).toBeCloseTo(2.0, 5); // 4.0 - 2.00 = 2.00
-    expect(revRear.hp).toBeCloseTo(2.066, 2); // 3.0 - (2.00 * 0.467 = 0.934) = 2.066
+    const revPerfect = 1.0 * GAME_TUNING.weaponDamageScale.revolver * 2.0; // base 1.00 x tuning scale x 2.0 PERFECT
+    expect(revFront.hp).toBeCloseTo(4.0 - revPerfect, 5);
+    expect(revRear.hp).toBeCloseTo(3.0 - revPerfect * 0.467, 2);
 
     // 3. Gatling Lv.1: 0.25 base DMG x1.5 tuning. With PERFECT (2.0x) -> 0.75 DMG rapid fire
     engine.weaponSystem.selectWeapon('gatling', 1);
@@ -794,7 +795,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(shotGood.fired).toBe(true);
     expect(shotGood.grade).toBe('GOOD');
     expect(shotGood.killed).toBe(false);
-    expect(canGood.hp).toBeCloseTo(0.5, 2);
+    // revolver Lv.1 base 1.00 x revolver tuning scale x 0.5 (GOOD)
+    expect(canGood.hp).toBeCloseTo(1 - 1.0 * GAME_TUNING.weaponDamageScale.revolver * 0.5, 2);
 
     // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.5x) -> 0.63 DMG (0.37 HP remains)
     engine.weaponSystem.selectWeapon('shotgun', 1);
