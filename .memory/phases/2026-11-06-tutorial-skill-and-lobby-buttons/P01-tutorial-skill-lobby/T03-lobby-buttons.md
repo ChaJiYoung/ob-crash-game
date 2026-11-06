@@ -1,6 +1,6 @@
 # Task: T03 로비 버튼 나란히 + 가이드 모달 버튼 제거
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비에서 `🎓 튜토리얼 시작`과 `📖 게임 가이드`가 한 줄에 나란히 있고, 가이드 모달 안에는 튜토리얼 버튼이 없다.
@@ -32,7 +32,7 @@
 - 두 콜백을 넘긴 렌더에 `튜토리얼 시작`·`게임 가이드` 포함. 가이드 콜백만 넘기면 `튜토리얼 시작` 미포함, 튜토리얼 콜백만이면 `게임 가이드` 미포함. 소스 검사: `GuideModal.tsx` 에 `showTutorialButton`, `튜토리얼 플레이` 없음.
 
 ## Acceptance Criteria
-- [ ] 로비 한 줄에 튜토리얼·가이드 버튼, 가이드 모달에 튜토리얼 버튼 없음
+- [x] 로비 한 줄에 튜토리얼·가이드 버튼, 가이드 모달에 튜토리얼 버튼 없음
 
 ## Validation
 - `npx tsc --noEmit && npx vitest run` — 전체 통과
@@ -50,6 +50,6 @@ Task: T03-lobby-buttons
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -12,8 +12,6 @@ const MID_CARD_TEXT = GAME_TUNING.waves
 export interface GuideModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onStartTutorial?: () => void;
-  showTutorialButton?: boolean;
 }
 
 type TabType = 'weapons' | 'monsters' | 'cards' | 'items';
@@ -147,8 +145,6 @@ const ITEM_DETAILS: Record<
 export const GuideModal: React.FC<GuideModalProps> = ({
   isOpen,
   onClose,
-  onStartTutorial,
-  showTutorialButton = true,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('weapons');
 
@@ -732,34 +728,10 @@ export const GuideModal: React.FC<GuideModalProps> = ({
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             background: 'rgba(0, 0, 0, 0.25)',
           }}
         >
-          {showTutorialButton && onStartTutorial ? (
-            <button
-              onClick={onStartTutorial}
-              style={{
-                background: 'linear-gradient(90deg, #0284c7, #38bdf8)',
-                border: 'none',
-                borderRadius: '12px',
-                color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '14px',
-                padding: '10px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(56, 189, 248, 0.35)',
-              }}
-            >
-              <span>🎓</span>
-              <span>튜토리얼 플레이</span>
-            </button>
-          ) : (
-            <div />
-          )}
 
           <button
             onClick={onClose}

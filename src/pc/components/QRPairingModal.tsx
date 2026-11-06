@@ -20,6 +20,7 @@ export interface QRPairingModalProps {
   onStartAsPc: () => void;
   onStartWithController: () => void;
   onOpenGuide?: () => void;
+  onStartTutorial?: () => void;
   onStartSandbox?: () => void;
   onRenewRoom?: () => void;
 }
@@ -33,6 +34,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   onStartAsPc,
   onStartWithController,
   onOpenGuide,
+  onStartTutorial,
   onStartSandbox,
   onRenewRoom,
 }) => {
@@ -350,28 +352,57 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
             </button>
           )}
 
-          {onOpenGuide && (
-            <button
-              onClick={onOpenGuide}
-              style={{
-                width: '100%',
-                padding: '13px',
-                borderRadius: '12px',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
-                background: 'rgba(245, 158, 11, 0.08)',
-                color: '#fbbf24',
-                fontSize: '14px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.15s',
-              }}
-            >
-              📖 게임 가이드 & 튜토리얼 (조작법 · 몬스터 도감 · 아이템)
-            </button>
+          {(onStartTutorial || onOpenGuide) && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {onStartTutorial && (
+                <button
+                  onClick={onStartTutorial}
+                  style={{
+                    flex: 1,
+                    padding: '13px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(56, 189, 248, 0.4)',
+                    background: 'rgba(56, 189, 248, 0.1)',
+                    color: '#38bdf8',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    whiteSpace: 'normal',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  🎓 튜토리얼 시작
+                </button>
+              )}
+              {onOpenGuide && (
+                <button
+                  onClick={onOpenGuide}
+                  style={{
+                    flex: 1,
+                    padding: '13px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                    background: 'rgba(245, 158, 11, 0.08)',
+                    color: '#fbbf24',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    whiteSpace: 'normal',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  📖 게임 가이드
+                </button>
+              )}
+            </div>
           )}
 
           <div

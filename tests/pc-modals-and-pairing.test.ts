@@ -172,3 +172,33 @@ describe('lobby controls hint', () => {
     }
   });
 });
+
+describe('lobby tutorial and guide buttons', () => {
+  const render = (props: Record<string, unknown>) =>
+    renderToStaticMarkup(
+      React.createElement(QRPairingModal, {
+        roomId: 'AB12',
+        topRankings: [],
+        onStartAsPc: () => {},
+        onStartWithController: () => {},
+        ...props,
+      } as any)
+    );
+
+  it('shows both buttons side by side when both callbacks exist', () => {
+    const html = render({ onStartTutorial: () => {}, onOpenGuide: () => {} });
+    expect(html).toContain('튜토리얼 시작');
+    expect(html).toContain('게임 가이드');
+  });
+
+  it('shows only the button that has a callback', () => {
+    expect(render({ onOpenGuide: () => {} })).not.toContain('튜토리얼 시작');
+    expect(render({ onStartTutorial: () => {} })).not.toContain('게임 가이드');
+  });
+
+  it('the guide modal no longer has its own tutorial button', () => {
+    const src = fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8');
+    expect(src).not.toContain('showTutorialButton');
+    expect(src).not.toContain('튜토리얼 플레이');
+  });
+});

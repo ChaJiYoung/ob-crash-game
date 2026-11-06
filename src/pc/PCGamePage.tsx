@@ -1299,6 +1299,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onStartAsPc={handleStartGame}
             onStartWithController={startCountdownAndGame}
             onOpenGuide={handleOpenGuide}
+            onStartTutorial={handleStartTutorial}
             onStartSandbox={handleStartSandbox}
             onRenewRoom={handleRenewRoom}
           />
@@ -1404,8 +1405,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       <GuideModal
         isOpen={isGuideOpen}
         onClose={handleCloseGuide}
-        showTutorialButton={gamePhase === 'PAIRING' || gamePhase === 'ZEROING'}
-        onStartTutorial={handleStartTutorial}
       />
 
       {/* Top-Right Quick Sensor Lab Floating Button in PAIRING / ZEROING */}
