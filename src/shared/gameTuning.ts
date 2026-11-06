@@ -44,7 +44,7 @@ export const GAME_TUNING = {
     holdDamageByWeapon: { shotgun: 0.6, revolver: 0.6, gatling: 0.85 },
     holdIntervalScaleByWeapon: { shotgun: 0.7, revolver: 0.7, gatling: 0.85 },
   },
-  weaponDamageScale: { shotgun: 1.2, revolver: 1.0, gatling: 2.0 },
+  weaponDamageScale: { shotgun: 1.2, revolver: 1.0, gatling: 1.4 },
   /** 스킬 수치. 리볼버 칼날 피해는 평타 GREAT 한 발과 같아 무기 표에서 자동으로 맞춘다. */
   skills: {
     blade: {
@@ -70,7 +70,7 @@ export const GAME_TUNING = {
   },
   /** 무기·레벨별 기본 탄수. rapid_reload 카드가 장당 +2발 더한다. */
   maxAmmoByWeapon: {
-    shotgun: { 1: 10, 2: 10, 3: 12, 4: 12 },
+    shotgun: { 1: 14, 2: 14, 3: 16, 4: 16 },
     revolver: { 1: 10, 2: 10, 3: 12, 4: 12 },
     gatling: { 1: 30, 2: 35, 3: 40, 4: 50 },
   },

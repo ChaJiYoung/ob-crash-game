@@ -1,3 +1,4 @@
+import { GAME_TUNING } from '../src/shared/gameTuning';
 import { describe, it, expect } from 'vitest';
 import {
   computeHorizontalHalfFovRad,
@@ -553,7 +554,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(revFront.hp).toBeCloseTo(2.0, 5); // 4.0 - 2.00 = 2.00
     expect(revRear.hp).toBeCloseTo(2.066, 2); // 3.0 - (2.00 * 0.467 = 0.934) = 2.066
 
-    // 3. Gatling Lv.1: 0.25 base DMG x2.0 tuning. With PERFECT (2.0x) -> 1.0 DMG rapid fire
+    // 3. Gatling Lv.1: 0.25 base DMG x1.4 tuning. With PERFECT (2.0x) -> 0.7 DMG rapid fire
     engine.weaponSystem.selectWeapon('gatling', 1);
     const gatTarget = {
       id: 'gat_dummy',
@@ -574,7 +575,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     const shot3 = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 3000);
     expect(shot3.fired).toBe(true);
-    expect(gatTarget.hp).toBeCloseTo(1.0, 5); // 2.0 - (0.25 x 2.0 tuning x 2.0 PERFECT = 1.0) = 1.0
+    // 2.0 - (0.25 x gatling tuning scale x 2.0 PERFECT); the scale is 1.4, so 2.0 - 0.7 = 1.3
+    expect(gatTarget.hp).toBeCloseTo(2.0 - 0.25 * GAME_TUNING.weaponDamageScale.gatling * 2.0, 5);
   });
 
   it('should execute 3 distinct active skills (Plunger Storm stun, Opener slow, Foam Tsunami knockback)', () => {

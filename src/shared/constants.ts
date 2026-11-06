@@ -321,7 +321,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
       },
       2: {
         level: 2,
-        damagePerHit: 1.35,
+        damagePerHit: 1.05,
         pelletCount: 1,
         pierceCount: 1,
         pierceDamageRatio: 0.50,
@@ -343,7 +343,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
       },
       3: {
         level: 3,
-        damagePerHit: 1.75,
+        damagePerHit: 1.10,
         pelletCount: 1,
         pierceCount: 2,
         pierceDamageRatio: 0.50,
@@ -365,7 +365,7 @@ const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> =
       },
       4: {
         level: 4,
-        damagePerHit: 2.20,
+        damagePerHit: 1.15,
         pelletCount: 1,
         pierceCount: 2,
         pierceDamageRatio: 1.00,
