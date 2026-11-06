@@ -126,7 +126,7 @@ export function formatFeverStatusBadge(
 
   if (isFeverReady || feverGauge >= 100) {
     return {
-      label: '🔥 LOCK 100% — READY! (더블탭/Space로 발동)',
+      label: '🔥 LOCK 100% — READY! (더블클릭/더블탭으로 발동)',
       isLocked: true,
       accentColor: '#fbbf24',
     };

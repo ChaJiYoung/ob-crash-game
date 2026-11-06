@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { buildControllerPairingUrl } from '../src/pc/components/QRPairingModal';
+import React from 'react';
+import fs from 'node:fs';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { buildControllerPairingUrl, QRPairingModal } from '../src/pc/components/QRPairingModal';
 import { PlayerProfile } from '../src/shared/types';
 import {
   DEFAULT_TUNING_CONFIG,
@@ -137,5 +140,35 @@ describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
     expect(loaded.isStabilizedMode).toBe(true);
     expect(loaded.preset).toBe('stabilized_galaxy');
     expect(loaded.minCutoff).toBe(0.4);
+  });
+});
+
+describe('lobby controls hint', () => {
+  const html = renderToStaticMarkup(
+    React.createElement(QRPairingModal, {
+      roomId: 'AB12',
+      topRankings: [],
+      onStartAsPc: () => {},
+      onStartWithController: () => {},
+    })
+  );
+
+  it('explains the phone and mouse controls', () => {
+    expect(html).toContain('조작법');
+    expect(html).toContain('더블탭');
+    expect(html).toContain('더블클릭');
+    expect(html).toContain('우클릭');
+  });
+
+  it('no longer mentions the removed Space and R keys anywhere in the player-facing text', () => {
+    expect(html).not.toContain('Space');
+    for (const f of [
+      'src/pc/components/ArcadeOverlayHUD.tsx',
+      'src/pc/components/TutorialGuideOverlay.tsx',
+      'src/pc/components/GuideModal.tsx',
+    ]) {
+      const src = fs.readFileSync(f, 'utf8');
+      expect(src).not.toMatch(/\[Space|Space 키|Space로|R 키/);
+    }
   });
 });

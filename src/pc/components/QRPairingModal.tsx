@@ -374,6 +374,22 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
             </button>
           )}
 
+          <div
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: 'rgba(15, 23, 42, 0.6)',
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+              fontSize: '12px',
+              lineHeight: 1.7,
+              color: '#94a3b8',
+            }}
+          >
+            <div style={{ fontWeight: 800, color: '#cbd5e1' }}>🎮 조작법</div>
+            <div>📱 폰: 기울여 조준 · 탭 발사(꾹 누르면 연사) · 더블탭 피버 · 총구를 위로 휙 젖혀 스킬</div>
+            <div>🖱️ 마우스: 클릭 발사(누르고 있으면 연사) · 더블클릭 피버 · 우클릭 스킬 · Esc 일시정지</div>
+          </div>
+
           {onRenewRoom && (
             <button
               onClick={onRenewRoom}

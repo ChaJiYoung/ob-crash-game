@@ -106,7 +106,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 3 && (
               <>
-                피버 게이지 100% 충전 완료! 화면을 <strong style={{ color: '#fbbf24' }}>따닥! 빠르게 두 번 탭</strong>하거나 PC <strong style={{ color: '#fbbf24' }}>[Space] 키</strong>를 눌러 피버를 발동하세요!
+                피버 게이지 100% 충전 완료! 화면을 <strong style={{ color: '#fbbf24' }}>따닥! 빠르게 두 번 탭</strong>하거나 PC에서는 <strong style={{ color: '#fbbf24' }}>마우스 더블클릭</strong>으로 피버를 발동하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
@@ -272,7 +272,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
           {isFeverActive
             ? '🔥 FEVER ACTIVE (무한 탄창 & 명중 점수 1.5배)'
             : isFeverReady
-            ? '🔥 FEVER READY! [Space / 모바일 더블탭]'
+            ? '🔥 FEVER READY! [더블클릭 / 모바일 더블탭]'
             : 'FEVER GAUGE 준비 중'}
         </div>
       </div>

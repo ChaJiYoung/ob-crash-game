@@ -1,6 +1,6 @@
 # Task: T02 안내 문구·문서·로비 조작법
 
-## Status: pending
+## Status: done
 
 ## Goal
 키가 사라진 안내를 모두 고치고, 로비 `QRPairingModal` 에 폰·마우스 조작법 두 줄을 넣는다.
@@ -33,8 +33,8 @@
   - `tests/docs-sync.test.ts` — 필요 시 갱신. 추가로 소스 파일들에 `Space 키`/`[Space` 가 남지 않았는지 검사.
 
 ## Acceptance Criteria
-- [ ] 화면·문서 어디에도 Space·R 키 안내가 남지 않는다
-- [ ] 로비에 폰·마우스 조작법 두 줄이 보인다
+- [x] 화면·문서 어디에도 Space·R 키 안내가 남지 않는다
+- [x] 로비에 폰·마우스 조작법 두 줄이 보인다
 
 ## Validation
 - `npx tsc --noEmit && npx vitest run` — 전체 통과
@@ -53,6 +53,6 @@ Task: T02-guide-text-docs-lobby-hint
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
