@@ -264,6 +264,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       kids.forEach((k) => {
         expect(k.hp).toBe(cfg.childHp);
         expect(k.speedMps).toBeCloseTo(cfg.childSpeedMps * 1, 5);
+        expect(cfg.childSpeedMps).toBe(3.0);
+        expect(cfg.childSpeedMps).toBeGreaterThan(TARGET_SPECS.bottle.speedMps);
         expect(k.modelScaleMult).toBe(cfg.childScale);
         expect(k.customBaseY).toBe(cfg.childBaseY);
         expect(k.radiusM).toBe(10);

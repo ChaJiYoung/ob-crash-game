@@ -32,10 +32,10 @@ describe('boss minions are summoned when a boss crosses an HP threshold', () => 
     expect(GAME_TUNING.boss.summonCountByStep.length).toBe(GAME_TUNING.boss.summonHpThresholds.length);
     expect(RANKING_RULESET_VERSION).toBe(5);
     const hp = (w: number) => GAME_TUNING.waves[w - 1].boss!;
-    expect(hp(3).coolerHp).toEqual([75]);
-    expect(hp(5).coolerHp).toEqual([70, 70]);
-    expect(hp(7).coolerHp).toEqual([90, 90]);
-    expect(hp(7).kingHp).toBe(200);
+    expect(hp(3).coolerHp).toEqual([100]);
+    expect(hp(5).coolerHp).toEqual([120, 120]);
+    expect(hp(7).coolerHp).toEqual([150, 150]);
+    expect(hp(7).kingHp).toBe(250);
   });
 
   it('summons nothing while the boss is at full HP, no matter how long the fight lasts', () => {
