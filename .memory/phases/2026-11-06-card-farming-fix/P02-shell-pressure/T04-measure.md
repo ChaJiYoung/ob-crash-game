@@ -1,6 +1,6 @@
 # Task: T04 파밍 시간 측정과 기준 시간 재측정
 
-## Status: pending
+## Status: done
 
 ## Goal
 (1) 포탄 압박이 보스를 안 죽이고 버티는 플레이를 실제로 줄였는지 스톨 봇으로 확인하고, (2) 중간 카드 삭제와 포탄 압박 때문에 달라진 3~7웨이브 `parTimeSec`를 재측정해 반영한다. 결과를 기록으로 남긴다.
@@ -35,10 +35,10 @@
 - 측정이 비정상이면(예: 보스 웨이브가 일반 웨이브보다 짧음) 값을 반영하지 말고 원인을 먼저 찾는다.
 
 ## Acceptance Criteria
-- [ ] 스톨 봇 압박 전/후 결과가 `.memory/references/playtest-2026-11-06-card-farming-fix.md`에 기록된다.
-- [ ] 3~7웨이브 `parTimeSec`가 30판 측정값으로 갱신되고 주석 날짜가 맞다.
-- [ ] 보스 웨이브에서 par보다 10초 늦으면 1,000점 이상 잃는다는 테스트가 통과한다.
-- [ ] `RANKING_RULESET_VERSION`은 5 그대로다.
+- [x] 스톨 봇 압박 전/후 결과가 `.memory/references/playtest-2026-11-06-card-farming-fix.md`에 기록된다.
+- [ ] (보류) 3~7웨이브 `parTimeSec`를 측정값으로 갱신 — 중간 카드 삭제로 보스 웨이브가 크게 길어져(5웨이브 106초) 갱신하면 T02의 기울기 검증이 깨진다. 카드 구성 확정 후 재측정한다.
+- [x] 보스 웨이브에서 par보다 10초 늦으면 1,000점 이상 잃는다는 테스트가 통과한다.
+- [x] `RANKING_RULESET_VERSION`은 5 그대로다.
 
 ## Validation
 - `npx vitest run tests/wave-time-bonus.test.ts tests/game-tuning.test.ts tests/docs-sync.test.ts` — 통과
@@ -59,6 +59,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: 측정 3종(압박 전/후, 카드 구성별)을 `.memory/references/playtest-2026-11-06-card-farming-fix.md`에 기록했다. `parTimeSec`는 갱신하지 않고 사용자에게 카드 구성 결정을 요청한다.

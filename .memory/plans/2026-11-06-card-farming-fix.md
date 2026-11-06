@@ -15,4 +15,4 @@
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 중간 카드 삭제, 수리 카드 +2, 보스 웨이브 보너스 2,800점, 문서·테스트 | [P01](../phases/2026-11-06-card-farming-fix/P01-reward-rules/phase.md) |
-| P02 | `in_progress` | 보스 포탄 간격 압박, 스톨 봇 측정, 기준 시간 재측정 | [P02](../phases/2026-11-06-card-farming-fix/P02-shell-pressure/phase.md) |
+| P02 | `done` | 보스 포탄 간격 압박, 스톨 봇 측정, 기준 시간 재측정 | [P02](../phases/2026-11-06-card-farming-fix/P02-shell-pressure/phase.md) |
