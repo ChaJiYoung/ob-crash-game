@@ -84,6 +84,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [pauseMenu, setPauseMenu] = useState<{ open: boolean; reason: PauseReason }>({ open: false, reason: 'USER' });
   const pauseMenuOpenRef = useRef<boolean>(false);
   pauseMenuOpenRef.current = pauseMenu.open;
+  const [isExitConfirmOpen, setIsExitConfirmOpen] = useState(false);
+  const isExitConfirmOpenRef = useRef<boolean>(false);
+  isExitConfirmOpenRef.current = isExitConfirmOpen;
   const pauseMenuReasonRef = useRef<PauseReason>('USER');
   pauseMenuReasonRef.current = pauseMenu.reason;
 
@@ -762,6 +765,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         rapidFireTimerRef.current = null;
       }
       engine.setPaused(true, performance.now());
+      setIsExitConfirmOpen(false);
       setPauseMenu({ open: true, reason });
     },
     [engine]
@@ -772,6 +776,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const handleResumeFromPause = useCallback(() => {
     // Without the phone nobody can aim, so a resume would only let the countdown end in a free hit.
     if (pauseMenuReasonRef.current === 'CONTROLLER_LOST' && !isControllerConnectedRef.current) return;
+    setIsExitConfirmOpen(false);
     setPauseMenu({ open: false, reason: 'USER' });
     startResumeCountdown();
   }, [startResumeCountdown]);
@@ -793,6 +798,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code !== 'Escape' || e.repeat) return;
       if (pauseMenuOpenRef.current) {
+        if (isExitConfirmOpenRef.current) {
+          setIsExitConfirmOpen(false);
+          return;
+        }
         handleResumeFromPause();
       } else {
         handleOpenPause('USER');
@@ -805,6 +814,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   // Leaving the run (lobby, game over) closes the menu.
   useEffect(() => {
     if (gamePhase !== 'PLAYING' && pauseMenuOpenRef.current) {
+      setIsExitConfirmOpen(false);
       setPauseMenu({ open: false, reason: 'USER' });
     }
   }, [gamePhase]);
@@ -896,6 +906,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     engine.gamePhase = 'PAIRING';
     setGamePhase('PAIRING');
   }, [engine]);
+
+  // Leaving from the pause menu drops this run's score (no submitScore), like restart does.
+  const handleExitToLobbyFromPause = useCallback(() => {
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setCountdownSec(null);
+    // handleReturnToLobby does not clear the pause flag; lift it so the next run does not start frozen.
+    engine.setPaused(false, performance.now());
+    setPauseMenu({ open: false, reason: 'USER' });
+    setIsExitConfirmOpen(false);
+    handleReturnToLobby();
+  }, [engine, handleReturnToLobby]);
 
   const handleRenderMetrics = useCallback((metrics: RenderPerformanceMetrics) => {
     if (!isSensorLabOpenRef.current && gamePhaseRef.current !== 'SANDBOX') return;
@@ -1308,6 +1332,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           isControllerConnected={isControllerConnected}
           onResume={handleResumeFromPause}
           onRestart={handleRestartFromPause}
+          isExitConfirmOpen={isExitConfirmOpen}
+          onRequestExit={() => setIsExitConfirmOpen(true)}
+          onCancelExit={() => setIsExitConfirmOpen(false)}
+          onConfirmExit={handleExitToLobbyFromPause}
         />
       )}
 

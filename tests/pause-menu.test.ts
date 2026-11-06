@@ -64,6 +64,10 @@ describe('PauseMenuOverlay', () => {
         isControllerConnected: true,
         onResume: () => {},
         onRestart: () => {},
+        isExitConfirmOpen: false,
+        onRequestExit: () => {},
+        onCancelExit: () => {},
+        onConfirmExit: () => {},
         ...props,
       })
     );
@@ -85,6 +89,10 @@ describe('controller lost state', () => {
         isControllerConnected: true,
         onResume: () => {},
         onRestart: () => {},
+        isExitConfirmOpen: false,
+        onRequestExit: () => {},
+        onCancelExit: () => {},
+        onConfirmExit: () => {},
         ...props,
       })
     );
@@ -110,5 +118,51 @@ describe('controller lost state', () => {
     const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
     expect(source).toContain("pauseMenuReasonRef.current === 'CONTROLLER_LOST' && !isControllerConnectedRef.current");
     expect(source).toContain("handleOpenPauseRef.current('CONTROLLER_LOST')");
+  });
+});
+
+describe('exit to lobby from the pause menu', () => {
+  const render = (props: Partial<React.ComponentProps<typeof PauseMenuOverlay>>) =>
+    renderToStaticMarkup(
+      React.createElement(PauseMenuOverlay, {
+        reason: 'USER',
+        isControllerConnected: true,
+        onResume: () => {},
+        onRestart: () => {},
+        isExitConfirmOpen: false,
+        onRequestExit: () => {},
+        onCancelExit: () => {},
+        onConfirmExit: () => {},
+        ...props,
+      })
+    );
+
+  it('shows the lobby button, even while the phone is gone', () => {
+    expect(render({})).toContain('로비로 나가기');
+    expect(render({ reason: 'CONTROLLER_LOST', isControllerConnected: false })).toContain('로비로 나가기');
+  });
+
+  it('asks for confirmation and hides resume/restart while confirming', () => {
+    const html = render({ isExitConfirmOpen: true });
+    expect(html).toContain('나갈까요');
+    expect(html).toContain('점수는 저장되지 않습니다');
+    expect(html).toContain('나가기');
+    expect(html).toContain('취소');
+    expect(html).not.toContain('이어하기');
+    expect(html).not.toContain('다시시작');
+  });
+
+  it('the page lifts the pause, goes to the lobby and never submits the score', () => {
+    const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    const match = source.match(/const handleExitToLobbyFromPause = useCallback\(\(\) => \{([\s\S]*?)\n  \}, \[/);
+    expect(match).not.toBeNull();
+    expect(match![1]).toContain('engine.setPaused(false');
+    expect(match![1]).toContain('handleReturnToLobby()');
+    expect(match![1]).not.toContain('submitScore');
+  });
+
+  it('Esc closes the confirm step instead of resuming', () => {
+    const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    expect(source).toMatch(/isExitConfirmOpenRef\.current\) \{\s*setIsExitConfirmOpen\(false\);\s*return;/);
   });
 });

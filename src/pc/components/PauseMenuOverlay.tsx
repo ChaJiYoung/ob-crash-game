@@ -6,6 +6,10 @@ export interface PauseMenuOverlayProps {
   isControllerConnected: boolean;
   onResume: () => void;
   onRestart: () => void;
+  isExitConfirmOpen: boolean;
+  onRequestExit: () => void;
+  onCancelExit: () => void;
+  onConfirmExit: () => void;
 }
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -15,14 +19,22 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
   isControllerConnected,
   onResume,
   onRestart,
+  isExitConfirmOpen,
+  onRequestExit,
+  onCancelExit,
+  onConfirmExit,
 }) => {
   const waitingForController = reason === 'CONTROLLER_LOST' && !isControllerConnected;
-  const title = waitingForController
+  const title = isExitConfirmOpen
+    ? '🏠 로비로 나갈까요?'
+    : waitingForController
     ? '📡 폰 재연결 중...'
     : reason === 'CONTROLLER_LOST'
       ? '✅ 폰이 다시 연결되었습니다'
       : '⏸ 일시정지';
-  const subtitle = waitingForController
+  const subtitle = isExitConfirmOpen
+    ? '이번 판 점수는 저장되지 않습니다'
+    : waitingForController
     ? '폰 화면을 켜고 연결을 기다려 주세요'
     : reason === 'CONTROLLER_LOST'
       ? '준비되면 이어하기를 눌러 주세요'
@@ -63,6 +75,45 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
         <div style={{ fontSize: '26px', fontWeight: 900, color: '#fbbf24' }}>{title}</div>
         <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '8px' }}>{subtitle}</div>
 
+        {isExitConfirmOpen ? (
+          <>
+            <button
+              onClick={onConfirmExit}
+              style={{
+                width: '100%',
+                marginTop: '22px',
+                padding: '14px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(180deg, #ef4444, #b91c1c)',
+                color: '#fff',
+                fontSize: '17px',
+                fontWeight: 900,
+                cursor: 'pointer',
+              }}
+            >
+              나가기
+            </button>
+            <button
+              onClick={onCancelExit}
+              style={{
+                width: '100%',
+                marginTop: '10px',
+                padding: '12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(148, 163, 184, 0.5)',
+                background: 'rgba(148, 163, 184, 0.08)',
+                color: '#cbd5e1',
+                fontSize: '15px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              취소 (Esc)
+            </button>
+          </>
+        ) : (
+          <>
         <button
           onClick={onResume}
           disabled={waitingForController}
@@ -102,6 +153,26 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
         <div style={{ marginTop: '8px', fontSize: '12px', color: '#64748b' }}>
           다시시작하면 이번 판 점수는 저장되지 않습니다
         </div>
+
+            <button
+              onClick={onRequestExit}
+              style={{
+                width: '100%',
+                marginTop: '10px',
+                padding: '12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(148, 163, 184, 0.5)',
+                background: 'rgba(148, 163, 184, 0.08)',
+                color: '#cbd5e1',
+                fontSize: '15px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              🏠 로비로 나가기
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
