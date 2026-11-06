@@ -120,6 +120,8 @@ export const GAME_TUNING = {
     damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
     /** 일반 몬스터를 totalSpawns의 이 비율(올림)만큼 소환하면 보스가 등장한다. 보스가 살아 있는 동안 일반 몬스터는 계속 보충된다. */
     encounterStartRatio: 0.5,
+    /** 보스 포탄 발사 간격. 보스 등장 후 everyMs마다 stepMs씩 줄어 minMs에서 멈춘다(오래 끄는 플레이에 압박). */
+    shellInterval: { startMs: 3500, stepMs: 500, everyMs: 15000, minMs: 1500 },
     summonDropChance: 0.10,
     /** 마지막 보스를 잡은 뒤 연출 시간. 이 동안 남은 몬스터가 cascadeGapMs 간격으로 연쇄로 터진다. */
     clear: { durationMs: 1500, cascadeGapMs: 100 },

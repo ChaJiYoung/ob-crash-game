@@ -1,6 +1,6 @@
 # Task: T03 보스 포탄 간격 단축
 
-## Status: pending
+## Status: done
 
 ## Goal
 보스가 등장한 뒤 시간이 지날수록 보스 포탄 발사 간격이 3.5초에서 줄어 최소 1.5초가 된다. 일시정지와 카드 선택 정지 중에는 이 시간이 흐르지 않는다.
@@ -49,6 +49,7 @@
   - 경과는 보스 등장 시각 기준이라 경고 띠 2초가 포함된다. 의도된 동작이다.
   - 7웨이브처럼 냉각기가 2대 + 대왕이어도 간격은 보스 전체에 하나다. 번갈아 쏘는 순서(`bossShooterIndex`)는 바꾸지 않는다.
   - 기존 테스트 `two coolers fire projectiles in turn…`(`boss-encounters.test.ts`)는 70초를 돌리며 `who.length >= 4`와 번갈아 쏨을 확인한다. 간격이 줄어 발사 수가 늘어도 통과해야 한다(요격 후 보스 외 타깃을 비우는 부분은 그대로).
+  - (구현 중 추가) `bossEncounterStartMs`가 0이면(보스를 `spawnBossEncounter` 없이 필드에 올린 테스트·도구) 경과를 0으로 본다. 그렇지 않으면 `nowMs` 전체가 경과가 되어 곧바로 하한 간격이 된다.
   - 간격 계산에 `Math.floor`를 쓰므로 경과가 `everyMs` 경계를 넘는 순간 한 단계 줄어든다. 중간 값(예: 3250ms)은 나오지 않는다.
 
 ### I03. 테스트
@@ -63,10 +64,10 @@
 - 초기화: `startWave`와 `startGame` 후 `bossEncounterStartMs`가 0이다.
 
 ## Acceptance Criteria
-- [ ] 보스 등장 후 경과에 따라 간격이 3500 → 3000 → 2500 → 2000 → 1500으로 줄고 1500에서 멈춘다.
-- [ ] 보스를 빨리 잡는 판(처음 15초)의 포탄 빈도는 이전과 같다.
-- [ ] 일시정지·카드 선택 정지 시간은 경과에 들어가지 않는다.
-- [ ] 보스 웨이브가 아닌 곳(일반 웨이브, 튜토리얼, 샌드박스)은 영향이 없다.
+- [x] 보스 등장 후 경과에 따라 간격이 3500 → 3000 → 2500 → 2000 → 1500으로 줄고 1500에서 멈춘다.
+- [x] 보스를 빨리 잡는 판(처음 15초)의 포탄 빈도는 이전과 같다.
+- [x] 일시정지·카드 선택 정지 시간은 경과에 들어가지 않는다.
+- [x] 보스 웨이브가 아닌 곳(일반 웨이브, 튜토리얼, 샌드박스)은 영향이 없다.
 
 ## Validation
 - `npx vitest run tests/boss-shell-ramp.test.ts tests/boss-encounters.test.ts tests/boss-concurrent-spawns.test.ts tests/boss-clear-sequence.test.ts tests/pause-menu.test.ts` — 통과 (새 파일명은 구현 시 정한 이름으로)
@@ -87,6 +88,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

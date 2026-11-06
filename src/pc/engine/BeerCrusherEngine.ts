@@ -319,6 +319,8 @@ export class BeerCrusherEngine {
   private goldenCanSpawnedInWave = false;
   private lastProjectileSpawnTimeMs = 0;
   private lastBossProjectileMs = 0;
+  /** 보스가 등장한 시각(게임 시계). 0이면 보스전이 아니다. 포탄 간격 단축의 기준이다. */
+  private bossEncounterStartMs = 0;
 
   public aspect = 16 / 9;
   public vFovDeg = STAGE_CONSTANTS.CAMERA_FOV_DEG;
@@ -407,6 +409,7 @@ export class BeerCrusherEngine {
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
     this.lastBossProjectileMs = 0;
+    this.bossEncounterStartMs = 0;
     this.bossWarningUntilMs = 0;
     this.isTutorialMode = false;
     this.isSandboxMode = false;
@@ -454,6 +457,7 @@ export class BeerCrusherEngine {
     this.goldenCanSpawnedInWave = false;
     this.lastProjectileSpawnTimeMs = 0;
     this.lastBossProjectileMs = 0;
+    this.bossEncounterStartMs = 0;
     this.bossWarningUntilMs = 0;
     this.isRewardCardPending = false;
     this.pendingWaveAdvance = false;
@@ -699,6 +703,7 @@ export class BeerCrusherEngine {
     this.isBossEncounterActive = false;
     this.bossSpawned = false;
     this.bossWarningUntilMs = 0;
+    this.bossEncounterStartMs = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.tutorialStep = 1;
@@ -883,6 +888,7 @@ export class BeerCrusherEngine {
     this.isBossEncounterActive = false;
     this.bossSpawned = false;
     this.bossWarningUntilMs = 0;
+    this.bossEncounterStartMs = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -1173,6 +1179,7 @@ export class BeerCrusherEngine {
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
     if (this.lastBossProjectileMs > 0) this.lastBossProjectileMs += deltaMs;
+    if (this.bossEncounterStartMs > 0) this.bossEncounterStartMs += deltaMs;
     if (this.bossClearUntilMs > 0) {
       this.bossClearUntilMs += deltaMs;
       this.bossClearNextCascadeMs += deltaMs;
@@ -1430,7 +1437,7 @@ export class BeerCrusherEngine {
 
     // Periodic projectile spawn from the boss
     const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
-    if (hasBossShooter && nowMs - this.lastBossProjectileMs >= 3500 && this.countFieldMonsters() < waveDef.maxSimultaneous + 2) {
+    if (hasBossShooter && nowMs - this.lastBossProjectileMs >= this.getBossShellIntervalMs(nowMs) && this.countFieldMonsters() < waveDef.maxSimultaneous + 2) {
       // Living coolers fire in turns from their own position; the king fires only if no cooler is left
       const bosses = this.getBossEntities();
       const coolers = bosses.filter((b) => b.bossRole !== 'king');
@@ -1461,6 +1468,14 @@ export class BeerCrusherEngine {
     }
 
     return { breaches, phaseChanged: false, reloadedJustNow };
+  }
+
+  /** 보스 포탄 발사 간격. 보스가 등장한 뒤 시간이 지날수록 줄어 오래 끄는 플레이에 압박을 준다. */
+  private getBossShellIntervalMs(nowMs: number): number {
+    const c = GAME_TUNING.boss.shellInterval;
+    // A boss that was put on the field without spawnBossEncounter (tests, tools) has no start time: use the base interval.
+    const elapsedMs = this.bossEncounterStartMs > 0 ? Math.max(0, nowMs - this.bossEncounterStartMs) : 0;
+    return Math.max(c.minMs, c.startMs - Math.floor(elapsedMs / c.everyMs) * c.stepMs);
   }
 
   /** 필드의 일반 몬스터 수. 보스·소환 부하·투사체·아이템·황금캔·카드는 세지 않는다. */
@@ -1602,6 +1617,7 @@ export class BeerCrusherEngine {
     this.bossSummonCrossed.clear();
     this.bossShooterIndex = 0;
     this.lastBossProjectileMs = nowMs;
+    this.bossEncounterStartMs = nowMs;
 
     const spec = TARGET_SPECS.boss;
     const { coolerHp, kingHp } = waveDef.boss;
