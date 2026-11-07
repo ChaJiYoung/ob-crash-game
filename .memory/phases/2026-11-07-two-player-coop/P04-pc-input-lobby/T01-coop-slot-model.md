@@ -1,6 +1,6 @@
 # Task: T01 슬롯 상태 순수 모델
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비와 게임 화면이 함께 쓰는 슬롯 규칙을 React 밖의 순수 함수 모듈로 만든다: 슬롯별 입력 방식 선택(마우스 최대 1명, D01), 준비 완료 판정(폰=영점 완료, 마우스=닉네임 등록 즉시, D07), 시작 가능 여부와 안내 문구("2P 준비 중"), 슬롯→엔진 플레이어 번호 매핑. 화면 코드가 이 규칙을 직접 계산하지 않게 해서 vitest로 규칙을 고정한다.
@@ -85,7 +85,7 @@
 - `chooseSlotInput(…, 'mobile' → 'mouse')` 시 `player`·`isZeroCalibrated` 초기화.
 
 ## Acceptance Criteria
-- [ ] 로비 규칙(D01, D06, D07)이 순수 함수와 테스트로 고정된다.
+- [x] 로비 규칙(D01, D06, D07)이 순수 함수와 테스트로 고정된다.
 
 ## Validation
 - `npx vitest run tests/coop-slots.test.ts` — 통과
@@ -106,6 +106,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
