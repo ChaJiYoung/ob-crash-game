@@ -22,5 +22,5 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 수정 5건(타이머 바인딩, 조준 좌표 모듈 분리와 총구 조준 계산, 조준 경로 하나로, 로비 모달 맞춤, 불안정 테스트) | [P01](../phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md) |
-| P02 | `pending` | 체크리스트 보강(총구 조준 정량 확인 등) 후 QA 3개 재실행·결과 리뷰 | [P02](../phases/2026-11-07-two-player-coop-qa-fixes/P02-requa/phase.md) |
+| P01 | `done` | 수정 5건(타이머 바인딩, 조준 좌표 모듈 분리와 총구 조준 계산, 조준 경로 하나로, 로비 모달 맞춤, 불안정 테스트) | [P01](../phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md) |
+| P02 | `in_progress` | 체크리스트 보강(총구 조준 정량 확인 등) 후 QA 3개 재실행·결과 리뷰 | [P02](../phases/2026-11-07-two-player-coop-qa-fixes/P02-requa/phase.md) |
