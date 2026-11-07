@@ -1,6 +1,6 @@
 # Task: T01 피버 대미지 배율
 
-## Status: pending
+## Status: done
 
 ## Goal
 피버 중 명중의 `damageMultiplier`가 GREAT 배율(1.0) 대신 `GAME_TUNING.judgment.feverDamage`(2.0)가 되게 한다. 판정 등급(GREAT)·점수·피버 충전(0)은 그대로다.
@@ -56,6 +56,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

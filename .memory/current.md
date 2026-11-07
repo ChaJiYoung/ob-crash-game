@@ -7,13 +7,13 @@
 [P01 피버 대미지와 보스 배율](./phases/2026-11-07-fever-damage-multiplier/P01-fever-and-boss-scale/phase.md)
 
 ## Active Task
-[T01 피버 대미지 배율](./phases/2026-11-07-fever-damage-multiplier/P01-fever-and-boss-scale/T01-fever-damage.md)
+[T02 보스 무기별 배율 1.0](./phases/2026-11-07-fever-damage-multiplier/P01-fever-and-boss-scale/T02-boss-scale.md)
 
 ## Status
-- T01 구현 시작 준비 완료
+- T01 완료. T02 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/shared/gameTuning.ts`, `src/pc/engine/HitJudgment.ts` 구현 시작
+T02 청사진을 읽고 `src/shared/gameTuning.ts`의 `boss.damageScaleByWeapon` 변경
 
 ## Paused Plan
 - `2026-11-04-gameplay-polish-and-perf-optimization` P05-T04·T05: 그대로 남는다.
