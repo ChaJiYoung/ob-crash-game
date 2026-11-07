@@ -1,6 +1,6 @@
 # Task: T01 개인 패널 HUD
 
-## Status: pending
+## Status: done
 
 ## Goal
 전투 HUD를 D09·시안 5/5-1대로 바꾼다. 왼쪽 위에는 목숨 패널만 남고(2인은 "TEAM · BAR DEFENSE", 1인은 "BAR DEFENSE"), 점수·콤보·무기·탄창·스킬·피버·패시브 카드·개인 버프는 플레이어마다 하나의 개인 패널(`PlayerPanel`)로 합쳐 1P는 왼쪽 아래, 2P는 오른쪽 아래에 둔다. 1인도 같은 패널을 쓰되 "1P" 배지는 숨기고 색은 앰버. 스킬 안내는 그 플레이어 입력 방식에 맞는 문구 하나(폰 "위로 휙!", 마우스 "우클릭"). 이탈자 패널에는 "나감" 표시(D20). 웨이브·진행 바·보스 체력·아이스 프리즈(팀 버프)·가이드 버튼은 지금 자리.
@@ -124,9 +124,9 @@
 - 리뷰 체크: `grep -rn "players.length\|isCoop\|playerCount" src/pc/components | wc -l` → 0.
 
 ## Acceptance Criteria
-- [ ] 1인 화면: 왼쪽 위 목숨만, 왼쪽 아래 개인 패널 하나, 오른쪽 아래 피버 패널 없음(시안 5-1).
-- [ ] 2인 화면: 좌·우 아래 개인 패널 두 개(시안 5).
-- [ ] "[위로 휙! / 우클릭]" 병기 문구가 소스에서 사라진다.
+- [x] 1인 화면: 왼쪽 위 목숨만, 왼쪽 아래 개인 패널 하나, 오른쪽 아래 피버 패널 없음(시안 5-1).
+- [x] 2인 화면: 좌·우 아래 개인 패널 두 개(시안 5).
+- [x] "[위로 휙! / 우클릭]" 병기 문구가 소스에서 사라진다.
 
 ## Validation
 - `npx vitest run tests/player-panel.test.tsx tests/hud-snapshot.test.ts tests/pc-hud-and-banner.test.ts tests/passive-card-hud.test.ts tests/hud-render-cost.test.ts` — 통과
@@ -150,6 +150,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

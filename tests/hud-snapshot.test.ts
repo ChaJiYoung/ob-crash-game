@@ -16,8 +16,8 @@ describe('HUD snapshot (gameplay-polish P01-T07)', () => {
     engine.startGame({ withWeaponSelect: false });
     const base = buildHudSnapshot(engine, 1000);
 
-    expect(isHudSnapshotEqual(base, { ...base, score: base.score + 10 })).toBe(false);
-    expect(isHudSnapshotEqual(base, { ...base, ammo: base.ammo - 1 })).toBe(false);
+    expect(isHudSnapshotEqual(base, { ...base, players: [{ ...base.players[0], score: base.players[0].score + 10 }] })).toBe(false);
+    expect(isHudSnapshotEqual(base, { ...base, players: [{ ...base.players[0], ammo: base.players[0].ammo - 1 }] })).toBe(false);
     expect(isHudSnapshotEqual(base, { ...base, lives: base.lives - 1 })).toBe(false);
   });
 
@@ -32,7 +32,7 @@ describe('HUD snapshot (gameplay-polish P01-T07)', () => {
     const realGetState = engine.getPlayer(0).weaponSystem.getState.bind(engine.getPlayer(0).weaponSystem);
     engine.getPlayer(0).weaponSystem.getState = () => ({ ...realGetState(), skillCooldownRemainingMs: 12345 });
     const snap = buildHudSnapshot(engine, 1000);
-    expect(snap.skillCooldownRemainingMs).toBe(12300);
+    expect(snap.players[0].skillCooldownRemainingMs).toBe(12300);
   });
 
   it('compares nested wave progress and buffs by value', () => {
@@ -75,12 +75,12 @@ describe('HUD snapshot (gameplay-polish P01-T07)', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
     const before = buildHudSnapshot(engine, 1000);
-    expect(before.reloadDurationMs).toBe(engine.getPlayer(0).weaponSystem.getReloadDurationMs());
-    expect(before.reloadDurationMs).toBe(1680); // shotgun Lv.1: 1400 x 1.2
+    expect(before.players[0].reloadDurationMs).toBe(engine.getPlayer(0).weaponSystem.getReloadDurationMs());
+    expect(before.players[0].reloadDurationMs).toBe(1680); // shotgun Lv.1: 1400 x 1.2
 
     engine.getPlayer(0).weaponSystem.applyRapidReloadBuff();
     const after = buildHudSnapshot(engine, 1000);
-    expect(after.reloadDurationMs).toBe(1344); // 1680 x 0.8
+    expect(after.players[0].reloadDurationMs).toBe(1344); // 1680 x 0.8
     expect(isHudSnapshotEqual(before, after)).toBe(false);
   });
 });

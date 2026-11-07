@@ -33,6 +33,7 @@ import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProc
 import { MouseAdapter } from './input/MouseAdapter';
 import { PhoneAdapter } from './input/PhoneAdapter';
 import { GraceState, startGrace, tickGrace } from './coopDisconnect';
+import { getPlayerPresentation, getTeamPresentation } from './playerPresentation';
 
 import {
   createInitialSlots,
@@ -216,6 +217,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const [hoveredResultAction, setHoveredResultAction] = useState<'restart' | 'lobby' | null>(null);
   const hoveredResultActionRef = useRef<'restart' | 'lobby' | null>(null);
+
+  const presentations = useMemo(
+    () =>
+      getPlayerPresentation({
+        playerCount: engine.players.length,
+        slotIndexMap: slotIndexMapRef.current,
+        slots,
+      }),
+    [engine.players.length, slots]
+  );
+  const teamPresentation = useMemo(
+    () => getTeamPresentation(engine.players.length),
+    [engine.players.length]
+  );
 
   const hitTestButton = useCallback((aimX: number, aimY: number): ShootableButton | null => {
     if (typeof window === 'undefined') return null;
@@ -1344,29 +1359,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           )}
           <MonsterHpBarLayer ref={hpLayerRef} />
           <ArcadeOverlayHUD
-            player={pairedPlayer}
-            passiveCards={hudState.passiveCards}
-            score={hudState.score}
-            combo={hudState.combo}
-            comboMultiplier={hudState.comboMultiplier}
             lives={hudState.lives}
             maxLives={engine.maxLives}
             wave={hudState.wave}
             totalWaves={STAGE_CONSTANTS.TOTAL_WAVES}
-            ammo={hudState.ammo}
-            maxAmmo={hudState.maxAmmo}
-            isReloading={hudState.isReloading}
-            feverGauge={hudState.feverGauge}
-            isFeverReady={hudState.isFeverReady}
-            isFeverActive={hudState.isFeverActive}
             bosses={hudState.bosses}
             activeBuffs={hudState.activeBuffs}
             waveProgress={hudState.waveProgress}
-            weaponKind={hudState.weaponKind}
-            weaponLevel={hudState.weaponLevel}
-            skillStock={hudState.skillStock}
-            maxSkillStock={hudState.maxSkillStock}
-            skillCooldownRemainingMs={hudState.skillCooldownRemainingMs}
+            players={hudState.players}
+            presentations={presentations}
+            team={teamPresentation}
             onOpenGuide={handleOpenGuide}
             onOpenSensorLab={handleOpenSensorLab}
             onPause={gamePhase === 'PLAYING' ? () => handleOpenPause('USER') : undefined}
@@ -1376,6 +1378,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             const pScoreState = p.scoreManager.getState();
             const pProc = processorsRef.current[i];
             const pAim = pProc?.aim ?? { aimX: 0, aimY: 0 };
+            const playerSnap = hudState.players[i];
+            const pWeapon = p.weaponSystem.getState();
             return (
               <CrosshairOverlay
                 key={i}
@@ -1386,10 +1390,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 isWideScopeActive={engine.isBuffActive('wide_scope', undefined, i as PlayerIndex)}
                 isPowerShotActive={engine.isBuffActive('power_shot', undefined, i as PlayerIndex)}
                 isAimLocked={i === 0 ? isAimLocked : false}
-                weaponKind={hudState.weaponKind}
-                weaponLevel={hudState.weaponLevel}
-                isReloading={hudState.isReloading}
-                reloadDurationMs={hudState.reloadDurationMs}
+                weaponKind={playerSnap?.weaponKind ?? pWeapon.weaponKind}
+                weaponLevel={playerSnap?.weaponLevel ?? pWeapon.weaponLevel}
+                isReloading={playerSnap?.isReloading ?? pWeapon.isReloading}
+                reloadDurationMs={playerSnap?.reloadDurationMs ?? p.weaponSystem.getReloadDurationMs()}
                 isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
                 getReloadRemainingMs={getReloadRemainingMs}
               />
@@ -1405,11 +1409,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           <TutorialGuideOverlay
             step={tutorialStep}
             targetsRemaining={engine.activeTargets.length}
-            isFeverReady={hudState.isFeverReady}
-            isFeverActive={hudState.isFeverActive}
-            ammo={hudState.ammo}
-            maxAmmo={hudState.maxAmmo}
-            isReloading={hudState.isReloading}
+            isFeverReady={hudState.players[0]?.isFeverReady ?? false}
+            isFeverActive={hudState.players[0]?.isFeverActive ?? false}
+            ammo={hudState.players[0]?.ammo ?? 0}
+            maxAmmo={hudState.players[0]?.maxAmmo ?? 0}
+            isReloading={hudState.players[0]?.isReloading ?? false}
             onStartRealGame={() => pressScreenButton('start')}
             onExitToLobby={handleExitTutorial}
           />
@@ -1417,14 +1421,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             ref={crosshairRefs.current[0]}
             aimX={latestAimRef.current.aimX}
             aimY={latestAimRef.current.aimY}
-            isFeverActive={hudState.isFeverActive}
+            isFeverActive={hudState.players[0]?.isFeverActive ?? false}
             isWideScopeActive={false}
             isPowerShotActive={false}
             isAimLocked={isAimLocked}
-            weaponKind={hudState.weaponKind}
-            weaponLevel={hudState.weaponLevel}
-            isReloading={hudState.isReloading}
-            reloadDurationMs={hudState.reloadDurationMs}
+            weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
+            weaponLevel={hudState.players[0]?.weaponLevel ?? 1}
+            isReloading={hudState.players[0]?.isReloading ?? false}
+            reloadDurationMs={hudState.players[0]?.reloadDurationMs ?? 2000}
             isPaused={hudState.isPaused}
             getReloadRemainingMs={getReloadRemainingMs}
           />
@@ -1443,16 +1447,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             targetsCount={engine.activeTargets.length}
             stationarySpawn={stationarySpawn}
             infiniteAmmo={sandboxInfiniteAmmo}
-            ammo={hudState.ammo}
-            maxAmmo={hudState.maxAmmo}
-            isReloading={hudState.isReloading}
-            feverGauge={hudState.feverGauge}
-            isFeverReady={hudState.isFeverReady}
-            isFeverActive={hudState.isFeverActive}
+            ammo={hudState.players[0]?.ammo ?? 0}
+            maxAmmo={hudState.players[0]?.maxAmmo ?? 0}
+            isReloading={hudState.players[0]?.isReloading ?? false}
+            feverGauge={hudState.players[0]?.feverGauge ?? 0}
+            isFeverReady={hudState.players[0]?.isFeverReady ?? false}
+            isFeverActive={hudState.players[0]?.isFeverActive ?? false}
             activeBuffs={hudState.activeBuffs}
             lastJudgment={sandboxJudgment}
-            weaponKind={hudState.weaponKind}
-            weaponLevel={hudState.weaponLevel}
+            weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
+            weaponLevel={hudState.players[0]?.weaponLevel ?? 1}
             onSelectWeapon={(k) => engine.getPlayer(0).weaponSystem.selectWeapon(k)}
             onUpgradeWeapon={() => engine.getPlayer(0).weaponSystem.upgradeWeaponLevel()}
             onSpawnRewardCards={() => engine.spawnWaveRewardCards(performance.now(), false)}
@@ -1497,14 +1501,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             ref={crosshairRefs.current[0]}
             aimX={latestAimRef.current.aimX}
             aimY={latestAimRef.current.aimY}
-            isFeverActive={hudState.isFeverActive}
-            isWideScopeActive={hudState.isWideScopeActive}
-            isPowerShotActive={hudState.isPowerShotActive}
+            isFeverActive={hudState.players[0]?.isFeverActive ?? false}
+            isWideScopeActive={hudState.players[0]?.isWideScopeActive ?? false}
+            isPowerShotActive={hudState.players[0]?.isPowerShotActive ?? false}
             isAimLocked={isAimLocked}
-            weaponKind={hudState.weaponKind}
-            weaponLevel={hudState.weaponLevel}
-            isReloading={hudState.isReloading}
-            reloadDurationMs={hudState.reloadDurationMs}
+            weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
+            weaponLevel={hudState.players[0]?.weaponLevel ?? 1}
+            isReloading={hudState.players[0]?.isReloading ?? false}
+            reloadDurationMs={hudState.players[0]?.reloadDurationMs ?? 2000}
             isPaused={hudState.isPaused}
             getReloadRemainingMs={getReloadRemainingMs}
           />
@@ -1606,7 +1610,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         <>
           <ResultRankingModal
             gamePhase={gamePhase}
-            score={hudState.score}
+            score={hudState.players[0]?.score ?? 0}
             breakdown={engine.getScoreBreakdown()}
             lastWaveClear={engine.lastWaveClear}
             maxCombo={engine.getPlayer(0).scoreManager.getState().maxCombo}
