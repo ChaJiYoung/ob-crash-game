@@ -7,4 +7,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 피버 대미지 2.0, 보스 배율 1.0 | [P01](../phases/2026-11-07-fever-damage-multiplier/P01-fever-and-boss-scale/phase.md) |
+| P01 | `done ✅` | 피버 대미지 2.0, 보스 배율 1.0 | [P01](../phases/2026-11-07-fever-damage-multiplier/P01-fever-and-boss-scale/phase.md) |

@@ -1,6 +1,6 @@
 # Task: T02 보스 무기별 배율 1.0
 
-## Status: pending
+## Status: done
 
 ## Goal
 보스에게 주는 일반 공격 대미지의 무기별 배율을 전 무기 1.0으로 만든다. 필드와 `bossScale` 코드 경로는 남겨 나중에 다시 조정할 수 있게 한다.
@@ -51,6 +51,6 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

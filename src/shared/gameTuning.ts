@@ -117,8 +117,8 @@ export const GAME_TUNING = {
     /** 보스 등장 경고 띠가 떠 있는 시간. 이 안에서 나타났다가 사라진다. */
     warningMs: 2000,
     coolerSpreadRad: 0.34,
-    /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
-    damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
+    /** 무기별 보스 피해 배율. 지금은 모두 1이다(조정이 필요하면 무기별로 다시 나눈다). */
+    damageScaleByWeapon: { shotgun: 1, revolver: 1, gatling: 1 },
     /** 일반 몬스터를 totalSpawns의 이 비율(올림)만큼 소환하면 보스가 등장한다. 보스가 살아 있는 동안 일반 몬스터는 계속 보충된다. */
     encounterStartRatio: 0.5,
     /** 보스 포탄 발사 간격. 보스 등장 후 everyMs마다 stepMs씩 줄어 minMs에서 멈춘다(오래 끄는 플레이에 압박). */

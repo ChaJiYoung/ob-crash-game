@@ -27,6 +27,12 @@ describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
     expect(hit.feverDelta).toBe(0);
   });
 
+  it('boss damage scale is 1 for every weapon', () => {
+    (['shotgun', 'revolver', 'gatling'] as const).forEach((kind) => {
+      expect(GAME_TUNING.boss.damageScaleByWeapon[kind]).toBe(1);
+    });
+  });
+
   it('golden can adds only +30% fever and one skill charge', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
