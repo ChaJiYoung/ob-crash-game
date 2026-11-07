@@ -239,6 +239,50 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'REGISTER_LOCAL_PLAYER': {
+            const { roomId, deviceId, nickname } = msg;
+            const slot = normalizeSlot(msg.slot);
+            if (!roomId || !deviceId || typeof nickname !== 'string') {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'roomId, deviceId, and nickname are required for REGISTER_LOCAL_PLAYER',
+                slot,
+              });
+              return;
+            }
+
+            const session = roomManager.getRoom(roomId);
+            if (!session || session.pcSocket !== ws) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'NOT_ROOM_HOST',
+                message: 'Only the room host can register a local player',
+                slot,
+              });
+              return;
+            }
+
+            try {
+              const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
+              sendJson(ws, {
+                type: 'LOCAL_PLAYER_REGISTERED',
+                roomId,
+                slot,
+                player,
+              });
+            } catch (err: unknown) {
+              const errMsg = err instanceof Error ? err.message : 'Failed to register nickname';
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_NICKNAME',
+                message: errMsg,
+                slot,
+              });
+            }
+            break;
+          }
+
           case 'CALIBRATE_ZERO': {
             const { roomId, deviceId } = msg;
             if (!roomId || !deviceId) {

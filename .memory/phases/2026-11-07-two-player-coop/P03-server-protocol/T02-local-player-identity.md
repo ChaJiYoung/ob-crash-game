@@ -1,6 +1,6 @@
 # Task: T02 마우스 플레이어 등록(REGISTER_LOCAL_PLAYER)
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC 화면의 마우스 플레이어가 닉네임과 브라우저 기기 ID로 서버 프로필을 갖게 한다(D15). PC 소켓이 `REGISTER_LOCAL_PLAYER`를 보내면 서버가 `PlayerStore`에 등록·갱신하고 `LOCAL_PLAYER_REGISTERED`로 프로필을 돌려준다. 이후 이 기기 ID로 점수를 제출하므로 고정 ID `pc-device-host`/`pc-host`는 쓰지 않게 된다(제거는 P04-T05).
@@ -60,8 +60,8 @@ PC 화면의 마우스 플레이어가 닉네임과 브라우저 기기 ID로 �
 - 등록 후 `session.controllers`가 비어 있음(PC가 컨트롤러 자리를 차지하지 않음).
 
 ## Acceptance Criteria
-- [ ] 마우스 플레이어가 기기 ID별 프로필을 가진다.
-- [ ] 컨트롤러 슬롯에 영향이 없다.
+- [x] 마우스 플레이어가 기기 ID별 프로필을 가진다.
+- [x] 컨트롤러 슬롯에 영향이 없다.
 
 ## Validation
 - `npx vitest run tests/server-local-player.test.ts tests/controller-sensors.test.ts` — 통과
@@ -82,6 +82,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

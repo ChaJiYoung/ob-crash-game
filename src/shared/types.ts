@@ -203,6 +203,7 @@ export type ClientToServerMessage =
     }
   /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number }
+  | { type: 'REGISTER_LOCAL_PLAYER'; roomId: string; deviceId: string; nickname: string; slot: PlayerSlot }
   | {
       type: 'SENSOR_CONFIG_UPDATE';
       roomId: string;
@@ -214,6 +215,7 @@ export type ServerToClientMessage =
   | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; lanIp?: string }
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile; slot: PlayerSlot }
+  | { type: 'LOCAL_PLAYER_REGISTERED'; roomId: string; slot: PlayerSlot; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean; slot: PlayerSlot }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
   | { type: 'GAME_STARTED'; roomId: string }
