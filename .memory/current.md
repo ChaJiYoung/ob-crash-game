@@ -7,7 +7,7 @@
 [P03 2차 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/phase.md)
 
 ## Active Task
-[T03 결과 화면에서 십자선이 결과 숫자를 가리지 않게](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T03-result-overlay.md)
+[T04 작은 화면에서 배지·이름표가 화면 안에 들어오게](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T04-small-screen-badges.md)
 
 ## Status
 - T01 처리부 타이머 바인딩 수정 완료 (44e9dd5)
@@ -18,6 +18,7 @@
 - T06 개발 서버 전용 읽기 전용 디버그 창구 구현 완료
 - P03 T01 완료: 같은 기기 슬롯 이동 시 이전 슬롯 비우기
 - P03 T02 완료: 선택 카드는 몸체를 맞혀야 선택
+- P03 T03 완료: 결과·로비 십자선 menu variant(이름표 없음, 0.6배, 반투명, 모달 아래 층)
 - P01 QA 수정 완료 (6/6 Tasks 완료, P02 재QA 대기)
 
 ## Next Step (IMPORTANT)

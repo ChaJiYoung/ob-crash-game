@@ -1643,7 +1643,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onRenewRoom={handleRenewRoom}
           />
           {slots.some((s) => s.input === 'mobile' && s.isZeroCalibrated) && (
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 120 }}>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 99 }}>
               {processorsRef.current.map((proc, i) => {
                 const slot = indexToSlot(slotIndexMapRef.current, i as PlayerIndex);
                 const slotColor = slot ? PLAYER_COLORS[slot] : (i === 0 ? PLAYER_COLORS[1] : PLAYER_COLORS[2]);
@@ -1658,6 +1658,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                     isPowerShotActive={false}
                     isAimLocked={i === 0 ? isAimLocked : false}
                     playerColor={slotColor}
+                    variant="menu"
                   />
                 );
               })}
@@ -1739,7 +1740,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             hoveredAction={hoveredResultAction}
           />
           {/* Result Crosshair Overlay on top of result modal */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 160 }}>
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 99 }}>
             {engine.players.map((p, i) => {
               const proc = processorsRef.current[i];
               const pAim = proc?.aim ?? { aimX: 0, aimY: 0 };
@@ -1761,6 +1762,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   playerColor={pres?.ringColorMode === 'player' ? pres.color : undefined}
                   nameTag={formatCrosshairNameTag(weaponKind, weaponLevel, pres?.slotLabel ?? null)}
                   hidden={playerSnap?.isAway ?? p.isAway}
+                  variant="menu"
                 />
               );
             })}

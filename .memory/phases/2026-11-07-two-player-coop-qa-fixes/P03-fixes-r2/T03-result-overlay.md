@@ -1,6 +1,6 @@
 # Task: T03 결과 화면에서 십자선이 결과 숫자를 가리지 않게
 
-## Status: pending
+## Status: done
 
 ## Goal
 결과 화면(1인·2인)에서 십자선 링과 이름표("1P · SHOTGUN Lv.1")가 결과 카드의 점수·KILL·콤보 숫자를 가리지 않게 한다(B BUG-3 `B-mouse-phone/V-mp-11-result-game1.png`, D BUG-1).
@@ -46,6 +46,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T03-result-overlay)

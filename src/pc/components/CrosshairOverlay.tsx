@@ -225,6 +225,8 @@ export interface CrosshairOverlayProps {
   playerColor?: string;
   nameTag?: string;
   hidden?: boolean;
+  /** 'menu': 로비·결과 화면용. 이름표 없이 작고 반투명하게 그려 화면 글자를 가리지 않는다. */
+  variant?: 'play' | 'menu';
 }
 
 export const CrosshairOverlay = React.memo(
@@ -244,6 +246,7 @@ export const CrosshairOverlay = React.memo(
     playerColor,
     nameTag,
     hidden = false,
+    variant = 'play',
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const targetPosRef = useRef({ x: aimX, y: aimY });
@@ -353,6 +356,8 @@ export const CrosshairOverlay = React.memo(
 
     kickScaleRef.current = spec.weaponKind === 'shotgun' ? 1.32 : spec.weaponKind === 'revolver' ? 0.90 : 1.20;
 
+    const isMenu = variant === 'menu';
+    const menuScale = isMenu ? 0.6 : 1;
     const cornerSize = spec.sizePx * 0.22;
     const ring = getReloadRingSpec({ isReloading, isFeverActive, reloadDurationMs, sizePx: spec.sizePx });
 
@@ -367,6 +372,7 @@ export const CrosshairOverlay = React.memo(
           height: `${spec.sizePx}px`,
           transform: 'translate(-50%, -50%) scale(1)',
           pointerEvents: 'none',
+          opacity: isMenu ? 0.55 : undefined,
           display: hidden ? 'none' : 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -374,6 +380,7 @@ export const CrosshairOverlay = React.memo(
           transition: 'transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
         }}
       >
+        <div data-crosshair-variant={variant} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${menuScale})` }}>
         {/* Fixed keyframes (always mounted): crosshair-spin rotates the reticle rings (rotation only, no translate), reload-ring-fill uses pathLength=1. */}
         <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }`}</style>
 
@@ -588,7 +595,7 @@ export const CrosshairOverlay = React.memo(
         />
 
         {/* Name Tag (.xh em: 1P · SHOTGUN Lv.1 / SHOTGUN Lv.1) */}
-        {nameTag && (
+        {nameTag && !isMenu && (
           <em
             data-testid="crosshair-nametag"
             style={{
@@ -612,7 +619,7 @@ export const CrosshairOverlay = React.memo(
         )}
 
         {/* Buff or Weapon Level Badge on Top */}
-        {(!nameTag || spec.badgeText) && (
+        {!isMenu && (!nameTag || spec.badgeText) && (
           <div
             style={{
               position: 'absolute',
@@ -643,6 +650,7 @@ export const CrosshairOverlay = React.memo(
 
         {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
         {ring.visible && <ReloadRing spec={ring} getRemainingMs={getReloadRemainingMs} isPaused={isPaused} />}
+        </div>
       </div>
     );
   })
