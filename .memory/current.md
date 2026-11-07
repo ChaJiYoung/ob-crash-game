@@ -4,24 +4,19 @@
 [2인팟 (Two-Player Co-op)](./plans/2026-11-07-two-player-coop.md)
 
 ## Active Phase
-[P02 엔진 2인 (완료)](./phases/2026-11-07-two-player-coop/P02-engine-players/phase.md)
+[P03 서버·프로토콜](./phases/2026-11-07-two-player-coop/P03-server-protocol/phase.md)
 
 ## Active Task
-None (P02 completed, awaiting P03)
+[T01 메시지에 slot, RoomManager 컨트롤러 슬롯 2개, 슬롯별 중계·끊김 알림](./phases/2026-11-07-two-player-coop/P03-server-protocol/T01-slot-protocol.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
-- P02 엔진 2인 완료 (5/5 Tasks 완료)
-  - T01 완료 (8439c48)
-  - T02 완료 (f4f6598)
-  - T03 완료 (a43c958)
-  - T04 완료 (008a256)
-  - T05 완료 (8289e3d)
-- D24 설계 원칙 검증 완료: 인원수는 값만 다르고 로직은 하나, isCoop 분기 0건
-- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료)
+- P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
+- P03 서버·프로토콜 시작 (0/4 Tasks 완료)
+- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 진행 중)
 
 ## Next Step (IMPORTANT)
-P02 DONE 보고. P03은 시작하지 않고 사용자 승인 대기.
+P03-T01 청사진을 읽고 메시지에 slot, RoomManager 컨트롤러 슬롯 2개, 슬롯별 중계·끊김 알림 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

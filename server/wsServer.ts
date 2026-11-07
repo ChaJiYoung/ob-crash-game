@@ -3,7 +3,7 @@ import http from 'node:http';
 import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
-import { RoomManager } from './RoomManager';
+import { RoomManager, normalizeSlot } from './RoomManager';
 import { ClientToServerMessage, ServerToClientMessage } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
@@ -95,11 +95,13 @@ export async function createBeerCrusherServer(options?: {
 
           case 'DEVICE_CHECK': {
             const { roomId, deviceId } = msg;
+            const slot = normalizeSlot(msg.slot);
             if (!roomId || !deviceId) {
               sendJson(ws, {
                 type: 'ERROR',
                 code: 'INVALID_REQUEST',
                 message: 'roomId and deviceId are required for DEVICE_CHECK',
+                slot,
               });
               return;
             }
@@ -110,11 +112,31 @@ export async function createBeerCrusherServer(options?: {
                 type: 'ERROR',
                 code: 'ROOM_NOT_FOUND',
                 message: `Room ${roomId} not found`,
+                slot,
               });
               return;
             }
 
-            roomManager.attachControllerSocket(roomId, ws, deviceId);
+            const attachResult = roomManager.attachControllerSocket(roomId, ws, deviceId, slot);
+            if ('error' in attachResult) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: attachResult.error,
+                message: attachResult.error === 'SLOT_OCCUPIED' ? `Slot ${slot} is occupied` : `Room ${roomId} not found`,
+                slot,
+              });
+              return;
+            }
+
+            if (attachResult.movedFromSlot && session.pcSocket) {
+              sendJson(session.pcSocket, {
+                type: 'ERROR',
+                code: 'CONTROLLER_DISCONNECTED',
+                message: `Controller moved from slot ${attachResult.movedFromSlot}`,
+                slot: attachResult.movedFromSlot,
+              });
+            }
+
             const player = playerStore.findByDeviceId(deviceId);
             const rankings = playRecordStore.getTopRuns(5);
 
@@ -130,6 +152,7 @@ export async function createBeerCrusherServer(options?: {
                 type: 'CONTROLLER_PAIRED',
                 roomId,
                 player,
+                slot,
               });
             } else {
               sendJson(ws, {
@@ -144,11 +167,13 @@ export async function createBeerCrusherServer(options?: {
 
           case 'REGISTER_NICKNAME': {
             const { roomId, deviceId, nickname } = msg;
+            const slot = normalizeSlot(msg.slot);
             if (!roomId || !deviceId || typeof nickname !== 'string') {
               sendJson(ws, {
                 type: 'ERROR',
                 code: 'INVALID_REQUEST',
                 message: 'roomId, deviceId, and nickname are required for REGISTER_NICKNAME',
+                slot,
               });
               return;
             }
@@ -159,11 +184,30 @@ export async function createBeerCrusherServer(options?: {
                 type: 'ERROR',
                 code: 'ROOM_NOT_FOUND',
                 message: `Room ${roomId} not found`,
+                slot,
               });
               return;
             }
 
-            roomManager.attachControllerSocket(roomId, ws, deviceId);
+            const attachResult = roomManager.attachControllerSocket(roomId, ws, deviceId, slot);
+            if ('error' in attachResult) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: attachResult.error,
+                message: attachResult.error === 'SLOT_OCCUPIED' ? `Slot ${slot} is occupied` : `Room ${roomId} not found`,
+                slot,
+              });
+              return;
+            }
+
+            if (attachResult.movedFromSlot && session.pcSocket) {
+              sendJson(session.pcSocket, {
+                type: 'ERROR',
+                code: 'CONTROLLER_DISCONNECTED',
+                message: `Controller moved from slot ${attachResult.movedFromSlot}`,
+                slot: attachResult.movedFromSlot,
+              });
+            }
 
             try {
               const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
@@ -181,6 +225,7 @@ export async function createBeerCrusherServer(options?: {
                 type: 'CONTROLLER_PAIRED',
                 roomId,
                 player,
+                slot,
               });
             } catch (err: unknown) {
               const errMsg = err instanceof Error ? err.message : 'Failed to register nickname';
@@ -188,6 +233,7 @@ export async function createBeerCrusherServer(options?: {
                 type: 'ERROR',
                 code: 'INVALID_NICKNAME',
                 message: errMsg,
+                slot,
               });
             }
             break;
@@ -205,10 +251,12 @@ export async function createBeerCrusherServer(options?: {
             }
             const session = roomManager.getRoom(roomId);
             if (session && session.pcSocket) {
+              const slot = roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot);
               sendJson(session.pcSocket, {
                 type: 'ZERO_CALIBRATED',
                 roomId,
                 deviceId,
+                slot,
                 // Only a phone that re-attached its socket sets this; the PC then keeps its zero offset.
                 ...(msg.resume === true ? { resume: true } : {}),
               });
@@ -228,6 +276,8 @@ export async function createBeerCrusherServer(options?: {
             }
             const session = roomManager.getRoom(roomId);
             if (session) {
+              const isPc = ws === session.pcSocket;
+              const slot = isPc ? 1 : (roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot));
               if (session.pcSocket) {
                 sendJson(session.pcSocket, {
                   type: 'GAME_COUNTDOWN_START',
@@ -238,10 +288,11 @@ export async function createBeerCrusherServer(options?: {
                   type: 'GAME_START_RELAY',
                   roomId,
                   deviceId,
+                  slot,
                 });
               }
-              if (session.controllerSocket) {
-                sendJson(session.controllerSocket, {
+              for (const cSocket of roomManager.getControllerSockets(session)) {
+                sendJson(cSocket, {
                   type: 'GAME_COUNTDOWN_START',
                   roomId,
                   sec: 3,
@@ -254,11 +305,13 @@ export async function createBeerCrusherServer(options?: {
           case 'SENSOR_FRAME': {
             const session = roomManager.getRoom(msg.roomId);
             if (session && session.pcSocket) {
+              const slot = roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot);
               sendJson(session.pcSocket, {
                 type: 'SENSOR_RELAY',
                 roomId: msg.roomId,
                 deviceId: msg.deviceId,
                 payload: msg.payload,
+                slot,
               });
             }
             break;
@@ -266,29 +319,35 @@ export async function createBeerCrusherServer(options?: {
 
           case 'FEVER_STATUS_SYNC': {
             const session = roomManager.getRoom(msg.roomId);
-            if (session && session.controllerSocket) {
-              sendJson(session.controllerSocket, {
-                type: 'FEVER_STATUS_RELAY',
-                roomId: msg.roomId,
-                isFeverReady: Boolean(msg.isFeverReady),
-              });
+            if (session) {
+              const targetSocket = session.controllers[normalizeSlot(msg.slot)]?.socket;
+              if (targetSocket) {
+                sendJson(targetSocket, {
+                  type: 'FEVER_STATUS_RELAY',
+                  roomId: msg.roomId,
+                  isFeverReady: Boolean(msg.isFeverReady),
+                });
+              }
             }
             break;
           }
 
           case 'SKILL_STATE_SYNC': {
             const session = roomManager.getRoom(msg.roomId);
-            if (session && session.controllerSocket) {
-              sendJson(session.controllerSocket, {
-                type: 'SKILL_STATE_SYNC',
-                roomId: msg.roomId,
-                weaponKind: msg.weaponKind,
-                weaponLevel: msg.weaponLevel,
-                skillStock: msg.skillStock,
-                maxSkillStock: msg.maxSkillStock,
-                skillCooldownRemainingMs: msg.skillCooldownRemainingMs,
-                skillCooldownTotalMs: msg.skillCooldownTotalMs,
-              });
+            if (session) {
+              const targetSocket = session.controllers[normalizeSlot(msg.slot)]?.socket;
+              if (targetSocket) {
+                sendJson(targetSocket, {
+                  type: 'SKILL_STATE_SYNC',
+                  roomId: msg.roomId,
+                  weaponKind: msg.weaponKind,
+                  weaponLevel: msg.weaponLevel,
+                  skillStock: msg.skillStock,
+                  maxSkillStock: msg.maxSkillStock,
+                  skillCooldownRemainingMs: msg.skillCooldownRemainingMs,
+                  skillCooldownTotalMs: msg.skillCooldownTotalMs,
+                });
+              }
             }
             break;
           }
@@ -336,11 +395,15 @@ export async function createBeerCrusherServer(options?: {
             };
 
             sendJson(ws, response);
-            if (session && session.pcSocket && session.pcSocket !== ws) {
-              sendJson(session.pcSocket, response);
-            }
-            if (session && session.controllerSocket && session.controllerSocket !== ws) {
-              sendJson(session.controllerSocket, response);
+            if (session) {
+              if (session.pcSocket && session.pcSocket !== ws) {
+                sendJson(session.pcSocket, response);
+              }
+              for (const cSocket of roomManager.getControllerSockets(session)) {
+                if (cSocket !== ws) {
+                  sendJson(cSocket, response);
+                }
+              }
             }
             break;
           }
@@ -348,9 +411,17 @@ export async function createBeerCrusherServer(options?: {
           case 'SENSOR_CONFIG_UPDATE': {
             const session = roomManager.getRoom(msg.roomId);
             if (session) {
-              const targetSocket = ws === session.pcSocket ? session.controllerSocket : session.pcSocket;
-              if (targetSocket) {
-                sendJson(targetSocket, {
+              const isPc = ws === session.pcSocket;
+              if (isPc) {
+                for (const cSocket of roomManager.getControllerSockets(session)) {
+                  sendJson(cSocket, {
+                    type: 'SENSOR_CONFIG_UPDATE',
+                    roomId: msg.roomId,
+                    config: msg.config,
+                  });
+                }
+              } else if (session.pcSocket) {
+                sendJson(session.pcSocket, {
                   type: 'SENSOR_CONFIG_UPDATE',
                   roomId: msg.roomId,
                   config: msg.config,
@@ -378,7 +449,7 @@ export async function createBeerCrusherServer(options?: {
     });
 
     ws.on('close', () => {
-      const { roomId, role } = roomManager.removeSocket(ws);
+      const { roomId, role, slot } = roomManager.removeSocket(ws);
       if (roomId && role) {
         const session = roomManager.getRoom(roomId);
         if (session) {
@@ -387,13 +458,16 @@ export async function createBeerCrusherServer(options?: {
               type: 'ERROR',
               code: 'CONTROLLER_DISCONNECTED',
               message: 'Controller disconnected',
+              slot,
             });
-          } else if (role === 'PC' && session.controllerSocket) {
-            sendJson(session.controllerSocket, {
-              type: 'ERROR',
-              code: 'PC_DISCONNECTED',
-              message: 'PC host disconnected',
-            });
+          } else if (role === 'PC') {
+            for (const cSocket of roomManager.getControllerSockets(session)) {
+              sendJson(cSocket, {
+                type: 'ERROR',
+                code: 'PC_DISCONNECTED',
+                message: 'PC host disconnected',
+              });
+            }
           }
         }
       }

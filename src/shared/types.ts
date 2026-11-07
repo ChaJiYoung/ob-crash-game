@@ -184,12 +184,12 @@ export interface SensorFramePayload {
 
 export type ClientToServerMessage =
   | { type: 'CREATE_ROOM'; roomId?: string }
-  | { type: 'DEVICE_CHECK'; roomId: string; deviceId: string }
-  | { type: 'REGISTER_NICKNAME'; roomId: string; deviceId: string; nickname: string }
-  | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string; resume?: boolean }
-  | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string }
-  | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload }
-  | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean }
+  | { type: 'DEVICE_CHECK'; roomId: string; deviceId: string; slot?: PlayerSlot }
+  | { type: 'REGISTER_NICKNAME'; roomId: string; deviceId: string; nickname: string; slot?: PlayerSlot }
+  | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string; resume?: boolean; slot?: PlayerSlot }
+  | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string; slot?: PlayerSlot }
+  | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload; slot?: PlayerSlot }
+  | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean; slot?: PlayerSlot }
   | {
       type: 'SKILL_STATE_SYNC';
       roomId: string;
@@ -199,6 +199,7 @@ export type ClientToServerMessage =
       maxSkillStock: number;
       skillCooldownRemainingMs: number;
       skillCooldownTotalMs: number;
+      slot?: PlayerSlot;
     }
   /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number }
@@ -212,12 +213,12 @@ export type ClientToServerMessage =
 export type ServerToClientMessage =
   | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; lanIp?: string }
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[] }
-  | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile }
-  | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean }
+  | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile; slot: PlayerSlot }
+  | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean; slot: PlayerSlot }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
   | { type: 'GAME_STARTED'; roomId: string }
-  | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string }
-  | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload }
+  | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string; slot: PlayerSlot }
+  | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload; slot: PlayerSlot }
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }
   | {
       type: 'SKILL_STATE_SYNC';
@@ -235,4 +236,4 @@ export type ServerToClientMessage =
       config: Record<string, any>;
     }
   | { type: 'RANKING_UPDATED'; rankings: RunRankingEntry[]; updatedPlayer?: PlayerProfile }
-  | { type: 'ERROR'; code: string; message: string };
+  | { type: 'ERROR'; code: string; message: string; slot?: PlayerSlot };

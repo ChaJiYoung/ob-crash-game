@@ -1,6 +1,6 @@
 # Task: T01 슬롯 프로토콜과 RoomManager 슬롯 2개
 
-## Status: pending
+## Status: done
 
 ## Goal
 한 방에 폰 컨트롤러를 슬롯 1·2로 각각 붙일 수 있게 하고, 폰이 보내는 메시지와 PC가 보내는 동기화 메시지를 슬롯별로 중계한다. 슬롯 없이 오는 옛 메시지(옛 QR, 옛 빌드)는 슬롯 1로 처리해 지금 1인 흐름이 그대로 동작한다.
@@ -106,8 +106,8 @@
 - 슬롯 없는 옛 DEVICE_CHECK → slot 1(기존 `server-session.test.ts`, `room-persistence.test.ts` 통과로 확인).
 
 ## Acceptance Criteria
-- [ ] 폰 두 대가 한 방에서 서로의 메시지를 받지 않는다.
-- [ ] 기존 서버 테스트 수정 없이 통과.
+- [x] 폰 두 대가 한 방에서 서로의 메시지를 받지 않는다.
+- [x] 기존 서버 테스트 수정 없이 통과.
 
 ## Validation
 - `npx vitest run tests/server-coop-slots.test.ts tests/server-session.test.ts tests/room-persistence.test.ts tests/controller-reconnect.test.ts tests/shared-protocol.test.ts` — 통과
@@ -129,6 +129,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
