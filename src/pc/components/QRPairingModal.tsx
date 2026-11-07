@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { PlayerProfile, PlayerSlot, RunRankingEntry } from '../../shared/types';
-import { WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { PlayerSlot, RunRankingEntry } from '../../shared/types';
+import { PLAYER_COLORS, WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { SlotPair, SlotState, SlotInput, StartGate, isSlotJoined, isSlotReady } from '../coopSlots';
 
 export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string, slot: PlayerSlot = 1): string {
   let cleanOrigin = origin.replace(/\/+$/, '');
@@ -14,48 +15,363 @@ export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?
 export interface QRPairingModalProps {
   roomId: string;
   lanIp?: string;
-  pairedPlayer?: PlayerProfile;
+  slots: SlotPair;
+  startGate: StartGate;
   topRankings: RunRankingEntry[];
-  isZeroCalibrated?: boolean;
-  onStart?: () => void;
-  onStartAsPc: () => void;
-  onStartWithController: () => void;
+  savedMouseNickname: string;
+  mouseNicknameError?: string | null;
+  onChooseInput: (slot: PlayerSlot, input: SlotInput | null) => void;
+  onSubmitMouseNickname: (slot: PlayerSlot, nickname: string) => void;
+  onStart: () => void;
   onOpenGuide?: () => void;
   onStartTutorial?: () => void;
   onStartSandbox?: () => void;
   onRenewRoom?: () => void;
 }
 
+interface SlotCardProps {
+  slotState: SlotState;
+  otherSlotState: SlotState;
+  roomId: string;
+  lanIp?: string;
+  savedMouseNickname: string;
+  mouseNicknameError?: string | null;
+  onChooseInput: (slot: PlayerSlot, input: SlotInput | null) => void;
+  onSubmitMouseNickname: (slot: PlayerSlot, nickname: string) => void;
+}
+
+const SlotCard: React.FC<SlotCardProps> = ({
+  slotState,
+  otherSlotState,
+  roomId,
+  lanIp,
+  savedMouseNickname,
+  mouseNicknameError,
+  onChooseInput,
+  onSubmitMouseNickname,
+}) => {
+  const { slot, input, player, isZeroCalibrated, isConnected } = slotState;
+  const color = PLAYER_COLORS[slot];
+  const [mouseNameInput, setMouseNameInput] = useState<string>(savedMouseNickname || '');
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+  const pairingUrl = roomId ? buildControllerPairingUrl(origin, roomId, lanIp, slot) : '';
+
+  const otherHasMouse = otherSlotState.input === 'mouse';
+  const isPhoneLocked = input === 'mobile' && !!player;
+
+  useEffect(() => {
+    if (savedMouseNickname && !mouseNameInput) {
+      setMouseNameInput(savedMouseNickname);
+    }
+  }, [savedMouseNickname]);
+
+  useEffect(() => {
+    if (!pairingUrl) return;
+    QRCode.toDataURL(pairingUrl, { width: 186, margin: 1 })
+      .then((dataUrl) => setQrDataUrl(dataUrl))
+      .catch((err) => console.error(`Failed to generate QR for slot ${slot}`, err));
+  }, [pairingUrl, slot]);
+
+  // Status text determination
+  let statusText = '비어 있음';
+  let statusColor = '#64748b';
+
+  if (input === 'mobile') {
+    if (!isConnected) {
+      statusText = '● 연결 끊김';
+      statusColor = '#f87171';
+    } else if (!player) {
+      statusText = '● 스마트폰 연결 대기 중…';
+      statusColor = '#f59e0b';
+    } else if (!isZeroCalibrated) {
+      statusText = '● 영점 조절 필요';
+      statusColor = '#f59e0b';
+    } else {
+      statusText = '● 준비 완료';
+      statusColor = '#4ade80';
+    }
+  } else if (input === 'mouse') {
+    if (!player) {
+      statusText = '닉네임 입력 대기';
+      statusColor = '#94a3b8';
+    } else {
+      statusText = '● 준비 완료';
+      statusColor = '#4ade80';
+    }
+  }
+
+  const handleMouseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = mouseNameInput.trim();
+    if (trimmed.length >= 2 && trimmed.length <= 10) {
+      onSubmitMouseNickname(slot, trimmed);
+    }
+  };
+
+  return (
+    <div
+      data-testid={`slot-card-${slot}`}
+      style={{
+        flex: 1,
+        background: 'rgba(15, 23, 42, 0.7)',
+        border: `2px solid ${color}`,
+        borderRadius: '16px',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: `0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 16px ${color}1a`,
+        minHeight: '340px',
+      }}
+    >
+      {/* Slot Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              padding: '3px 10px',
+              borderRadius: '9999px',
+              fontSize: '13px',
+              fontWeight: 900,
+              color: '#ffffff',
+              backgroundColor: color,
+            }}
+          >
+            {slot}P
+          </span>
+          <span style={{ fontSize: '15px', fontWeight: 800, color: '#f1f5f9' }}>
+            {slot === 1 ? '1P 슬롯' : '2P 슬롯'}
+          </span>
+        </div>
+        <div style={{ fontSize: '13px', fontWeight: 800, color: statusColor }}>{statusText}</div>
+      </div>
+
+      {/* Input Selection Segments */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '18px',
+          background: 'rgba(30, 41, 59, 0.6)',
+          padding: '4px',
+          borderRadius: '10px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onChooseInput(slot, input === 'mobile' ? null : 'mobile')}
+          style={{
+            flex: 1,
+            padding: '8px 4px',
+            borderRadius: '8px',
+            border: 'none',
+            fontSize: '13px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            backgroundColor: input === 'mobile' ? color : 'transparent',
+            color: input === 'mobile' ? '#ffffff' : '#94a3b8',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          📱 모바일
+        </button>
+        <button
+          type="button"
+          disabled={otherHasMouse || isPhoneLocked}
+          onClick={() => {
+            if (!otherHasMouse && !isPhoneLocked) {
+              onChooseInput(slot, input === 'mouse' ? null : 'mouse');
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '8px 4px',
+            borderRadius: '8px',
+            border: 'none',
+            fontSize: '13px',
+            fontWeight: 800,
+            cursor: otherHasMouse || isPhoneLocked ? 'not-allowed' : 'pointer',
+            opacity: otherHasMouse || isPhoneLocked ? 0.35 : 1,
+            textDecoration: otherHasMouse ? 'line-through' : 'none',
+            backgroundColor: input === 'mouse' ? color : 'transparent',
+            color: input === 'mouse' ? '#ffffff' : '#94a3b8',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          🖱 마우스
+        </button>
+      </div>
+
+      {/* Card Body */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+        }}
+      >
+        {input === null && (
+          <div style={{ padding: '24px 12px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#e2e8f0', marginBottom: '8px' }}>
+              입력 방식을 선택하세요
+            </div>
+            <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+              📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용
+            </div>
+          </div>
+        )}
+
+        {input === 'mobile' && !player && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt={`Slot ${slot} QR Code`}
+                style={{
+                  width: '186px',
+                  height: '186px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  marginBottom: '10px',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '186px',
+                  height: '186px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: '12px',
+                  color: '#94a3b8',
+                  fontSize: '12px',
+                  marginBottom: '10px',
+                }}
+              >
+                QR 생성 중...
+              </div>
+            )}
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#cbd5e1', letterSpacing: '0.05em' }}>
+              ROOM CODE: <span style={{ color: color }}>{roomId}</span>
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', maxWidth: '280px', wordBreak: 'break-all' }}>
+              {pairingUrl}
+            </div>
+          </div>
+        )}
+
+        {input === 'mobile' && player && (
+          <div style={{ padding: '16px 12px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 900, color: '#f8fafc', marginBottom: '10px' }}>
+              🔫 {player.nickname}님 접속 완료
+            </div>
+            {!isZeroCalibrated ? (
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#f59e0b' }}>
+                폰에서 영점을 맞춰 주세요
+              </div>
+            ) : (
+              <div style={{ fontSize: '15px', fontWeight: 900, color: '#4ade80' }}>
+                🎯 영점 완료
+              </div>
+            )}
+            {!isConnected && (
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#f87171', marginTop: '8px' }}>
+                연결이 끊어졌습니다. 다시 연결 중...
+              </div>
+            )}
+          </div>
+        )}
+
+        {input === 'mouse' && !player && (
+          <form
+            onSubmit={handleMouseSubmit}
+            style={{ width: '100%', maxWidth: '280px', padding: '12px 0' }}
+          >
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#cbd5e1', marginBottom: '8px' }}>
+              닉네임 입력 (2~10자)
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              <input
+                type="text"
+                maxLength={10}
+                value={mouseNameInput}
+                onChange={(e) => setMouseNameInput(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder="닉네임 입력"
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+              />
+              <button
+                type="submit"
+                disabled={mouseNameInput.trim().length < 2 || mouseNameInput.trim().length > 10}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: color,
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: mouseNameInput.trim().length >= 2 ? 'pointer' : 'not-allowed',
+                  opacity: mouseNameInput.trim().length >= 2 ? 1 : 0.4,
+                }}
+              >
+                확인
+              </button>
+            </div>
+            {mouseNicknameError && (
+              <div style={{ fontSize: '12px', color: '#f87171', marginTop: '4px' }}>
+                {mouseNicknameError}
+              </div>
+            )}
+          </form>
+        )}
+
+        {input === 'mouse' && player && (
+          <div style={{ padding: '20px 12px' }}>
+            <div style={{ fontSize: '38px', marginBottom: '8px' }}>🖱️</div>
+            <div style={{ fontSize: '17px', fontWeight: 900, color: '#f8fafc', marginBottom: '6px' }}>
+              {player.nickname} · 마우스로 플레이
+            </div>
+            <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+              좌클릭 발사 · 우클릭 스킬
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   roomId,
   lanIp,
-  pairedPlayer,
+  slots,
+  startGate,
   topRankings,
-  isZeroCalibrated = false,
+  savedMouseNickname,
+  mouseNicknameError,
+  onChooseInput,
+  onSubmitMouseNickname,
   onStart,
-  onStartAsPc,
-  onStartWithController,
   onOpenGuide,
   onStartTutorial,
   onStartSandbox,
   onRenewRoom,
 }) => {
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [pairingUrl, setPairingUrl] = useState<string>('');
-
-  const handleStart = onStart ?? (pairedPlayer ? onStartWithController : onStartAsPc);
-
-  useEffect(() => {
-    if (!roomId) return;
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-    const url = buildControllerPairingUrl(origin, roomId, lanIp);
-    setPairingUrl(url);
-
-    QRCode.toDataURL(url, { width: 220, margin: 1 })
-      .then((dataUrl) => setQrDataUrl(dataUrl))
-      .catch((err) => console.error('Failed to generate QR code', err));
-  }, [roomId, lanIp]);
-
   return (
     <div
       style={{
@@ -73,11 +389,14 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
     >
       <div
         style={{
-          width: '740px',
+          width: '1120px',
+          maxWidth: '95vw',
+          maxHeight: '92vh',
+          overflowY: 'auto',
           background: 'linear-gradient(145deg, #131a29, #0d121c)',
           border: '2px solid rgba(245, 158, 11, 0.4)',
           borderRadius: '24px',
-          padding: '36px 40px',
+          padding: '32px 36px',
           boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(245, 158, 11, 0.2)',
           display: 'flex',
           flexDirection: 'column',
@@ -85,7 +404,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         }}
       >
         {/* Title */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <div
             style={{
               fontSize: '32px',
@@ -98,357 +417,292 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           >
             🍺 BEER CRUSHER 3D
           </div>
-          <div style={{ fontSize: '15px', color: '#94a3b8', marginTop: '6px' }}>
-            스마트폰 카메라로 아래 QR 코드를 스캔하여 권총 컨트롤러를 연결하세요!
+          <div style={{ fontSize: '14px', color: '#cbd5e1', marginTop: '6px' }}>
+            플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.
           </div>
         </div>
 
-        {/* 2-Column Content: QR & Leaderboard */}
-        <div style={{ display: 'flex', gap: '36px', width: '100%', alignItems: 'center' }}>
-          {/* Left: QR Code & Room Badge */}
+        {/* 1P / 2P Slot Cards */}
+        <div style={{ display: 'flex', gap: '20px', width: '100%', marginBottom: '24px' }}>
+          <SlotCard
+            slotState={slots[0]}
+            otherSlotState={slots[1]}
+            roomId={roomId}
+            lanIp={lanIp}
+            savedMouseNickname={savedMouseNickname}
+            mouseNicknameError={mouseNicknameError}
+            onChooseInput={onChooseInput}
+            onSubmitMouseNickname={onSubmitMouseNickname}
+          />
+          <SlotCard
+            slotState={slots[1]}
+            otherSlotState={slots[0]}
+            roomId={roomId}
+            lanIp={lanIp}
+            savedMouseNickname={savedMouseNickname}
+            mouseNicknameError={mouseNicknameError}
+            onChooseInput={onChooseInput}
+            onSubmitMouseNickname={onSubmitMouseNickname}
+          />
+        </div>
+
+        {/* Lower Section: Left Leaderboard + Right Start/Actions */}
+        <div style={{ display: 'flex', gap: '24px', width: '100%' }}>
+          {/* Left: Top 5 Solo Ranking */}
           <div
             style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              background: 'rgba(0, 0, 0, 0.35)',
-              padding: '20px',
-              borderRadius: '16px',
+              flex: '0 0 320px',
+              backgroundColor: 'rgba(15, 23, 42, 0.65)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '16px 18px',
             }}
           >
             <div
               style={{
                 fontSize: '13px',
-                fontWeight: 800,
-                color: '#38bdf8',
-                marginBottom: '12px',
-                letterSpacing: '1px',
-              }}
-            >
-              ROOM CODE: <span style={{ color: '#fbbf24', fontSize: '18px' }}>{roomId || '----'}</span>
-            </div>
-
-            {qrDataUrl ? (
-              <img
-                src={qrDataUrl}
-                alt="QR Code"
-                style={{
-                  width: '200px',
-                  height: '200px',
-                  borderRadius: '12px',
-                  border: '4px solid #ffffff',
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: '200px',
-                  height: '200px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: '#1f2937',
-                  borderRadius: '12px',
-                }}
-              >
-                QR 생성 중...
-              </div>
-            )}
-
-            {pairingUrl && (
-              <div
-                style={{
-                  marginTop: '10px',
-                  fontSize: '11px',
-                  color: '#94a3b8',
-                  textAlign: 'center',
-                  wordBreak: 'break-all',
-                  maxWidth: '240px',
-                  lineHeight: 1.4,
-                }}
-              >
-                직접 접속: <span style={{ color: '#38bdf8', fontWeight: 600 }}>{pairingUrl}</span>
-              </div>
-            )}
-
-            {/* Connection Status Card */}
-            {pairedPlayer ? (
-              <div
-                style={{
-                  marginTop: '16px',
-                  padding: '10px 14px',
-                  background: isZeroCalibrated ? 'rgba(56, 189, 248, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                  border: isZeroCalibrated ? '1px solid #38bdf8' : '1px solid #10b981',
-                  borderRadius: '10px',
-                  textAlign: 'center',
-                  width: '100%',
-                }}
-              >
-                <div style={{ fontSize: '14px', fontWeight: 800, color: isZeroCalibrated ? '#38bdf8' : '#34d399' }}>
-                  {isZeroCalibrated ? '🎯 영점 조절 완료! (조준선 확인 중)' : `🔫 ${pairedPlayer.nickname}님 접속 완료!`}
-                </div>
-                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '2px' }}>
-                  {isZeroCalibrated ? '화면 조준선을 확인한 뒤 시작 버튼을 누르세요' : `최고 기록: ${pairedPlayer.bestScore}점 (영점 대기 중)`}
-                </div>
-              </div>
-            ) : (
-              <div
-                style={{
-                  marginTop: '16px',
-                  fontSize: '13px',
-                  color: '#94a3b8',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', animation: 'pulse 1.5s infinite' }} />
-                스마트폰 연결 대기 중...
-              </div>
-            )}
-          </div>
-
-          {/* Right: Hall of Fame TOP 5 */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'rgba(0, 0, 0, 0.35)',
-              padding: '20px',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              height: '320px',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '14px',
-                fontWeight: 800,
-                color: '#fbbf24',
-                marginBottom: '12px',
+                fontWeight: 900,
+                color: '#f59e0b',
+                letterSpacing: '0.05em',
+                marginBottom: '10px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
               }}
             >
-              🏆 명예의 전당 TOP 5
+              <span>🏆</span>
+              <span>명예의 전당 TOP 5</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
-              {topRankings.length > 0 ? (
-                topRankings.slice(0, 5).map((p, idx) => (
-                  <div
-                    key={`${p.deviceId}-${p.playedAt}`}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      background: idx === 0 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                      border: idx === 0 ? '1px solid rgba(245, 158, 11, 0.35)' : 'none',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span
-                        style={{
-                          fontWeight: 900,
-                          fontSize: '13px',
-                          color: idx === 0 ? '#fbbf24' : idx === 1 ? '#e2e8f0' : idx === 2 ? '#b45309' : '#94a3b8',
-                        }}
-                      >
-                        #{idx + 1}
-                      </span>
-                      <span style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '64px' }}>{p.nickname}</span>
-                      <span style={{ fontSize: '11px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                        W{p.waveReached} · {WEAPON_RANKING_LABEL[p.weaponKind]}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: '8px' }}>
-                      {p.score}점
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div style={{ margin: 'auto', fontSize: '13px', color: '#64748b' }}>
-                  아직 등록된 랭킹 기록이 없습니다.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '24px', width: '100%' }}>
-          <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
-            {pairedPlayer ? (
-              <button
-                id="shoot-to-start-target"
-                data-shootable="start"
-                onClick={handleStart}
-                style={{
-                  flex: 1,
-                  padding: '18px 24px',
-                  borderRadius: '16px',
-                  border: '3px solid #fbbf24',
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(16, 185, 129, 0.45))',
-                  color: '#ffffff',
-                  fontSize: '18px',
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  boxShadow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.25)',
-                  transition: 'transform 0.1s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  letterSpacing: '0.5px',
-                  animation: 'pulse 1.5s infinite',
-                }}
-              >
-                <span style={{ fontSize: '26px' }}>🎯</span>
-                <span>SHOOT TO START! (모니터의 과녁을 조준하고 쏘세요)</span>
-              </button>
+            {topRankings.length === 0 ? (
+              <div style={{ fontSize: '13px', color: '#64748b', textAlign: 'center', padding: '24px 0' }}>
+                아직 등록된 기록이 없습니다.
+                <br />
+                첫 번째 주인공이 되어보세요!
+              </div>
             ) : (
-              <button
-                data-shootable="start"
-                onClick={handleStart}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(245, 158, 11, 0.5)',
-                  background: 'rgba(245, 158, 11, 0.15)',
-                  color: '#fbbf24',
-                  fontSize: '15px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                🖱️ 스마트폰 없이 PC 마우스/키보드로 바로 시작
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {topRankings.map((entry, index) => {
+                  return (
+                    <div
+                      key={`${entry.deviceId}-${entry.playedAt}-${index}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '6px 8px',
+                        borderRadius: '8px',
+                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <span
+                          style={{
+                            fontWeight: 900,
+                            color: index === 0 ? '#fbbf24' : index === 1 ? '#e2e8f0' : index === 2 ? '#b45309' : '#94a3b8',
+                            width: '16px',
+                            textAlign: 'center',
+                          }}
+                        >
+                          {index + 1}
+                        </span>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            color: '#f8fafc',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '90px',
+                          }}
+                        >
+                          {entry.nickname}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                          {WEAPON_RANKING_LABEL[entry.weaponKind]}
+                        </span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 800, color: '#f59e0b' }}>
+                          {entry.score.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>W{entry.waveReached}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 
-          {onStartSandbox && (
-            <button
-              onClick={onStartSandbox}
-              style={{
-                width: '100%',
-                padding: '13px',
-                borderRadius: '12px',
-                border: '1px solid rgba(56, 189, 248, 0.4)',
-                background: 'rgba(56, 189, 248, 0.1)',
-                color: '#38bdf8',
-                fontSize: '14px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.15s',
-              }}
-            >
-              🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)
-            </button>
-          )}
-
-          {(onStartTutorial || onOpenGuide) && (
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {onStartTutorial && (
+          {/* Right: Start & Action Buttons */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Start Button or Waiting Chip */}
+            <div style={{ display: 'flex' }}>
+              {startGate.canStart ? (
                 <button
-                  onClick={onStartTutorial}
+                  data-shootable="start"
+                  onClick={onStart}
                   style={{
                     flex: 1,
-                    padding: '13px 8px',
+                    padding: '16px',
                     borderRadius: '12px',
-                    border: '1px solid rgba(56, 189, 248, 0.4)',
-                    background: 'rgba(56, 189, 248, 0.1)',
-                    color: '#38bdf8',
-                    fontSize: '14px',
-                    fontWeight: 800,
+                    border: '2px solid #f59e0b',
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    color: '#000000',
+                    fontSize: '16px',
+                    fontWeight: 900,
                     cursor: 'pointer',
+                    boxShadow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
-                    whiteSpace: 'normal',
-                    transition: 'all 0.15s',
+                    gap: '10px',
+                    letterSpacing: '0.5px',
                   }}
                 >
-                  🎓 튜토리얼 시작
+                  <span style={{ fontSize: '22px' }}>▶</span>
+                  <span>게임 시작 (폰은 화면 가운데를 쏘세요)</span>
                 </button>
-              )}
-              {onOpenGuide && (
-                <button
-                  onClick={onOpenGuide}
+              ) : (
+                <div
                   style={{
                     flex: 1,
-                    padding: '13px 8px',
+                    padding: '16px',
                     borderRadius: '12px',
-                    border: '1px solid rgba(245, 158, 11, 0.35)',
-                    background: 'rgba(245, 158, 11, 0.08)',
-                    color: '#fbbf24',
-                    fontSize: '14px',
+                    border: '1px solid rgba(148, 163, 184, 0.25)',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    color: '#94a3b8',
+                    fontSize: '15px',
                     fontWeight: 800,
-                    cursor: 'pointer',
+                    textAlign: 'center',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
-                    whiteSpace: 'normal',
-                    transition: 'all 0.15s',
+                    gap: '8px',
                   }}
                 >
-                  📖 게임 가이드
-                </button>
+                  <span>⏳</span>
+                  <span>{startGate.message || '플레이어를 연결하세요'}</span>
+                </div>
               )}
             </div>
-          )}
 
-          <div
-            style={{
-              padding: '10px 12px',
-              borderRadius: '10px',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid rgba(148, 163, 184, 0.2)',
-              fontSize: '12px',
-              lineHeight: 1.7,
-              color: '#94a3b8',
-            }}
-          >
-            <div style={{ fontWeight: 800, color: '#cbd5e1' }}>🎮 조작법</div>
-            <div>📱 폰: 기울여 조준 · 탭 발사(꾹 누르면 연사) · 더블탭 피버 · 총구를 위로 휙 젖혀 스킬</div>
-            <div>🖱️ 마우스: 클릭 발사(누르고 있으면 연사) · 더블클릭 피버 · 우클릭 스킬 · Esc 일시정지</div>
-          </div>
+            {onStartSandbox && (
+              <button
+                onClick={onStartSandbox}
+                style={{
+                  width: '100%',
+                  padding: '11px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(56, 189, 248, 0.4)',
+                  background: 'rgba(56, 189, 248, 0.1)',
+                  color: '#38bdf8',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  transition: 'all 0.15s',
+                }}
+              >
+                🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)
+              </button>
+            )}
 
-          {onRenewRoom && (
-            <button
-              onClick={onRenewRoom}
+            {(onStartTutorial || onOpenGuide) && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {onStartTutorial && (
+                  <button
+                    onClick={onStartTutorial}
+                    style={{
+                      flex: 1,
+                      padding: '11px 8px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(56, 189, 248, 0.4)',
+                      background: 'rgba(56, 189, 248, 0.1)',
+                      color: '#38bdf8',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    🎓 튜토리얼 시작
+                  </button>
+                )}
+                {onOpenGuide && (
+                  <button
+                    onClick={onOpenGuide}
+                    style={{
+                      flex: 1,
+                      padding: '11px 8px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(245, 158, 11, 0.35)',
+                      background: 'rgba(245, 158, 11, 0.08)',
+                      color: '#fbbf24',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    📖 게임 가이드
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div
               style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '12px',
-                border: '1px solid rgba(148, 163, 184, 0.35)',
-                background: 'rgba(148, 163, 184, 0.06)',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background: 'rgba(15, 23, 42, 0.6)',
+                border: '1px solid rgba(148, 163, 184, 0.2)',
+                fontSize: '12px',
+                lineHeight: 1.7,
                 color: '#94a3b8',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
               }}
             >
-              🔄 새 QR 발급 (다른 폰으로 연결)
-            </button>
-          )}
+              <div style={{ fontWeight: 800, color: '#cbd5e1' }}>🎮 조작법</div>
+              <div>📱 폰: 기울여 조준 · 탭 발사(꾹 누르면 연사) · 더블탭 피버 · 총구를 위로 휙 젖혀 스킬</div>
+              <div>🖱️ 마우스: 클릭 발사(누르고 있으면 연사) · 더블클릭 피버 · 우클릭 스킬 · Esc 일시정지</div>
+            </div>
 
-          {/* Sound AutoPlay Tip */}
-          <div style={{ marginTop: '4px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
-            🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.
+            {onRenewRoom && (
+              <button
+                onClick={onRenewRoom}
+                style={{
+                  width: '100%',
+                  padding: '9px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(148, 163, 184, 0.35)',
+                  background: 'rgba(148, 163, 184, 0.06)',
+                  color: '#94a3b8',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                🔄 새 방 만들기 (모든 슬롯 초기화)
+              </button>
+            )}
+
+            <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+              🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.
+            </div>
           </div>
         </div>
       </div>

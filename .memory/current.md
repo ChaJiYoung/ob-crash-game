@@ -7,17 +7,17 @@
 [P04 PC 로비·연결](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md)
 
 ## Active Task
-[T02 폰 컨트롤러 슬롯: QR ?slot=, 모든 메시지에 slot, 자리 있음 안내](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/T02-controller-slot.md)
+[T04 슬롯별 폰 어댑터·마우스 어댑터를 플레이어 처리부에 묶기, 플레이어 수만큼 십자선](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/T04-per-slot-input.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
 - P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
-- P04 PC 로비·연결 진행 중 (1/6 Tasks 완료, 2ebc369)
+- P04 PC 로비·연결 진행 중 (3/6 Tasks 완료)
 - 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 진행 중)
 
 ## Next Step (IMPORTANT)
-P04-T02 청사진을 읽고 폰 컨트롤러 슬롯(QR ?slot=, 모든 메시지에 slot, 자리 있음 안내) 구현 및 검증.
+P04-T04 청사진을 읽고 슬롯별 폰/마우스 어댑터와 십자선 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

@@ -33,6 +33,18 @@ import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProc
 import { MouseAdapter } from './input/MouseAdapter';
 import { PhoneAdapter } from './input/PhoneAdapter';
 
+import {
+  createInitialSlots,
+  chooseSlotInput,
+  updateSlot,
+  getJoinedSlots,
+  getStartGate,
+  SlotPair,
+  SlotInput,
+} from './coopSlots';
+import { getOrCreateDeviceId } from '../shared/deviceIdentity';
+import { PlayerSlot } from '../shared/types';
+
 export interface PCGamePageProps {
   initialPhase?: GamePhase;
 }
@@ -51,7 +63,31 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const roomIdRef = useRef<string>(roomId);
   roomIdRef.current = roomId;
   const [lanIp, setLanIp] = useState<string>('');
-  const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
+
+  const [slots, setSlots] = useState<SlotPair>(createInitialSlots);
+  const slotsRef = useRef<SlotPair>(slots);
+  slotsRef.current = slots;
+  const [mouseNicknameError, setMouseNicknameError] = useState<string | null>(null);
+  const startGate = useMemo(() => getStartGate(slots), [slots]);
+
+  const [savedMouseNickname, setSavedMouseNickname] = useState<string>(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('beer_crusher_mouse_nickname') || '';
+      }
+    } catch {}
+    return '';
+  });
+
+  // 호환용 파생값
+  const primarySlot = getJoinedSlots(slots)[0];
+  const pairedPlayer = primarySlot?.player;
+  const isZeroCalibrated = slots.some((s) => s.isZeroCalibrated);
+  const isControllerConnected = getJoinedSlots(slots).every(
+    (s) => s.input !== 'mobile' || s.isConnected
+  );
+  const isControllerConnectedRef = useRef<boolean>(true);
+  isControllerConnectedRef.current = isControllerConnected;
   const [topRankings, setTopRankings] = useState<RunRankingEntry[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
@@ -77,16 +113,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     packetHz: 0,
     jitterRms: 0,
   });
-  const [isZeroCalibrated, setIsZeroCalibrated] = useState<boolean>(false);
   const [isAimLocked, setIsAimLocked] = useState<boolean>(false);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownSecRef = useRef<number | null>(null);
   countdownSecRef.current = countdownSec;
-  // Optimistic until the server reports a drop, so mouse-only play (no phone) is never held up by this flag.
-  const [isControllerConnected, setIsControllerConnected] = useState<boolean>(true);
-  const isControllerConnectedRef = useRef<boolean>(true);
-  isControllerConnectedRef.current = isControllerConnected;
   // The socket callback lives in an effect that never re-runs, so it reaches the latest pause opener through a ref.
   const handleOpenPauseRef = useRef<(reason?: PauseReason) => void>(() => {});
   const [pauseMenu, setPauseMenu] = useState<{ open: boolean; reason: PauseReason }>({ open: false, reason: 'USER' });
@@ -226,7 +257,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const pressScreenButton = useCallback((button: ShootableButton) => {
     if (button === 'start') {
-      if (pairedPlayerRef.current) {
+      const currentSlots = slotsRef.current;
+      const hasPhone = currentSlots.some((s) => s.input === 'mobile' && s.player);
+      if (hasPhone) {
         startCountdownAndGameRef.current();
       } else {
         handleStartGameRef.current();
@@ -345,25 +378,34 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             break;
 
           case 'CONTROLLER_PAIRED':
-            setPairedPlayer(msg.player);
-            setIsControllerConnected(true);
+            setSlots((prev) =>
+              updateSlot(chooseSlotInput(prev, msg.slot, 'mobile').slots, msg.slot, {
+                player: msg.player,
+                isConnected: true,
+              })
+            );
             soundSynth.unlockAudio();
             break;
 
           case 'ZERO_CALIBRATED':
-            if (msg.resume) {
-              // Only the phone's socket came back: keep the zero offset, and only move a lobby on to zeroing.
-              setIsZeroCalibrated(true);
-              if (gamePhaseRef.current === 'PAIRING') {
-                setGamePhase('ZEROING');
-              }
-              break;
+            setSlots((prev) => updateSlot(prev, msg.slot, { isZeroCalibrated: true }));
+            if (!msg.resume) {
+              phoneAdapterRef.current?.resetZero();
             }
-            setIsZeroCalibrated(true);
-            phoneAdapterRef.current?.resetZero();
             if (gamePhaseRef.current === 'PAIRING') {
               setGamePhase('ZEROING');
             }
+            break;
+
+          case 'LOCAL_PLAYER_REGISTERED':
+            setSlots((prev) => updateSlot(prev, msg.slot, { player: msg.player }));
+            setMouseNicknameError(null);
+            setSavedMouseNickname(msg.player.nickname);
+            try {
+              if (typeof window !== 'undefined' && window.localStorage) {
+                window.localStorage.setItem('beer_crusher_mouse_nickname', msg.player.nickname);
+              }
+            } catch {}
             break;
 
           case 'SENSOR_CONFIG_UPDATE':
@@ -463,18 +505,29 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'RANKING_UPDATED':
             setTopRankings(msg.rankings);
-            const curP = pairedPlayerRef.current;
-            if (msg.updatedPlayer && curP && msg.updatedPlayer.deviceId === curP.deviceId) {
-              setIsNewRecord(msg.updatedPlayer.bestScore > (curP.bestScore || 0));
-              setPairedPlayer(msg.updatedPlayer);
+            if (msg.updatedPlayer) {
+              const up = msg.updatedPlayer;
+              setSlots((prev) => {
+                const s1 = prev[0].player?.deviceId === up.deviceId ? { ...prev[0], player: up } : prev[0];
+                const s2 = prev[1].player?.deviceId === up.deviceId ? { ...prev[1], player: up } : prev[1];
+                return [s1, s2];
+              });
+              const curP = pairedPlayerRef.current;
+              if (curP && up.deviceId === curP.deviceId) {
+                setIsNewRecord(up.bestScore > (curP.bestScore || 0));
+              }
             }
             break;
 
           case 'ERROR':
+            if (msg.code === 'INVALID_NICKNAME') {
+              setMouseNicknameError(msg.message);
+              break;
+            }
             if (msg.code === 'CONTROLLER_DISCONNECTED') {
+              const droppedSlot = msg.slot ?? 1;
+              setSlots((prev) => updateSlot(prev, droppedSlot, { isConnected: false }));
               processorsRef.current.forEach((p) => p.stopAll());
-              isControllerConnectedRef.current = false;
-              setIsControllerConnected(false);
               if (gamePhaseRef.current === 'PLAYING') {
                 if (pauseMenuOpenRef.current) {
                   // The player had already paused: keep the menu, but it must now wait for the phone.
@@ -796,10 +849,42 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     window.location.reload();
   }, []);
 
+  const handleChooseInput = useCallback((slot: PlayerSlot, input: SlotInput | null) => {
+    setSlots((prev) => {
+      const res = chooseSlotInput(prev, slot, input);
+      if (res.rejected) return prev;
+      return res.slots;
+    });
+  }, []);
+
+  const handleSubmitMouseNickname = useCallback((slot: PlayerSlot, nickname: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomIdRef.current) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: 'REGISTER_LOCAL_PLAYER',
+          roomId: roomIdRef.current,
+          deviceId: getOrCreateDeviceId(),
+          nickname,
+          slot,
+        })
+      );
+    }
+  }, []);
+
   const handleReturnToLobby = useCallback(() => {
     processorsRef.current.forEach((p) => p.stopAll());
     engine.gamePhase = 'PAIRING';
     syncProcessors();
+    setSlots((prev) => {
+      let next = prev;
+      if (next[0].input === 'mouse') {
+        next = chooseSlotInput(next, 1, null).slots;
+      }
+      if (next[1].input === 'mouse') {
+        next = chooseSlotInput(next, 2, null).slots;
+      }
+      return next;
+    });
     setGamePhase('PAIRING');
   }, [engine, syncProcessors]);
   handleReturnToLobbyRef.current = handleReturnToLobby;
@@ -1190,18 +1275,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           <QRPairingModal
             roomId={roomId}
             lanIp={lanIp}
-            pairedPlayer={pairedPlayer}
+            slots={slots}
+            startGate={startGate}
             topRankings={topRankings}
-            isZeroCalibrated={isZeroCalibrated}
+            savedMouseNickname={savedMouseNickname}
+            mouseNicknameError={mouseNicknameError}
+            onChooseInput={handleChooseInput}
+            onSubmitMouseNickname={handleSubmitMouseNickname}
             onStart={() => pressScreenButton('start')}
-            onStartAsPc={() => pressScreenButton('start')}
-            onStartWithController={() => pressScreenButton('start')}
             onOpenGuide={handleOpenGuide}
             onStartTutorial={handleStartTutorial}
             onStartSandbox={handleStartSandbox}
             onRenewRoom={handleRenewRoom}
           />
-          {(isZeroCalibrated || pairedPlayer) && (
+          {slots.some((s) => s.input === 'mobile' && s.isZeroCalibrated) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 120 }}>
               <CrosshairOverlay
                 ref={crosshairRef}

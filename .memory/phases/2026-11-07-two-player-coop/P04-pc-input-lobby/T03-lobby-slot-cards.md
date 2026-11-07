@@ -1,6 +1,6 @@
 # Task: T03 로비 슬롯 카드 UI와 PC 슬롯 상태
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC 로비(`QRPairingModal`)를 1P/2P 슬롯 카드 2개로 바꾼다(D06, UI 시안 1·2). 각 슬롯에서 "📱 모바일"(그 슬롯 전용 QR) 또는 "🖱 마우스"(닉네임 입력 → 서버 등록 → 즉시 준비 완료, D15)를 고른다. PC 페이지는 단일 `pairedPlayer`/`isZeroCalibrated`/`isControllerConnected` 상태 대신 `slots`(P04-T01 `SlotPair`)를 진실의 원천으로 쓴다. 시작 버튼·안내는 `getStartGate`를 따른다(D07).
@@ -93,9 +93,9 @@ PC 로비(`QRPairingModal`)를 1P/2P 슬롯 카드 2개로 바꾼다(D06, UI 시
 - 1P만 준비 → 시작 버튼 렌더.
 
 ## Acceptance Criteria
-- [ ] 로비가 슬롯 카드 2개로 보이고 슬롯마다 다른 QR이 나온다.
-- [ ] 마우스 슬롯에서 닉네임을 입력하면 준비 완료가 되고, 새로고침 후 닉네임이 자동으로 채워진다.
-- [ ] 한쪽 슬롯만 준비돼도 기존 1인 시작이 된다.
+- [x] 로비가 슬롯 카드 2개로 보이고 슬롯마다 다른 QR이 나온다.
+- [x] 마우스 슬롯에서 닉네임을 입력하면 준비 완료가 되고, 새로고침 후 닉네임이 자동으로 채워진다.
+- [x] 한쪽 슬롯만 준비돼도 기존 1인 시작이 된다.
 
 ## Validation
 - `npx vitest run tests/lobby-slot-cards.test.tsx tests/pc-modals-and-pairing.test.ts` — 통과
@@ -118,6 +118,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: completed

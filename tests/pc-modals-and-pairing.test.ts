@@ -3,6 +3,7 @@ import React from 'react';
 import fs from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { buildControllerPairingUrl, QRPairingModal } from '../src/pc/components/QRPairingModal';
+import { createInitialSlots, getStartGate } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
 import {
   DEFAULT_TUNING_CONFIG,
@@ -144,12 +145,19 @@ describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
 });
 
 describe('lobby controls hint', () => {
+  const defaultSlots = createInitialSlots();
+  const defaultGate = getStartGate(defaultSlots);
+
   const html = renderToStaticMarkup(
     React.createElement(QRPairingModal, {
       roomId: 'AB12',
+      slots: defaultSlots,
+      startGate: defaultGate,
       topRankings: [],
-      onStartAsPc: () => {},
-      onStartWithController: () => {},
+      savedMouseNickname: '',
+      onChooseInput: () => {},
+      onSubmitMouseNickname: () => {},
+      onStart: () => {},
     })
   );
 
@@ -174,13 +182,20 @@ describe('lobby controls hint', () => {
 });
 
 describe('lobby tutorial and guide buttons', () => {
+  const defaultSlots = createInitialSlots();
+  const defaultGate = getStartGate(defaultSlots);
+
   const render = (props: Record<string, unknown>) =>
     renderToStaticMarkup(
       React.createElement(QRPairingModal, {
         roomId: 'AB12',
+        slots: defaultSlots,
+        startGate: defaultGate,
         topRankings: [],
-        onStartAsPc: () => {},
-        onStartWithController: () => {},
+        savedMouseNickname: '',
+        onChooseInput: () => {},
+        onSubmitMouseNickname: () => {},
+        onStart: () => {},
         ...props,
       } as any)
     );
