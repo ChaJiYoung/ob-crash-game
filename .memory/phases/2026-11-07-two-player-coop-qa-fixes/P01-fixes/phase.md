@@ -10,7 +10,7 @@ QA에서 나온 문제 5건을 고친다. 끝나면 전체 테스트·타입·�
 | T03 | `done` ✅ | 조준 경로 하나로: 캔버스의 마우스 직접 쓰기·옛 조준 ref·`updateAimDirect` 제거 | [T03](./T03-single-aim-path.md) |
 | T04 | `done` ✅ | 로비 모달이 1440×900·1024×768 안에 들어오게 | [T04](./T04-lobby-fit.md) |
 | T05 | `done` ✅ | 불안정 테스트 찾기와 원인 제거 | [T05](./T05-flaky-test.md) |
-| T06 | `in_progress` 🔵 | 개발 서버 전용 읽기 전용 디버그 창구(`window.__BEER_DEBUG__`) — 브라우저 봇 풀플레이용 | [T06](./T06-dev-debug-hook.md) |
+| T06 | `done` ✅ | 개발 서버 전용 읽기 전용 디버그 창구(`window.__BEER_DEBUG__`) — 브라우저 봇 풀플레이용 | [T06](./T06-dev-debug-hook.md) |
 
 ## Progress
-- done: 5/6 (active: T06)
+- done: 6/6 (P01 완료)

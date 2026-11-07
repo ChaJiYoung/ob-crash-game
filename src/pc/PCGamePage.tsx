@@ -37,6 +37,7 @@ import { MouseAdapter } from './input/MouseAdapter';
 import { PhoneAdapter } from './input/PhoneAdapter';
 import { GraceState, startGrace, tickGrace } from './coopDisconnect';
 import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './playerPresentation';
+import { buildDebugSnapshot } from './debug/debugSnapshot';
 
 import {
   createInitialSlots,
@@ -73,6 +74,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [roomId, setRoomId] = useState<string>('');
   const roomIdRef = useRef<string>(roomId);
   roomIdRef.current = roomId;
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as any).__BEER_DEBUG__ = {
+      snapshot: () => buildDebugSnapshot(engine, gamePhaseRef.current, performance.now()),
+    };
+    return () => {
+      delete (window as any).__BEER_DEBUG__;
+    };
+  }, [engine]);
   const [lanIp, setLanIp] = useState<string>('');
 
   const [slots, setSlots] = useState<SlotPair>(createInitialSlots);

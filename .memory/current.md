@@ -4,21 +4,22 @@
 [2인팟 QA 수정](./plans/2026-11-07-two-player-coop-qa-fixes.md)
 
 ## Active Phase
-[P01 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md)
+[P01 QA 수정 (완료)](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md)
 
 ## Active Task
-[T06 개발 서버 전용 읽기 전용 디버그 창구](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/T06-dev-debug-hook.md)
+None (P01 전체 완료, 6/6 Tasks 완료)
 
 ## Status
 - T01 처리부 타이머 바인딩 수정 완료 (44e9dd5)
 - T02 총구가 십자선 지점을 겨누게 수정 완료 (73a2316)
 - T03 조준 경로 하나로 정리 완료 (d9ad271)
 - T04 로비 모달 화면 맞춤 및 캡처 완료 (08b8d7e)
-- T05 불안정 테스트 원인 제거 (pc-page-smoke 글로벌 모의 객체 정리 및 60회 연속 통과 확인)
-- P01 QA 수정 진행 중 (5/6 Tasks 완료)
+- T05 불안정 테스트 원인 제거 (7f942a1)
+- T06 개발 서버 전용 읽기 전용 디버그 창구 구현 완료
+- P01 QA 수정 완료 (6/6 Tasks 완료, P02 재QA 대기)
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/pc/input/PlayerActionProcessor.ts` 타이머 바인딩부터. P02(재QA)는 리뷰어가 진행하므로 구현 에이전트는 P01만 한다.
+P01 모든 Task(T01~T06) 구현·검증 완료. P02-requa는 리뷰어가 진행하므로 구현 에이전트는 대기.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).
