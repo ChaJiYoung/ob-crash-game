@@ -13,6 +13,7 @@ describe('card selection input gate and freeze (gameplay-polish P02-T03)', () =>
   beforeEach(() => {
     engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
+    engine.weaponSystem.refillSkillInstant(); // reset() leaves 0 charges when no weapon is selected
     engine.activeTargets = [];
     engine.spawnWaveRewardCards(SPAWN_MS, false);
   });
@@ -62,6 +63,7 @@ describe('card selection input gate and freeze (gameplay-polish P02-T03)', () =>
     // Fresh engine state with a running fever, a buff and a skill cooldown
     engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
+    engine.weaponSystem.refillSkillInstant();
     engine.activeTargets = [];
     const t0 = 5_000;
     engine.weaponSystem.consumeSkill(t0);

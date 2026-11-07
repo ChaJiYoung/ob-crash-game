@@ -37,8 +37,8 @@ export const MobileControllerPage: React.FC = () => {
   }>({
     weaponKind: 'shotgun',
     weaponLevel: 1,
-    skillStock: 1,
-    maxSkillStock: 1,
+    skillStock: 0,
+    maxSkillStock: 2,
     skillCooldownRemainingMs: 0,
     skillCooldownTotalMs: GAME_TUNING.skillCooldownMsByLevel[1],
   });

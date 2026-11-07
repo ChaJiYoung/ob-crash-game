@@ -100,11 +100,6 @@ export class WeaponSystem {
       // Refill ammo on level up
       this.ammo = this.getMaxAmmo();
       this.isReloading = false;
-      // If reached MAX (Lv.4), grant 2 skill stocks immediately
-      if (this.weaponLevel === 4) {
-        this.skillStock = 2;
-        this.skillCooldownRemainingMs = 0;
-      }
     } else {
       // Re-upgrading at MAX refills skill instant and increases base damage by +15%
       this.refillSkillInstant();
@@ -273,7 +268,7 @@ export class WeaponSystem {
     this.lastFireTimeMs = 0;
     this.lastUpdateMs = 0;
     this.infiniteAmmo = false;
-    this.skillStock = 1;
+    this.skillStock = 0;
     this.skillCooldownRemainingMs = 0;
   }
 }

@@ -150,6 +150,21 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     });
   });
 
+  it('does not refill skill charges when reaching Lv.4, and reset() empties them', () => {
+    const ws = new WeaponSystem('revolver', 1);
+    ws.consumeSkill(1000);
+    ws.consumeSkill(1050);
+    expect(ws.getState().skillStock).toBe(0);
+    const cooldownBefore = ws.getState().skillCooldownRemainingMs;
+    ws.upgradeWeaponLevel(); // Lv.2
+    ws.upgradeWeaponLevel(); // Lv.3
+    ws.upgradeWeaponLevel(); // Lv.4
+    expect(ws.getState().skillStock).toBe(0);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(cooldownBefore);
+    ws.reset();
+    expect(ws.getState().skillStock).toBe(0);
+  });
+
   it('should manage weapon archetype, level progression, and skill cooldown in WeaponSystem', () => {
     const ws = new WeaponSystem('shotgun', 1);
     const initial = ws.getState();
@@ -200,7 +215,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(ws.getState().weaponLevel).toBe(4);
     expect(ws.getState().maxAmmo).toBe(16);
     expect(ws.getState().maxSkillStock).toBe(2);
-    expect(ws.getState().skillStock).toBe(2); // 2 stocks granted at MAX!
+    expect(ws.getState().skillStock).toBe(2); // selectWeapon filled; Lv.4 grants no extra refill
 
     // 4. Test Rapid Reload Card Buff
     ws.applyRapidReloadBuff();
