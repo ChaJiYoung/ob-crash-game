@@ -7,17 +7,18 @@
 [P02 엔진 2인](./phases/2026-11-07-two-player-coop/P02-engine-players/phase.md)
 
 ## Active Task
-[T02 인원수 규칙 표 playerCountRules와 startGame({ playerCount })](./phases/2026-11-07-two-player-coop/P02-engine-players/T02-player-count-rules.md)
+[T03 선택 라운드가 모든 플레이어를 기다림(시간 제한 없음, D34), 선택 상태 조회, 이탈자용 자동 선택](./phases/2026-11-07-two-player-coop/P02-engine-players/T03-owned-select-targets.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
-- P02 엔진 2인 진행 중 (1/5 Tasks 완료)
+- P02 엔진 2인 진행 중 (2/5 Tasks 완료)
   - T01 완료 (8439c48)
+  - T02 완료 (f4f6598)
 - D24 설계 원칙: 인원수는 값만 다르고 로직은 하나, isCoop 분기 금지
 - 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 진행 중)
 
 ## Next Step (IMPORTANT)
-P02-T02 청사진을 읽고 인원수 규칙 표 playerCountRules와 startGame({ playerCount }) 구현 및 검증.
+P02-T03 청사진을 읽고 선택 라운드가 모든 플레이어를 기다림(시간 제한 없음, D34), 선택 상태 조회, 이탈자용 자동 선택 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

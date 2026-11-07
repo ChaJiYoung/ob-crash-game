@@ -1,6 +1,6 @@
 # Task: T03 여러 플레이어의 선택 라운드
 
-## Status: pending
+## Status: done
 
 ## Goal
 P01-T04에서 하나로 합친 선택 라운드가 플레이어 수만큼 표적 묶음을 만들고, 각자 자기 표적만 맞히며, 모두 골라야 끝나게 한다(D13). 시간 제한은 없다(1인·2인 모두, D34). 화면이 "누가 골랐고 누구를 기다리는지" 보여 줄 수 있게 선택 상태 조회와, 이탈자 몫을 고르는 자동 선택 함수(P02-T04가 사용)를 더한다. 새 분기 없이 P01-T04 흐름에 기능만 더한다(D24).
@@ -48,8 +48,8 @@ P01-T04에서 하나로 합친 선택 라운드가 플레이어 수만큼 표적
 - 카드 라운드: 둘 다 골라야 다음 웨이브.
 
 ## Acceptance Criteria
-- [ ] 1인·2인이 같은 선택 라운드 코드로 동작하고, 차이는 `rules.selectLayout` 배치뿐이다.
-- [ ] 선택 라운드에 시간 제한이 없다.
+- [x] 1인·2인이 같은 선택 라운드 코드로 동작하고, 차이는 `rules.selectLayout` 배치뿐이다.
+- [x] 선택 라운드에 시간 제한이 없다.
 
 ## Validation
 - `npx vitest run tests/select-round-players.test.ts tests/hit-and-select-round.test.ts tests/card-select-gate.test.ts` — 통과
@@ -71,6 +71,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

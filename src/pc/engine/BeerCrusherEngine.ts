@@ -217,6 +217,12 @@ export interface SelectRoundState {
   isWaveClear: boolean;
 }
 
+export interface SelectionStatus {
+  kind: SelectRoundKind | null;
+  /** players 순서. 이미 고른 사람 true. */
+  done: boolean[];
+}
+
 export class BeerCrusherEngine {
   public gamePhase: GamePhase = 'PAIRING';
   public currentWave = 1;
@@ -595,7 +601,7 @@ export class BeerCrusherEngine {
     const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
     const cardsByPlayer: Map<PlayerIndex, RewardCardKind[]> = new Map();
     for (let p = 0; p < this.players.length; p++) {
-      cardsByPlayer.set(p as PlayerIndex, this.drawRewardCards(3));
+      cardsByPlayer.set(p as PlayerIndex, this.drawRewardCards(3, p as PlayerIndex));
     }
 
     layout.forEach((slot) => {
@@ -1841,6 +1847,35 @@ export class BeerCrusherEngine {
       }
     }
     return bestHit;
+  }
+
+  public getSelectionStatus(): SelectionStatus {
+    return {
+      kind: this.selectRound?.kind ?? null,
+      done: this.players.map((p) => p.selectionDone),
+    };
+  }
+
+  /** 그 플레이어 선택 표적 중 무작위 1개를 고른다(이탈자용, P02-T04). 표적이 없으면 selectionDone만 true. */
+  public autoPickFor(playerIndex: PlayerIndex, nowMs: number): void {
+    if (!this.isSelectPending) return;
+    const player = this.getPlayer(playerIndex);
+    if (player.selectionDone) return;
+
+    const myTargets = this.activeTargets.filter(
+      (t) => (t.weaponSelectKind || t.rewardCardKind) && t.ownerIndex === playerIndex
+    );
+
+    if (myTargets.length > 0) {
+      const idx = Math.floor(this.dropRng() * myTargets.length);
+      const chosen = myTargets[idx];
+      this.applySelection(chosen, playerIndex, nowMs);
+    } else {
+      player.selectionDone = true;
+      if (this.players.every((p) => p.selectionDone)) {
+        this.finishSelectRound(nowMs);
+      }
+    }
   }
 
   public selectWeapon(kind: WeaponKind, level: WeaponLevel = 1, playerIndex: PlayerIndex = 0): void {
