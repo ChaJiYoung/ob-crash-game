@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2인팟 화면 시안</title>
+<!--
+  원본: claude.ai 비공개 아티팩트(작성자 계정 전용)를 2026-11-07에 저장소로 옮긴 사본.
+  결정 문서: .memory/decisions/2026-11-07-two-player-coop.md
+  설명·캡처: .memory/references/two-player-coop-mockups.md
+  주의: 이 시안 뒤에 바뀐 결정(D23 카드 색, D34 시간 제한 없음 등)은 설명 문서의 "시안 이후 바뀐 점"을 따른다.
+-->
+<style>
+:root{
+  --bg:#0b0f17; --fg:#e2e8f0; --muted:#94a3b8; --line:rgba(255,255,255,.12);
+  --amber:#fbbf24; --amber2:#f59e0b; --cyan:#38bdf8; --panel:rgba(17,24,39,.96);
+  --p1:#38bdf8; --p2:#ff6b3d;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Noto Sans KR',system-ui,sans-serif;margin:0;
+  padding-left:16px;padding-right:16px;padding-block:32px 64px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:28px;margin:0 0 6px;color:var(--amber)}
+.lead{color:var(--muted);margin:0 0 28px;max-width:70ch}
+h2{font-size:18px;margin:44px 0 4px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+h2 .tag{font-size:12px;background:rgba(251,191,36,.14);color:var(--amber);border:1px solid rgba(251,191,36,.35);padding:2px 9px;border-radius:99px;font-weight:700}
+.cap{color:var(--muted);font-size:14px;margin:0 0 12px;max-width:80ch}
+.box{width:100%;aspect-ratio:1440/900;position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--line);background:#000}
+.stage{width:1440px;height:900px;position:absolute;left:0;top:0;transform-origin:0 0;font-family:'Noto Sans KR','Inter',sans-serif;color:#fff}
+.note{margin-top:10px;font-size:13.5px;color:var(--muted);display:grid;gap:4px;max-width:90ch}
+.note b{color:var(--fg)}
+.q{margin-top:44px;padding:18px 20px;border:1px solid rgba(251,191,36,.35);border-radius:12px;background:rgba(251,191,36,.06)}
+.q h3{margin:0 0 8px;color:var(--amber);font-size:16px}
+.q ul{margin:0;padding-left:18px;color:var(--fg);font-size:14.5px}
+
+/* ---- scene ---- */
+.scene{position:absolute;inset:0;background:
+  radial-gradient(ellipse 520px 160px at 50% 36%,rgba(255,255,255,.55),transparent 70%),
+  linear-gradient(180deg,#3b4a3a 0%,#56664f 30%,#3a3f3a 50%,#2b2b2d 51%,#1d1d20 100%)}
+.scene::before{content:"";position:absolute;inset:0;backdrop-filter:blur(7px)}
+.pillL,.pillR{position:absolute;top:60px;width:210px;height:430px;background:linear-gradient(90deg,#4a2a0a,#b9701c 60%,#6e3d0e);border-radius:0 0 40px 0}
+.pillL{left:0}.pillR{right:0;transform:scaleX(-1)}
+.floor{position:absolute;left:0;right:0;top:462px;bottom:0;background:linear-gradient(180deg,#2c2c30,#18181b)}
+.rail{position:absolute;left:-140px;right:-140px;top:560px;height:520px;border-radius:50%;border-top:14px solid #e7b422;box-shadow:0 -4px 12px rgba(251,191,36,.45);background:#4a2d17}
+.gun{position:absolute;bottom:0;width:190px;height:230px}
+.gun .base{position:absolute;bottom:0;left:30px;width:130px;height:110px;background:linear-gradient(90deg,#9c7414,#e7b422,#9c7414)}
+.gun .dome{position:absolute;bottom:60px;left:30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828 70%)}
+.gun .stick{position:absolute;bottom:120px;left:88px;width:14px;height:110px;background:linear-gradient(90deg,#a47d12,#f1c84a,#a47d12);border-radius:7px}
+.gun .ball{position:absolute;bottom:216px;left:70px;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9e9e,#e53935)}
+.gun .ring{position:absolute;bottom:-6px;left:10px;width:170px;height:12px;border-radius:6px;background:var(--c);box-shadow:0 0 18px var(--c)}
+.can{position:absolute;width:44px;height:78px;border-radius:9px 9px 6px 6px;background:linear-gradient(90deg,#0e7490,#22d3ee 50%,#0e7490);box-shadow:0 14px 0 -4px rgba(0,0,0,.35)}
+.can::before{content:"";position:absolute;left:4px;right:4px;top:-9px;height:16px;border-radius:50%;background:#fde68a}
+.can.ice{background:linear-gradient(90deg,#9ca3af,#f3f4f6 50%,#9ca3af)}
+
+/* ---- panels ---- */
+.panel{position:absolute;background:var(--panel);border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.badge{display:inline-block;font-weight:800;font-size:14px;padding:3px 10px;border-radius:7px;color:#111}
+.b1{background:var(--p1)}.b2{background:var(--p2)}
+.wave{position:absolute;left:50%;top:24px;transform:translateX(-50%);padding:8px 26px;border-radius:99px;border:3px solid var(--amber2);background:rgba(17,24,39,.9);color:var(--amber);font-weight:800;font-size:22px;letter-spacing:.04em}
+.prog{position:absolute;left:50%;top:74px;transform:translateX(-50%);width:318px;height:38px;padding:6px 10px;border-radius:12px;background:var(--panel);border:1px solid rgba(255,255,255,.1);font-size:12px;color:var(--amber);font-weight:700}
+.prog i{display:block;height:6px;margin-top:6px;border-radius:3px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+.prog i::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w,20%);background:var(--amber2)}
+.guide{position:absolute;right:32px;top:24px;padding:7px 14px;border-radius:12px;background:var(--panel);border:1px solid rgba(255,255,255,.12);font-size:13px;color:var(--amber);font-weight:700}
+.lives{display:flex;gap:6px;font-size:22px}
+.score{font-size:44px;font-weight:800;letter-spacing:.03em;line-height:1}
+.combo{white-space:nowrap;font-size:12px;color:var(--amber);border:1px solid var(--amber2);background:rgba(245,158,11,.15);padding:2px 9px;border-radius:8px;font-weight:700}
+.wp{position:absolute;bottom:24px;width:292px;padding:16px 20px}
+.wp .row{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px;gap:8px}
+.lv{background:#ef4444;color:#fff;font-size:11px;padding:2px 7px;border-radius:5px;font-weight:800}
+.ammo{display:flex;gap:5px;margin:10px 0}.ammo i{width:14px;height:22px;border-radius:4px;background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.6)}.ammo i.off{background:#3a3f4b;box-shadow:none}
+.skill{border:1px solid var(--amber2);color:var(--amber);border-radius:10px;padding:6px 10px;font-size:12px;font-weight:700}
+.fever{margin-top:10px;font-size:11px;color:var(--cyan);font-weight:800;display:flex;justify-content:space-between}
+.fbar{height:9px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:4px;overflow:hidden}.fbar i{display:block;height:100%;background:var(--cyan)}
+.passive{display:flex;gap:6px;margin-top:10px}.passive span{font-size:11px;background:rgba(255,255,255,.1);border-radius:6px;padding:2px 7px;color:#e2e8f0}
+
+/* crosshair */
+.xh{position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;border:2px dashed var(--c);border-radius:50%;box-shadow:0 0 14px var(--c)}
+.xh::before,.xh::after{content:"";position:absolute;inset:-8px;border:3px solid var(--c);clip-path:polygon(0 0,28% 0,28% 5%,5% 5%,5% 28%,0 28%,0 0,100% 0,100% 28%,95% 28%,95% 5%,72% 5%,72% 0,100% 0,100% 100%,72% 100%,72% 95%,95% 95%,95% 72%,100% 72%,100% 100%,0 100%,0 72%,5% 72%,5% 95%,28% 95%,28% 100%,0 100%)}
+.xh::before{border-color:transparent}
+.xh em{position:absolute;left:50%;top:-34px;transform:translateX(-50%);white-space:nowrap;font-style:normal;font-size:12px;font-weight:800;color:#111;background:var(--c);padding:2px 8px;border-radius:6px}
+
+/* cards */
+.card{position:absolute;width:176px;height:262px;border-radius:12px;border:5px solid var(--c);background:#101a33;box-shadow:0 0 22px var(--c),inset 0 0 0 3px rgba(0,0,0,.35);text-align:center;padding:16px 10px;transform:perspective(600px) rotateY(var(--r,0deg))}
+.card .ic{font-size:34px}.card h4{margin:6px 0 8px;font-size:17px;padding-bottom:8px;border-bottom:2px solid var(--c)}
+.card p{margin:0;font-size:12px;color:#cbd5e1;line-height:1.5}
+.card .own{position:absolute;left:50%;top:-22px;transform:translateX(-50%);font-size:12px;font-weight:900;padding:2px 12px;border-radius:7px;color:#111;background:var(--o)}
+.half{position:absolute;top:150px;bottom:290px;width:50%}
+.half.l{left:0;background:linear-gradient(90deg,rgba(56,189,248,.14),transparent)}
+.half.r{right:0;background:linear-gradient(270deg,rgba(255,107,61,.14),transparent)}
+.divider{position:absolute;left:50%;top:140px;bottom:300px;width:0;border-left:2px dashed rgba(255,255,255,.35)}
+.banner{position:absolute;left:50%;top:128px;transform:translateX(-50%);font-size:22px;font-weight:800;text-align:center;text-shadow:0 2px 10px #000;white-space:nowrap}
+.state{position:absolute;top:208px;width:380px;text-align:center}
+.done{padding:18px 16px;border:2px solid var(--c);border-radius:14px;background:rgba(17,24,39,.9);font-weight:800}
+.done small{display:block;color:var(--muted);font-weight:500;margin-top:4px}
+.timer{position:absolute;left:50%;top:112px;transform:translateX(-50%);font-weight:800;color:var(--amber);font-size:14px;background:var(--panel);border:1px solid rgba(255,255,255,.12);padding:4px 14px;border-radius:99px}
+
+/* lobby */
+.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1120px;padding:34px 40px 28px;border-radius:24px;border:2px solid rgba(245,158,11,.5);background:#0f172a;box-shadow:0 0 70px rgba(245,158,11,.22)}
+.modal h3{margin:0;text-align:center;color:var(--amber);font-size:36px;font-weight:900}
+.modal .sub{text-align:center;color:var(--muted);font-size:15px;margin:6px 0 20px}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.slot{border-radius:18px;background:#0a101e;border:2px solid var(--c);padding:16px 18px 18px;min-height:380px;position:relative}
+.slot .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.slot .hd .badge{font-size:18px;padding:4px 14px}
+.stat{font-size:13px;font-weight:700;color:var(--muted)}.stat.ok{color:#4ade80}.stat.wait{color:var(--amber)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.seg div{text-align:center;padding:10px 6px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:var(--muted);font-weight:700;font-size:15px;background:rgba(255,255,255,.03)}
+.seg div.on{color:#111;background:var(--c);border-color:var(--c)}
+.seg div.dis{opacity:.35;text-decoration:line-through}
+.slot .body{display:grid;place-items:center;text-align:center;min-height:240px;color:var(--muted);font-size:14px}
+.qr{width:186px;height:186px;background:#fff;border-radius:10px;padding:8px;margin:0 auto 8px}
+.qr svg{width:100%;height:100%;display:block}
+.room{font-weight:800;font-size:14px;color:var(--cyan);letter-spacing:.06em}.room b{color:var(--amber);font-size:17px}
+.big-ok{font-size:54px}.mouse-ok{font-weight:800;color:#fff;font-size:20px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:20px}
+.rank{font-size:13px;color:var(--muted);display:flex;gap:14px;align-items:center}.rank b{color:var(--amber)}
+.hint{padding:11px 20px;border-radius:12px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.12);color:var(--amber);font-weight:800;font-size:14px}
+.hint.dim{opacity:.6}
+.dim-bg{position:absolute;inset:0;background:rgba(0,0,0,.72)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>2인팟 화면 시안</h1>
+  <p class="lead">현재 게임의 실제 화면(로비, 무기 선택, 전투 HUD)을 기준으로 2인팟 결정 D06, D09, D13을 그렸습니다. 3D 장면은 위치 확인용 단순화이고, 패널 크기와 위치, 색, 글꼴은 현재 UI 값을 그대로 썼습니다.</p>
+
+  <h2><span class="tag">1</span> 로비 — 처음 상태 (D06)</h2>
+  <p class="cap">1P/2P 슬롯 카드 2개. 입력 방식을 고르기 전에는 두 슬롯 모두 비어 있습니다. 지금의 QR 하나짜리 로비를 두 칸으로 나눈 모양입니다.</p>
+  <div class="box" data-s data-shot="01-lobby-empty"><div class="stage" id="lobby-a"></div></div>
+
+  <h2><span class="tag">2</span> 로비 — 1P 마우스 준비 완료, 2P 모바일 연결 대기</h2>
+  <p class="cap">마우스는 이미 쓰고 있으므로 고르는 즉시 준비 완료입니다. 이미 마우스를 고른 슬롯이 있으면 다른 슬롯의 마우스 버튼은 비활성입니다(마우스는 1명만).</p>
+  <div class="box" data-s data-shot="02-lobby-mouse-and-phone"><div class="stage" id="lobby-b"></div></div>
+  <div class="note"><span><b>한쪽만 연결한 경우:</b> 예를 들어 1P 마우스만 준비된 상태에서 총을 쏘면 기존 1인 플레이로 시작합니다. 2P 슬롯은 "비어 있음"으로 남습니다.</span></div>
+
+  <h2><span class="tag">3</span> 시작 무기 선택 — 둘 다 고르는 중 (D13)</h2>
+  <p class="cap">화면을 좌우 절반으로 나눠 1P(파랑)는 왼쪽, 2P(주황)는 오른쪽에 각각 3장씩 6장이 뜹니다. 각자 자기 색 십자선으로 자기 카드만 맞힐 수 있습니다.</p>
+  <div class="box" data-s data-shot="03-weapon-select-both"><div class="stage" id="weap-a"></div></div>
+
+  <h2><span class="tag">4</span> 시작 무기 선택 — 2P가 먼저 고른 뒤</h2>
+  <p class="cap">2P가 고르면 2P 카드 3장만 사라지고 "선택 완료" 표시가 남습니다. 1P가 고르면 게임이 시작됩니다.</p>
+  <div class="box" data-s data-shot="04-weapon-select-2p-done"><div class="stage" id="weap-b"></div></div>
+
+  <h2><span class="tag">5</span> 일반 전투 화면 (D09)</h2>
+  <p class="cap">팀 공용 정보(목숨, 웨이브, 웨이브 진행도)는 지금 위치, 개인 정보(점수, 콤보, 무기, 스킬, 피버, 패시브 카드)는 좌우 하단에 둡니다. 현재는 점수가 왼쪽 위 패널에 있는데, 2인팟에서는 목숨만 남기고 점수를 개인 패널로 옮깁니다.</p>
+  <div class="box" data-s data-shot="05-combat-coop"><div class="stage" id="play"></div></div>
+
+  <h2><span class="tag">5-1</span> 1인 플레이 전투 화면 (D09, D14)</h2>
+  <p class="cap">혼자 할 때도 같은 개인 패널을 씁니다. "1P" 배지와 십자선의 "1P" 표시만 숨기고, 색은 지금처럼 앰버/주황입니다. 왼쪽 위에는 목숨만 남고 오른쪽 하단 피버 패널은 개인 패널 안으로 들어갑니다. 스킬 안내는 쓰는 입력 방식에 맞게 하나만 보입니다(폰은 "위로 휙!", 마우스는 "우클릭").</p>
+  <div class="box" data-s data-shot="05-1-combat-solo"><div class="stage" id="solo"></div></div>
+
+  <h2><span class="tag">6</span> 보상 카드 선택 (D04)</h2>
+  <p class="cap">킬 게이지가 차면 두 사람에게 동시에 카드가 뜹니다. 10초 카운트다운이 있고, 둘 다 고르면 재개됩니다. 한 명이 고르면 그쪽은 "선택 완료"가 됩니다.</p>
+  <div class="box" data-s data-shot="06-reward-select"><div class="stage" id="reward"></div></div>
+
+  <div class="q">
+    <h3>시안 보고 정할 점</h3>
+    <ul>
+      <li><b>2P 색:</b> 결정은 주황이었는데, 게임 UI의 기본 강조색(웨이브, 점수 테두리)이 이미 앰버라 비슷해 보입니다. 시안은 붉은 기가 도는 주황(<code>#ff6b3d</code>)으로 그렸습니다. 더 구분이 필요하면 분홍이나 연두로 바꿀 수 있습니다.</li>
+      <li><b>2P 총기:</b> 3D 총을 화면 아래 좌우로 하나씩 둔 모양입니다. 지금은 가운데 한 개입니다.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const P1='#38bdf8',P2='#ff6b3d';
+const $=id=>document.getElementById(id);
+function qr(seed){
+  const n=25;let s=seed;const r=()=>(s=(s*1664525+1013904223)>>>0)/4294967296;
+  let out='';const f=(x,y)=>{out+=`<rect x="${x}" y="${y}" width="7" height="7" fill="#000"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#000"/>`};
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    if((x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9))continue;
+    if(r()>.5)out+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#000"/>`}
+  f(0,0);f(n-7,0);f(0,n-7);
+  return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges">${out}</svg>`}
+const scene=(extra='')=>`<div class="scene"></div><div class="pillL"></div><div class="pillR"></div><div class="floor"></div><div class="rail"></div>${extra}`;
+const gun=(x,c)=>`<div class="gun" style="left:${x}px;--c:${c}"><div class="base"></div><div class="dome"></div><div class="stick"></div><div class="ball"></div><div class="ring"></div></div>`;
+const room=(c)=>`<div class="room">ROOM CODE: <b>ZMYS</b></div>`;
+
+function slot(n,c,mode,state){
+  const b=n===1?'b1':'b2';
+  const mouseDis=state.mouseDisabled;
+  let body,stat;
+  if(mode==='none'){stat='<span class="stat">비어 있음</span>';body=`<div>입력 방식을 선택하세요<br><span style="font-size:12px">📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용</span></div>`}
+  else if(mode==='mobile'){stat='<span class="stat wait">● 스마트폰 연결 대기 중…</span>';body=`<div><div class="qr">${qr(n*77)}</div>${room(c)}<div style="font-size:11px;margin-top:6px;word-break:break-all">https://172.30.1.31:5173/controller?room=ZMYS&amp;slot=${n}</div></div>`}
+  else{stat='<span class="stat ok">● 준비 완료</span>';body=`<div><div class="big-ok">🖱</div><div class="mouse-ok">마우스로 플레이</div><div style="margin-top:6px">좌클릭 발사 · 우클릭 스킬</div></div>`}
+  return `<div class="slot" style="--c:${c}"><div class="hd"><span class="badge ${b}">${n}P</span>${stat}</div>
+  <div class="seg"><div class="${mode==='mobile'?'on':''}">📱 모바일</div><div class="${mode==='mouse'?'on':''} ${mouseDis?'dis':''}">🖱 마우스</div></div>
+  <div class="body">${body}</div></div>`}
+function lobby(s1,s2,state2,hint,dim){
+  return `<div class="scene" style="filter:brightness(.5)"></div><div class="pillL" style="opacity:.4"></div><div class="pillR" style="opacity:.4"></div><div class="dim-bg"></div>
+  <div class="modal"><h3>🍺 BEER CRUSHER 3D</h3><div class="sub">플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.</div>
+  <div class="slots">${slot(1,P1,s1,{mouseDisabled:state2.m1})}${slot(2,P2,s2,{mouseDisabled:state2.m2})}</div>
+  <div class="foot"><div class="rank">🏆 <b>명예의 전당 TOP 5</b> <span>1. 카스왕 128,400</span><span>2. 오비맨 97,250</span><span>3. 한맥 81,900</span></div><div class="hint ${dim?'dim':''}">${hint}</div></div></div>
+  <div class="guide" style="top:24px">📖 가이드 &amp; 도감</div>`}
+$('lobby-a').innerHTML=lobby('none','none',{},'입력 방식을 선택하세요',true);
+$('lobby-b').innerHTML=lobby('mouse','mobile',{m1:false,m2:true},'2P 연결 대기 중 · 1인으로 바로 시작하려면 총을 쏘세요',false);
+
+const wcards=[['🔧','맥주관 뚫어뻥','산탄 &amp; 넉백 밀쳐내기<br>근접 화력 특화 샷건'],['🍾','황금 병따개','일렬 다중 관통 저격<br>단발 고화력 리볼버'],['🍺','탄산 탭 개틀링','초고속 탄산 버블 난사<br>대용량 탄창 개틀링']];
+function cardsSide(side,own,color){
+  const xs=side==='l'?[150,350,550]:[755,955,1155];
+  const rs=['6deg','0deg','-6deg'];
+  return wcards.map((w,i)=>`<div class="card" style="left:${xs[i]-60}px;top:300px;--c:${color};--o:${color};--r:${rs[i]}"><span class="own">${own}</span><div class="ic">${w[0]}</div><h4>${w[1]}</h4><p>${w[2]}</p></div>`).join('')}
+function hudTop(extra=''){return `<div class="wave">WAVE 1 / 5</div><div class="prog">🎯 웨이브 토벌 0/24<span style="float:right">0% (남은 적 24)</span><i style="--w:0%"></i></div><div class="guide">📖 가이드 &amp; 도감</div>${extra}`}
+const teamLives=`<div class="panel" style="left:32px;top:24px;padding:14px 20px"><div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.05em;margin-bottom:6px">TEAM · BAR DEFENSE</div><div class="lives">🍺🍺🍺🍺🍺</div></div>`;
+$('weap-a').innerHTML=scene()+`<div class="half l"></div><div class="half r"></div><div class="divider"></div>`+hudTop(teamLives)
+ +`<div class="banner">각자 시작 무기를 쏴서 고르세요<div style="font-size:14px;font-weight:600;color:#cbd5e1;margin-top:4px">내 색 십자선으로 내 카드만 맞힐 수 있어요</div></div>`
+ +cardsSide('l','1P',P1)+cardsSide('r','2P',P2)
+ +`<div class="xh" style="left:405px;top:430px;--c:${P1}"><em>1P</em></div><div class="xh" style="left:1010px;top:430px;--c:${P2}"><em>2P</em></div>`
+ +gun(430,P1)+gun(820,P2);
+$('weap-b').innerHTML=scene()+`<div class="half l"></div><div class="divider"></div>`+hudTop(teamLives)
+ +`<div class="banner">1P 선택 중 · 2P 선택 완료<div style="font-size:14px;font-weight:600;color:#cbd5e1;margin-top:4px">1P가 고르면 게임이 시작됩니다</div></div>`
+ +cardsSide('l','1P',P1)
+ +`<div class="state" style="left:530px;top:380px;width:760px;margin-left:30px"><div class="done" style="--c:${P2}"><span class="badge b2">2P</span>  ✓ 황금 병따개 선택 완료<small>1P 선택을 기다리는 중…</small></div></div>`
+ +`<div class="xh" style="left:560px;top:430px;--c:${P1}"><em>1P</em></div><div class="xh" style="left:1010px;top:560px;--c:${P2}"><em>2P</em></div>`
+ +gun(430,P1)+gun(820,P2);
+
+function wpanel(side,n,c,score,combo,wname,lvl,ammoOn,fever,passives,dev,solo){
+  const pos=side==='l'?'left:24px':'right:24px';
+  const ammo=Array.from({length:5},(_,i)=>`<i class="${i<ammoOn?'':'off'}"></i>`).join('');
+  return `<div class="panel wp" style="${pos};border-color:${c}">
+   <div class="row" style="margin-bottom:10px">${solo?'':`<span class="badge ${n===1?'b1':'b2'}">${n}P</span>`}<span class="score" style="font-size:28px">${score}</span>${combo?`<span class="combo">${combo}</span>`:'<span></span>'}</div>
+   <div class="row"><span><span class="lv">Lv.${lvl}</span> ${wname}</span><span style="font-size:12px;color:#94a3b8">${ammoOn} / 5</span></div>
+   <div class="ammo">${ammo}</div>
+   <div class="skill">⚡ SKILL READY! [${dev==='mouse'?'우클릭':'위로 휙!'}]</div>
+   <div class="fever"><span>FEVER GAUGE ${fever}%</span><span>${fever}%</span></div><div class="fbar"><i style="width:${fever}%"></i></div>
+   <div class="passive">${passives}</div></div>`}
+$('play').innerHTML=scene()
+ +`<div class="can" style="left:360px;top:372px"></div><div class="can" style="left:610px;top:392px"></div><div class="can ice" style="left:840px;top:380px"></div><div class="can" style="left:1060px;top:366px"></div><div class="can" style="left:720px;top:420px"></div>`
+ +`<div class="wave">WAVE 2 / 5</div><div class="prog">🎯 웨이브 토벌 8/24<span style="float:right">33% (남은 적 16)</span><i style="--w:33%"></i></div><div class="guide">📖 가이드 &amp; 도감</div>`
+ +`<div class="panel" style="left:32px;top:24px;padding:14px 20px"><div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.05em;margin-bottom:6px">TEAM · BAR DEFENSE</div><div class="lives">🍺🍺🍺🍺<span style="opacity:.25">🍺</span></div></div>`
+ +`<div class="xh" style="left:395px;top:410px;--c:${P1}"><em>1P · SHOTGUN Lv.1</em></div><div class="xh" style="left:1085px;top:405px;--c:${P2}"><em>2P · REVOLVER Lv.1</em></div>`
+ +`<div style="position:absolute;left:400px;top:480px;color:var(--p1);font-weight:900;font-size:22px;text-shadow:0 2px 6px #000">+300 PERFECT</div><div style="position:absolute;left:1060px;top:480px;color:var(--p2);font-weight:900;font-size:22px;text-shadow:0 2px 6px #000">+200 GREAT</div>`
+ +gun(430,P1)+gun(820,P2)
+ +wpanel('l',1,P1,'001100','7 COMBO (1.2x)','맥주관 뚫어뻥 샷건',1,3,54,'<span>🔨 데미지↑ ×1</span><span>⏱ 쿨다운↓ ×1</span>','mouse')
+ +wpanel('r',2,P2,'000840','3 COMBO','황금 병따개 리볼버',1,4,20,'<span>🎯 판정↑ ×1</span>','phone');
+
+$('solo').innerHTML=scene()
+ +`<div class="can" style="left:360px;top:372px"></div><div class="can" style="left:610px;top:392px"></div><div class="can ice" style="left:840px;top:380px"></div><div class="can" style="left:1060px;top:366px"></div><div class="can" style="left:720px;top:420px"></div>`
+ +`<div class="wave">WAVE 2 / 5</div><div class="prog">🎯 웨이브 토벌 8/24<span style="float:right">33% (남은 적 16)</span><i style="--w:33%"></i></div><div class="guide">📖 가이드 &amp; 도감</div>`
+ +`<div class="panel" style="left:32px;top:24px;padding:14px 20px"><div style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.05em;margin-bottom:6px">BAR DEFENSE</div><div class="lives">🍺🍺🍺🍺<span style="opacity:.25">🍺</span></div></div>`
+ +`<div class="xh" style="left:395px;top:410px;--c:#f59e0b"><em>SHOTGUN Lv.1</em></div>`
+ +`<div style="position:absolute;left:400px;top:480px;color:#fbbf24;font-weight:900;font-size:22px;text-shadow:0 2px 6px #000">+300 PERFECT</div>`
+ +gun(625,'#f59e0b')
+ +wpanel('l',1,'#f59e0b','001100','7 COMBO (1.2x)','맥주관 뚫어뻥 샷건',1,3,54,'<span>🔨 데미지↑ ×1</span><span>⏱ 쿨다운↓ ×1</span>','phone',true);
+
+function rcards(side,own,color){
+  const defs=[['⭐','무기 레벨업','화력 증폭 &amp; 외형 진화'],['⚡','초고속 장전','재장전 딜레이 35% 단축'],['🔥','피버 부스터','피버 게이지 +50% 충전']];
+  const xs=side==='l'?[70,270,470]:[780,980,1180];
+  return defs.map((d,i)=>`<div class="card" style="left:${xs[i]-10}px;top:300px;width:170px;--c:${color};--o:${color};--r:${i===0?'6deg':i===2?'-6deg':'0deg'}"><span class="own">${own}</span><div class="ic">${d[0]}</div><h4>${d[1]}</h4><p>${d[2]}</p></div>`).join('')}
+$('reward').innerHTML=scene()+`<div class="half l"></div><div class="half r"></div><div class="divider"></div>`
+ +`<div class="wave">WAVE 2 / 5</div><div class="timer">남은 시간 7초 · 시간이 지나면 자동 선택</div><div class="guide">📖 가이드 &amp; 도감</div>`+teamLives
+ +`<div class="banner" style="top:150px">보상 카드를 쏴서 고르세요<div style="font-size:14px;font-weight:600;color:#cbd5e1;margin-top:4px">둘 다 고르면 게임이 다시 시작됩니다</div></div>`
+ +rcards('l','1P',P1)
+ +`<div class="state" style="left:760px;top:360px;width:600px"><div class="done" style="--c:${P2}"><span class="badge b2">2P</span>  ✓ 피버 부스터 선택 완료<small>1P 선택을 기다리는 중…</small></div></div>`
+ +`<div class="xh" style="left:355px;top:430px;--c:${P1}"><em>1P</em></div>`
+ +gun(430,P1)+gun(820,P2)
+ +wpanel('l',1,P1,'001100','7 COMBO (1.2x)','맥주관 뚫어뻥 샷건',1,3,54,'<span>🔨 데미지↑ ×1</span>','mouse')
+ +wpanel('r',2,P2,'000840','3 COMBO','황금 병따개 리볼버',1,4,20,'<span>🎯 판정↑ ×1</span>','phone');
+
+function fit(){document.querySelectorAll('[data-s]').forEach(b=>{const s=b.clientWidth/1440;b.firstElementChild.style.transform=`scale(${s})`})}
+addEventListener('resize',fit);fit();
+</script>
+</body>
+</html>
