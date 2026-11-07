@@ -7,18 +7,18 @@
 [P05 HUD·화면](./phases/2026-11-07-two-player-coop/P05-hud-screens/phase.md)
 
 ## Active Task
-[T02 플레이어 색: 십자선·이름표, 사격 트레이서, 판정 팝업](./phases/2026-11-07-two-player-coop/P05-hud-screens/T02-player-colors.md)
+[T03 선택 화면: 좌우 배경·카드 종류색+주인색 테두리·소유 배지·대기 상태](./phases/2026-11-07-two-player-coop/P05-hud-screens/T03-select-screen.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
 - P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
 - P04 PC 로비·연결 완료 (6/6 Tasks 완료) + 리뷰 피드백 수정 커밋 완료 (150b0bb)
-- P05 HUD·화면 진행 중 (1/8 Tasks 완료)
-- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 완료, P05 1 완료 / 7 남음)
+- P05 HUD·화면 진행 중 (2/8 Tasks 완료)
+- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 완료, P05 2 완료 / 6 남음)
 
 ## Next Step (IMPORTANT)
-P05-T02 청사진을 읽고 플레이어 색(십자선·이름표, 사격 트레이서, 판정 팝업) 구현 및 검증.
+P05-T03 청사진을 읽고 선택 화면(좌우 배경·카드 종류색+주인색 테두리·소유 배지·대기 상태) 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

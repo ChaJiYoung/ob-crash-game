@@ -38,9 +38,24 @@ export interface CrosshairVisualSpecOptions {
   isAimLocked?: boolean;
   weaponKind?: WeaponKind;
   weaponLevel?: WeaponLevel;
+  playerColor?: string;
+  nameTag?: string;
 }
 
-export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
+export function formatCrosshairNameTag(
+  kind: WeaponKind,
+  level: number,
+  slotLabel: string | null
+): string {
+  const weaponLabel = kind.toUpperCase();
+  const levelLabel = level === 4 ? 'Lv.MAX' : `Lv.${level}`;
+  if (slotLabel) {
+    return `${slotLabel} · ${weaponLabel} ${levelLabel}`;
+  }
+  return `${weaponLabel} ${levelLabel}`;
+}
+
+export function computeCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
   sizePx: number;
   ringSizePx: number;
   primaryColor: string;
@@ -100,6 +115,13 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
     badgeText = 'WIDE 1.6X';
   }
 
+  if (options.playerColor) {
+    primaryColor = options.playerColor;
+    glowColor = options.playerColor.startsWith('#')
+      ? `${options.playerColor}99`
+      : options.playerColor;
+  }
+
   return {
     sizePx,
     ringSizePx,
@@ -111,6 +133,8 @@ export function getCrosshairVisualSpec(options: CrosshairVisualSpecOptions): {
     weaponLevel,
   };
 }
+
+export const getCrosshairVisualSpec = computeCrosshairVisualSpec;
 
 export interface ReloadRingSpec {
   visible: boolean;
@@ -225,6 +249,9 @@ export interface CrosshairOverlayProps {
   isPaused?: boolean;
   /** 장전 종료까지 남은 시간(ms). 링이 마운트될 때 한 번만 읽는다(스냅샷에 매 프레임 값을 넣지 않기 위해). */
   getReloadRemainingMs?: () => number;
+  playerColor?: string;
+  nameTag?: string;
+  hidden?: boolean;
 }
 
 export const CrosshairOverlay = React.memo(
@@ -241,6 +268,9 @@ export const CrosshairOverlay = React.memo(
     reloadDurationMs = 0,
     isPaused = false,
     getReloadRemainingMs,
+    playerColor,
+    nameTag,
+    hidden = false,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const targetPosRef = useRef({ x: aimX, y: aimY });
@@ -250,13 +280,15 @@ export const CrosshairOverlay = React.memo(
     const lastTimeRef = useRef<number>(0);
 
     const { leftPercent, topPercent } = aimToViewportPercent(aimX, aimY);
-    const spec = getCrosshairVisualSpec({
+    const spec = computeCrosshairVisualSpec({
       isFeverActive,
       isWideScopeActive,
       isPowerShotActive,
       isAimLocked,
       weaponKind,
       weaponLevel,
+      playerColor,
+      nameTag,
     });
 
     // Kick feedback is written straight to the DOM: a React state flip per shot would commit twice per shot.
@@ -362,7 +394,7 @@ export const CrosshairOverlay = React.memo(
           height: `${spec.sizePx}px`,
           transform: 'translate(-50%, -50%) scale(1)',
           pointerEvents: 'none',
-          display: 'flex',
+          display: hidden ? 'none' : 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 40,
@@ -582,32 +614,58 @@ export const CrosshairOverlay = React.memo(
           }}
         />
 
+        {/* Name Tag (.xh em: 1P · SHOTGUN Lv.1 / SHOTGUN Lv.1) */}
+        {nameTag && (
+          <em
+            data-testid="crosshair-nametag"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '-34px',
+              transform: 'translateX(-50%)',
+              whiteSpace: 'nowrap',
+              fontStyle: 'normal',
+              fontSize: '12px',
+              fontWeight: 800,
+              color: '#111',
+              background: spec.primaryColor,
+              padding: '2px 8px',
+              borderRadius: '6px',
+              zIndex: 2,
+            }}
+          >
+            {nameTag}
+          </em>
+        )}
+
         {/* Buff or Weapon Level Badge on Top */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-24px',
-            fontSize: '11px',
-            fontWeight: '900',
-            letterSpacing: '1px',
-            color: spec.primaryColor,
-            background: 'rgba(0, 0, 0, 0.75)',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            border: `1px solid ${spec.primaryColor}`,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {spec.badgeText
-            ? spec.badgeText
-            : `${
-                spec.weaponKind === 'shotgun'
-                  ? '🪠 SHOTGUN'
-                  : spec.weaponKind === 'revolver'
-                  ? '🍾 REVOLVER'
-                  : '🍺 GATLING'
-              } Lv.${spec.weaponLevel === 4 ? 'MAX' : spec.weaponLevel}`}
-        </div>
+        {(!nameTag || spec.badgeText) && (
+          <div
+            style={{
+              position: 'absolute',
+              top: nameTag ? '-58px' : '-24px',
+              fontSize: '11px',
+              fontWeight: '900',
+              letterSpacing: '1px',
+              color: spec.primaryColor,
+              background: 'rgba(0, 0, 0, 0.75)',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              border: `1px solid ${spec.primaryColor}`,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {spec.badgeText
+              ? spec.badgeText
+              : `${
+                  spec.weaponKind === 'shotgun'
+                    ? '🪠 SHOTGUN'
+                    : spec.weaponKind === 'revolver'
+                    ? '🍾 REVOLVER'
+                    : '🍺 GATLING'
+                } Lv.${spec.weaponLevel === 4 ? 'MAX' : spec.weaponLevel}`}
+          </div>
+        )}
         </div>
 
         {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}

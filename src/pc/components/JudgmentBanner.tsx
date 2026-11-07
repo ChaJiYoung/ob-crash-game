@@ -44,7 +44,10 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
 }
 
 export interface JudgmentBannerHandle {
-  show(grade: JudgmentGrade): void;
+  show(
+    grade: JudgmentGrade,
+    opts?: { color?: string; label?: string; side?: 'left' | 'right' | 'center' }
+  ): void;
 }
 
 const BANNER_VISIBLE_MS = 600;
@@ -61,17 +64,30 @@ export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => 
   useImperativeHandle(
     ref,
     () => ({
-      show(grade: JudgmentGrade) {
+      show(grade: JudgmentGrade, opts?: { color?: string; label?: string; side?: 'left' | 'right' | 'center' }) {
         const root = rootRef.current;
         const title = titleRef.current;
         const subtitle = subtitleRef.current;
         if (!root || !title || !subtitle) return;
 
         const spec = getJudgmentBannerSpec(grade);
-        title.textContent = spec.title;
-        title.style.color = spec.colorHex;
+        const color = opts?.color ?? spec.colorHex;
+        const displayTitle = opts?.label ? `${opts.label} ${spec.title}` : spec.title;
+
+        title.textContent = displayTitle;
+        title.style.color = color;
         subtitle.textContent = spec.subtitle;
-        subtitle.style.border = `1px solid ${spec.colorHex}`;
+        subtitle.style.border = `1px solid ${color}`;
+
+        const side = opts?.side ?? 'center';
+        if (side === 'left') {
+          root.style.left = '25%';
+        } else if (side === 'right') {
+          root.style.left = '75%';
+        } else {
+          root.style.left = '50%';
+        }
+
         root.style.transform = `translate(-50%, -50%) scale(${spec.scale})`;
         root.style.display = 'flex';
 

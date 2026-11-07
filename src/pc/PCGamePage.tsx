@@ -6,7 +6,7 @@ import { GameCanvas3D, GameCanvas3DHandle, RenderPerformanceMetrics } from './co
 import { ArcadeOverlayHUD, MonsterHudProjection } from './components/ArcadeOverlayHUD';
 import { MonsterHpBarLayer, MonsterHpBarLayerHandle } from './components/MonsterHpBarLayer';
 import { HudSnapshot, buildHudSnapshot, isHudSnapshotEqual } from './hudSnapshot';
-import { CrosshairOverlay, CrosshairOverlayHandle } from './components/CrosshairOverlay';
+import { CrosshairOverlay, CrosshairOverlayHandle, formatCrosshairNameTag } from './components/CrosshairOverlay';
 import { JudgmentBanner, JudgmentBannerHandle } from './components/JudgmentBanner';
 import { QRPairingModal } from './components/QRPairingModal';
 import { PauseMenuOverlay } from './components/PauseMenuOverlay';
@@ -33,7 +33,7 @@ import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProc
 import { MouseAdapter } from './input/MouseAdapter';
 import { PhoneAdapter } from './input/PhoneAdapter';
 import { GraceState, startGrace, tickGrace } from './coopDisconnect';
-import { getPlayerPresentation, getTeamPresentation } from './playerPresentation';
+import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './playerPresentation';
 
 import {
   createInitialSlots,
@@ -231,6 +231,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     () => getTeamPresentation(engine.players.length),
     [engine.players.length]
   );
+  const playerColors = useMemo(
+    () => presentations.map((p) => (p.ringColorMode === 'player' ? p.color : null)),
+    [presentations]
+  );
 
   const hitTestButton = useCallback((aimX: number, aimY: number): ShootableButton | null => {
     if (typeof window === 'undefined') return null;
@@ -271,7 +275,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       soundSynth.playShieldBlockSound();
     } else if (result.grade !== 'MISS') {
       soundSynth.playHit(result.grade);
-      judgmentRef.current?.show(result.grade);
+      const pres = presentations[result.playerIndex];
+      judgmentRef.current?.show(
+        result.grade,
+        pres?.slotLabel
+          ? {
+              color: pres.color,
+              label: pres.slotLabel,
+              side: pres.popupSide,
+            }
+          : undefined
+      );
       if (gamePhaseRef.current === 'SANDBOX') {
         setSandboxJudgment({ grade: result.grade, key: Date.now() });
       }
@@ -1168,6 +1182,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       <GameCanvas3D
         ref={canvasRef}
         engine={engine}
+        playerColors={playerColors}
         aimX={0}
         aimY={0}
         onMouseAim={(x, y) => mouseAdapterRef.current?.onMove(x, y)}
@@ -1374,12 +1389,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onPause={gamePhase === 'PLAYING' ? () => handleOpenPause('USER') : undefined}
           />
           {engine.players.map((p, i) => {
-            if (p.isAway) return null;
             const pScoreState = p.scoreManager.getState();
             const pProc = processorsRef.current[i];
             const pAim = pProc?.aim ?? { aimX: 0, aimY: 0 };
             const playerSnap = hudState.players[i];
             const pWeapon = p.weaponSystem.getState();
+            const pres = presentations[i];
+            const weaponKind = playerSnap?.weaponKind ?? pWeapon.weaponKind;
+            const weaponLevel = playerSnap?.weaponLevel ?? pWeapon.weaponLevel;
             return (
               <CrosshairOverlay
                 key={i}
@@ -1390,12 +1407,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 isWideScopeActive={engine.isBuffActive('wide_scope', undefined, i as PlayerIndex)}
                 isPowerShotActive={engine.isBuffActive('power_shot', undefined, i as PlayerIndex)}
                 isAimLocked={i === 0 ? isAimLocked : false}
-                weaponKind={playerSnap?.weaponKind ?? pWeapon.weaponKind}
-                weaponLevel={playerSnap?.weaponLevel ?? pWeapon.weaponLevel}
+                weaponKind={weaponKind}
+                weaponLevel={weaponLevel}
                 isReloading={playerSnap?.isReloading ?? pWeapon.isReloading}
                 reloadDurationMs={playerSnap?.reloadDurationMs ?? p.weaponSystem.getReloadDurationMs()}
                 isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
                 getReloadRemainingMs={getReloadRemainingMs}
+                playerColor={pres?.ringColorMode === 'player' ? pres.color : undefined}
+                nameTag={formatCrosshairNameTag(weaponKind, weaponLevel, pres?.slotLabel ?? null)}
+                hidden={playerSnap?.isAway ?? p.isAway}
               />
             );
           })}
@@ -1538,18 +1558,23 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           {slots.some((s) => s.input === 'mobile' && s.isZeroCalibrated) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 120 }}>
-              {processorsRef.current.map((proc, i) => (
-                <CrosshairOverlay
-                  key={i}
-                  ref={crosshairRefs.current[i]}
-                  aimX={proc.aim.aimX}
-                  aimY={proc.aim.aimY}
-                  isFeverActive={false}
-                  isWideScopeActive={false}
-                  isPowerShotActive={false}
-                  isAimLocked={i === 0 ? isAimLocked : false}
-                />
-              ))}
+              {processorsRef.current.map((proc, i) => {
+                const slot = indexToSlot(slotIndexMapRef.current, i as PlayerIndex);
+                const slotColor = slot ? PLAYER_COLORS[slot] : (i === 0 ? PLAYER_COLORS[1] : PLAYER_COLORS[2]);
+                return (
+                  <CrosshairOverlay
+                    key={i}
+                    ref={crosshairRefs.current[i]}
+                    aimX={proc.aim.aimX}
+                    aimY={proc.aim.aimY}
+                    isFeverActive={false}
+                    isWideScopeActive={false}
+                    isPowerShotActive={false}
+                    isAimLocked={i === 0 ? isAimLocked : false}
+                    playerColor={slotColor}
+                  />
+                );
+              })}
             </div>
           )}
         </>
@@ -1625,9 +1650,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           {/* Result Crosshair Overlay on top of result modal */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 160 }}>
-            {engine.players.map((_, i) => {
+            {engine.players.map((p, i) => {
               const proc = processorsRef.current[i];
               const pAim = proc?.aim ?? { aimX: 0, aimY: 0 };
+              const pres = presentations[i];
+              const playerSnap = hudState.players[i];
+              const pWeapon = p.weaponSystem.getState();
+              const weaponKind = playerSnap?.weaponKind ?? pWeapon.weaponKind;
+              const weaponLevel = playerSnap?.weaponLevel ?? pWeapon.weaponLevel;
               return (
                 <CrosshairOverlay
                   key={i}
@@ -1638,6 +1668,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   isWideScopeActive={false}
                   isPowerShotActive={false}
                   isAimLocked={i === 0 ? isAimLocked : false}
+                  playerColor={pres?.ringColorMode === 'player' ? pres.color : undefined}
+                  nameTag={formatCrosshairNameTag(weaponKind, weaponLevel, pres?.slotLabel ?? null)}
+                  hidden={playerSnap?.isAway ?? p.isAway}
                 />
               );
             })}

@@ -592,7 +592,8 @@ export class ParticleEffects3D {
     origin: THREE.Vector3,
     targetPos: THREE.Vector3,
     kind: WeaponKind,
-    level: WeaponLevel = 1
+    level: WeaponLevel = 1,
+    tracerColor?: string
   ): void {
     const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level] || WEAPON_ARCHETYPE_SPECS[kind].levels[1];
 
@@ -626,7 +627,7 @@ export class ParticleEffects3D {
           maxLifeSec: 0.45,
         });
       }
-      this.spawnTracerBeam(origin, targetPos, '#ef4444', false);
+      this.spawnTracerBeam(origin, targetPos, tracerColor ?? '#ef4444', false);
     } else if (kind === 'revolver') {
       const boltGroup = this.acquireProjectileGroup('revolver');
       boltGroup.position.copy(origin);
@@ -643,7 +644,7 @@ export class ParticleEffects3D {
         maxLifeSec: 0.35,
       });
 
-      this.spawnTracerBeam(origin, targetPos, '#f59e0b', true);
+      this.spawnTracerBeam(origin, targetPos, tracerColor ?? '#f59e0b', true);
     } else {
       // gatling
       const bubbleGroup = this.acquireProjectileGroup('gatling');
@@ -661,7 +662,7 @@ export class ParticleEffects3D {
         maxLifeSec: 0.35,
       });
 
-      this.spawnTracerBeam(origin, targetPos, '#00f5d4', false);
+      this.spawnTracerBeam(origin, targetPos, tracerColor ?? '#00f5d4', false);
     }
   }
 

@@ -1,6 +1,6 @@
 # Task: T02 플레이어 색: 십자선·트레이서·판정 팝업
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판에서 1P는 `#38bdf8`, 2P는 `#ff6b3d`로 십자선 링·이름표(`1P · SHOTGUN Lv.1`), 사격 트레이서(총구에서 나가는 광선), 판정 팝업(`1P PERFECT`)을 칠해 누가 쏜 것인지 구분한다(D09, 시안 5). 이탈자 십자선은 숨긴다(D20). 1인 판은 지금 색·모양 그대로이고 이름표는 `SHOTGUN Lv.1`(접두어 없음).
@@ -60,8 +60,8 @@
 - 이름표 헬퍼 `formatCrosshairNameTag(kind, level, slotLabel: '1P' | '2P' | null)` 순수 함수로 두고 테스트: `('shotgun', 1, '1P')` → `1P · SHOTGUN Lv.1`, `('gatling', 4, null)` → `GATLING Lv.MAX`.
 
 ## Acceptance Criteria
-- [ ] 2인 화면에서 두 십자선·광선·판정 팝업 색이 플레이어 색과 같다.
-- [ ] 1인 화면은 이름표 문구 추가 외에 바뀌지 않는다.
+- [x] 2인 화면에서 두 십자선·광선·판정 팝업 색이 플레이어 색과 같다.
+- [x] 1인 화면은 이름표 문구 추가 외에 바뀌지 않는다.
 
 ## Validation
 - `npx vitest run tests/player-colors.test.ts tests/weapon-crosshair-hit-detection.test.ts tests/reload-ring.test.ts tests/pc-hud-and-banner.test.ts` — 통과
@@ -84,6 +84,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

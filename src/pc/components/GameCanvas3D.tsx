@@ -156,6 +156,8 @@ export interface GameCanvas3DProps {
   onRenderMetrics?: (metrics: RenderPerformanceMetrics) => void;
   /** 체력이 줄어든 프레임에 한 번 호출한다. */
   onPlayerHit?: () => void;
+  /** 플레이어별 사격 트레이서 색(2인 시 1P #38bdf8 / 2P #ff6b3d, 1인은 null) */
+  playerColors?: (string | null)[];
 }
 
 export const GameCanvas3D = React.memo(
@@ -170,6 +172,7 @@ export const GameCanvas3D = React.memo(
     onMonsterProjectionsUpdate,
     onRenderMetrics,
     onPlayerHit,
+    playerColors,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
@@ -186,6 +189,8 @@ export const GameCanvas3D = React.memo(
     onPlayerHitRef.current = onPlayerHit;
     const onRenderMetricsRef = useRef(onRenderMetrics);
     onRenderMetricsRef.current = onRenderMetrics;
+    const playerColorsRef = useRef(playerColors);
+    playerColorsRef.current = playerColors;
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const tapGunRef = useRef<DraftTapGun3D | null>(null);
@@ -218,7 +223,8 @@ export const GameCanvas3D = React.memo(
           const curAim = aim ?? targetAimRef.current;
 
           let targetPos: THREE.Vector3;
-          let beamColor = isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8';
+          const overrideColor = playerColorsRef.current?.[result.playerIndex] ?? null;
+          let beamColor = overrideColor ?? (isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8');
           const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
           const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
 
@@ -258,7 +264,7 @@ export const GameCanvas3D = React.memo(
           }
 
           // Spawn 3D Flying Projectile according to weapon archetype
-          particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel);
+          particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel, beamColor);
         }
       },
       [engine, soundSynth]
