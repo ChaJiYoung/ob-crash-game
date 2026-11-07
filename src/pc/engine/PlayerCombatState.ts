@@ -21,6 +21,7 @@ export class PlayerCombatState {
   public waveClears: { wave: number; seconds: number; bonus: number }[] = [];
   /** 이 플레이어에게 걸린 버프 만료 시각. 아이스 프리즈는 팀 효과라 모든 플레이어 맵에 같은 값으로 들어간다(P02-T01). */
   public buffUntilMs: Map<ItemBuffKind, number> = new Map();
+  public selectionDone = false;
 
   constructor(index: PlayerIndex) {
     this.index = index;
@@ -40,6 +41,7 @@ export class PlayerCombatState {
     this.resetCardStacks();
     this.buffUntilMs.clear();
     this.luckyDropStacks = 0;
+    this.selectionDone = false;
   }
 
   /** 카드 스택 초기화 + 무기 쿨다운 배율 1.0 + 피버 연장 0. 엔진의 기존 private resetCardStacks와 같은 내용. */

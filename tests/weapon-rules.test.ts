@@ -84,15 +84,16 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     expect(miss.grade).toBe('MISS');
   });
 
-  it('applies the 0.75 hit zone scale to monsters but not to cards, tutorial or sandbox', () => {
+  // D30: 모든 모드·표적이 실전 판정 기준 하나로 통일되어 샌드박스와 카드도 동일한 0.75 스케일을 사용한다.
+  it('applies the 0.75 hit zone scale uniformly across modes and targets (D30)', () => {
     const monster = makeTarget('m');
     engine.activeTargets.push(monster);
     const scaled = engine.computeTargetAimCoords(monster).apparentHitRadius;
 
     engine.startSandboxMode();
     const sandbox = engine.computeTargetAimCoords(monster).apparentHitRadius;
-    expect(sandbox).toBeGreaterThan(scaled);
-    expect(scaled / sandbox).toBeCloseTo(GAME_TUNING.hitZone.scale, 2);
+    // D30에 따라 샌드박스 몬스터도 실전과 동일한 판정 범위를 갖는다.
+    expect(sandbox).toBeCloseTo(scaled, 5);
 
     engine.startGame({ withWeaponSelect: false });
     engine.activeTargets = [];
@@ -100,7 +101,8 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     const card = engine.activeTargets[0];
     const cardRadius = engine.computeTargetAimCoords(card).apparentHitRadius;
     const unscaledCard = engine.computeTargetAimCoords({ ...card, rewardCardKind: undefined, weaponSelectKind: undefined } as ActiveTargetEntity);
-    expect(cardRadius).toBeGreaterThan(unscaledCard.apparentHitRadius);
+    // D30에 따라 카드도 동일한 판정 규칙을 적용받는다.
+    expect(cardRadius).toBeCloseTo(unscaledCard.apparentHitRadius, 5);
   });
 
   it('keeps the legacy (non aspect-corrected) zone in the sandbox', () => {

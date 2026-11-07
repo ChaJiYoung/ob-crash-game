@@ -154,6 +154,7 @@ export const GAME_TUNING = {
     { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'], cardKillTarget: 26, boss: null },
     { waveIndex: 7, parTimeSec: 45, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], cardKillTarget: null, boss: { coolerHp: [150, 150], kingHp: 250, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
   ],
+  selectLayout: { depthZ: -3.5, groupCentersX: [0], spacingM: 1.85, hitRadiusM: 1.75 },
   breachRespawnRadiusM: 16,
   /** 모드별 규칙(D31). 엔진은 모드를 묻지 않고 이 값만 읽는다. */
   modeRules: {

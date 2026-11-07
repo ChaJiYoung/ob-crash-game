@@ -1,6 +1,6 @@
 # Task: T04 명중 판정 하나, 선택 라운드 하나
 
-## Status: pending
+## Status: done
 
 ## Goal
 기존 1인 코드의 두 가지 중복을 합친다.
@@ -112,6 +112,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

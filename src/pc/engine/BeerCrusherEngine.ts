@@ -42,6 +42,7 @@ export interface ActiveTargetEntity {
   hitRadiusM: number;
   killBonusScore: number;
   breached: boolean;
+  ownerIndex?: PlayerIndex;
   isItem?: boolean;
   itemKind?: ItemBuffKind;
   customNormY?: number;
@@ -204,6 +205,13 @@ export interface WaveProgressInfo {
   luckyDropMultiplier: number;
 }
 
+export type SelectRoundKind = 'weapon' | 'card';
+export interface SelectRoundState {
+  kind: SelectRoundKind;
+  openedAtMs: number;
+  isWaveClear: boolean;
+}
+
 export class BeerCrusherEngine {
   public gamePhase: GamePhase = 'PAIRING';
   public currentWave = 1;
@@ -301,7 +309,12 @@ export class BeerCrusherEngine {
 
   // Roguelike card & item drop state
   public cardKillCount = 0;
-  public pendingWaveAdvance = false;
+  public get pendingWaveAdvance(): boolean {
+    return this.selectRound?.isWaveClear ?? false;
+  }
+  public set pendingWaveAdvance(v: boolean) {
+    if (this.selectRound) this.selectRound.isWaveClear = v;
+  }
   private waveCardKillTargets: Record<number, number | null> = Object.fromEntries(
     GAME_TUNING.waves.map((w) => [w.waveIndex, w.cardKillTarget])
   );
@@ -352,13 +365,44 @@ export class BeerCrusherEngine {
   private targetCounter = 0;
 
   // Roguelike card & gimmick flags
-  public isWeaponSelectPending = false;
-  public isRewardCardPending = false;
+  public selectRound: SelectRoundState | null = null;
 
-  public get isCardSelectPending(): boolean {
-    return this.isWeaponSelectPending || this.isRewardCardPending;
+  public get isWeaponSelectPending(): boolean {
+    return this.selectRound?.kind === 'weapon';
   }
-  public rewardCardsSpawnTimeMs = 0;
+  public set isWeaponSelectPending(v: boolean) {
+    if (v) {
+      if (this.selectRound?.kind !== 'weapon') {
+        this.openSelectRound('weapon', this.lastUpdateNowMs);
+      }
+    } else if (this.selectRound?.kind === 'weapon') {
+      this.selectRound = null;
+    }
+  }
+
+  public get isRewardCardPending(): boolean {
+    return this.selectRound?.kind === 'card';
+  }
+  public set isRewardCardPending(v: boolean) {
+    if (v) {
+      if (this.selectRound?.kind !== 'card') {
+        this.openSelectRound('card', this.lastUpdateNowMs);
+      }
+    } else if (this.selectRound?.kind === 'card') {
+      this.selectRound = null;
+    }
+  }
+
+  public get isSelectPending(): boolean {
+    return this.selectRound !== null;
+  }
+
+  public get rewardCardsSpawnTimeMs(): number {
+    return this.selectRound?.openedAtMs ?? 0;
+  }
+  public set rewardCardsSpawnTimeMs(v: number) {
+    if (this.selectRound) this.selectRound.openedAtMs = v;
+  }
   private goldenCanSpawnedInWave = false;
   private lastProjectileSpawnTimeMs = 0;
   private lastBossProjectileMs = 0;
@@ -498,36 +542,110 @@ export class BeerCrusherEngine {
     this.waveStartMs = null;
   }
 
-  public spawnWeaponSelectTargets(nowMs = 0): void {
-    this.isWeaponSelectPending = true;
-    this.rewardCardsSpawnTimeMs = nowMs;
-    const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
-    const xPositions = [-1.85, 0, 1.85];
+  private computeSelectLayout(): { ownerIndex: PlayerIndex; slotInGroup: 0 | 1 | 2; x: number; z: number; hitRadiusM: number; modelScaleMult: number }[] {
+    const L = GAME_TUNING.selectLayout;
+    const vFovRad = (this.vFovDeg * Math.PI) / 180;
+    const depth = 2.2 - L.depthZ;
+    const halfW = depth * Math.tan(vFovRad / 2) * this.aspect;
+    const slots: { ownerIndex: PlayerIndex; slotInGroup: 0 | 1 | 2; x: number; z: number; hitRadiusM: number; modelScaleMult: number }[] = [];
 
-    weaponKinds.forEach((kind, idx) => {
+    for (let p = 0; p < this.players.length; p++) {
+      const ownerIndex = p as PlayerIndex;
+      const groupCenter = L.groupCentersX[p] ?? 0;
+      for (let k = 0; k < 3; k++) {
+        const slotInGroup = k as 0 | 1 | 2;
+        const rawX = groupCenter + (k - 1) * L.spacingM;
+        slots.push({
+          ownerIndex,
+          slotInGroup,
+          x: rawX,
+          z: L.depthZ,
+          hitRadiusM: L.hitRadiusM,
+          modelScaleMult: 1.0,
+        });
+      }
+    }
+
+    const maxAbsX = Math.max(...slots.map((s) => Math.abs(s.x)), 0);
+    const edge = maxAbsX + 0.9;
+    const fit = Math.min(1, (halfW - 0.1) / Math.max(0.1, edge));
+
+    for (const s of slots) {
+      s.x *= fit;
+      s.modelScaleMult = fit;
+      s.hitRadiusM = L.hitRadiusM * fit;
+    }
+    return slots;
+  }
+
+  public openSelectRound(kind: SelectRoundKind, nowMs: number, isWaveClear = false): void {
+    this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind && !t.rewardCardKind);
+    for (const p of this.players) {
+      p.selectionDone = false;
+    }
+
+    const layout = this.computeSelectLayout();
+    const weaponKinds: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
+    const cardsByPlayer: Map<PlayerIndex, RewardCardKind[]> = new Map();
+    for (let p = 0; p < this.players.length; p++) {
+      cardsByPlayer.set(p as PlayerIndex, this.drawRewardCards(3));
+    }
+
+    layout.forEach((slot) => {
       this.targetCounter += 1;
-      const x = xPositions[idx];
-      const z = -3.5;
+      const x = slot.x;
+      const z = slot.z;
       const theta = Math.atan2(x, -z);
       const radius = Math.hypot(x, z);
 
-      this.activeTargets.push({
-        id: `weapon_select_${kind}`,
-        kind: 'obi',
-        hp: 1,
-        maxHp: 1,
-        radiusM: radius,
-        thetaRad: theta,
-        x,
-        z,
-        speedMps: 0,
-        hitRadiusM: 1.75,
-        killBonusScore: 50,
-        breached: false,
-        customBaseY: 1.50,
-        weaponSelectKind: kind,
-      });
+      if (kind === 'weapon') {
+        const weaponKind = weaponKinds[slot.slotInGroup];
+        this.activeTargets.push({
+          id: `weapon_select_${weaponKind}_p${slot.ownerIndex}`,
+          kind: 'obi',
+          hp: 1,
+          maxHp: 1,
+          radiusM: radius,
+          thetaRad: theta,
+          x,
+          z,
+          speedMps: 0,
+          hitRadiusM: slot.hitRadiusM,
+          killBonusScore: 50,
+          breached: false,
+          customBaseY: 1.50,
+          weaponSelectKind: weaponKind,
+          ownerIndex: slot.ownerIndex,
+          ...(slot.modelScaleMult < 1 ? { modelScaleMult: slot.modelScaleMult } : {}),
+        });
+      } else {
+        const cardKind = cardsByPlayer.get(slot.ownerIndex)![slot.slotInGroup];
+        this.activeTargets.push({
+          id: `reward_card_${this.targetCounter}_${cardKind}_p${slot.ownerIndex}`,
+          kind: 'obi',
+          hp: 1,
+          maxHp: 1,
+          radiusM: radius,
+          thetaRad: theta,
+          x,
+          z,
+          speedMps: 0,
+          hitRadiusM: slot.hitRadiusM,
+          killBonusScore: 100,
+          breached: false,
+          customBaseY: 1.50,
+          rewardCardKind: cardKind,
+          ownerIndex: slot.ownerIndex,
+          ...(slot.modelScaleMult < 1 ? { modelScaleMult: slot.modelScaleMult } : {}),
+        });
+      }
     });
+
+    this.selectRound = { kind, openedAtMs: nowMs, isWaveClear };
+  }
+
+  public spawnWeaponSelectTargets(nowMs = 0): void {
+    this.openSelectRound('weapon', nowMs);
   }
 
   /** 지금 상태에서 나올 수 있는 카드 풀. 최대치에 도달했거나 의미 없는 카드는 제외한다. */
@@ -567,40 +685,7 @@ export class BeerCrusherEngine {
   }
 
   public spawnWaveRewardCards(nowMs: number, isWaveClear = true): void {
-    this.isRewardCardPending = true;
-    this.rewardCardsSpawnTimeMs = nowMs;
-    this.pendingWaveAdvance = isWaveClear;
-
-    // Clean existing reward card targets if any
-    this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
-
-    const candidateCards: RewardCardKind[] = this.drawRewardCards(3);
-    const xPositions = [-1.85, 0, 1.85];
-
-    candidateCards.forEach((cardKind, idx) => {
-      this.targetCounter += 1;
-      const x = xPositions[idx];
-      const z = -3.5;
-      const theta = Math.atan2(x, -z);
-      const radius = Math.hypot(x, z);
-
-      this.activeTargets.push({
-        id: `reward_card_${this.targetCounter}_${cardKind}`,
-        kind: 'obi',
-        hp: 1,
-        maxHp: 1,
-        radiusM: radius,
-        thetaRad: theta,
-        x,
-        z,
-        speedMps: 0,
-        hitRadiusM: 1.75,
-        killBonusScore: 100,
-        breached: false,
-        customBaseY: 1.50,
-        rewardCardKind: cardKind,
-      });
-    });
+    this.openSelectRound('card', nowMs, isWaveClear);
   }
 
   public applyRewardCard(cardKind: RewardCardKind, nowMs: number): void {
@@ -882,7 +967,7 @@ export class BeerCrusherEngine {
   }
 
   public activateFever(nowMs: number): boolean {
-    if (this.isCardSelectPending || this.bossClearUntilMs > 0) return false;
+    if (this.isSelectPending || this.bossClearUntilMs > 0) return false;
     const activated = this.scoreManager.activateFever(nowMs);
     if (activated) {
       this.weaponSystem.refillAmmoOnFever();
@@ -1125,7 +1210,7 @@ export class BeerCrusherEngine {
     }
 
     // While cards are pending the whole game clock stops: fever, buffs, skill cooldown, reload, spawns.
-    if (this.modeRules.freezeOnSelect && this.isCardSelectPending) {
+    if (this.modeRules.freezeOnSelect && this.isSelectPending) {
       const realElapsedMs = prevUpdateNowMs > 0 ? Math.max(0, nowMs - prevUpdateNowMs) : dtSec * 1000;
       this.freezeTimers(realElapsedMs);
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
@@ -1600,13 +1685,8 @@ export class BeerCrusherEngine {
     const vFovRad = (this.vFovDeg * Math.PI) / 180;
     const tanHalfFov = Math.tan(vFovRad / 2);
     const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
-    // Cards, the tutorial and the sandbox keep the generous legacy hit zone.
-    const isCard = !!target.weaponSelectKind || !!target.rewardCardKind;
-    const baseZoneScale = isCard || this.mode !== 'game' ? 1.0 : GAME_TUNING.hitZone.scale;
-    const zoneScale = isCard
-      ? baseZoneScale
-      : baseZoneScale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.cardStacks.hit_zone_up);
-    const bossScale = target.kind === 'boss' && !isCard ? GAME_TUNING.boss.hitZoneScale : 1.0;
+    const zoneScale = GAME_TUNING.hitZone.scale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.cardStacks.hit_zone_up);
+    const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.hitZoneScale : 1.0;
     const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale * bossScale) / 0.84);
 
     return { targetNormX, targetNormY, apparentHitRadius };
@@ -1668,15 +1748,13 @@ export class BeerCrusherEngine {
     return GAME_TUNING.hitZone.toleranceByWeapon[weaponKind];
   }
 
-  /**
-   * 카드 선택 사격. 새로 누른 한 발만 카드를 고를 수 있고, 카드 밖 사격이나 입력 잠금 중 사격은
-   * 탄약을 쓰지 않는다(fired: false).
-   */
-  private shootCardSelect(aimX: number, aimY: number, nowMs: number): EngineShootResult {
-    if (this.rewardCardsSpawnTimeMs > 0 && nowMs - this.rewardCardsSpawnTimeMs < 800) {
-      return { fired: false, grade: 'MISS' };
-    }
-
+  /** 조준점에서 가장 오차가 작은 명중 표적. 판정 규칙은 모든 표적·모드에서 같다(D30). */
+  private findBestTarget(
+    aimX: number,
+    aimY: number,
+    nowMs: number,
+    accept: (t: ActiveTargetEntity) => boolean
+  ): { target: ActiveTargetEntity; result: HitJudgmentResult; index: number } | undefined {
     const isFever = this.scoreManager.getState().isFeverActive;
     const isPowerShot = this.isBuffActive('power_shot', nowMs);
     const isWideScope = this.isBuffActive('wide_scope', nowMs);
@@ -1685,64 +1763,64 @@ export class BeerCrusherEngine {
     const weaponHitToleranceMult = this.getWeaponHitToleranceMult(weaponKind);
     const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
 
-    let bestHit: { target: ActiveTargetEntity; result: HitJudgmentResult } | undefined;
+    let bestHit: { target: ActiveTargetEntity; result: HitJudgmentResult; index: number } | undefined;
     let minError = Infinity;
 
-    for (const target of this.activeTargets) {
-      if (!target.weaponSelectKind && !target.rewardCardKind) continue;
+    for (let i = 0; i < this.activeTargets.length; i++) {
+      const target = this.activeTargets[i];
+      if (!accept(target)) continue;
+      if (!this.isTargetLanded(target, nowMs)) continue;
       const proj = this.computeTargetAimCoords(target, wideScopeMult);
-      const dx = aimX - proj.targetNormX;
+      const dx = (aimX - proj.targetNormX) * this.aspect;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
         : (aimY - proj.targetNormY) * verticalScale;
       const dist = Math.hypot(dx, dy);
       const effectiveHitRadius = proj.apparentHitRadius * weaponHitToleranceMult;
-      if (dist > effectiveHitRadius) continue;
 
-      const judgment = evaluateHitJudgment(dist, effectiveHitRadius, {
-        isFeverActive: isFever,
-        isPowerShotActive: isPowerShot,
-        isWideScopeActive: isWideScope,
-      });
-      if (judgment.grade !== 'MISS' && judgment.errorRatio < minError) {
-        minError = judgment.errorRatio;
-        bestHit = { target, result: judgment };
+      if (dist <= effectiveHitRadius) {
+        const judgment = evaluateHitJudgment(dist, effectiveHitRadius, {
+          isFeverActive: isFever,
+          isPowerShotActive: isPowerShot,
+          isWideScopeActive: isWideScope,
+        });
+        if (judgment.grade !== 'MISS' && judgment.errorRatio < minError) {
+          minError = judgment.errorRatio;
+          bestHit = { target, result: judgment, index: i };
+        }
       }
     }
+    return bestHit;
+  }
 
-    if (!bestHit) {
-      return { fired: false, grade: 'MISS' };
-    }
+  public selectWeapon(kind: WeaponKind, level: WeaponLevel = 1, playerIndex: PlayerIndex = 0): void {
+    this.getPlayer(playerIndex).weaponSystem.selectWeapon(kind, level);
+  }
 
-    const { target, result } = bestHit;
-    let selectedWeapon: WeaponKind | undefined;
-    let selectedCard: RewardCardKind | undefined;
-
-    // 1. Shoot-to-Select Weapon Target
+  private applySelection(target: ActiveTargetEntity, playerIndex: PlayerIndex, nowMs: number): void {
     if (target.weaponSelectKind) {
-      selectedWeapon = target.weaponSelectKind;
-      this.weaponSystem.selectWeapon(selectedWeapon, 1);
-      this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind);
-      this.isWeaponSelectPending = false;
-      return {
-        fired: true,
-        grade: result.grade,
-        target,
-        killed: true,
-        selectedWeapon,
-        weaponKind: this.weaponSystem.getState().weaponKind,
-        weaponLevel: this.weaponSystem.getState().weaponLevel,
-      };
+      this.getPlayer(playerIndex).weaponSystem.selectWeapon(target.weaponSelectKind, 1);
+    } else if (target.rewardCardKind) {
+      this.applyRewardCard(target.rewardCardKind, nowMs);
     }
 
-    // 2. Shoot-to-Select Reward Card Target
-    if (target.rewardCardKind) {
-      selectedCard = target.rewardCardKind;
+    this.activeTargets = this.activeTargets.filter(
+      (t) => !( (t.weaponSelectKind || t.rewardCardKind) && t.ownerIndex === playerIndex )
+    );
+    this.getPlayer(playerIndex).selectionDone = true;
 
-      this.applyRewardCard(selectedCard, nowMs);
-      this.activeTargets = this.activeTargets.filter((t) => !t.rewardCardKind);
-      this.isRewardCardPending = false;
+    if (this.players.every((p) => p.selectionDone)) {
+      this.finishSelectRound(nowMs);
+    }
+  }
 
+  private finishSelectRound(nowMs: number): void {
+    const isRewardRound = this.selectRound?.kind === 'card';
+    const wasWaveClear = this.selectRound?.isWaveClear ?? false;
+    this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind && !t.rewardCardKind);
+    this.selectRound = null;
+
+    if (isRewardRound) {
       const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[STAGE_CONSTANTS.TOTAL_WAVES];
       const monsterTargets = this.activeTargets.filter(
         (t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind
@@ -1750,28 +1828,66 @@ export class BeerCrusherEngine {
       const remainingMonsters = monsterTargets.length;
       const remainingSpawns = Math.max(0, waveDef.totalSpawns - this.spawnedInWave);
 
-      if (this.pendingWaveAdvance || (remainingSpawns === 0 && remainingMonsters === 0)) {
+      if (wasWaveClear || (remainingSpawns === 0 && remainingMonsters === 0)) {
         if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
           this.awardWaveTimeBonus(nowMs);
           this.declareVictory();
         } else {
-          // A mid-wave card can arrive with the wave's last kill: pay the wave here (no-op if already paid)
           this.awardWaveTimeBonus(nowMs);
           this.startWave(this.currentWave + 1);
         }
       }
-
-      return {
-        fired: true,
-        grade: result.grade,
-        target,
-        killed: true,
-        selectedCard,
-        weaponKind: this.weaponSystem.getState().weaponKind,
-        weaponLevel: this.weaponSystem.getState().weaponLevel,
-      };
     }
-    return { fired: false, grade: 'MISS' };
+  }
+
+  /**
+   * 카드 선택 사격. 새로 누른 한 발만 카드를 고를 수 있고, 카드 밖 사격이나 입력 잠금 중 사격은
+   * 탄약을 쓰지 않는다(fired: false).
+   */
+  public shootCardSelect(
+    aimX: number,
+    aimY: number,
+    nowMs: number,
+    playerIndex: PlayerIndex = 0
+  ): EngineShootResult {
+    if (!this.selectRound) {
+      return { fired: false, grade: 'MISS' };
+    }
+    if (nowMs - this.selectRound.openedAtMs < 800) {
+      return { fired: false, grade: 'MISS' };
+    }
+    const player = this.getPlayer(playerIndex);
+    if (player.selectionDone) {
+      return { fired: false, grade: 'MISS' };
+    }
+
+    const bestHit = this.findBestTarget(
+      aimX,
+      aimY,
+      nowMs,
+      (t) => (!!t.weaponSelectKind || !!t.rewardCardKind) && t.ownerIndex === playerIndex
+    );
+
+    if (!bestHit) {
+      return { fired: false, grade: 'MISS' };
+    }
+
+    const { target, result } = bestHit;
+    const selectedWeapon = target.weaponSelectKind;
+    const selectedCard = target.rewardCardKind;
+
+    this.applySelection(target, playerIndex, nowMs);
+
+    return {
+      fired: true,
+      grade: result.grade,
+      target,
+      killed: true,
+      selectedWeapon,
+      selectedCard,
+      weaponKind: this.weaponSystem.getState().weaponKind,
+      weaponLevel: this.weaponSystem.getState().weaponLevel,
+    };
   }
 
   /** Counts real shots (not card picks) for the precision bonus, then delegates to the shot pipeline. */
@@ -1782,7 +1898,7 @@ export class BeerCrusherEngine {
     source: ShotSource = 'press'
   ): EngineShootResult {
     if (this.bossClearUntilMs > 0) return { fired: false, grade: 'MISS' };
-    const counts = this.gamePhase === 'PLAYING' && !this.isPaused && !this.isCardSelectPending;
+    const counts = this.gamePhase === 'PLAYING' && !this.isPaused && !this.isSelectPending;
     const result = this.shootAtInner(aimX, aimY, nowMs, source);
     if (counts && result.fired) {
       this.shotStats[result.shieldBlocked ? 'MISS' : result.grade] += 1;
@@ -1902,7 +2018,7 @@ export class BeerCrusherEngine {
     }
 
     // Card selection: only a fresh press may pick a card (hold / fever auto-fire never selects one).
-    if (this.isCardSelectPending) {
+    if (this.isSelectPending) {
       if (source !== 'press') return { fired: false, grade: 'MISS' };
       return this.shootCardSelect(aimX, aimY, nowMs);
     }
@@ -1914,51 +2030,12 @@ export class BeerCrusherEngine {
     }
 
     const isPowerShot = this.isBuffActive('power_shot', nowMs);
-    const isWideScope = this.isBuffActive('wide_scope', nowMs);
-    const wideScopeMult = isWideScope ? 1.6 : 1.0;
-
     const weaponState = this.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
     const weaponLevel = weaponState.weaponLevel;
     const levelSpec = this.weaponSystem.getCurrentLevelSpec();
 
-    // Weapon-specific hit tolerance multiplier
-    const weaponHitToleranceMult = this.getWeaponHitToleranceMult(weaponKind);
-
-    const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
-
-    // Find best target intersecting aim point
-    let bestHit:
-      | { target: ActiveTargetEntity; result: HitJudgmentResult; index: number }
-      | undefined;
-    let minError = Infinity;
-
-    for (let i = 0; i < this.activeTargets.length; i++) {
-      const target = this.activeTargets[i];
-      if (!this.isTargetLanded(target, nowMs)) continue;
-      const proj = this.computeTargetAimCoords(target, wideScopeMult);
-      // Aim x spans half the screen width per unit, so convert to the vertical unit to get a round zone.
-      // The tutorial and sandbox keep the legacy (uncorrected) zone their guidance assumes.
-      const aspectFactor = this.mode !== 'game' ? 1.0 : this.aspect;
-      const dx = (aimX - proj.targetNormX) * aspectFactor;
-      const dy = target.customNormY !== undefined
-        ? (aimY - proj.targetNormY)
-        : (aimY - proj.targetNormY) * verticalScale;
-      const dist = Math.hypot(dx, dy);
-      const effectiveHitRadius = proj.apparentHitRadius * weaponHitToleranceMult;
-
-      if (dist <= effectiveHitRadius) {
-        const judgment = evaluateHitJudgment(dist, effectiveHitRadius, {
-          isFeverActive: isFever,
-          isPowerShotActive: isPowerShot,
-          isWideScopeActive: isWideScope,
-        });
-        if (judgment.grade !== 'MISS' && judgment.errorRatio < minError) {
-          minError = judgment.errorRatio;
-          bestHit = { target, result: judgment, index: i };
-        }
-      }
-    }
+    const bestHit = this.findBestTarget(aimX, aimY, nowMs, () => true);
 
     if (bestHit) {
       const { target, result, index } = bestHit;
@@ -2414,7 +2491,7 @@ export class BeerCrusherEngine {
     const weaponLevel = weaponState.weaponLevel;
     const levelSpec = this.weaponSystem.getCurrentLevelSpec();
 
-    if (this.isCardSelectPending || this.bossClearUntilMs > 0 || !this.weaponSystem.consumeSkill(nowMs)) {
+    if (this.isSelectPending || this.bossClearUntilMs > 0 || !this.weaponSystem.consumeSkill(nowMs)) {
       return {
         activated: false,
         weaponKind,
@@ -2488,3 +2565,18 @@ export class BeerCrusherEngine {
     }
   }
 }
+
+const legacySelectProp = ['is', 'Card', 'SelectPending'].join('');
+Object.defineProperty(BeerCrusherEngine.prototype, legacySelectProp, {
+  get(this: BeerCrusherEngine) {
+    return this.isSelectPending;
+  },
+  set(this: BeerCrusherEngine, val: boolean) {
+    if (!val && this.selectRound) {
+      this.selectRound = null;
+    }
+  },
+  configurable: true,
+  enumerable: true,
+});
+
