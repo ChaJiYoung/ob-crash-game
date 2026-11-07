@@ -99,6 +99,7 @@ export interface EngineShootResult {
   interceptedProjectile?: boolean;
   goldenCanKilled?: boolean;
   shieldBlocked?: boolean;
+  playerIndex: PlayerIndex;
 }
 
 export interface SkillExecuteResult {
@@ -109,6 +110,7 @@ export interface SkillExecuteResult {
   plungerCount?: number;
   bladeCount?: number;
   foamCount?: number;
+  playerIndex: PlayerIndex;
 }
 
 export interface SkillFoamWave {
@@ -125,6 +127,7 @@ export interface SkillFoamWave {
   slowMs: number;
   /** 화면에 그릴 거품 수. */
   count: number;
+  ownerIndex: PlayerIndex;
 }
 
 export interface SkillBlade {
@@ -140,6 +143,7 @@ export interface SkillBlade {
   /** 시전 시점에 고정한 피해. 날아가는 도중 카드를 받아도 이 칼날의 피해는 바뀌지 않는다. */
   damage: number;
   bossDamage: number;
+  ownerIndex: PlayerIndex;
 }
 
 export interface ProjectileLaunchEvent {
@@ -170,6 +174,7 @@ export interface SkillHitEvent {
   source: SkillHitSource;
   target: ActiveTargetEntity;
   killed: boolean;
+  ownerIndex: PlayerIndex;
 }
 
 export interface WaveDefinition {
@@ -268,7 +273,7 @@ export class BeerCrusherEngine {
   private bossClearNextCascadeMs = 0;
   private bossClearEvents: BossClearEvent[] = [];
   private projectileLaunchEvents: ProjectileLaunchEvent[] = [];
-  private pendingHanmacBlasts: { x: number; z: number }[] = [];
+  private pendingHanmacBlasts: { x: number; z: number; ownerIndex: PlayerIndex }[] = [];
   private hanmacBlastEvents: HanmacBlastEvent[] = [];
   public activeSkillFoamWaves: SkillFoamWave[] = [];
   private skillHitEvents: SkillHitEvent[] = [];
@@ -404,12 +409,12 @@ export class BeerCrusherEngine {
     return target === undefined ? null : target;
   }
 
-  public getLuckyDropMultiplier(): number {
-    return 1 + this.getPlayer(0).luckyDropStacks;
+  public getLuckyDropMultiplier(playerIndex: PlayerIndex = 0): number {
+    return 1 + this.getPlayer(playerIndex).luckyDropStacks;
   }
 
-  public getNextLuckyDropMultiplier(): number {
-    return Math.min(4, 1 + this.getPlayer(0).luckyDropStacks + 1);
+  public getNextLuckyDropMultiplier(playerIndex: PlayerIndex = 0): number {
+    return Math.min(4, 1 + this.getPlayer(playerIndex).luckyDropStacks + 1);
   }
 
   public isBossSummoning(nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now()): boolean {
@@ -489,7 +494,7 @@ export class BeerCrusherEngine {
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
-    this.prevFeverActive = [false];
+    this.prevFeverActive = this.players.map(() => false);
 
     if (options?.withWeaponSelect) {
       this.spawnWeaponSelectTargets();
@@ -626,28 +631,29 @@ export class BeerCrusherEngine {
   }
 
   /** 지금 상태에서 나올 수 있는 카드 풀. 최대치에 도달했거나 의미 없는 카드는 제외한다. */
-  public buildRewardCardPool(): RewardCardKind[] {
+  public buildRewardCardPool(playerIndex: PlayerIndex = 0): RewardCardKind[] {
     const cards = GAME_TUNING.cards;
-    const weapon = this.getPlayer(0).weaponSystem.getState();
-    const fever = this.getPlayer(0).scoreManager.getState();
+    const player = this.getPlayer(playerIndex);
+    const weapon = player.weaponSystem.getState();
+    const fever = player.scoreManager.getState();
     const waveCap = (GAME_TUNING.weaponLevelCapByWave as Record<number, number>)[this.currentWave] ?? 4;
     const pool: RewardCardKind[] = [];
 
     if (weapon.weaponLevel < 4 && weapon.weaponLevel < waveCap) pool.push('weapon_level_up');
-    if (this.getPlayer(0).luckyDropStacks < cards.luckyDropMaxStacks) pool.push('lucky_drop');
-    if (this.getPlayer(0).weaponSystem.getRapidReloadStacks() < cards.rapidReloadMaxStacks) pool.push('rapid_reload');
+    if (player.luckyDropStacks < cards.luckyDropMaxStacks) pool.push('lucky_drop');
+    if (player.weaponSystem.getRapidReloadStacks() < cards.rapidReloadMaxStacks) pool.push('rapid_reload');
     if (!fever.isFeverReady && !fever.isFeverActive) pool.push('fever_boost');
     if (this.lives < this.maxLives) pool.push('bar_repair');
-    if (this.getPlayer(0).cardStacks.damage_up < cards.damageUp.maxStacks) pool.push('damage_up');
-    if (this.getPlayer(0).cardStacks.skill_cooldown < cards.skillCooldown.maxStacks) pool.push('skill_cooldown');
-    if (this.getPlayer(0).cardStacks.fever_extend < cards.feverExtend.maxStacks) pool.push('fever_extend');
-    if (this.getPlayer(0).cardStacks.hit_zone_up < cards.hitZoneUp.maxStacks) pool.push('hit_zone_up');
+    if (player.cardStacks.damage_up < cards.damageUp.maxStacks) pool.push('damage_up');
+    if (player.cardStacks.skill_cooldown < cards.skillCooldown.maxStacks) pool.push('skill_cooldown');
+    if (player.cardStacks.fever_extend < cards.feverExtend.maxStacks) pool.push('fever_extend');
+    if (player.cardStacks.hit_zone_up < cards.hitZoneUp.maxStacks) pool.push('hit_zone_up');
     return pool;
   }
 
   /** 풀에서 중복 없이 count장을 뽑는다. 풀이 모자라면 수리·부스터·장전으로 채워 항상 count장을 만든다. */
-  private drawRewardCards(count: number): RewardCardKind[] {
-    const pool = this.buildRewardCardPool();
+  private drawRewardCards(count: number, playerIndex: PlayerIndex = 0): RewardCardKind[] {
+    const pool = this.buildRewardCardPool(playerIndex);
     // Fisher-Yates shuffle with the injectable RNG
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.min(i, Math.floor(this.dropRng() * (i + 1)));
@@ -665,48 +671,49 @@ export class BeerCrusherEngine {
     this.openSelectRound('card', nowMs, isWaveClear);
   }
 
-  public applyRewardCard(cardKind: RewardCardKind, nowMs: number): void {
+  public applyRewardCard(cardKind: RewardCardKind, nowMs: number, playerIndex: PlayerIndex = 0): void {
+    const player = this.getPlayer(playerIndex);
     switch (cardKind) {
       case 'weapon_level_up':
-        this.getPlayer(0).weaponSystem.upgradeWeaponLevel();
+        player.weaponSystem.upgradeWeaponLevel();
         break;
       case 'rapid_reload':
-        this.getPlayer(0).weaponSystem.applyRapidReloadBuff();
+        player.weaponSystem.applyRapidReloadBuff();
         break;
       case 'bar_repair':
         this.healLives(GAME_TUNING.repairCard.healAmount);
         break;
       case 'lucky_drop':
-        this.getPlayer(0).luckyDropStacks = Math.min(GAME_TUNING.cards.luckyDropMaxStacks, this.getPlayer(0).luckyDropStacks + 1);
+        player.luckyDropStacks = Math.min(GAME_TUNING.cards.luckyDropMaxStacks, player.luckyDropStacks + 1);
         break;
       case 'fever_boost':
-        this.getPlayer(0).scoreManager.addFeverGauge(GAME_TUNING.fever.cardBoostGain);
+        player.scoreManager.addFeverGauge(GAME_TUNING.fever.cardBoostGain);
         break;
       case 'damage_up':
-        if (this.getPlayer(0).cardStacks.damage_up < GAME_TUNING.cards.damageUp.maxStacks) {
-          this.getPlayer(0).cardStacks.damage_up += 1;
-          this.getPlayer(0).weaponSystem.addDamageBonus(GAME_TUNING.cards.damageUp.amount);
+        if (player.cardStacks.damage_up < GAME_TUNING.cards.damageUp.maxStacks) {
+          player.cardStacks.damage_up += 1;
+          player.weaponSystem.addDamageBonus(GAME_TUNING.cards.damageUp.amount);
         }
         break;
       case 'skill_cooldown':
-        if (this.getPlayer(0).cardStacks.skill_cooldown < GAME_TUNING.cards.skillCooldown.maxStacks) {
-          this.getPlayer(0).cardStacks.skill_cooldown += 1;
-          this.getPlayer(0).weaponSystem.setSkillCooldownScale(
-            GAME_TUNING.cards.skillCooldown.multiplier ** this.getPlayer(0).cardStacks.skill_cooldown
+        if (player.cardStacks.skill_cooldown < GAME_TUNING.cards.skillCooldown.maxStacks) {
+          player.cardStacks.skill_cooldown += 1;
+          player.weaponSystem.setSkillCooldownScale(
+            GAME_TUNING.cards.skillCooldown.multiplier ** player.cardStacks.skill_cooldown
           );
         }
         break;
       case 'fever_extend':
-        if (this.getPlayer(0).cardStacks.fever_extend < GAME_TUNING.cards.feverExtend.maxStacks) {
-          this.getPlayer(0).cardStacks.fever_extend += 1;
-          this.getPlayer(0).scoreManager.setFeverDurationBonusMs(
-            GAME_TUNING.cards.feverExtend.amountMs * this.getPlayer(0).cardStacks.fever_extend
+        if (player.cardStacks.fever_extend < GAME_TUNING.cards.feverExtend.maxStacks) {
+          player.cardStacks.fever_extend += 1;
+          player.scoreManager.setFeverDurationBonusMs(
+            GAME_TUNING.cards.feverExtend.amountMs * player.cardStacks.fever_extend
           );
         }
         break;
       case 'hit_zone_up':
-        if (this.getPlayer(0).cardStacks.hit_zone_up < GAME_TUNING.cards.hitZoneUp.maxStacks) {
-          this.getPlayer(0).cardStacks.hit_zone_up += 1;
+        if (player.cardStacks.hit_zone_up < GAME_TUNING.cards.hitZoneUp.maxStacks) {
+          player.cardStacks.hit_zone_up += 1;
         }
         break;
     }
@@ -799,7 +806,7 @@ export class BeerCrusherEngine {
     this.getPlayer(0).weaponSystem.reset();
     for (const p of this.players) p.resetCardStacks();
     this.getPlayer(0).buffUntilMs.clear();
-    this.prevFeverActive = [false];
+    this.prevFeverActive = this.players.map(() => false);
   }
 
   public exitTutorialMode(): void {
@@ -876,7 +883,7 @@ export class BeerCrusherEngine {
     this.getPlayer(0).buffUntilMs.clear();
     this.infiniteAmmo = true;
     this.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
-    this.prevFeverActive = [false];
+    this.prevFeverActive = this.players.map(() => false);
 
     const calibPoints = [
       { id: 'calib_center', theta: 0, normY: 0 },
@@ -943,20 +950,21 @@ export class BeerCrusherEngine {
     this.getPlayer(0).weaponSystem.setInfiniteAmmo(enabled);
   }
 
-  public activateFever(nowMs: number): boolean {
+  public activateFever(nowMs: number, playerIndex: PlayerIndex = 0): boolean {
     if (this.isSelectPending || this.bossClearUntilMs > 0) return false;
-    const activated = this.getPlayer(0).scoreManager.activateFever(nowMs);
+    const player = this.getPlayer(playerIndex);
+    const activated = player.scoreManager.activateFever(nowMs);
     if (activated) {
-      this.getPlayer(0).weaponSystem.refillAmmoOnFever();
-      this.prevFeverActive[0] = true;
-      this.emit({ type: 'feverStarted', playerIndex: 0, nowMs });
+      player.weaponSystem.refillAmmoOnFever();
+      this.prevFeverActive[playerIndex] = true;
+      this.emit({ type: 'feverStarted', playerIndex, nowMs });
     }
     return activated;
   }
 
-  public triggerSandboxFever(nowMs: number): boolean {
-    this.getPlayer(0).scoreManager.forceSetFeverGauge(100);
-    return this.activateFever(nowMs);
+  public triggerSandboxFever(nowMs: number, playerIndex: PlayerIndex = 0): boolean {
+    this.getPlayer(playerIndex).scoreManager.forceSetFeverGauge(100);
+    return this.activateFever(nowMs, playerIndex);
   }
 
   /** 체력을 회복한다. 가득 차서 버려지는 양은 기록하지 않는다. */
@@ -966,28 +974,46 @@ export class BeerCrusherEngine {
     this.lives = next;
   }
 
-  public activateItemBuff(kind: ItemBuffKind, nowMs: number): void {
+  public activateItemBuff(kind: ItemBuffKind, nowMs: number, playerIndex: PlayerIndex = 0): void {
     const spec = ITEM_BUFF_SPECS[kind];
     if (kind === 'bar_repair') {
       this.healLives(1);
       return;
     }
-    this.getPlayer(0).buffUntilMs.set(kind, nowMs + spec.durationMs);
+    if (kind === 'ice_freeze') {
+      for (const p of this.players) {
+        p.buffUntilMs.set('ice_freeze', nowMs + spec.durationMs);
+      }
+      return;
+    }
+    this.getPlayer(playerIndex).buffUntilMs.set(kind, nowMs + spec.durationMs);
   }
 
   public isBuffActive(
     kind: ItemBuffKind,
-    nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now()
+    nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now(),
+    playerIndex: PlayerIndex = 0
   ): boolean {
-    const untilMs = this.getPlayer(0).buffUntilMs.get(kind);
+    const untilMs = this.getPlayer(playerIndex).buffUntilMs.get(kind);
     return untilMs !== undefined && untilMs > nowMs;
   }
 
-  public getActiveBuffs(
+  public isTeamBuffActive(
+    kind: ItemBuffKind,
     nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now()
+  ): boolean {
+    return this.players.some((p) => {
+      const untilMs = p.buffUntilMs.get(kind);
+      return untilMs !== undefined && untilMs > nowMs;
+    });
+  }
+
+  public getActiveBuffs(
+    nowMs: number = typeof performance !== 'undefined' ? performance.now() : Date.now(),
+    playerIndex: PlayerIndex = 0
   ): ActiveBuffState[] {
     const list: ActiveBuffState[] = [];
-    for (const [kind, untilMs] of this.getPlayer(0).buffUntilMs.entries()) {
+    for (const [kind, untilMs] of this.getPlayer(playerIndex).buffUntilMs.entries()) {
       if (untilMs > nowMs) {
         list.push({
           kind,
@@ -1171,6 +1197,7 @@ export class BeerCrusherEngine {
     breaches: ActiveTargetEntity[];
     phaseChanged: boolean;
     reloadedJustNow: boolean;
+    reloadedByPlayer: boolean[];
   } {
     // Real elapsed time since the previous update call. The frame dt is capped by the caller, so a long
     // frame or a hidden tab must be measured on the real clock when freezing.
@@ -1178,26 +1205,31 @@ export class BeerCrusherEngine {
     this.lastUpdateNowMs = nowMs;
 
     if (this.isPaused) {
-      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false, reloadedByPlayer: this.players.map(() => false) };
     }
 
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
       this.clearSkillProjectiles();
-      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false, reloadedByPlayer: this.players.map(() => false) };
     }
 
     // While cards are pending the whole game clock stops: fever, buffs, skill cooldown, reload, spawns.
     if (this.modeRules.freezeOnSelect && this.isSelectPending) {
       const realElapsedMs = prevUpdateNowMs > 0 ? Math.max(0, nowMs - prevUpdateNowMs) : dtSec * 1000;
       this.freezeTimers(realElapsedMs);
-      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false, reloadedByPlayer: this.players.map(() => false) };
     }
 
     if (this.waveStartMs === null && this.gamePhase === 'PLAYING') this.waveStartMs = nowMs;
 
     if (this.bossClearUntilMs > 0) {
-      this.advanceBossClear(nowMs, dtSec);
-      return { breaches: [], phaseChanged: (this.gamePhase as GamePhase) === 'VICTORY', reloadedJustNow: false };
+      const reloadedByPlayer = this.advanceBossClear(nowMs, dtSec);
+      return {
+        breaches: [],
+        phaseChanged: (this.gamePhase as GamePhase) === 'VICTORY',
+        reloadedJustNow: reloadedByPlayer.some(Boolean),
+        reloadedByPlayer,
+      };
     }
 
     this.updateGuards(nowMs);
@@ -1205,34 +1237,40 @@ export class BeerCrusherEngine {
     this.advanceSkillBlades(nowMs, dtSec);
     this.advanceSkillFoam(nowMs, dtSec);
     if (this.bossClearUntilMs > 0) {
-      return { breaches: [], phaseChanged: false, reloadedJustNow: false };
+      return { breaches: [], phaseChanged: false, reloadedJustNow: false, reloadedByPlayer: this.players.map(() => false) };
     }
 
-    // Clean expired buffs
-    for (const [kind, untilMs] of this.getPlayer(0).buffUntilMs.entries()) {
-      if (nowMs >= untilMs) {
-        this.getPlayer(0).buffUntilMs.delete(kind);
+    const reloadedByPlayer: boolean[] = [];
+    for (const p of this.players) {
+      // Clean expired buffs
+      for (const [kind, untilMs] of p.buffUntilMs.entries()) {
+        if (nowMs >= untilMs) {
+          p.buffUntilMs.delete(kind);
+        }
+      }
+
+      const feverState = p.scoreManager.getState();
+      const { reloadedJustNow: pReloaded } = p.weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
+      reloadedByPlayer.push(pReloaded);
+      p.scoreManager.updateFeverTimer(nowMs);
+
+      const isFeverNow = p.scoreManager.getState().isFeverActive;
+      const idx = p.index;
+      if (this.prevFeverActive[idx] && !isFeverNow) {
+        this.prevFeverActive[idx] = false;
+        this.emit({ type: 'feverEnded', playerIndex: idx, nowMs });
+      } else if (!this.prevFeverActive[idx] && isFeverNow) {
+        this.prevFeverActive[idx] = true;
+        this.emit({ type: 'feverStarted', playerIndex: idx, nowMs });
       }
     }
-
-    const feverState = this.getPlayer(0).scoreManager.getState();
-    const { reloadedJustNow } = this.getPlayer(0).weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
-    this.getPlayer(0).scoreManager.updateFeverTimer(nowMs);
-
-    const isFeverNow = this.getPlayer(0).scoreManager.getState().isFeverActive;
-    if (this.prevFeverActive[0] && !isFeverNow) {
-      this.prevFeverActive[0] = false;
-      this.emit({ type: 'feverEnded', playerIndex: 0, nowMs });
-    } else if (!this.prevFeverActive[0] && isFeverNow) {
-      this.prevFeverActive[0] = true;
-      this.emit({ type: 'feverStarted', playerIndex: 0, nowMs });
-    }
+    const reloadedJustNow = reloadedByPlayer.some(Boolean);
 
     this.playTimeSec += dtSec;
     this.processHanmacBlasts(nowMs);
 
     const breaches: ActiveTargetEntity[] = [];
-    const isIceFreeze = this.isBuffActive('ice_freeze', nowMs);
+    const isIceFreeze = this.isTeamBuffActive('ice_freeze', nowMs);
 
     // 1. Advance active targets radially
     for (let i = this.activeTargets.length - 1; i >= 0; i--) {
@@ -1357,7 +1395,7 @@ export class BeerCrusherEngine {
 
             if (this.lives <= 0) {
               this.gamePhase = 'GAMEOVER';
-              return { breaches, phaseChanged: true, reloadedJustNow };
+              return { breaches, phaseChanged: true, reloadedJustNow, reloadedByPlayer };
             }
             break;
           }
@@ -1366,12 +1404,12 @@ export class BeerCrusherEngine {
     }
 
     if (!this.modeRules.waveSpawning) {
-      return { breaches, phaseChanged: false, reloadedJustNow };
+      return { breaches, phaseChanged: false, reloadedJustNow, reloadedByPlayer };
     }
 
     // Don't spawn while cards/weapon choices are pending
     if (this.isWeaponSelectPending || this.isRewardCardPending) {
-      return { breaches, phaseChanged: false, reloadedJustNow };
+      return { breaches, phaseChanged: false, reloadedJustNow, reloadedByPlayer };
     }
 
     const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[STAGE_CONSTANTS.TOTAL_WAVES];
@@ -1434,10 +1472,10 @@ export class BeerCrusherEngine {
       this.activeTargets = [];
       // Between waves: Spawn Shoot-to-Select Reward Cards (the last wave always ends with its boss fight)
       this.spawnWaveRewardCards(nowMs, true);
-      return { breaches, phaseChanged: true, reloadedJustNow };
+      return { breaches, phaseChanged: true, reloadedJustNow, reloadedByPlayer };
     }
 
-    return { breaches, phaseChanged: false, reloadedJustNow };
+    return { breaches, phaseChanged: false, reloadedJustNow, reloadedByPlayer };
   }
 
   /** 보스 포탄 발사 간격. 보스가 등장한 뒤 시간이 지날수록 줄어 오래 끄는 플레이에 압박을 준다. */
@@ -1637,7 +1675,8 @@ export class BeerCrusherEngine {
 
   public computeTargetAimCoords(
     target: ActiveTargetEntity,
-    wideScopeMult = 1.0
+    wideScopeMult = 1.0,
+    playerIndex: PlayerIndex = 0
   ): TargetAimProjection {
     this.syncProjectionCamera();
 
@@ -1662,14 +1701,14 @@ export class BeerCrusherEngine {
     const vFovRad = (this.vFovDeg * Math.PI) / 180;
     const tanHalfFov = Math.tan(vFovRad / 2);
     const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
-    const zoneScale = GAME_TUNING.hitZone.scale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.getPlayer(0).cardStacks.hit_zone_up);
+    const zoneScale = GAME_TUNING.hitZone.scale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.getPlayer(playerIndex).cardStacks.hit_zone_up);
     const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.hitZoneScale : 1.0;
     const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale * bossScale) / 0.84);
 
     return { targetNormX, targetNormY, apparentHitRadius };
   }
 
-  private handleMonsterKilled(target: ActiveTargetEntity, nowMs: number): void {
+  private handleMonsterKilled(target: ActiveTargetEntity, nowMs: number, killerIndex: PlayerIndex = 0): void {
     if (this.gamePhase === 'VICTORY' || this.gamePhase === 'GAMEOVER') {
       return;
     }
@@ -1689,7 +1728,7 @@ export class BeerCrusherEngine {
 
     // 사격·스킬이 목록을 처리하는 도중일 수 있으므로 여기서 터뜨리지 않고 다음 update로 미룬다.
     if (target.kind === 'hanmac' && this.modeRules.hanmacBlast && !target.isItem && !target.isProjectile) {
-      this.pendingHanmacBlasts.push({ x: target.x, z: target.z });
+      this.pendingHanmacBlasts.push({ x: target.x, z: target.z, ownerIndex: killerIndex });
     }
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
@@ -1702,7 +1741,7 @@ export class BeerCrusherEngine {
         const currentItemCount = this.activeTargets.filter((t) => t.isItem).length;
         if (currentItemCount < 2) {
           const baseChance = target.isSummonedMinion ? GAME_TUNING.boss.summonDropChance : GAME_TUNING.itemDropChance;
-          const dropProb = baseChance * this.getLuckyDropMultiplier();
+          const dropProb = baseChance * this.getLuckyDropMultiplier(killerIndex);
           if (this.dropRng() < dropProb) {
             this.spawnItemTargetAt(nowMs, target.thetaRad, target.radiusM);
           }
@@ -1730,13 +1769,15 @@ export class BeerCrusherEngine {
     aimX: number,
     aimY: number,
     nowMs: number,
-    accept: (t: ActiveTargetEntity) => boolean
+    accept: (t: ActiveTargetEntity) => boolean,
+    playerIndex: PlayerIndex = 0
   ): { target: ActiveTargetEntity; result: HitJudgmentResult; index: number } | undefined {
-    const isFever = this.getPlayer(0).scoreManager.getState().isFeverActive;
-    const isPowerShot = this.isBuffActive('power_shot', nowMs);
-    const isWideScope = this.isBuffActive('wide_scope', nowMs);
+    const player = this.getPlayer(playerIndex);
+    const isFever = player.scoreManager.getState().isFeverActive;
+    const isPowerShot = this.isBuffActive('power_shot', nowMs, playerIndex);
+    const isWideScope = this.isBuffActive('wide_scope', nowMs, playerIndex);
     const wideScopeMult = isWideScope ? 1.6 : 1.0;
-    const weaponKind = this.getPlayer(0).weaponSystem.getState().weaponKind;
+    const weaponKind = player.weaponSystem.getState().weaponKind;
     const weaponHitToleranceMult = this.getWeaponHitToleranceMult(weaponKind);
     const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
 
@@ -1747,7 +1788,7 @@ export class BeerCrusherEngine {
       const target = this.activeTargets[i];
       if (!accept(target)) continue;
       if (!this.isTargetLanded(target, nowMs)) continue;
-      const proj = this.computeTargetAimCoords(target, wideScopeMult);
+      const proj = this.computeTargetAimCoords(target, wideScopeMult, playerIndex);
       const dx = (aimX - proj.targetNormX) * this.aspect;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
@@ -1778,7 +1819,7 @@ export class BeerCrusherEngine {
     if (target.weaponSelectKind) {
       this.getPlayer(playerIndex).weaponSystem.selectWeapon(target.weaponSelectKind, 1);
     } else if (target.rewardCardKind) {
-      this.applyRewardCard(target.rewardCardKind, nowMs);
+      this.applyRewardCard(target.rewardCardKind, nowMs, playerIndex);
     }
 
     this.activeTargets = this.activeTargets.filter(
@@ -1828,25 +1869,26 @@ export class BeerCrusherEngine {
     playerIndex: PlayerIndex = 0
   ): EngineShootResult {
     if (!this.selectRound) {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
     if (nowMs - this.selectRound.openedAtMs < 800) {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
     const player = this.getPlayer(playerIndex);
     if (player.selectionDone) {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
 
     const bestHit = this.findBestTarget(
       aimX,
       aimY,
       nowMs,
-      (t) => (!!t.weaponSelectKind || !!t.rewardCardKind) && t.ownerIndex === playerIndex
+      (t) => (!!t.weaponSelectKind || !!t.rewardCardKind) && (t.ownerIndex === undefined || t.ownerIndex === playerIndex),
+      playerIndex
     );
 
     if (!bestHit) {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
 
     const { target, result } = bestHit;
@@ -1862,8 +1904,9 @@ export class BeerCrusherEngine {
       killed: true,
       selectedWeapon,
       selectedCard,
-      weaponKind: this.getPlayer(0).weaponSystem.getState().weaponKind,
-      weaponLevel: this.getPlayer(0).weaponSystem.getState().weaponLevel,
+      weaponKind: player.weaponSystem.getState().weaponKind,
+      weaponLevel: player.weaponSystem.getState().weaponLevel,
+      playerIndex,
     };
   }
 
@@ -1872,13 +1915,14 @@ export class BeerCrusherEngine {
     aimX: number,
     aimY: number,
     nowMs: number,
-    source: ShotSource = 'press'
+    source: ShotSource = 'press',
+    playerIndex: PlayerIndex = 0
   ): EngineShootResult {
-    if (this.bossClearUntilMs > 0) return { fired: false, grade: 'MISS' };
+    if (this.bossClearUntilMs > 0) return { fired: false, grade: 'MISS', playerIndex };
     const counts = this.gamePhase === 'PLAYING' && !this.isPaused && !this.isSelectPending;
-    const result = this.shootAtInner(aimX, aimY, nowMs, source);
+    const result = this.shootAtInner(aimX, aimY, nowMs, source, playerIndex);
     if (counts && result.fired) {
-      this.getPlayer(0).shotStats[result.shieldBlocked ? 'MISS' : result.grade] += 1;
+      this.getPlayer(playerIndex).shotStats[result.shieldBlocked ? 'MISS' : result.grade] += 1;
     }
     return result;
   }
@@ -1900,36 +1944,42 @@ export class BeerCrusherEngine {
     if (!this.modeRules.waveTimeBonus || this.waveStartMs === null) return;
     if (this.lastWaveClear && this.lastWaveClear.wave === this.currentWave) return;
     const seconds = Math.max(0, (nowMs - this.waveStartMs) / 1000);
-    const bonus = this.getPlayer(0).scoreManager.addBonusScore(this.computeWaveTimeBonus(this.currentWave, seconds));
-    this.getPlayer(0).waveTimeBonusTotal += bonus;
+    const bonus = this.computeWaveTimeBonus(this.currentWave, seconds);
+    for (const p of this.players) {
+      const paid = p.scoreManager.addBonusScore(bonus);
+      p.waveTimeBonusTotal += paid;
+      p.waveClears.push({ wave: this.currentWave, seconds, bonus: paid });
+    }
     this.lastWaveClear = { wave: this.currentWave, seconds, bonus, atMs: nowMs };
-    this.getPlayer(0).waveClears.push({ wave: this.currentWave, seconds, bonus });
   }
 
-  public getScoreBreakdown(): { total: number; timeBonus: number; precisionBonus: number; levelBonus: number; base: number } {
-    const total = this.getPlayer(0).scoreManager.getState().totalScore;
-    const timeBonus = this.getPlayer(0).waveTimeBonusTotal;
-    const precisionBonus = this.getPlayer(0).precisionBonusApplied;
-    const levelBonus = this.getPlayer(0).levelBonusApplied;
+  public getScoreBreakdown(playerIndex: PlayerIndex = 0): { total: number; timeBonus: number; precisionBonus: number; levelBonus: number; base: number } {
+    const player = this.getPlayer(playerIndex);
+    const total = player.scoreManager.getState().totalScore;
+    const timeBonus = player.waveTimeBonusTotal;
+    const precisionBonus = player.precisionBonusApplied;
+    const levelBonus = player.levelBonusApplied;
     return { total, timeBonus, precisionBonus, levelBonus, base: total - timeBonus - precisionBonus - levelBonus };
   }
 
   /** Weighted accuracy of this run (0..1) and the bonus it earns at VICTORY. */
-  public getPrecisionStats(): { shots: number; ratio: number; bonus: number; applied: number } {
+  public getPrecisionStats(playerIndex: PlayerIndex = 0): { shots: number; ratio: number; bonus: number; applied: number } {
     const cfg = GAME_TUNING.score.precisionBonus;
-    const s = this.getPlayer(0).shotStats;
+    const player = this.getPlayer(playerIndex);
+    const s = player.shotStats;
     const shots = s.PERFECT + s.GREAT + s.GOOD + s.MISS;
     const weighted = s.PERFECT * cfg.weights.PERFECT + s.GREAT * cfg.weights.GREAT + s.GOOD * cfg.weights.GOOD;
     const ratio = shots > 0 ? weighted / shots : 0;
     const bonus = shots >= cfg.minShots ? Math.round(cfg.k * Math.pow(ratio, cfg.power)) : 0;
-    return { shots, ratio, bonus, applied: this.getPlayer(0).precisionBonusApplied };
+    return { shots, ratio, bonus, applied: player.precisionBonusApplied };
   }
 
   /** 끝난 판의 통계. 7웨이브 정밀 보너스가 정산된 뒤의 값이 되도록 판이 끝난 뒤에만 돌려준다. */
-  public getPlayRunStats(): PlayRunStats | null {
+  public getPlayRunStats(playerIndex: PlayerIndex = 0): PlayRunStats | null {
     if (this.gamePhase !== 'GAMEOVER' && this.gamePhase !== 'VICTORY') return null;
-    const breakdown = this.getScoreBreakdown();
-    const weapon = this.getPlayer(0).weaponSystem.getState();
+    const player = this.getPlayer(playerIndex);
+    const breakdown = this.getScoreBreakdown(playerIndex);
+    const weapon = player.weaponSystem.getState();
     return {
       outcome: this.gamePhase,
       waveReached: this.currentWave,
@@ -1940,29 +1990,30 @@ export class BeerCrusherEngine {
       timeBonus: breakdown.timeBonus,
       precisionBonus: breakdown.precisionBonus,
       levelBonus: breakdown.levelBonus,
-      maxCombo: this.getPlayer(0).scoreManager.getState().maxCombo,
-      kills: this.getPlayer(0).totalKills,
+      maxCombo: player.scoreManager.getState().maxCombo,
+      kills: player.totalKills,
       damageTaken: this.damageTaken,
       healedLives: this.healedLives,
-      itemsCollected: this.getPlayer(0).itemsCollected,
-      waves: this.getPlayer(0).waveClears.map((w) => ({ ...w, seconds: Number(w.seconds.toFixed(2)) })),
-      shots: { ...this.getPlayer(0).shotStats },
-      accuracy: Number(this.getPrecisionStats().ratio.toFixed(4)),
+      itemsCollected: player.itemsCollected,
+      waves: player.waveClears.map((w) => ({ ...w, seconds: Number(w.seconds.toFixed(2)) })),
+      shots: { ...player.shotStats },
+      accuracy: Number(this.getPrecisionStats(playerIndex).ratio.toFixed(4)),
       weaponKind: weapon.weaponKind,
       weaponLevel: weapon.weaponLevel,
-      cardStacks: { ...this.getPlayer(0).cardStacks },
+      cardStacks: { ...player.cardStacks },
     };
   }
 
   /** 적용 중인 패시브 카드. 즉시 효과 카드(레벨업, 수리, 피버 부스터)는 쌓이지 않으므로 없다. */
-  public getPassiveCardStacks(): PassiveCardStack[] {
+  public getPassiveCardStacks(playerIndex: PlayerIndex = 0): PassiveCardStack[] {
+    const player = this.getPlayer(playerIndex);
     const stacks: PassiveCardStack[] = [
-      { kind: 'damage_up', count: this.getPlayer(0).cardStacks.damage_up },
-      { kind: 'skill_cooldown', count: this.getPlayer(0).cardStacks.skill_cooldown },
-      { kind: 'fever_extend', count: this.getPlayer(0).cardStacks.fever_extend },
-      { kind: 'hit_zone_up', count: this.getPlayer(0).cardStacks.hit_zone_up },
-      { kind: 'rapid_reload', count: this.getPlayer(0).weaponSystem.getRapidReloadStacks() },
-      { kind: 'lucky_drop', count: this.getPlayer(0).luckyDropStacks },
+      { kind: 'damage_up', count: player.cardStacks.damage_up },
+      { kind: 'skill_cooldown', count: player.cardStacks.skill_cooldown },
+      { kind: 'fever_extend', count: player.cardStacks.fever_extend },
+      { kind: 'hit_zone_up', count: player.cardStacks.hit_zone_up },
+      { kind: 'rapid_reload', count: player.weaponSystem.getRapidReloadStacks() },
+      { kind: 'lucky_drop', count: player.luckyDropStacks },
     ];
     return stacks.filter((s) => s.count > 0);
   }
@@ -1972,11 +2023,12 @@ export class BeerCrusherEngine {
     this.gamePhase = 'VICTORY';
     this.clearSkillProjectiles();
     if (this.modeRules.victoryBonus) {
-      // 레벨 보너스는 기본 점수에만 곱하므로 다른 보너스를 더하기 전에 계산한다.
-      const { base } = this.getScoreBreakdown();
-      const mult = GAME_TUNING.score.weaponLevelBonusMult[this.getPlayer(0).weaponSystem.getState().weaponLevel];
-      this.getPlayer(0).precisionBonusApplied = this.getPlayer(0).scoreManager.addBonusScore(this.getPrecisionStats().bonus);
-      this.getPlayer(0).levelBonusApplied = this.getPlayer(0).scoreManager.addBonusScore(base * (mult - 1));
+      for (const p of this.players) {
+        const { base } = this.getScoreBreakdown(p.index);
+        const mult = GAME_TUNING.score.weaponLevelBonusMult[p.weaponSystem.getState().weaponLevel];
+        p.precisionBonusApplied = p.scoreManager.addBonusScore(this.getPrecisionStats(p.index).bonus);
+        p.levelBonusApplied = p.scoreManager.addBonusScore(Math.round(base * (mult - 1)));
+      }
     }
   }
 
@@ -1984,35 +2036,37 @@ export class BeerCrusherEngine {
     aimX: number,
     aimY: number,
     nowMs: number,
-    source: ShotSource = 'press'
+    source: ShotSource = 'press',
+    playerIndex: PlayerIndex = 0
   ): EngineShootResult {
     if (this.isPaused) {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
 
     if (this.gamePhase !== 'PLAYING' && this.gamePhase !== 'TUTORIAL' && this.gamePhase !== 'SANDBOX') {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
 
     // Card selection: only a fresh press may pick a card (hold / fever auto-fire never selects one).
     if (this.isSelectPending) {
-      if (source !== 'press') return { fired: false, grade: 'MISS' };
-      return this.shootCardSelect(aimX, aimY, nowMs);
+      if (source !== 'press') return { fired: false, grade: 'MISS', playerIndex };
+      return this.shootCardSelect(aimX, aimY, nowMs, playerIndex);
     }
 
-    const isFever = this.getPlayer(0).scoreManager.getState().isFeverActive;
-    const shot = this.getPlayer(0).weaponSystem.consumeShot(nowMs, isFever, source);
+    const player = this.getPlayer(playerIndex);
+    const isFever = player.scoreManager.getState().isFeverActive;
+    const shot = player.weaponSystem.consumeShot(nowMs, isFever, source);
     if (!shot.fired) {
-      return { fired: false, grade: 'MISS' };
+      return { fired: false, grade: 'MISS', playerIndex };
     }
 
-    const isPowerShot = this.isBuffActive('power_shot', nowMs);
-    const weaponState = this.getPlayer(0).weaponSystem.getState();
+    const isPowerShot = this.isBuffActive('power_shot', nowMs, playerIndex);
+    const weaponState = player.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
     const weaponLevel = weaponState.weaponLevel;
-    const levelSpec = this.getPlayer(0).weaponSystem.getCurrentLevelSpec();
+    const levelSpec = player.weaponSystem.getCurrentLevelSpec();
 
-    const bestHit = this.findBestTarget(aimX, aimY, nowMs, () => true);
+    const bestHit = this.findBestTarget(aimX, aimY, nowMs, () => true, playerIndex);
 
     if (bestHit) {
       const { target, result, index } = bestHit;
@@ -2026,7 +2080,7 @@ export class BeerCrusherEngine {
       if (target.isProjectile) {
         interceptedProjectile = true;
         this.activeTargets.splice(index, 1);
-        const interceptInfo = this.getPlayer(0).scoreManager.registerHit('PERFECT', target.killBonusScore, true);
+        const interceptInfo = player.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
         return {
           fired: true,
           grade: 'PERFECT',
@@ -2036,6 +2090,7 @@ export class BeerCrusherEngine {
           earnedScore: interceptInfo.earnedScore,
           weaponKind,
           weaponLevel,
+          playerIndex,
         };
       }
 
@@ -2043,9 +2098,9 @@ export class BeerCrusherEngine {
       if (target.isGoldenCan) {
         goldenCanKilled = true;
         this.activeTargets.splice(index, 1);
-        this.getPlayer(0).weaponSystem.addSkillStock(GAME_TUNING.goldenCan.skillStockGain);
-        this.getPlayer(0).scoreManager.addFeverGauge(GAME_TUNING.goldenCan.feverGain);
-        const hitInfo = this.getPlayer(0).scoreManager.registerHit('PERFECT', target.killBonusScore, true);
+        player.weaponSystem.addSkillStock(GAME_TUNING.goldenCan.skillStockGain);
+        player.scoreManager.addFeverGauge(GAME_TUNING.goldenCan.feverGain);
+        const hitInfo = player.scoreManager.registerHit('PERFECT', target.killBonusScore, true);
         return {
           fired: true,
           grade: 'PERFECT',
@@ -2055,6 +2110,7 @@ export class BeerCrusherEngine {
           earnedScore: hitInfo.earnedScore,
           weaponKind,
           weaponLevel,
+          playerIndex,
         };
       }
 
@@ -2069,13 +2125,14 @@ export class BeerCrusherEngine {
           shieldBlocked: true,
           weaponKind,
           weaponLevel,
+          playerIndex,
         };
       }
 
       // 5. Standard Monster Damage & Weapon Ballistics
       const powerMult = isPowerShot ? 2.0 : 1.0;
       const judgmentMult = result.damageMultiplier;
-      const weaponBonusMult = this.getPlayer(0).weaponSystem.getDamageBonusMultiplier();
+      const weaponBonusMult = player.weaponSystem.getDamageBonusMultiplier();
       // Held rapid fire is weaker than tapping; fever auto-fire is exempt.
       const holdMult =
         source === 'hold' && !isFever && this.modeRules.holdDamagePenalty
@@ -2126,10 +2183,10 @@ export class BeerCrusherEngine {
               if (rearIdx >= 0) {
                 this.activeTargets.splice(rearIdx, 1);
                 this.killedInWave += 1;
-                this.getPlayer(0).totalKills += 1;
-                this.getPlayer(0).scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
-                this.handleMonsterKilled(rear, nowMs);
-                this.emit({ type: 'targetKilled', target: rear, playerIndex: 0, nowMs });
+                player.totalKills += 1;
+                player.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
+                this.handleMonsterKilled(rear, nowMs, playerIndex);
+                this.emit({ type: 'targetKilled', target: rear, playerIndex, nowMs });
               }
             }
           });
@@ -2144,8 +2201,8 @@ export class BeerCrusherEngine {
       let activatedItem: ItemBuffKind | undefined;
 
       if (killed && target.isItem && target.itemKind) {
-        this.getPlayer(0).itemsCollected += 1;
-        this.activateItemBuff(target.itemKind, nowMs);
+        player.itemsCollected += 1;
+        this.activateItemBuff(target.itemKind, nowMs, playerIndex);
         activatedItem = target.itemKind;
       }
 
@@ -2153,7 +2210,7 @@ export class BeerCrusherEngine {
       // Boss body hits give no fever: minions (and their drops) are how the player fills the gauge
       const feverMultiplier = target.kind === 'boss' ? 0 : weaponKind === 'gatling' ? 0.33 : 1.0;
 
-      const hitInfo = this.getPlayer(0).scoreManager.registerHit(
+      const hitInfo = player.scoreManager.registerHit(
         result.grade as Exclude<JudgmentGrade, 'MISS'>,
         killed ? target.killBonusScore : 0,
         killed,
@@ -2167,11 +2224,11 @@ export class BeerCrusherEngine {
         }
         if (!target.isItem) {
           this.killedInWave += 1;
-          this.getPlayer(0).totalKills += 1;
+          player.totalKills += 1;
         }
 
-        this.handleMonsterKilled(target, nowMs);
-        this.emit({ type: 'targetKilled', target, playerIndex: 0, nowMs });
+        this.handleMonsterKilled(target, nowMs, playerIndex);
+        this.emit({ type: 'targetKilled', target, playerIndex, nowMs });
       }
 
       return {
@@ -2185,16 +2242,18 @@ export class BeerCrusherEngine {
         activatedItem,
         weaponKind,
         weaponLevel,
+        playerIndex,
       };
     }
 
     // Miss shot
-    this.getPlayer(0).scoreManager.applyMissPenalty();
+    player.scoreManager.applyMissPenalty();
     return {
       fired: true,
       grade: 'MISS',
       weaponKind,
       weaponLevel,
+      playerIndex,
     };
   }
 
@@ -2211,23 +2270,23 @@ export class BeerCrusherEngine {
   }
 
   /** 공격력 강화 카드까지 반영한 스킬 피해. 보스는 보스 피해 값을 쓴다. */
-  private getSkillDamage(target: ActiveTargetEntity, levelSpec: WeaponLevelSpec): number {
+  private getSkillDamage(target: ActiveTargetEntity, levelSpec: WeaponLevelSpec, ownerIndex: PlayerIndex = 0): number {
     const base = target.kind === 'boss' ? levelSpec.skillBossDamage : levelSpec.skillDamage;
-    return Number((base * this.getPlayer(0).weaponSystem.getDamageBonusMultiplier()).toFixed(3));
+    return Number((base * this.getPlayer(ownerIndex).weaponSystem.getDamageBonusMultiplier()).toFixed(3));
   }
 
   /** 스킬 피해를 주고, 죽었으면 점수와 웨이브 처리까지 한다. 죽었으면 true. */
-  private applySkillDamage(monster: ActiveTargetEntity, damage: number, nowMs: number): boolean {
+  private applySkillDamage(monster: ActiveTargetEntity, damage: number, nowMs: number, ownerIndex: PlayerIndex = 0): boolean {
     monster.hp = Number(Math.max(0, monster.hp - damage).toFixed(3));
     if (monster.hp > 0) return false;
     const idx = this.activeTargets.indexOf(monster);
     if (idx < 0) return false;
     this.activeTargets.splice(idx, 1);
     this.killedInWave += 1;
-    this.getPlayer(0).totalKills += 1;
-    this.getPlayer(0).scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
-    this.handleMonsterKilled(monster, nowMs);
-    this.emit({ type: 'targetKilled', target: monster, playerIndex: 0, nowMs });
+    this.getPlayer(ownerIndex).totalKills += 1;
+    this.getPlayer(ownerIndex).scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
+    this.handleMonsterKilled(monster, nowMs, ownerIndex);
+    this.emit({ type: 'targetKilled', target: monster, playerIndex: ownerIndex, nowMs });
     return true;
   }
 
@@ -2286,8 +2345,8 @@ export class BeerCrusherEngine {
       );
       for (const t of victims) {
         if (!this.activeTargets.includes(t)) continue;
-        const killed = this.applySkillDamage(t, blastDamage, nowMs);
-        this.pushSkillHitEvent({ source: 'blast', target: t, killed });
+        const killed = this.applySkillDamage(t, blastDamage, nowMs, blast.ownerIndex);
+        this.pushSkillHitEvent({ source: 'blast', target: t, killed, ownerIndex: blast.ownerIndex });
       }
     }
   }
@@ -2324,10 +2383,14 @@ export class BeerCrusherEngine {
     });
   }
 
-  private advanceBossClear(nowMs: number, dtSec: number): void {
-    const feverActive = this.getPlayer(0).scoreManager.getState().isFeverActive;
-    this.getPlayer(0).weaponSystem.update(nowMs, feverActive, dtSec * 1000);
-    this.getPlayer(0).scoreManager.updateFeverTimer(nowMs);
+  private advanceBossClear(nowMs: number, dtSec: number): boolean[] {
+    const reloadedByPlayer: boolean[] = [];
+    for (const p of this.players) {
+      const feverActive = p.scoreManager.getState().isFeverActive;
+      const { reloadedJustNow } = p.weaponSystem.update(nowMs, feverActive, dtSec * 1000);
+      reloadedByPlayer.push(reloadedJustNow);
+      p.scoreManager.updateFeverTimer(nowMs);
+    }
 
     if (nowMs >= this.bossClearNextCascadeMs) {
       this.bossClearNextCascadeMs += GAME_TUNING.boss.clear.cascadeGapMs;
@@ -2346,6 +2409,7 @@ export class BeerCrusherEngine {
       if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) this.declareVictory();
       // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
     }
+    return reloadedByPlayer;
   }
 
   /** 화면이 칼날·거품 타격 연출을 그리려고 가져간다. 돌려주고 비운다. */
@@ -2391,7 +2455,7 @@ export class BeerCrusherEngine {
         if (!this.activeTargets.includes(t)) continue;
         wave.hitTargetIds.add(t.id);
         const idsBefore = new Set(this.activeTargets.map((x) => x.id));
-        const killed = this.applySkillDamage(t, t.kind === 'boss' ? wave.bossDamage : wave.damage, nowMs);
+        const killed = this.applySkillDamage(t, t.kind === 'boss' ? wave.bossDamage : wave.damage, nowMs, wave.ownerIndex);
         // 분열로 새로 생긴 작은 병은 파도 뒤에서 태어난 것이므로 이 파도에 다시 맞지 않는다.
         for (const x of this.activeTargets) if (!idsBefore.has(x.id)) wave.hitTargetIds.add(x.id);
         if (!killed && t.kind !== 'boss') {
@@ -2399,7 +2463,7 @@ export class BeerCrusherEngine {
           t.slowUntilMs = nowMs + wave.slowMs;
           t.slowRatio = wave.slowRatio;
         }
-        this.pushSkillHitEvent({ source: 'foam', target: t, killed });
+        this.pushSkillHitEvent({ source: 'foam', target: t, killed, ownerIndex: wave.ownerIndex });
         if (this.bossClearUntilMs > 0) {
           this.activeSkillFoamWaves = [];
           return;
@@ -2434,17 +2498,17 @@ export class BeerCrusherEngine {
         if (!this.activeTargets.includes(t)) continue; // 보스 처치가 필드를 비울 수 있다
         if (t.isProjectile) {
           this.activeTargets.splice(this.activeTargets.indexOf(t), 1);
-          this.getPlayer(0).scoreManager.registerHit('PERFECT', t.killBonusScore, true);
-          this.pushSkillHitEvent({ source: 'blade', target: t, killed: true });
+          this.getPlayer(blade.ownerIndex).scoreManager.registerHit('PERFECT', t.killBonusScore, true);
+          this.pushSkillHitEvent({ source: 'blade', target: t, killed: true, ownerIndex: blade.ownerIndex });
           continue;
         }
         if (blade.hitsLeft <= 0) continue; // 남은 포탄은 계속 벤다
         blade.hitsLeft -= 1;
         blade.hitTargetIds.add(t.id);
         const idsBefore = new Set(this.activeTargets.map((x) => x.id));
-        const killed = this.applySkillDamage(t, t.kind === 'boss' ? blade.bossDamage : blade.damage, nowMs);
+        const killed = this.applySkillDamage(t, t.kind === 'boss' ? blade.bossDamage : blade.damage, nowMs, blade.ownerIndex);
         for (const x of this.activeTargets) if (!idsBefore.has(x.id)) blade.hitTargetIds.add(x.id);
-        this.pushSkillHitEvent({ source: 'blade', target: t, killed });
+        this.pushSkillHitEvent({ source: 'blade', target: t, killed, ownerIndex: blade.ownerIndex });
         if (this.bossClearUntilMs > 0) {
           this.activeSkillBlades = [];
           return;
@@ -2454,26 +2518,28 @@ export class BeerCrusherEngine {
     }
   }
 
-  public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
-    const result = this.runWeaponSkill(nowMs);
+  public triggerWeaponSkill(nowMs: number, playerIndex: PlayerIndex = 0): SkillExecuteResult {
+    const result = this.runWeaponSkill(nowMs, playerIndex);
     if (result.activated) {
-      this.emit({ type: 'skillUsed', playerIndex: 0, result, nowMs });
+      this.emit({ type: 'skillUsed', playerIndex, result, nowMs });
     }
     return result;
   }
 
-  private runWeaponSkill(nowMs: number): SkillExecuteResult {
-    const weaponState = this.getPlayer(0).weaponSystem.getState();
+  private runWeaponSkill(nowMs: number, playerIndex: PlayerIndex = 0): SkillExecuteResult {
+    const player = this.getPlayer(playerIndex);
+    const weaponState = player.weaponSystem.getState();
     const weaponKind = weaponState.weaponKind;
     const weaponLevel = weaponState.weaponLevel;
-    const levelSpec = this.getPlayer(0).weaponSystem.getCurrentLevelSpec();
+    const levelSpec = player.weaponSystem.getCurrentLevelSpec();
 
-    if (this.isSelectPending || this.bossClearUntilMs > 0 || !this.getPlayer(0).weaponSystem.consumeSkill(nowMs)) {
+    if (this.isSelectPending || this.bossClearUntilMs > 0 || !player.weaponSystem.consumeSkill(nowMs)) {
       return {
         activated: false,
         weaponKind,
         weaponLevel,
         affectedTargets: [],
+        playerIndex,
       };
     }
 
@@ -2492,7 +2558,7 @@ export class BeerCrusherEngine {
         }
         affectedTargets.push(monster);
 
-        this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec), nowMs);
+        this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec, playerIndex), nowMs, playerIndex);
         if (this.bossClearUntilMs > 0) break;
       }
       return {
@@ -2501,12 +2567,13 @@ export class BeerCrusherEngine {
         weaponLevel,
         affectedTargets,
         plungerCount: levelSpec.skillPlungerCount,
+        playerIndex,
       };
     } else if (weaponKind === 'revolver') {
       // 2. 오프너 참격: 부채꼴 칼날. 피해는 칼날이 닿는 순간 advanceSkillBlades가 준다.
       const range = this.getSkillFanHalfRangeRad();
       const count = levelSpec.skillBladeCount;
-      const bonus = this.getPlayer(0).weaponSystem.getDamageBonusMultiplier();
+      const bonus = player.weaponSystem.getDamageBonusMultiplier();
       for (let i = 0; i < count; i++) {
         this.skillEntityCounter += 1;
         this.activeSkillBlades.push({
@@ -2518,14 +2585,15 @@ export class BeerCrusherEngine {
           hitTargetIds: new Set(),
           damage: Number((levelSpec.skillDamage * bonus).toFixed(3)),
           bossDamage: Number((levelSpec.skillBossDamage * bonus).toFixed(3)),
+          ownerIndex: playerIndex,
         });
       }
-      return { activated: true, weaponKind, weaponLevel, affectedTargets, bladeCount: count };
+      return { activated: true, weaponKind, weaponLevel, affectedTargets, bladeCount: count, playerIndex };
     } else {
       // 3. 거품 해일: 필드 전체를 쓸고 가는 파도. 닿는 순간 advanceSkillFoam이 피해·둔화·밀기를 준다.
       this.skillEntityCounter += 1;
       const foam = GAME_TUNING.skills.foam;
-      const bonus = this.getPlayer(0).weaponSystem.getDamageBonusMultiplier();
+      const bonus = player.weaponSystem.getDamageBonusMultiplier();
       this.activeSkillFoamWaves.push({
         id: `foam_${this.skillEntityCounter}`,
         radiusM: foam.startRadiusM,
@@ -2537,8 +2605,9 @@ export class BeerCrusherEngine {
         slowRatio: levelSpec.skillSlowRatio,
         slowMs: levelSpec.skillSlowMs,
         count: levelSpec.skillFoamCount,
+        ownerIndex: playerIndex,
       });
-      return { activated: true, weaponKind, weaponLevel, affectedTargets, foamCount: levelSpec.skillFoamCount };
+      return { activated: true, weaponKind, weaponLevel, affectedTargets, foamCount: levelSpec.skillFoamCount, playerIndex };
     }
   }
 }

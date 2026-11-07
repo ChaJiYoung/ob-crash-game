@@ -79,7 +79,7 @@ export function playTargetBurst(
 const SKILL_HIT_SOUND_GAP_MS = 70;
 
 /** 관통으로 맞은 몬스터(주 대상 제외). */
-export function getPiercedTargets(result: EngineShootResult): ActiveTargetEntity[] {
+export function getPiercedTargets(result: Partial<EngineShootResult>): ActiveTargetEntity[] {
   return (result.hitTargets ?? []).filter((t) => t !== result.target);
 }
 
@@ -649,7 +649,7 @@ export const GameCanvas3D = React.memo(
           } else {
             // Face player yaw
             mesh.rotation.y = Math.atan2(-target.x, -target.z);
-            const isIceFreeze = engine.isBuffActive('ice_freeze', time);
+            const isIceFreeze = engine.isTeamBuffActive('ice_freeze', time);
             const isWideScope = engine.isBuffActive('wide_scope', time);
             const isStunned = Boolean(target.stunUntilMs && target.stunUntilMs > time);
             const isSlowed = Boolean(target.slowUntilMs && target.slowUntilMs > time);

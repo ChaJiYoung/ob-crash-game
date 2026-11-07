@@ -94,7 +94,7 @@ export class PlayerActionProcessor implements InputSink {
 
         if ((phase === 'PLAYING' || phase === 'TUTORIAL' || phase === 'SANDBOX') && !this.ctx.isPauseMenuOpen()) {
           // 새로 누른 한 발 (press)
-          const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'press');
+          const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'press', this.ctx.playerIndex);
           this.ctx.onShot(res);
           if (res.selectedWeapon || res.selectedCard) {
             this.skillLockUntilMs = now + 300;
@@ -104,7 +104,7 @@ export class PlayerActionProcessor implements InputSink {
           this.stopHoldFire();
           this.holdFireInterval = this.setIntervalFn(() => {
             const t = this.getNow();
-            const holdRes = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, t, 'hold');
+            const holdRes = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, t, 'hold', this.ctx.playerIndex);
             if (holdRes.fired) {
               this.ctx.onShot(holdRes);
             }
@@ -126,7 +126,7 @@ export class PlayerActionProcessor implements InputSink {
         if (now < this.ctx.getSkillGraceUntilMs()) return;
         if (now < this.skillLockUntilMs) return;
 
-        const res = this.ctx.engine.triggerWeaponSkill(now);
+        const res = this.ctx.engine.triggerWeaponSkill(now, this.ctx.playerIndex);
         if (res.activated) {
           this.ctx.onSkill(res);
         }
@@ -135,7 +135,7 @@ export class PlayerActionProcessor implements InputSink {
       case 'fever': {
         if (this.ctx.isPauseMenuOpen()) return;
         const now = this.getNow();
-        const activated = this.ctx.engine.activateFever(now);
+        const activated = this.ctx.engine.activateFever(now, this.ctx.playerIndex);
         if (activated) {
           this.ctx.onFeverStarted(this.ctx.playerIndex);
         }
@@ -157,7 +157,7 @@ export class PlayerActionProcessor implements InputSink {
       if (!this.feverAutoFireInterval) {
         this.feverAutoFireInterval = this.setIntervalFn(() => {
           const now = this.getNow();
-          const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'fever');
+          const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'fever', this.ctx.playerIndex);
           if (res.fired) {
             this.ctx.onShot(res);
           }

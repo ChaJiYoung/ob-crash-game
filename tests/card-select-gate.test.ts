@@ -181,7 +181,7 @@ describe('card selection input gate and freeze (gameplay-polish P02-T03)', () =>
   it("only forwards 'hold' / 'fever' from the action processor auto-fire loops (source check)", async () => {
     const fs = await import('node:fs');
     const processor = fs.readFileSync('src/pc/input/PlayerActionProcessor.ts', 'utf8');
-    expect(processor).toContain("'hold')");
-    expect(processor).toContain("'fever')");
+    expect(processor).toContain("'hold'");
+    expect(processor).toContain("'fever'");
   });
 });

@@ -1,6 +1,6 @@
 # Task: T01 사격·스킬·피버·처치 점수를 playerIndex로 라우팅
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진의 모든 입력 진입점이 `playerIndex`(기본 0)를 받고, 그 플레이어의 무기·피버·버프로 판정하며, 처치·명중 점수·사격 통계·처치 수가 "쏜 사람"에게 쌓이게 한다. 지연 처치(리볼버 관통, 칼날, 거품, 한맥 폭발)도 원래 쏜 사람에게 귀속된다. 2인 판에서 점수·콤보가 개인별로 집계되는 핵심(D02, D03)이다.
@@ -85,8 +85,8 @@
 - `activateFever(now, 1)`은 2P 게이지만 소모.
 
 ## Acceptance Criteria
-- [ ] `grep -n "this\.scoreManager\|this\.weaponSystem\|this\.cardStacks\|this\.luckyDropStacks" src/pc/engine/BeerCrusherEngine.ts` 결과가 위임 getter 정의와 튜토리얼·샌드박스 전용 코드뿐이다.
-- [ ] 기존 테스트 전부 통과, 새 테스트 통과.
+- [x] `grep -n "this\.scoreManager\|this\.weaponSystem\|this\.cardStacks\|this\.luckyDropStacks" src/pc/engine/BeerCrusherEngine.ts` 결과가 위임 getter 정의와 튜토리얼·샌드박스 전용 코드뿐이다.
+- [x] 기존 테스트 전부 통과, 새 테스트 통과.
 
 ## Validation
 - `npx vitest run tests/coop-player-routing.test.ts` — 통과
@@ -108,6 +108,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
