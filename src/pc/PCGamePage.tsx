@@ -16,6 +16,7 @@ import { ResultRankingModal, CoopResultInfo } from './components/ResultRankingMo
 import { SelectRoundOverlay } from './components/SelectRoundOverlay';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
+import { PlayerPanel } from './components/PlayerPanel';
 import { TutorialDirector } from './tutorial/TutorialDirector';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import {
@@ -1478,12 +1479,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             targetsRemaining={engine.activeTargets.length}
             isFeverReady={hudState.players[0]?.isFeverReady ?? false}
             isFeverActive={hudState.players[0]?.isFeverActive ?? false}
-            ammo={hudState.players[0]?.ammo ?? 0}
-            maxAmmo={hudState.players[0]?.maxAmmo ?? 0}
-            isReloading={hudState.players[0]?.isReloading ?? false}
+            inputKind={presentations[0]?.inputKind ?? 'mouse'}
             onStartRealGame={() => pressScreenButton('start')}
             onExitToLobby={handleExitTutorial}
           />
+          {hudState.players.map((s, i) => (
+            <PlayerPanel key={i} snapshot={s} presentation={presentations[i]} />
+          ))}
           <CrosshairOverlay
             ref={crosshairRefs.current[0]}
             aimX={latestAimRef.current.aimX}

@@ -76,27 +76,45 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { TutorialGuideOverlay } from '../src/pc/components/TutorialGuideOverlay';
 
 describe('tutorial guide overlay for the skill and fever steps', () => {
-  const render = (step: 1 | 2 | 3 | 4 | 'COMPLETED') =>
+  const render = (
+    step: 1 | 2 | 3 | 4 | 'COMPLETED',
+    inputKind: 'mouse' | 'mobile' = 'mouse'
+  ) =>
     renderToStaticMarkup(
       React.createElement(TutorialGuideOverlay, {
         step,
         targetsRemaining: 3,
         isFeverActive: false,
-        ammo: 5,
-        maxAmmo: 5,
-        isReloading: false,
+        isFeverReady: false,
+        inputKind,
         onExitToLobby: () => {},
         onStartRealGame: () => {},
-      } as any)
+      })
     );
 
   it('step 3 explains the skill and step 4 explains the fever', () => {
-    const skill = render(3);
+    const skill = render(3, 'mouse');
     expect(skill).toContain('STEP 3');
     expect(skill).toContain('우클릭');
-    const fever = render(4);
+    expect(skill).not.toContain('위로 휙!');
+    const fever = render(4, 'mouse');
     expect(fever).toContain('STEP 4');
     expect(fever).toContain('더블클릭');
+  });
+
+  it('step 3 shows phone snap guide when inputKind is mobile', () => {
+    const skill = render(3, 'mobile');
+    expect(skill).toContain('STEP 3');
+    expect(skill).toContain('위로 휙!');
+    expect(skill).not.toContain('우클릭');
+  });
+
+  it('does not render ammo counter in tutorial guide overlay', () => {
+    for (const step of [1, 2, 3, 4, 'COMPLETED'] as const) {
+      const html = render(step);
+      expect(html).not.toContain('탄창:');
+      expect(html).not.toContain('현재 탄창:');
+    }
   });
 
   // T05: 폰 스냅 스킬 및 튜토리얼 스킬 허용 처리는 PhoneAdapter와 PlayerActionProcessor가 담당

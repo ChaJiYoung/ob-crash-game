@@ -7,9 +7,7 @@ export interface TutorialGuideOverlayProps {
   targetsRemaining: number;
   isFeverReady: boolean;
   isFeverActive: boolean;
-  ammo: number;
-  maxAmmo: number;
-  isReloading: boolean;
+  inputKind?: 'mobile' | 'mouse';
   onStartRealGame: () => void;
   onExitToLobby: () => void;
 }
@@ -19,9 +17,7 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
   targetsRemaining,
   isFeverReady,
   isFeverActive,
-  ammo,
-  maxAmmo,
-  isReloading,
+  inputKind = 'mouse',
   onStartRealGame,
   onExitToLobby,
 }) => {
@@ -75,7 +71,10 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
             <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>
               {step === 1 && '🎯 STEP 1. 정밀 조준 배율(2.0x/1.0x/0.5x) & 원샷'}
               {step === 2 && '💥 STEP 2. 홀드 자동 연발(투두두두) & 100% 체력 게이지'}
-              {step === 3 && '⚡ STEP 3. 액티브 스킬 (우클릭 / 폰 휙!)'}
+              {step === 3 &&
+                (inputKind === 'mouse'
+                  ? '⚡ STEP 3. 액티브 스킬 (우클릭)'
+                  : '⚡ STEP 3. 액티브 스킬 (위로 휙!)')}
               {step === 4 && '🔥 STEP 4. 피버 모드 & 무제한 탄창'}
               {step === 'COMPLETED' && '🎉 훈련 수료 완료!'}
             </span>
@@ -96,18 +95,18 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               <>
                 다가오는 <strong>카스 병맥주 (4HP)</strong>를 향해 화면을 <strong>꾸욱 누르고(홀드) 있거나</strong> PC 마우스 좌클릭을 유지하여 <strong>'투두두두' 자동 연발</strong>로 격파하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 100% 슬림 연속 체력 게이지가 깎이며, 탄약 소진 시 자동으로 재장전됩니다. (현재 탄창:{' '}
-                  <span style={{ color: '#38bdf8', fontWeight: 800 }}>
-                    {isReloading ? '⚡ 재장전 중...' : `${ammo}/${maxAmmo}`}
-                  </span>
-                  )
+                  💡 100% 슬림 연속 체력 게이지가 깎이며, 탄약 소진 시 자동으로 재장전됩니다.
                 </div>
               </>
             )}
 
             {step === 3 && (
               <>
-                정지한 몬스터 편대 앞에서 <strong style={{ color: '#fbbf24' }}>마우스 우클릭</strong> 또는 폰을 위로 <strong style={{ color: '#fbbf24' }}>'휙!'</strong> 젖혀 무기 스킬을 발동하세요!
+                정지한 몬스터 편대 앞에서 {inputKind === 'mouse' ? (
+                  <strong style={{ color: '#fbbf24' }}>마우스 우클릭</strong>
+                ) : (
+                  <>폰을 위로 <strong style={{ color: '#fbbf24' }}>'휙!'</strong> 젖혀</>
+                )} 무기 스킬을 발동하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   💡 샷건 스킬은 화면의 모든 몬스터를 기절시키고 피해를 줍니다. 한 번만 쓰면 통과!
                 </div>
@@ -133,7 +132,11 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               <>
                 모든 건슈팅 조작법(단발 탭 & 홀드 자동 연발, 액티브 스킬, 더블탭 피버 버스트)을 완벽히 마스터하셨습니다!
                 <div style={{ fontSize: '13px', color: '#10b981', marginTop: '4px' }}>
-                  💡 <strong>전용 액티브 스킬 팁:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히면 강력한 필살기가 발동됩니다! (PC는 우클릭)
+                  💡 <strong>전용 액티브 스킬 팁:</strong> {inputKind === 'mouse' ? (
+                    <strong>마우스 우클릭</strong>
+                  ) : (
+                    <>총구를 위로 <strong>'휙!(Snap)'</strong> 젖히면</>
+                  )} 강력한 필살기가 발동됩니다!
                 </div>
               </>
             )}
@@ -245,47 +248,6 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
           </div>
         </div>
       )}
-
-      {/* Bottom Bar: Ammo & Fever Status */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div
-          style={{
-            background: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: 700,
-            color: '#38bdf8',
-          }}
-        >
-          {isReloading
-            ? '⚡ 자동 재장전 중...'
-            : isFeverActive
-            ? '🔥 FEVER UNLIMITED AMMO'
-            : `탄창: ${ammo} / ${maxAmmo}`}
-        </div>
-
-        <div
-          style={{
-            background: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(8px)',
-            border: isFeverReady || isFeverActive ? '1px solid #f59e0b' : '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: '12px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: 800,
-            color: isFeverActive ? '#ef4444' : isFeverReady ? '#fbbf24' : '#94a3b8',
-          }}
-        >
-          {isFeverActive
-            ? '🔥 FEVER ACTIVE (무한 탄창 & 명중 점수 1.5배)'
-            : isFeverReady
-            ? '🔥 FEVER READY! [더블클릭 / 모바일 더블탭]'
-            : 'FEVER GAUGE 준비 중'}
-        </div>
-      </div>
     </div>
   );
 };
