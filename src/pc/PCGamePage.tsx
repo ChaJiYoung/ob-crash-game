@@ -222,6 +222,49 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [hoveredResultAction, setHoveredResultAction] = useState<'restart' | 'lobby' | null>(null);
   const hoveredResultActionRef = useRef<'restart' | 'lobby' | null>(null);
 
+  const processorsRef = useRef<PlayerActionProcessor[]>([]);
+  const slotIndexMapRef = useRef<Partial<Record<PlayerSlot, PlayerIndex>>>({});
+  const processorFor = (index: PlayerIndex | undefined) => (index === undefined ? null : processorsRef.current[index] ?? null);
+
+  const phoneAdaptersRef = useRef<Record<PlayerSlot, PhoneAdapter>>({
+    1: new PhoneAdapter({
+      slot: 1,
+      sink: () => processorFor(slotIndexMapRef.current[1]),
+      send: (msg) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify(msg));
+        }
+      },
+      roomId: () => roomIdRef.current,
+      getTuning: () => tuningConfigRef.current,
+    }),
+    2: new PhoneAdapter({
+      slot: 2,
+      sink: () => processorFor(slotIndexMapRef.current[2]),
+      send: (msg) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify(msg));
+        }
+      },
+      roomId: () => roomIdRef.current,
+      getTuning: () => tuningConfigRef.current,
+    }),
+  });
+
+  const mouseAdapterRef = useRef<MouseAdapter | null>(null);
+  if (!mouseAdapterRef.current) {
+    mouseAdapterRef.current = new MouseAdapter(
+      () => processorFor(getMouseBinding(slotsRef.current, slotIndexMapRef.current, engine.players.length) ?? undefined),
+      WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS
+    );
+  }
+
+  const handleStartGameRef = useRef<(opts?: { sameRoster?: boolean }) => void>(() => {});
+  const startCountdownAndGameRef = useRef<() => void>(() => {});
+  const handleReturnToLobbyRef = useRef<() => void>(() => {});
+  const startResumeCountdownRef = useRef<() => void>(() => {});
+  const handleContinueAloneRef = useRef<() => void>(() => {});
+
   const presentations = useMemo(
     () =>
       getPlayerPresentation({
@@ -339,9 +382,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     crosshairRefs.current[result.playerIndex]?.current?.kick();
   }, [engine, soundSynth]);
 
-  const handleStartGameRef = useRef<(opts?: { sameRoster?: boolean }) => void>(() => {});
-  const handleReturnToLobbyRef = useRef<() => void>(() => {});
-
   const updateResultButtonHover = useCallback(() => {
     let hovered: 'restart' | 'lobby' | null = null;
     for (const proc of processorsRef.current) {
@@ -385,43 +425,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       handleReturnToLobbyRef.current();
     }
   }, [tryStartFromLobby]);
-
-  const processorsRef = useRef<PlayerActionProcessor[]>([]);
-  const slotIndexMapRef = useRef<Partial<Record<PlayerSlot, PlayerIndex>>>({});
-  const processorFor = (index: PlayerIndex | undefined) => (index === undefined ? null : processorsRef.current[index] ?? null);
-
-  const phoneAdaptersRef = useRef<Record<PlayerSlot, PhoneAdapter>>({
-    1: new PhoneAdapter({
-      slot: 1,
-      sink: () => processorFor(slotIndexMapRef.current[1]),
-      send: (msg) => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify(msg));
-        }
-      },
-      roomId: () => roomIdRef.current,
-      getTuning: () => tuningConfigRef.current,
-    }),
-    2: new PhoneAdapter({
-      slot: 2,
-      sink: () => processorFor(slotIndexMapRef.current[2]),
-      send: (msg) => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify(msg));
-        }
-      },
-      roomId: () => roomIdRef.current,
-      getTuning: () => tuningConfigRef.current,
-    }),
-  });
-
-  const mouseAdapterRef = useRef<MouseAdapter | null>(null);
-  if (!mouseAdapterRef.current) {
-    mouseAdapterRef.current = new MouseAdapter(
-      () => processorFor(getMouseBinding(slotsRef.current, slotIndexMapRef.current, engine.players.length) ?? undefined),
-      WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS
-    );
-  }
 
   const syncProcessors = useCallback(() => {
     const isLobby = gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING';
@@ -928,7 +931,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }, 1000);
   }, [handleStartGame, roomId, soundSynth]);
 
-  const startCountdownAndGameRef = useRef(startCountdownAndGame);
   startCountdownAndGameRef.current = startCountdownAndGame;
 
   const startResumeCountdown = useCallback(() => {
@@ -972,7 +974,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }, 1000);
   }, [engine, roomId, soundSynth]);
 
-  const startResumeCountdownRef = useRef(startResumeCountdown);
   startResumeCountdownRef.current = startResumeCountdown;
 
   const handleContinueAlone = useCallback(() => {
@@ -990,7 +991,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
   }, [engine, startResumeCountdown]);
 
-  const handleContinueAloneRef = useRef(handleContinueAlone);
   handleContinueAloneRef.current = handleContinueAlone;
 
   useEffect(() => {
