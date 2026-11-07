@@ -1,6 +1,6 @@
 # Task: T03 엔진 사건 알림과 TutorialDirector
 
-## Status: pending
+## Status: done
 
 ## Goal
 튜토리얼 단계 진행 규칙을 엔진 밖 `TutorialDirector` 하나로 옮긴다(D31-2). 엔진은 일어난 일(처치, 돌파, 스킬 사용, 피버 시작·종료)을 사건으로 알리기만 하고, 디렉터가 그 사건을 듣고 단계를 넘기고 단계별 표적을 배치한다. 엔진의 사격·처치·이동 코드에서 튜토리얼 코드가 사라진다. 튜토리얼 진행 순서와 화면 문구는 바뀌지 않는다.
@@ -84,8 +84,8 @@
 - 엔진 파일에 `tutorialStep` 문자열 0건.
 
 ## Acceptance Criteria
-- [ ] 튜토리얼 진행이 지금과 같다.
-- [ ] 엔진의 사격·처치·이동 코드에 튜토리얼 코드가 없다.
+- [x] 튜토리얼 진행이 지금과 같다.
+- [x] 엔진의 사격·처치·이동 코드에 튜토리얼 코드가 없다.
 
 ## Validation
 - `npx vitest run tests/tutorial-director.test.ts tests/tutorial-and-guide.test.ts tests/tutorial-skill-step.test.ts` — 통과
@@ -109,6 +109,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

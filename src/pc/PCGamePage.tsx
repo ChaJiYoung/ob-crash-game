@@ -1,4 +1,5 @@
 import { GAME_TUNING } from '../shared/gameTuning';
+import { TutorialStep } from '../shared/types';
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { BeerCrusherEngine, EngineShootResult } from './engine/BeerCrusherEngine';
 import { GameCanvas3D, GameCanvas3DHandle, RenderPerformanceMetrics } from './components/GameCanvas3D';
@@ -14,6 +15,7 @@ import { loadSavedRoomId, saveRoomId, clearSavedRoomId } from './roomMemory';
 import { ResultRankingModal } from './components/ResultRankingModal';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
+import { TutorialDirector } from './tutorial/TutorialDirector';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import {
   MobileSensorLabModal,
@@ -134,6 +136,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [isGoldenCanAlertActive, setIsGoldenCanAlertActive] = useState<boolean>(false);
   const lastGoldenCanActiveRef = useRef<boolean>(false);
   const lastBossWarningRef = useRef<boolean>(false);
+  const tutorialDirectorRef = useRef<TutorialDirector | null>(null);
+  const [tutorialStep, setTutorialStep] = useState<TutorialStep>(1);
 
   // Snapshot for HUD: only replaced when a displayed value changes.
   const [hudState, setHudState] = useState<HudSnapshot>(() => buildHudSnapshot(engine, performance.now()));
@@ -481,9 +485,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               const activated = engine.activateFever(performance.now());
               if (activated) {
                 soundSynth.playFeverStart();
-                if (engine.isTutorialMode && engine.tutorialStep === 4) {
-                  engine.spawnTutorialFeverEnemies();
-                }
               }
             }
 
@@ -545,7 +546,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       const weaponState = engine.weaponSystem.getState();
       const now = performance.now();
 
-      const nextHud = buildHudSnapshot(engine, now);
+      const nextHud = buildHudSnapshot(engine, now, tutorialDirectorRef.current?.step ?? tutorialStep);
       setHudState((prev) => (isHudSnapshotEqual(prev, nextHud) ? prev : nextHud));
 
       // Golden Can Spawn alert check
@@ -874,6 +875,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const handleStartTutorial = useCallback(() => {
     setIsGuideOpen(false);
     engine.startTutorialMode();
+    const director = new TutorialDirector(engine, (step) => setTutorialStep(step));
+    tutorialDirectorRef.current = director;
+    director.start(performance.now());
+    setTutorialStep(director.step);
     setGamePhase('TUTORIAL');
   }, [engine]);
 
@@ -881,6 +886,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     if (rapidFireTimerRef.current) {
       clearInterval(rapidFireTimerRef.current);
       rapidFireTimerRef.current = null;
+    }
+    if (tutorialDirectorRef.current) {
+      tutorialDirectorRef.current.stop();
+      tutorialDirectorRef.current = null;
     }
     engine.exitTutorialMode();
     setGamePhase('PAIRING');
@@ -1171,7 +1180,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       {gamePhase === 'TUTORIAL' && (
         <>
           <TutorialGuideOverlay
-            step={engine.tutorialStep}
+            step={tutorialStep}
             targetsRemaining={engine.activeTargets.length}
             isFeverReady={hudState.isFeverReady}
             isFeverActive={hudState.isFeverActive}

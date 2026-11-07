@@ -61,7 +61,11 @@ export const WAVE_CLEAR_BANNER_MS = 2500;
 
 export const roundTo100Ms = (ms: number): number => Math.round(ms / 100) * 100;
 
-export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudSnapshot {
+export function buildHudSnapshot(
+  engine: BeerCrusherEngine,
+  nowMs: number,
+  tutorialStep: TutorialStep = 1
+): HudSnapshot {
   const feverState = engine.scoreManager.getState();
   const weaponState = engine.weaponSystem.getState();
   const passiveCards = engine.getPassiveCardStacks();
@@ -97,7 +101,7 @@ export function buildHudSnapshot(engine: BeerCrusherEngine, nowMs: number): HudS
     isWeaponSelectPending: engine.isWeaponSelectPending,
     isRewardCardPending: engine.isRewardCardPending,
     isPaused: engine.isPaused,
-    tutorialStep: engine.tutorialStep,
+    tutorialStep,
     targetsCount: engine.activeTargets.length,
     maxCombo: feverState.maxCombo,
     bossHpKey: boss ? `${boss.id}:${Math.ceil(boss.hp * 10) / 10}/${boss.maxHp}` : '',

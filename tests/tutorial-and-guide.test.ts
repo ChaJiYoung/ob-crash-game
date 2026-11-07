@@ -1,15 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import { shouldRenderMonsterHpBar } from '../src/pc/components/ArcadeOverlayHUD';
+import { TutorialDirector } from '../src/pc/tutorial/TutorialDirector';
 
 describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should initialize tutorial mode with 3 static 1HP can targets for Step 1', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
+    const director = new TutorialDirector(engine);
+    director.start(1000);
 
     expect(engine.gamePhase).toBe('TUTORIAL');
     expect(engine.isTutorialMode).toBe(true);
-    expect(engine.tutorialStep).toBe(1);
+    expect(director.step).toBe(1);
     expect(engine.lives).toBe(5);
     expect(engine.activeTargets.length).toBe(3);
 
@@ -24,6 +27,8 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should handle accuracy multipliers and HP bar visibility in Step 1 shooting', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
+    const director = new TutorialDirector(engine);
+    director.start(1000);
     const t0 = engine.activeTargets[0];
     expect(t0.hp).toBe(1);
     expect(shouldRenderMonsterHpBar(t0.maxHp, false, false, t0.hp)).toBe(false);
@@ -41,12 +46,14 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should advance from Step 1 to Step 2 when all 3 targets are destroyed', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
+    const director = new TutorialDirector(engine);
+    director.start(1000);
     expect(engine.activeTargets.length).toBe(3);
 
     // Manually advance to Step 2
-    engine.advanceTutorialStep(2);
+    director.advanceStep(2);
 
-    expect(engine.tutorialStep).toBe(2);
+    expect(director.step).toBe(2);
     expect(engine.activeTargets.length).toBe(1);
     const bottleTarget = engine.activeTargets[0];
     expect(bottleTarget.kind).toBe('bottle');
@@ -57,17 +64,19 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should advance from Step 2 to the fever Step 4 and charge fever to 100%', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
-    engine.advanceTutorialStep(2);
+    const director = new TutorialDirector(engine);
+    director.start(1000);
+    director.advanceStep(2);
 
-    expect(engine.tutorialStep).toBe(2);
+    expect(director.step).toBe(2);
     expect(engine.scoreManager.getState().isFeverReady).toBe(false);
 
     // Step 3 is the skill step; the fever gauge is only charged at Step 4
-    engine.advanceTutorialStep(3);
+    director.advanceStep(3);
     expect(engine.scoreManager.getState().feverGauge).toBe(0);
-    engine.advanceTutorialStep(4);
+    director.advanceStep(4);
 
-    expect(engine.tutorialStep).toBe(4);
+    expect(director.step).toBe(4);
     const feverState = engine.scoreManager.getState();
     expect(feverState.feverGauge).toBe(100);
     expect(feverState.isFeverReady).toBe(true);
@@ -76,22 +85,23 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
   it('should activate fever and spawn Step 3 enemies, then complete tutorial on clear', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
-    engine.advanceTutorialStep(4);
+    const director = new TutorialDirector(engine);
+    director.start(1000);
+    director.advanceStep(4);
 
     const now = 2000;
-    const activated = engine.scoreManager.activateFever(now);
+    const activated = engine.activateFever(now);
     expect(activated).toBe(true);
     expect(engine.scoreManager.getState().isFeverActive).toBe(true);
 
-    engine.spawnTutorialFeverEnemies();
     expect(engine.activeTargets.length).toBe(6);
 
     // Clear all Step 3 enemies
     engine.activeTargets = [];
-    engine.advanceTutorialStep('COMPLETED');
+    director.advanceStep('COMPLETED');
 
-    expect(engine.tutorialStep).toBe('COMPLETED');
-    expect(engine.tutorialCompleted).toBe(true);
+    expect(director.step).toBe('COMPLETED');
+    expect(director.completed).toBe(true);
   });
 
   it('should maintain invulnerability (no life loss) when target breaches defense in tutorial mode', () => {

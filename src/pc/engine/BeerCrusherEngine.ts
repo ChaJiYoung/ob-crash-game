@@ -26,6 +26,7 @@ import type { ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
 import { PlayerCombatState, PlayerIndex, CardStackKind, ShotGradeCounts } from './PlayerCombatState';
+import { EngineEvent, EngineEventListener } from './engineEvents';
 import { getTargetBaseY } from '../three/TargetModels3D';
 
 export interface ActiveTargetEntity {
@@ -214,8 +215,39 @@ export class BeerCrusherEngine {
   public get modeRules(): ModeRules { return GAME_TUNING.modeRules[this.mode]; }
   public get isTutorialMode(): boolean { return this.mode === 'tutorial'; }
   public get isSandboxMode(): boolean { return this.mode === 'sandbox'; }
-  public tutorialStep: TutorialStep = 1;
-  public tutorialCompleted = false;
+
+  private listeners: EngineEventListener[] = [];
+  private prevFeverActive: boolean[] = [false];
+
+  public addEventListener(fn: EngineEventListener): () => void {
+    this.listeners.push(fn);
+    return () => {
+      const idx = this.listeners.indexOf(fn);
+      if (idx >= 0) this.listeners.splice(idx, 1);
+    };
+  }
+
+  private emit(e: EngineEvent): void {
+    for (const fn of [...this.listeners]) {
+      fn(e);
+    }
+  }
+
+  public placeTargets(list: Omit<ActiveTargetEntity, 'id' | 'breached'>[], idPrefix: string): ActiveTargetEntity[] {
+    this.activeTargets = [];
+    const created: ActiveTargetEntity[] = [];
+    for (const item of list) {
+      this.targetCounter += 1;
+      const entity: ActiveTargetEntity = {
+        ...item,
+        id: `${idPrefix}_${this.targetCounter}`,
+        breached: false,
+      };
+      this.activeTargets.push(entity);
+      created.push(entity);
+    }
+    return created;
+  }
   public infiniteAmmo = false;
 
   public isPaused = false;
@@ -436,6 +468,7 @@ export class BeerCrusherEngine {
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
+    this.prevFeverActive = [false];
 
     if (options?.withWeaponSelect) {
       this.spawnWeaponSelectTargets();
@@ -698,127 +731,17 @@ export class BeerCrusherEngine {
     this.bossEncounterStartMs = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
-    this.tutorialStep = 1;
-    this.tutorialCompleted = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
     this.activeTargets = [];
     this.scoreManager.reset();
     this.weaponSystem.reset();
     for (const p of this.players) p.resetCardStacks();
     this.activeBuffUntilMs.clear();
-
-    const angles = [-0.22, 0.0, 0.22];
-    angles.forEach((theta, idx) => {
-      this.targetCounter += 1;
-      const radius = 10.0;
-      this.activeTargets.push({
-        id: `tutorial_can_${idx + 1}`,
-        kind: 'pilgood',
-        hp: 1,
-        maxHp: 1,
-        radiusM: radius,
-        thetaRad: theta,
-        x: Math.sin(theta) * radius,
-        z: -Math.cos(theta) * radius,
-        speedMps: 0,
-        hitRadiusM: 1.1,
-        killBonusScore: 50,
-        breached: false,
-      });
-    });
-  }
-
-  public advanceTutorialStep(nextStep: TutorialStep): void {
-    this.tutorialStep = nextStep;
-    if (nextStep === 2) {
-      this.targetCounter += 1;
-      const bottleSpec = TARGET_SPECS.bottle;
-      this.activeTargets = [
-        {
-          id: `tutorial_bottle_${this.targetCounter}`,
-          kind: 'bottle',
-          hp: bottleSpec.maxHp,
-          maxHp: bottleSpec.maxHp,
-          radiusM: 14.0,
-          thetaRad: 0,
-          x: 0,
-          z: -14.0,
-          speedMps: 1.4,
-          hitRadiusM: bottleSpec.hitRadiusM,
-          killBonusScore: bottleSpec.killBonusScore,
-          breached: false,
-        },
-      ];
-    } else if (nextStep === 3) {
-      this.weaponSystem.refillSkillInstant();
-      this.spawnTutorialSkillTargets();
-    } else if (nextStep === 4) {
-      this.scoreManager.forceSetFeverGauge(100);
-      this.activeTargets = [];
-    } else if (nextStep === 'COMPLETED') {
-      this.tutorialCompleted = true;
-      this.activeTargets = [];
-    }
-  }
-
-  /** Tutorial step 3: stationary targets so the skill's area effect is easy to see. */
-  public spawnTutorialSkillTargets(): void {
-    this.activeTargets = [];
-    const kinds: TargetKind[] = ['pilgood', 'caslight', 'pilgood', 'caslight', 'pilgood'];
-    const angles = [-0.3, -0.15, 0, 0.15, 0.3];
-
-    kinds.forEach((kind, i) => {
-      this.targetCounter += 1;
-      const spec = TARGET_SPECS[kind];
-      const radius = 12.0 + (i % 2);
-      const theta = angles[i];
-      this.activeTargets.push({
-        id: `tutorial_skill_${this.targetCounter}_${kind}`,
-        kind,
-        hp: spec.maxHp,
-        maxHp: spec.maxHp,
-        radiusM: radius,
-        thetaRad: theta,
-        x: Math.sin(theta) * radius,
-        z: -Math.cos(theta) * radius,
-        speedMps: 0,
-        hitRadiusM: spec.hitRadiusM,
-        killBonusScore: spec.killBonusScore,
-        breached: false,
-      });
-    });
-  }
-
-  public spawnTutorialFeverEnemies(): void {
-    this.activeTargets = [];
-    const kinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'caslight'];
-    const angles = [-0.35, -0.20, -0.07, 0.07, 0.20, 0.35];
-
-    kinds.forEach((kind, i) => {
-      this.targetCounter += 1;
-      const spec = TARGET_SPECS[kind];
-      const radius = 12.0 + (i % 2) * 2.0;
-      const theta = angles[i];
-      this.activeTargets.push({
-        id: `tutorial_fever_${this.targetCounter}_${kind}`,
-        kind,
-        hp: spec.maxHp,
-        maxHp: spec.maxHp,
-        radiusM: radius,
-        thetaRad: theta,
-        x: Math.sin(theta) * radius,
-        z: -Math.cos(theta) * radius,
-        speedMps: 1.6,
-        hitRadiusM: spec.hitRadiusM,
-        killBonusScore: spec.killBonusScore,
-        breached: false,
-      });
-    });
+    this.prevFeverActive = [false];
   }
 
   public exitTutorialMode(): void {
     this.mode = 'game';
-    this.tutorialStep = 1;
     this.activeTargets = [];
     this.clearSkillProjectiles();
     this.resetBossClear();
@@ -891,6 +814,7 @@ export class BeerCrusherEngine {
     this.activeBuffUntilMs.clear();
     this.infiniteAmmo = true;
     this.weaponSystem.setInfiniteAmmo(true);
+    this.prevFeverActive = [false];
 
     const calibPoints = [
       { id: 'calib_center', theta: 0, normY: 0 },
@@ -962,6 +886,8 @@ export class BeerCrusherEngine {
     const activated = this.scoreManager.activateFever(nowMs);
     if (activated) {
       this.weaponSystem.refillAmmoOnFever();
+      this.prevFeverActive[0] = true;
+      this.emit({ type: 'feverStarted', playerIndex: 0, nowMs });
     }
     return activated;
   }
@@ -1231,10 +1157,13 @@ export class BeerCrusherEngine {
     const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
     this.scoreManager.updateFeverTimer(nowMs);
 
-    if (this.mode === 'tutorial' && this.tutorialStep === 4) {
-      if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
-        this.advanceTutorialStep('COMPLETED');
-      }
+    const isFeverNow = this.scoreManager.getState().isFeverActive;
+    if (this.prevFeverActive[0] && !isFeverNow) {
+      this.prevFeverActive[0] = false;
+      this.emit({ type: 'feverEnded', playerIndex: 0, nowMs });
+    } else if (!this.prevFeverActive[0] && isFeverNow) {
+      this.prevFeverActive[0] = true;
+      this.emit({ type: 'feverStarted', playerIndex: 0, nowMs });
     }
 
     this.playTimeSec += dtSec;
@@ -1348,20 +1277,8 @@ export class BeerCrusherEngine {
             continue;
           }
           case 'remove': {
-            if (this.tutorialStep === 2) {
-              target.radiusM = 14.0;
-              target.x = 0;
-              target.z = -14.0;
-              target.breached = false;
-              continue;
-            } else if (this.tutorialStep === 4) {
-              this.activeTargets.splice(i, 1);
-              if (this.activeTargets.length === 0) {
-                this.advanceTutorialStep('COMPLETED');
-              }
-              continue;
-            }
             this.activeTargets.splice(i, 1);
+            this.emit({ type: 'targetBreached', target, nowMs });
             continue;
           }
           case 'damageLives': {
@@ -2158,6 +2075,7 @@ export class BeerCrusherEngine {
                 this.totalKills += 1;
                 this.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
                 this.handleMonsterKilled(rear, nowMs);
+                this.emit({ type: 'targetKilled', target: rear, playerIndex: 0, nowMs });
               }
             }
           });
@@ -2198,28 +2116,8 @@ export class BeerCrusherEngine {
           this.totalKills += 1;
         }
 
-        if (this.mode === 'tutorial') {
-          if (this.tutorialStep === 1) {
-            if (this.activeTargets.length === 0) {
-              this.advanceTutorialStep(2);
-            }
-          } else if (this.tutorialStep === 2) {
-            if (this.activeTargets.length === 0) {
-              this.advanceTutorialStep(3);
-            }
-          } else if (this.tutorialStep === 3) {
-            // The skill step only ends with the skill: if shots cleared the targets, set them up again.
-            if (this.activeTargets.length === 0) {
-              this.spawnTutorialSkillTargets();
-            }
-          } else if (this.tutorialStep === 4) {
-            if (this.activeTargets.length === 0) {
-              this.advanceTutorialStep('COMPLETED');
-            }
-          }
-        }
-
         this.handleMonsterKilled(target, nowMs);
+        this.emit({ type: 'targetKilled', target, playerIndex: 0, nowMs });
       }
 
       return {
@@ -2275,6 +2173,7 @@ export class BeerCrusherEngine {
     this.totalKills += 1;
     this.scoreManager.registerHit('PERFECT', monster.killBonusScore, true);
     this.handleMonsterKilled(monster, nowMs);
+    this.emit({ type: 'targetKilled', target: monster, playerIndex: 0, nowMs });
     return true;
   }
 
@@ -2503,8 +2402,8 @@ export class BeerCrusherEngine {
 
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
     const result = this.runWeaponSkill(nowMs);
-    if (result.activated && this.mode === 'tutorial' && this.tutorialStep === 3) {
-      this.advanceTutorialStep(4);
+    if (result.activated) {
+      this.emit({ type: 'skillUsed', playerIndex: 0, result, nowMs });
     }
     return result;
   }

@@ -462,9 +462,6 @@ export const GameCanvas3D = React.memo(
         const activated = engine.activateFever(performance.now());
         if (activated) {
           soundSynth.playFeverStart();
-          if (engine.isTutorialMode && engine.tutorialStep === 4) {
-            engine.spawnTutorialFeverEnemies();
-          }
         }
       };
 
