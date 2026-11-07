@@ -857,12 +857,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       });
 
       // Synchronize game over / victory
-      if (engine.gamePhase === 'GAMEOVER' && gamePhase === 'PLAYING') {
+      if (engine.gamePhase === 'GAMEOVER' && gamePhaseRef.current === 'PLAYING') {
         processorsRef.current.forEach((p) => p.stopAll());
         setPhase('GAMEOVER');
         soundSynth.playHit('MISS');
         submitScores();
-      } else if (engine.gamePhase === 'VICTORY' && gamePhase === 'PLAYING') {
+      } else if (engine.gamePhase === 'VICTORY' && gamePhaseRef.current === 'PLAYING') {
         processorsRef.current.forEach((p) => p.stopAll());
         setPhase('VICTORY');
         soundSynth.playFeverStart();
