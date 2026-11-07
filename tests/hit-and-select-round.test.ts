@@ -18,7 +18,7 @@ describe('hit-and-select-round (P01-T04)', () => {
       engine.spawnWaveRewardCards(1000, false);
     });
 
-    it('picks the nearest card for aimX = -0.9, -0.2, 0.2, 0.9', () => {
+    it('picks the left card only when the card body is hit (P03-T02)', () => {
       // 3개의 카드 표적 (k=0, 1, 2)
       const cards = engine.activeTargets.filter((t) => !!t.rewardCardKind);
       expect(cards.length).toBe(3);
@@ -28,9 +28,10 @@ describe('hit-and-select-round (P01-T04)', () => {
       expect(coords[0].targetNormX).toBeLessThan(coords[1].targetNormX);
       expect(coords[1].targetNormX).toBeLessThan(coords[2].targetNormX);
 
-      // x = -0.9 조준 시 첫 번째 카드(k=0)와 가장 가까움
+      // 화면 가장자리(-0.9)는 카드 몸체 밖이라 아무 일도 없고, 카드 몸체를 맞히면 선택된다.
       const aim1 = engine.computeTargetAimCoords(cards[0]);
-      const resLeft = engine.shootCardSelect(-0.9, aim1.targetNormY, 2000, 0);
+      expect(engine.shootCardSelect(-0.9, aim1.targetNormY, 2000, 0).fired).toBe(false);
+      const resLeft = engine.shootCardSelect(aim1.targetNormX, aim1.targetNormY, 2000, 0);
       expect(resLeft.fired).toBe(true);
       expect(resLeft.selectedCard).toBe(cards[0].rewardCardKind);
     });
@@ -52,10 +53,11 @@ describe('hit-and-select-round (P01-T04)', () => {
       expect(resCenter2.selectedCard).toBe(cards2[1].rewardCardKind);
     });
 
-    it('picks right card for aimX = 0.9', () => {
+    it('picks right card only when its body is hit (P03-T02)', () => {
       const cards = engine.activeTargets.filter((t) => !!t.rewardCardKind);
-      const aimY = engine.computeTargetAimCoords(cards[2]).targetNormY;
-      const resRight = engine.shootCardSelect(0.9, aimY, 2000, 0);
+      const aimRight = engine.computeTargetAimCoords(cards[2]);
+      expect(engine.shootCardSelect(0.9, aimRight.targetNormY, 2000, 0).fired).toBe(false);
+      const resRight = engine.shootCardSelect(aimRight.targetNormX, aimRight.targetNormY, 2000, 0);
       expect(resRight.fired).toBe(true);
       expect(resRight.selectedCard).toBe(cards[2].rewardCardKind);
     });

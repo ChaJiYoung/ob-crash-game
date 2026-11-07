@@ -101,8 +101,9 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     const card = engine.activeTargets[0];
     const cardRadius = engine.computeTargetAimCoords(card).apparentHitRadius;
     const unscaledCard = engine.computeTargetAimCoords({ ...card, rewardCardKind: undefined, weaponSelectKind: undefined } as ActiveTargetEntity);
-    // D30에 따라 카드도 동일한 판정 규칙을 적용받는다.
-    expect(cardRadius).toBeCloseTo(unscaledCard.apparentHitRadius, 5);
+    // 카드는 무기 성능과 무관한 메뉴라서 몬스터 판정(0.75 스케일·판정 강화·와이드 스코프)을 받지 않고 카드 실제 크기로 판정한다.
+    expect(cardRadius).toBeGreaterThan(0);
+    expect(cardRadius).not.toBeCloseTo(unscaledCard.apparentHitRadius, 5);
   });
 
   it('keeps the legacy (non aspect-corrected) zone in the sandbox', () => {

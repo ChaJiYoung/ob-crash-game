@@ -140,6 +140,8 @@ export const GAME_TUNING = {
       withKingOffsetRad: 0.34, withKingWobbleRad: 0.1,
     },
   },
+  /** 선택 카드(무기·보상) 판정 반지름(m). 카드 몸체 반폭 0.9m × modelScaleMult. 무기 허용 배율·판정 강화 카드·와이드 스코프는 적용하지 않는다. */
+  selectTargetHitHalfWidthM: 0.9,
   /**
    * 인원수별 규칙(D24). 1인과 2인은 이 표의 값만 다르고 엔진 로직은 같다.
    * selectLayout: 선택 라운드(무기·보상 카드) 표적 배치. 플레이어 p의 k번째(0~2) 카드 x = groupCentersX[p] + (k - 1) * spacingM,
@@ -151,13 +153,13 @@ export const GAME_TUNING = {
       spawnCountMult: 1,
       /** null이면 끊긴 플레이어를 이탈 처리하지 않고 무기한 기다린다(지금 1인 동작). */
       disconnectGraceMs: null as number | null,
-      selectLayout: { depthZ: -3.5, groupCentersX: [0] as readonly number[], spacingM: 1.85, hitRadiusM: 1.75 },
+      selectLayout: { depthZ: -3.5, groupCentersX: [0] as readonly number[], spacingM: 1.85 },
     },
     2: {
       hpMult: 1.6,
       spawnCountMult: 1.3,
       disconnectGraceMs: 30000 as number | null,
-      selectLayout: { depthZ: -5.5, groupCentersX: [-3.2, 3.2] as readonly number[], spacingM: 2.05, hitRadiusM: 1.0 },
+      selectLayout: { depthZ: -5.5, groupCentersX: [-3.2, 3.2] as readonly number[], spacingM: 2.05 },
     },
   },
   /**

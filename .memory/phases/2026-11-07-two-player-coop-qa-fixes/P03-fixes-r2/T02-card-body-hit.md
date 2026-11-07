@@ -1,6 +1,6 @@
 # Task: T02 선택 표적은 카드 몸체를 맞혀야 선택
 
-## Status: pending
+## Status: done
 
 ## Goal
 무기·보상 카드 선택에서 "카드를 실제로 맞힌 경우에만" 그 카드가 골라지게 한다. 지금은 2인 판에서 1P가 2P 카드를 쏘면, 1P 카드 중 가장 가까운 것이 판정 반지름 안에 들어와 1P 카드가 골라진다(B BUG-5). D13 "자기 소유 표적만 맞힐 수 있다"는 "남의 카드를 쏘면 아무 일도 없다"는 뜻이어야 한다.
@@ -57,6 +57,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T02-card-body-hit)

@@ -130,7 +130,6 @@ describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
       depthZ: -3.5,
       groupCentersX: [0],
       spacingM: 1.85,
-      hitRadiusM: 1.75,
     });
   });
 
@@ -143,7 +142,6 @@ describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
       depthZ: -5.5,
       groupCentersX: [-3.2, 3.2],
       spacingM: 2.05,
-      hitRadiusM: 1.0,
     });
   });
 });

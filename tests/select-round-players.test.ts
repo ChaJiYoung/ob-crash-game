@@ -132,3 +132,57 @@ describe('select-round-players (P02-T03)', () => {
     expect(engine.getSelectionStatus().kind).toBeNull();
   });
 });
+
+describe('select targets need a body hit (P03-T02)', () => {
+  const weapons = ['shotgun', 'revolver', 'gatling'] as const;
+
+  function open(count: 1 | 2) {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: true, playerCount: count });
+    return engine;
+  }
+  function cards(engine: BeerCrusherEngine, owner: number) {
+    return engine.activeTargets
+      .filter((t) => !!t.weaponSelectKind && t.ownerIndex === owner)
+      .sort((a, b) => a.x - b.x);
+  }
+
+  it.each(weapons)('2P: shooting the other player card does nothing (%s)', (w) => {
+    const engine = open(2);
+    (engine as any).players[0].weaponSystem.selectWeapon(w);
+    const inner2 = cards(engine, 1)[0];
+    const aim = engine.computeTargetAimCoords(inner2, 1.0, 1);
+    const res = engine.shootAt(aim.targetNormX, aim.targetNormY, 1000, 'press', 0);
+    expect(res.fired).toBe(false);
+    expect(engine.getSelectionStatus().done).toEqual([false, false]);
+  });
+
+  it('2P: the own inner card center selects that card', () => {
+    const engine = open(2);
+    const inner1 = cards(engine, 0)[2];
+    const aim = engine.computeTargetAimCoords(inner1, 1.0, 0);
+    const res = engine.shootAt(aim.targetNormX, aim.targetNormY, 1000, 'press', 0);
+    expect(res.fired).toBe(true);
+    expect(res.selectedWeapon).toBe(inner1.weaponSelectKind);
+  });
+
+  it('1P: center selects, 1.2x radius outside does not', () => {
+    const engine = open(1);
+    const mid = cards(engine, 0)[1];
+    const aim = engine.computeTargetAimCoords(mid, 1.0, 0);
+    const miss = engine.shootCardSelect(aim.targetNormX, aim.targetNormY + aim.apparentHitRadius * 1.2, 1000, 0);
+    expect(miss.fired).toBe(false);
+    const hit = engine.shootCardSelect(aim.targetNormX, aim.targetNormY, 1100, 0);
+    expect(hit.fired).toBe(true);
+  });
+
+  it('hit radius is the same for every weapon', () => {
+    const radii = weapons.map((w) => {
+      const engine = open(1);
+      (engine as any).players[0].weaponSystem.selectWeapon(w);
+      return engine.computeTargetAimCoords(cards(engine, 0)[1], 1.0, 0).apparentHitRadius;
+    });
+    expect(radii[1]).toBeCloseTo(radii[0], 8);
+    expect(radii[2]).toBeCloseTo(radii[0], 8);
+  });
+});

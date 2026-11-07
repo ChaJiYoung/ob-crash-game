@@ -7,7 +7,7 @@
 [P03 2차 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/phase.md)
 
 ## Active Task
-[T02 선택 표적은 카드 몸체를 맞혀야 선택](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T02-card-body-hit.md)
+[T03 결과 화면에서 십자선이 결과 숫자를 가리지 않게](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T03-result-overlay.md)
 
 ## Status
 - T01 처리부 타이머 바인딩 수정 완료 (44e9dd5)
@@ -17,6 +17,7 @@
 - T05 불안정 테스트 원인 제거 (7f942a1)
 - T06 개발 서버 전용 읽기 전용 디버그 창구 구현 완료
 - P03 T01 완료: 같은 기기 슬롯 이동 시 이전 슬롯 비우기
+- P03 T02 완료: 선택 카드는 몸체를 맞혀야 선택
 - P01 QA 수정 완료 (6/6 Tasks 완료, P02 재QA 대기)
 
 ## Next Step (IMPORTANT)

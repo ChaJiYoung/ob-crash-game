@@ -66,4 +66,4 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: (이 Task 커밋, Task: T01-slot-move)
+- commit: 1e17f64

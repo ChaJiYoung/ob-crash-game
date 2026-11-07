@@ -576,7 +576,7 @@ export class BeerCrusherEngine {
           slotInGroup,
           x: rawX,
           z: L.depthZ,
-          hitRadiusM: L.hitRadiusM,
+          hitRadiusM: GAME_TUNING.selectTargetHitHalfWidthM,
           modelScaleMult: 1.0,
         });
       }
@@ -589,7 +589,7 @@ export class BeerCrusherEngine {
     for (const s of slots) {
       s.x *= fit;
       s.modelScaleMult = fit;
-      s.hitRadiusM = L.hitRadiusM * fit;
+      s.hitRadiusM = GAME_TUNING.selectTargetHitHalfWidthM * fit;
     }
     return slots;
   }
@@ -1757,8 +1757,16 @@ export class BeerCrusherEngine {
 
     const vFovRad = (this.vFovDeg * Math.PI) / 180;
     const tanHalfFov = Math.tan(vFovRad / 2);
-    const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
-    const zoneScale = GAME_TUNING.hitZone.scale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.getPlayer(playerIndex).cardStacks.hit_zone_up);
+    // 선택 카드는 무기 성능과 무관한 메뉴: 카드 실제 크기로만 판정하고 판정 강화 카드·와이드 스코프를 적용하지 않는다.
+    const isSelectCard = !!target.weaponSelectKind || !!target.rewardCardKind;
+    const radiusM = isSelectCard
+      ? GAME_TUNING.selectTargetHitHalfWidthM * (target.modelScaleMult ?? 1)
+      : target.hitRadiusM;
+    // 몬스터는 2.8배 관대한 판정, 카드는 실제 크기(1배).
+    const baseHitRadius = (radiusM * (isSelectCard ? 1 : 2.8 * wideScopeMult)) / Math.max(2.5, camDist * tanHalfFov);
+    const zoneScale = isSelectCard
+      ? 1
+      : GAME_TUNING.hitZone.scale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.getPlayer(playerIndex).cardStacks.hit_zone_up);
     const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.hitZoneScale : 1.0;
     const apparentHitRadius = Math.max(0.14, (baseHitRadius * zoneScale * bossScale) / 0.84);
 
@@ -1837,6 +1845,7 @@ export class BeerCrusherEngine {
     const weaponKind = player.weaponSystem.getState().weaponKind;
     const weaponHitToleranceMult = this.getWeaponHitToleranceMult(weaponKind);
     const verticalScale = weaponKind === 'revolver' ? 0.70 : 0.85;
+    const isSelectTarget = (t: ActiveTargetEntity) => !!t.weaponSelectKind || !!t.rewardCardKind;
 
     let bestHit: { target: ActiveTargetEntity; result: HitJudgmentResult; index: number } | undefined;
     let minError = Infinity;
@@ -1847,11 +1856,11 @@ export class BeerCrusherEngine {
       if (!this.isTargetLanded(target, nowMs)) continue;
       const proj = this.computeTargetAimCoords(target, wideScopeMult, playerIndex);
       const dx = (aimX - proj.targetNormX) * this.aspect;
-      const dy = target.customNormY !== undefined
+      const dy = target.customNormY !== undefined || isSelectTarget(target)
         ? (aimY - proj.targetNormY)
         : (aimY - proj.targetNormY) * verticalScale;
       const dist = Math.hypot(dx, dy);
-      const effectiveHitRadius = proj.apparentHitRadius * weaponHitToleranceMult;
+      const effectiveHitRadius = proj.apparentHitRadius * (isSelectTarget(target) ? 1 : weaponHitToleranceMult);
 
       if (dist <= effectiveHitRadius) {
         const judgment = evaluateHitJudgment(dist, effectiveHitRadius, {
