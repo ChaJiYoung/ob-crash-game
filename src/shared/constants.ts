@@ -2,6 +2,7 @@ import {
   ItemBuffKind,
   ItemBuffSpec,
   JudgmentGrade,
+  PlayerSlot,
   RewardCardKind,
   RewardCardSpec,
   TargetKind,
@@ -12,6 +13,10 @@ import {
   WeaponLevelSpec,
 } from './types';
 import { GAME_TUNING } from './gameTuning';
+
+/** 2인팟 플레이어 색(D09, UI 시안 값). 1인 판은 SOLO_PLAYER_COLOR(지금의 앰버)를 쓴다. */
+export const PLAYER_COLORS: Record<PlayerSlot, string> = { 1: '#38bdf8', 2: '#ff6b3d' };
+export const SOLO_PLAYER_COLOR = '#f59e0b';
 
 export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
   pilgood: {

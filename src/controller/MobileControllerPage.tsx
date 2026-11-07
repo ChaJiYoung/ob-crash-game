@@ -5,14 +5,27 @@ import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
 import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
-import { PlayerProfile, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
-import { WEAPON_CONSTANTS } from '../shared/constants';
+import { PlayerProfile, PlayerSlot, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
+import { PLAYER_COLORS, WEAPON_CONSTANTS } from '../shared/constants';
 import { GAME_TUNING } from '../shared/gameTuning';
-import { getReconnectDelayMs, loadSavedControllerRoomId, saveControllerRoomId } from './sensors/ReconnectPolicy';
+import {
+  getReconnectDelayMs,
+  loadSavedControllerRoomId,
+  loadSavedControllerSlot,
+  parseControllerSlot,
+  saveControllerRoomId,
+  saveControllerSlot,
+} from './sensors/ReconnectPolicy';
 
 export const MobileControllerPage: React.FC = () => {
   const deviceId = useMemo(() => getOrCreateDeviceId(), []);
   const tracker = useMemo(() => new GunGripTracker(), []);
+
+  const [slot, setSlot] = useState<PlayerSlot>(1);
+  const slotRef = useRef<PlayerSlot>(1);
+  slotRef.current = slot;
+  const [slotError, setSlotError] = useState<string | null>(null);
+  const blockedRef = useRef<boolean>(false);
 
   const [step, setStep] = useState<'LOGIN_GATE' | 'ZEROING' | 'PAD'>('LOGIN_GATE');
   if (typeof window !== 'undefined') {
@@ -67,19 +80,24 @@ export const MobileControllerPage: React.FC = () => {
   const isCockedRef = useRef<boolean>(false);
   const snapFreezeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Parse Room ID from URL
+  // 1. Parse Room ID & Slot from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
+    const parsedSlot = parseControllerSlot(window.location.search);
     if (room) {
       const normalized = room.toUpperCase().trim();
       setRoomId(normalized);
       saveControllerRoomId(normalized);
+      setSlot(parsedSlot);
+      saveControllerSlot(parsedSlot);
       return;
     }
-    // No QR link this time: fall back to the room this phone used last.
+    // No QR link this time: fall back to the room and slot this phone used last.
     const saved = loadSavedControllerRoomId();
     if (saved) setRoomId(saved);
+    const savedSlot = loadSavedControllerSlot();
+    setSlot(savedSlot);
   }, []);
 
   // 2. Connect to WebSocket & send DEVICE_CHECK
@@ -124,13 +142,14 @@ export const MobileControllerPage: React.FC = () => {
             type: 'DEVICE_CHECK',
             roomId,
             deviceId,
+            slot: slotRef.current,
           })
         );
       };
 
       socket.onclose = () => {
-        // A replaced or disposed socket must not start another retry loop.
-        if (disposed || wsRef.current !== socket) return;
+        // A replaced, disposed, or blocked socket must not start another retry loop.
+        if (disposed || blockedRef.current || wsRef.current !== socket) return;
         setConnectionState('RECONNECTING');
         clearRetry();
         retryTimer = setTimeout(connect, getReconnectDelayMs(attempt));
@@ -150,7 +169,7 @@ export const MobileControllerPage: React.FC = () => {
                 // lobby can move on to the zeroing step. The phone's own zero is untouched.
                 if (isReconnectOpenRef.current && stepRef.current === 'PAD') {
                   socket.send(
-                    JSON.stringify({ type: 'CALIBRATE_ZERO', roomId, deviceId, resume: true })
+                    JSON.stringify({ type: 'CALIBRATE_ZERO', roomId, deviceId, resume: true, slot: slotRef.current })
                   );
                 }
               }
@@ -196,6 +215,12 @@ export const MobileControllerPage: React.FC = () => {
             }
 
             case 'ERROR':
+              if (msg.code === 'SLOT_OCCUPIED') {
+                blockedRef.current = true;
+                setSlotError(`이미 다른 폰이 ${slotRef.current}P로 연결돼 있습니다. PC 화면의 다른 슬롯 QR을 찍어 주세요.`);
+                socket.close();
+                return;
+              }
               // The server keeps this socket open in both cases; close it so onclose runs the retry loop.
               // A PC that comes back never tells the phone, so the phone has to knock again.
               if (msg.code === 'PC_DISCONNECTED' || msg.code === 'ROOM_NOT_FOUND') {
@@ -215,7 +240,7 @@ export const MobileControllerPage: React.FC = () => {
 
     // A sleeping phone freezes its timers: reconnect the moment the screen is back instead of waiting for the next retry.
     const reviveIfDead = () => {
-      if (disposed) return;
+      if (disposed || blockedRef.current) return;
       if (document.visibilityState === 'hidden') return;
       const current = wsRef.current;
       if (current && (current.readyState === WebSocket.OPEN || current.readyState === WebSocket.CONNECTING)) return;
@@ -247,6 +272,7 @@ export const MobileControllerPage: React.FC = () => {
           roomId,
           deviceId,
           nickname,
+          slot: slotRef.current,
         })
       );
     }
@@ -276,6 +302,7 @@ export const MobileControllerPage: React.FC = () => {
         type: 'SENSOR_FRAME',
         roomId,
         deviceId,
+        slot: slotRef.current,
         payload: {
           aimX: aim.aimX,
           aimY: aim.aimY,
@@ -377,6 +404,7 @@ export const MobileControllerPage: React.FC = () => {
           type: 'CALIBRATE_ZERO',
           roomId,
           deviceId,
+          slot: slotRef.current,
         })
       );
     }
@@ -457,6 +485,7 @@ export const MobileControllerPage: React.FC = () => {
           type: 'START_GAME_REQUEST',
           roomId,
           deviceId,
+          slot: slotRef.current,
         })
       );
     }
@@ -503,6 +532,57 @@ export const MobileControllerPage: React.FC = () => {
 
   return (
     <>
+      {/* 1P / 2P Slot Badge */}
+      <div
+        data-testid="controller-slot-badge"
+        style={{
+          position: 'fixed',
+          top: 12,
+          right: 12,
+          zIndex: 9998,
+          padding: '4px 10px',
+          borderRadius: '9999px',
+          fontSize: '12px',
+          fontWeight: 900,
+          color: '#ffffff',
+          backgroundColor: PLAYER_COLORS[slot],
+          boxShadow: `0 0 12px ${PLAYER_COLORS[slot]}66`,
+          letterSpacing: '0.05em',
+          pointerEvents: 'none',
+          fontFamily: "'Noto Sans KR', sans-serif",
+        }}
+      >
+        {slot}P
+      </div>
+
+      {slotError && (
+        <div
+          data-testid="slot-error-card"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(5, 7, 12, 0.95)',
+            zIndex: 10001,
+            padding: '24px',
+            textAlign: 'center',
+            fontFamily: "'Noto Sans KR', sans-serif",
+            color: '#ffffff',
+          }}
+        >
+          <div style={{ fontSize: '42px', marginBottom: '16px' }}>🚫</div>
+          <div style={{ fontSize: '20px', fontWeight: 900, color: '#f87171', marginBottom: '12px' }}>
+            슬롯 연결 실패
+          </div>
+          <div style={{ fontSize: '15px', color: '#e2e8f0', lineHeight: 1.6, maxWidth: '320px' }}>
+            {slotError}
+          </div>
+        </div>
+      )}
+
       {connectionState !== 'CONNECTED' && (
         <div
           style={{

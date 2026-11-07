@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { PlayerProfile, RunRankingEntry } from '../../shared/types';
+import { PlayerProfile, PlayerSlot, RunRankingEntry } from '../../shared/types';
 import { WEAPON_RANKING_LABEL } from '../../shared/constants';
 
-export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string): string {
+export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string, slot: PlayerSlot = 1): string {
   let cleanOrigin = origin.replace(/\/+$/, '');
   if (lanIp) {
     cleanOrigin = cleanOrigin.replace(/localhost|127\.0\.0\.1/, lanIp);
   }
-  return `${cleanOrigin}/controller?room=${encodeURIComponent(roomId)}`;
+  return `${cleanOrigin}/controller?room=${encodeURIComponent(roomId)}&slot=${slot}`;
 }
 
 export interface QRPairingModalProps {

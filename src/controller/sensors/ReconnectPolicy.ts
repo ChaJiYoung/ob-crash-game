@@ -1,4 +1,38 @@
+import { PlayerSlot } from '../../shared/types';
+
 export const CONTROLLER_ROOM_STORAGE_KEY = 'beer_crusher_controller_room_id';
+export const CONTROLLER_SLOT_STORAGE_KEY = 'beer_crusher_controller_slot';
+
+export function parseControllerSlot(search: string): PlayerSlot {
+  try {
+    const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+    const slot = params.get('slot');
+    return slot === '2' ? 2 : 1;
+  } catch {
+    return 1;
+  }
+}
+
+export function loadSavedControllerSlot(storage?: Pick<Storage, 'getItem'>): PlayerSlot {
+  const target = resolveStorage(storage);
+  if (!target) return 1;
+  try {
+    const raw = target.getItem(CONTROLLER_SLOT_STORAGE_KEY);
+    return raw === '2' ? 2 : 1;
+  } catch {
+    return 1;
+  }
+}
+
+export function saveControllerSlot(slot: PlayerSlot, storage?: Pick<Storage, 'setItem'>): void {
+  const target = resolveStorage(storage);
+  if (!target) return;
+  try {
+    target.setItem(CONTROLLER_SLOT_STORAGE_KEY, String(slot));
+  } catch {
+    // Storage access blocked
+  }
+}
 
 const ROOM_ID_PATTERN = /^[A-Z0-9]{3,8}$/;
 

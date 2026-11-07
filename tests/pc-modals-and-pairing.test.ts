@@ -13,20 +13,20 @@ import {
 describe('PC QR Pairing URL & Leaderboard Modal Helpers', () => {
   it('should format pairing URL correctly with or without trailing slash', () => {
     expect(buildControllerPairingUrl('https://192.168.0.15:5173/', 'AB12')).toBe(
-      'https://192.168.0.15:5173/controller?room=AB12'
+      'https://192.168.0.15:5173/controller?room=AB12&slot=1'
     );
     expect(buildControllerPairingUrl('http://localhost:5173', 'CR77')).toBe(
-      'http://localhost:5173/controller?room=CR77'
+      'http://localhost:5173/controller?room=CR77&slot=1'
     );
     expect(buildControllerPairingUrl('https://beer.example.com///', 'Z999')).toBe(
-      'https://beer.example.com/controller?room=Z999'
+      'https://beer.example.com/controller?room=Z999&slot=1'
     );
     // LAN IP substitution for mobile QR scanning
     expect(buildControllerPairingUrl('https://localhost:5173', 'ROOM1', '172.30.1.31')).toBe(
-      'https://172.30.1.31:5173/controller?room=ROOM1'
+      'https://172.30.1.31:5173/controller?room=ROOM1&slot=1'
     );
     expect(buildControllerPairingUrl('https://127.0.0.1:5173/', 'ROOM2', '192.168.1.10')).toBe(
-      'https://192.168.1.10:5173/controller?room=ROOM2'
+      'https://192.168.1.10:5173/controller?room=ROOM2&slot=1'
     );
   });
 

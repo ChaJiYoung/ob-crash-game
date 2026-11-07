@@ -1,6 +1,6 @@
 # Task: T02 폰 컨트롤러 슬롯
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰이 QR 주소의 `slot`(1 또는 2)을 읽어 저장하고, 서버로 보내는 모든 메시지에 실어 보낸다. 다른 폰이 이미 그 슬롯을 쓰고 있으면(`ERROR SLOT_OCCUPIED`) 폰 화면에 "이미 다른 폰이 2P로 연결돼 있습니다" 안내를 띄운다. 폰 화면 상단에 "1P"/"2P" 배지를 보여 자기 자리를 알 수 있게 한다(D06).
@@ -62,8 +62,8 @@
 - slot 파싱 헬퍼를 `parseControllerSlot(search: string): PlayerSlot`로 export해 단위 테스트: `'?room=A&slot=2'` → 2, `'?room=A'` → 1, `'?slot=3'` → 1.
 
 ## Acceptance Criteria
-- [ ] 2P QR로 들어온 폰의 센서가 PC에 `slot: 2`로 도착한다(P03-T01 서버와 함께).
-- [ ] 옛 QR(슬롯 없음)은 1P로 동작.
+- [x] 2P QR로 들어온 폰의 센서가 PC에 `slot: 2`로 도착한다(P03-T01 서버와 함께).
+- [x] 옛 QR(슬롯 없음)은 1P로 동작.
 
 ## Validation
 - `npx vitest run tests/controller-slot.test.ts tests/pc-modals-and-pairing.test.ts tests/controller-reconnect.test.ts` — 통과
@@ -85,6 +85,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
