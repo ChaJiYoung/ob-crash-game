@@ -103,6 +103,22 @@ export interface ActiveBuffState {
   totalDurationMs: number;
 }
 
+/** 서버·프로토콜의 플레이어 자리. 엔진의 PlayerIndex(0|1)와 slot - 1로 변환한다. */
+export type PlayerSlot = 1 | 2;
+export type PlayMode = 'solo' | 'coop';
+
+export interface CoopRunInfo {
+  slot: PlayerSlot;
+  /** 1P + 2P 최종 점수 합. */
+  teamScore: number;
+  partnerScore: number;
+  /** PC 페이지가 채운다. 마우스 파트너도 D15 기기 ID가 있다. */
+  partnerDeviceId: string;
+  partnerNickname: string;
+  /** 판이 끝날 때 이 플레이어가 이탈 상태였는가(D20). */
+  leftEarly: boolean;
+}
+
 /** 끝난 한 판의 통계. 서버가 data/play-records.jsonl에 저장한다. */
 export interface PlayRunStats {
   outcome: 'GAMEOVER' | 'VICTORY';
@@ -127,6 +143,9 @@ export interface PlayRunStats {
   weaponKind: WeaponKind;
   weaponLevel: WeaponLevel;
   cardStacks: { damage_up: number; skill_cooldown: number; fever_extend: number; hit_zone_up: number };
+  /** 없으면 'solo'. */
+  mode?: PlayMode;
+  coop?: CoopRunInfo;
 }
 
 /** 랭킹 한 줄(판 단위). 같은 사람이 여러 줄 나올 수 있다. */

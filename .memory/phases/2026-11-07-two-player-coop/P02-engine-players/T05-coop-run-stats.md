@@ -1,6 +1,6 @@
 # Task: T05 플레이어별 판 통계와 coop 정보
 
-## Status: pending
+## Status: done
 
 ## Goal
 판이 끝났을 때 `engine.getPlayRunStats(playerIndex)`가 그 플레이어의 점수·콤보·처치·사격·무기·카드 통계를 돌려주고, 2인 판이면 `mode: 'coop'`과 `coop`(내 슬롯, 팀 합계, 파트너 점수, 이탈 여부)를 담는다. 서버(P03-T03)가 이 값으로 2인팟 기록과 `coopBests`를 저장한다(D05, D18).
@@ -69,8 +69,8 @@
 - 2P away 상태로 끝나면 `getPlayRunStats(1).coop.leftEarly === true`.
 
 ## Acceptance Criteria
-- [ ] 1인 통계 객체 모양이 바뀌지 않는다.
-- [ ] 2인 통계가 플레이어별로 나온다.
+- [x] 1인 통계 객체 모양이 바뀌지 않는다.
+- [x] 2인 통계가 플레이어별로 나온다.
 
 ## Validation
 - `npx vitest run tests/coop-run-stats.test.ts tests/play-run-stats.test.ts` — 통과
@@ -92,6 +92,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

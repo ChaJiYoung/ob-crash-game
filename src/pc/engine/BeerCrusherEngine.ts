@@ -11,6 +11,7 @@ import {
   WeaponLevel,
   WeaponLevelSpec,
   PlayRunStats,
+  PlayerSlot,
 } from '../../shared/types';
 import {
   ITEM_BUFF_SPECS,
@@ -2083,7 +2084,7 @@ export class BeerCrusherEngine {
     const player = this.getPlayer(playerIndex);
     const breakdown = this.getScoreBreakdown(playerIndex);
     const weapon = player.weaponSystem.getState();
-    return {
+    const stats: PlayRunStats = {
       outcome: this.gamePhase,
       waveReached: this.currentWave,
       livesLeft: this.lives,
@@ -2104,7 +2105,23 @@ export class BeerCrusherEngine {
       weaponKind: weapon.weaponKind,
       weaponLevel: weapon.weaponLevel,
       cardStacks: { ...player.cardStacks },
+      mode: this.players.length > 1 ? 'coop' : 'solo',
     };
+
+    if (this.players.length > 1) {
+      const partnerIndex = (playerIndex === 0 ? 1 : 0) as PlayerIndex;
+      const partnerBreakdown = this.getScoreBreakdown(partnerIndex);
+      stats.coop = {
+        slot: (playerIndex + 1) as PlayerSlot,
+        teamScore: breakdown.total + partnerBreakdown.total,
+        partnerScore: partnerBreakdown.total,
+        partnerDeviceId: '',
+        partnerNickname: '',
+        leftEarly: player.isAway,
+      };
+    }
+
+    return stats;
   }
 
   /** 적용 중인 패시브 카드. 즉시 효과 카드(레벨업, 수리, 피버 부스터)는 쌓이지 않으므로 없다. */
