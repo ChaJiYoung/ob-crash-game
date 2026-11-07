@@ -65,6 +65,23 @@ export function updateSlot(
   ];
 }
 
+/** CONTROLLER_PAIRED 반영: 그 슬롯을 모바일·연결됨으로, 다른 슬롯에 같은 기기가 있으면 비운다. */
+export function applyControllerPaired(
+  slots: SlotPair,
+  slot: PlayerSlot,
+  player: PlayerProfile
+): SlotPair {
+  const other: PlayerSlot = slot === 1 ? 2 : 1;
+  let next = slots;
+  if (slots[other - 1].player?.deviceId === player.deviceId) {
+    next = chooseSlotInput(next, other, null).slots;
+  }
+  return updateSlot(chooseSlotInput(next, slot, 'mobile').slots, slot, {
+    player,
+    isConnected: true,
+  });
+}
+
 export function isSlotJoined(s: SlotState): boolean {
   return s.input !== null && !!s.player;
 }

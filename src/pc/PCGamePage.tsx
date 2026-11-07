@@ -50,6 +50,7 @@ import {
   getSoloSlot,
   getMouseBinding,
   decideLobbyStart,
+  applyControllerPaired,
   SlotPair,
   SlotInput,
 } from './coopSlots';
@@ -525,11 +526,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'CONTROLLER_PAIRED': {
             const slot = msg.slot;
+            // 로비(PAIRING/ZEROING)에서만 같은 기기의 이전 슬롯을 비운다. 판 중엔 슬롯 매핑 고정.
+            const inLobby =
+              gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING';
             setSlots((prev) =>
-              updateSlot(chooseSlotInput(prev, slot, 'mobile').slots, slot, {
-                player: msg.player,
-                isConnected: true,
-              })
+              inLobby
+                ? applyControllerPaired(prev, slot, msg.player)
+                : updateSlot(chooseSlotInput(prev, slot, 'mobile').slots, slot, {
+                    player: msg.player,
+                    isConnected: true,
+                  })
             );
             soundSynth.unlockAudio();
             onSlotReconnectedRef.current(slot);

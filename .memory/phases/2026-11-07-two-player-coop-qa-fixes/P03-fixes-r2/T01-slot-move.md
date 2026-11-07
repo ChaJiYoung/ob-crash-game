@@ -1,6 +1,6 @@
 # Task: T01 같은 기기가 다른 슬롯으로 붙으면 이전 슬롯 비우기
 
-## Status: pending
+## Status: done
 
 ## Goal
 같은 폰이 다른 슬롯 QR로 다시 붙으면 PC 로비에서 이전 슬롯이 비워지고 새 슬롯에만 남게 한다. 지금은 두 슬롯에 같은 폰이 남고 "연결 끊김"이 표시되며, 마우스 버튼이 양쪽 모두 비활성이 되어 마우스 플레이어가 들어갈 수 없다(B BUG-1, `two-player-coop-qa-r2/B-mouse-phone/V-diag2-after-moves.png`, `scripts/diag-slot-move2.mjs`).
@@ -64,6 +64,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T01-slot-move)

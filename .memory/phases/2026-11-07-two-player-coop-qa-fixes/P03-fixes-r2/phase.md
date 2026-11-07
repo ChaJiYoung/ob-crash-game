@@ -19,7 +19,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 같은 기기가 다른 슬롯으로 붙으면 이전 슬롯 비우기(PC) | [T01](./T01-slot-move.md) |
+| T01 | `done` | 같은 기기가 다른 슬롯으로 붙으면 이전 슬롯 비우기(PC) | [T01](./T01-slot-move.md) |
 | T02 | `pending` | 선택 표적은 카드 몸체를 맞혀야 선택(무기 허용 배율 제외) | [T02](./T02-card-body-hit.md) |
 | T03 | `pending` | 결과 화면에서 십자선 이름표 숨기고 십자선을 결과 카드 아래로 | [T03](./T03-result-overlay.md) |
 | T04 | `pending` | 1024×768에서 배지·이름표가 화면 안에 들어오게 | [T04](./T04-small-screen-badges.md) |
@@ -28,4 +28,4 @@
 | T07 | `pending` | 2인 난이도 배율 D41(보스 체력·소환·몬스터 수·카드 목표 2배, 몬스터 체력 1배) | [T07](./T07-coop-difficulty-v2.md) |
 
 ## Progress
-- done: 0/7 (active: T01)
+- done: 1/7 (active: T02)

@@ -11,6 +11,7 @@ import {
   indexToSlot,
   getSoloSlot,
   getMouseIndex,
+  applyControllerPaired,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
 
@@ -195,5 +196,30 @@ describe('coopSlots pure model (P04-T01)', () => {
       const map = buildSlotIndexMap(slots);
       expect(getSoloSlot(map, slots)).toBe(1);
     });
+  });
+});
+
+describe('applyControllerPaired (P03-T01)', () => {
+  const X = makeProfile('X', 'xx');
+  const Y = makeProfile('Y', 'yy');
+
+  it('moves a device between slots, clearing the old slot', () => {
+    let slots = applyControllerPaired(createInitialSlots(), 2, X);
+    slots = applyControllerPaired(slots, 1, X);
+    expect(slots[0].player?.deviceId).toBe('X');
+    expect(slots[1].input).toBeNull();
+    expect(slots[1].player).toBeUndefined();
+    slots = applyControllerPaired(slots, 2, X);
+    expect(slots[1].player?.deviceId).toBe('X');
+    expect(slots[0].input).toBeNull();
+    expect(slots[0].player).toBeUndefined();
+  });
+
+  it('keeps a different device in the other slot', () => {
+    let slots = applyControllerPaired(createInitialSlots(), 1, Y);
+    slots = applyControllerPaired(slots, 2, X);
+    slots = applyControllerPaired(slots, 2, X);
+    expect(slots[0].player?.deviceId).toBe('Y');
+    expect(slots[1].player?.deviceId).toBe('X');
   });
 });
