@@ -1,24 +1,19 @@
 # Current Context
 
 ## Active Plan
-[2인팟 (Two-Player Co-op)](./plans/2026-11-07-two-player-coop.md)
+[2인팟 QA 수정](./plans/2026-11-07-two-player-coop-qa-fixes.md)
 
 ## Active Phase
-[P05 HUD·화면 (완료)](./phases/2026-11-07-two-player-coop/P05-hud-screens/phase.md)
+[P01 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md)
 
 ## Active Task
-None (P05 완료, 8/8 Tasks 완료)
+[T01 처리부 타이머 바인딩 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/T01-timer-binding.md)
 
 ## Status
-- P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
-- P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
-- P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
-- P04 PC 로비·연결 완료 (6/6 Tasks 완료) + 리뷰 피드백 수정 커밋 완료 (150b0bb)
-- P05 HUD·화면 완료 (8/8 Tasks 완료)
-- 계획: 5 Phase / 29 Task 전체 구현 완료 (P01 6, P02 5, P03 4, P04 6, P05 8)
+- 2인팟 본 계획(2026-11-07-two-player-coop) P01~P05 구현 완료. 실제 브라우저 QA(A 1인, B 마우스+폰·폰+마우스, C 폰+폰)에서 문제 5건 → 이 계획으로 수정 중.
 
 ## Next Step (IMPORTANT)
-P05 모든 Task(T01~T08) 구현 완료 및 검증 통과. 사용자 리뷰 대기.
+T01 청사진을 읽고 `src/pc/input/PlayerActionProcessor.ts` 타이머 바인딩부터. P02(재QA)는 리뷰어가 진행하므로 구현 에이전트는 P01만 한다.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).
