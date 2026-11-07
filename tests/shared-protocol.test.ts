@@ -150,6 +150,25 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     });
   });
 
+  it('golden can (addSkillStock) adds one charge: 0 -> 1, 1 -> 2, and never exceeds the max', () => {
+    const gain = GAME_TUNING.goldenCan.skillStockGain;
+    expect(gain).toBe(1);
+    const ws = new WeaponSystem('shotgun', 1);
+    expect(ws.getState().skillStock).toBe(0);
+
+    ws.update(1000, false, 1000); // a recharge is in progress
+    ws.addSkillStock(gain);
+    expect(ws.getState().skillStock).toBe(1);
+    expect(ws.getState().skillCooldownRemainingMs).toBeGreaterThan(0); // still charging toward the second
+
+    ws.addSkillStock(gain);
+    expect(ws.getState().skillStock).toBe(2);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(0);
+
+    ws.addSkillStock(gain);
+    expect(ws.getState().skillStock).toBe(2); // capped at the max
+  });
+
   it('does not refill skill charges when reaching Lv.4, and reset() empties them', () => {
     const ws = new WeaponSystem('revolver', 1);
     ws.refillSkillInstant();
