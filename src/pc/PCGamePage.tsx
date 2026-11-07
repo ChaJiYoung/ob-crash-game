@@ -32,6 +32,7 @@ import { PlayerIndex } from './engine/PlayerCombatState';
 import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProcessor';
 import { MouseAdapter } from './input/MouseAdapter';
 import { PhoneAdapter } from './input/PhoneAdapter';
+import { GraceState, startGrace, tickGrace } from './coopDisconnect';
 
 import {
   createInitialSlots,
@@ -135,6 +136,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   isExitConfirmOpenRef.current = isExitConfirmOpen;
   const pauseMenuReasonRef = useRef<PauseReason>('USER');
   pauseMenuReasonRef.current = pauseMenu.reason;
+
+  const [grace, setGrace] = useState<GraceState | null>(null);
+  const graceRef = useRef<GraceState | null>(null);
+  graceRef.current = grace;
+  const [graceRemainingSec, setGraceRemainingSec] = useState<number>(30);
+  const onSlotReconnectedRef = useRef<(slot: PlayerSlot) => void>(() => {});
 
   const [diagnostics, setDiagnostics] = useState<SensorDiagnosticsState>({
     aimX: 0,
@@ -448,24 +455,29 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             if (msg.lanIp) setLanIp(msg.lanIp);
             break;
 
-          case 'CONTROLLER_PAIRED':
+          case 'CONTROLLER_PAIRED': {
+            const slot = msg.slot;
             setSlots((prev) =>
-              updateSlot(chooseSlotInput(prev, msg.slot, 'mobile').slots, msg.slot, {
+              updateSlot(chooseSlotInput(prev, slot, 'mobile').slots, slot, {
                 player: msg.player,
                 isConnected: true,
               })
             );
             soundSynth.unlockAudio();
+            onSlotReconnectedRef.current(slot);
             break;
+          }
 
           case 'ZERO_CALIBRATED': {
             const slot = msg.slot ?? 1;
-            setSlots((prev) => updateSlot(prev, slot, { isZeroCalibrated: true }));
+            setSlots((prev) => updateSlot(prev, slot, { isZeroCalibrated: true, isConnected: true }));
             if (!msg.resume) {
               phoneAdaptersRef.current[slot]?.resetZero();
             }
             if (gamePhaseRef.current === 'PAIRING') {
               setGamePhase('ZEROING');
+            } else if (gamePhaseRef.current === 'PLAYING') {
+              onSlotReconnectedRef.current(slot);
             }
             break;
           }
@@ -622,11 +634,31 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               setSlots((prev) => updateSlot(prev, droppedSlot, { isConnected: false }));
               processorsRef.current.forEach((p) => p.stopAll());
               if (gamePhaseRef.current === 'PLAYING') {
-                if (pauseMenuOpenRef.current) {
-                  // The player had already paused: keep the menu, but it must now wait for the phone.
-                  setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
+                const playerIndex = slotIndexMapRef.current[droppedSlot];
+                const graceMs = engine.rules.disconnectGraceMs;
+                if (
+                  graceMs !== null &&
+                  playerIndex !== undefined &&
+                  !engine.getPlayer(playerIndex).isAway
+                ) {
+                  if (graceRef.current !== null && graceRef.current.slot !== droppedSlot) {
+                    setGrace(null);
+                    setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
+                  } else {
+                    const newGrace = startGrace(droppedSlot, playerIndex, performance.now(), graceMs);
+                    setGrace(newGrace);
+                    setGraceRemainingSec(Math.ceil(graceMs / 1000));
+                    engine.setPaused(true, performance.now());
+                    setIsExitConfirmOpen(false);
+                    setPauseMenu({ open: true, reason: 'PLAYER_LOST' });
+                  }
                 } else {
-                  handleOpenPauseRef.current('CONTROLLER_LOST');
+                  if (pauseMenuOpenRef.current) {
+                    // The player had already paused: keep the menu, but it must now wait for the phone.
+                    setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
+                  } else {
+                    handleOpenPauseRef.current('CONTROLLER_LOST');
+                  }
                 }
               }
             }
@@ -808,6 +840,61 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }, 1000);
   }, [engine, roomId, soundSynth]);
 
+  const startResumeCountdownRef = useRef(startResumeCountdown);
+  startResumeCountdownRef.current = startResumeCountdown;
+
+  const handleContinueAlone = useCallback(() => {
+    if (!graceRef.current) return;
+    const currentGrace = graceRef.current;
+    engine.setPlayerAway(currentGrace.playerIndex, true, performance.now());
+    setSlots((prev) => updateSlot(prev, currentGrace.slot, { isAway: true }));
+    setGrace(null);
+    if (engine.getActivePlayers().length >= 1) {
+      setIsExitConfirmOpen(false);
+      setPauseMenu({ open: false, reason: 'USER' });
+      startResumeCountdown();
+    } else {
+      setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
+    }
+  }, [engine, startResumeCountdown]);
+
+  const handleContinueAloneRef = useRef(handleContinueAlone);
+  handleContinueAloneRef.current = handleContinueAlone;
+
+  useEffect(() => {
+    if (!grace) return;
+    const timer = setInterval(() => {
+      const now = performance.now();
+      const tick = tickGrace(grace, now);
+      setGraceRemainingSec(tick.remainingSec);
+      if (tick.expired) {
+        handleContinueAloneRef.current();
+      }
+    }, 250);
+    return () => clearInterval(timer);
+  }, [grace]);
+
+  const onSlotReconnected = useCallback(
+    (slot: PlayerSlot) => {
+      if (gamePhaseRef.current === 'PLAYING') {
+        const playerIndex = slotIndexMapRef.current[slot];
+        if (playerIndex !== undefined) {
+          if (graceRef.current && graceRef.current.slot === slot) {
+            setGrace(null);
+            setIsExitConfirmOpen(false);
+            setPauseMenu({ open: false, reason: 'USER' });
+            startResumeCountdown();
+          } else if (engine.getPlayer(playerIndex).isAway) {
+            engine.setPlayerAway(playerIndex, false, performance.now());
+            setSlots((prev) => updateSlot(prev, slot, { isAway: false }));
+          }
+        }
+      }
+    },
+    [engine, startResumeCountdown]
+  );
+  onSlotReconnectedRef.current = onSlotReconnected;
+
   const handleOpenPause = useCallback(
     (reason: PauseReason = 'USER') => {
       if (
@@ -832,12 +919,34 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   handleOpenPauseRef.current = handleOpenPause;
 
   const handleResumeFromPause = useCallback(() => {
+    if (pauseMenuReasonRef.current === 'PLAYER_LOST') return;
     // Without the phone nobody can aim, so a resume would only let the countdown end in a free hit.
     if (pauseMenuReasonRef.current === 'CONTROLLER_LOST' && !isControllerConnectedRef.current) return;
+
+    if (engine.rules.disconnectGraceMs !== null) {
+      const map = slotIndexMapRef.current;
+      const droppedSlot = ([1, 2] as PlayerSlot[]).find(
+        (s) =>
+          map[s] !== undefined &&
+          !slotsRef.current.find((slot) => slot.slot === s)?.isConnected &&
+          !engine.getPlayer(map[s]!).isAway
+      );
+      if (droppedSlot !== undefined) {
+        const pIdx = map[droppedSlot]!;
+        const graceMs = engine.rules.disconnectGraceMs;
+        const newGrace = startGrace(droppedSlot, pIdx, performance.now(), graceMs);
+        setGrace(newGrace);
+        setGraceRemainingSec(Math.ceil(graceMs / 1000));
+        setIsExitConfirmOpen(false);
+        setPauseMenu({ open: true, reason: 'PLAYER_LOST' });
+        return;
+      }
+    }
+
     setIsExitConfirmOpen(false);
     setPauseMenu({ open: false, reason: 'USER' });
     startResumeCountdown();
-  }, [startResumeCountdown]);
+  }, [engine, startResumeCountdown]);
 
   const handleRestartFromPause = useCallback(() => {
     if (countdownTimerRef.current) {
@@ -845,6 +954,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       countdownTimerRef.current = null;
     }
     setCountdownSec(null);
+    setGrace(null);
     // startGame() does not clear the pause flag, so lift it first (this also shifts the frozen timers).
     engine.setPaused(false, performance.now());
     setPauseMenu({ open: false, reason: 'USER' });
@@ -871,9 +981,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   // Leaving the run (lobby, game over) closes the menu.
   useEffect(() => {
-    if (gamePhase !== 'PLAYING' && pauseMenuOpenRef.current) {
-      setIsExitConfirmOpen(false);
-      setPauseMenu({ open: false, reason: 'USER' });
+    if (gamePhase !== 'PLAYING') {
+      setGrace(null);
+      if (pauseMenuOpenRef.current) {
+        setIsExitConfirmOpen(false);
+        setPauseMenu({ open: false, reason: 'USER' });
+      }
     }
   }, [gamePhase]);
 
@@ -988,6 +1101,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, []);
 
   const handleReturnToLobby = useCallback(() => {
+    setGrace(null);
     processorsRef.current.forEach((p) => p.stopAll());
     engine.gamePhase = 'PAIRING';
     syncProcessors();
@@ -1012,6 +1126,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       countdownTimerRef.current = null;
     }
     setCountdownSec(null);
+    setGrace(null);
     // handleReturnToLobby does not clear the pause flag; lift it so the next run does not start frozen.
     engine.setPaused(false, performance.now());
     setPauseMenu({ open: false, reason: 'USER' });
@@ -1255,6 +1370,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onPause={gamePhase === 'PLAYING' ? () => handleOpenPause('USER') : undefined}
           />
           {engine.players.map((p, i) => {
+            if (p.isAway) return null;
             const pScoreState = p.scoreManager.getState();
             const pProc = processorsRef.current[i];
             const pAim = pProc?.aim ?? { aimX: 0, aimY: 0 };
@@ -1443,6 +1559,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           onRequestExit={() => setIsExitConfirmOpen(true)}
           onCancelExit={() => setIsExitConfirmOpen(false)}
           onConfirmExit={handleExitToLobbyFromPause}
+          lostSlot={grace?.slot}
+          graceRemainingSec={graceRemainingSec}
+          onContinueAlone={handleContinueAlone}
         />
       )}
 

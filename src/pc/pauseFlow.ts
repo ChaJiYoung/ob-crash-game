@@ -1,6 +1,6 @@
 import type { GamePhase } from '../shared/types';
 
-export type PauseReason = 'USER' | 'CONTROLLER_LOST';
+export type PauseReason = 'USER' | 'CONTROLLER_LOST' | 'PLAYER_LOST';
 
 /**
  * The pause menu is for a live run only. The guide already pauses the game on its own, a resume

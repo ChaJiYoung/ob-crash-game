@@ -9,8 +9,8 @@ PC 화면이 1P/2P 슬롯을 관리하고(로비 슬롯 카드, 마우스 닉네
 | T02 | `done ✅` | 폰 컨트롤러 슬롯: QR `?slot=`, 모든 메시지에 slot, 자리 있음 안내 | [T02](./T02-controller-slot.md) |
 | T03 | `done ✅` | 로비 슬롯 카드 UI(QR / 마우스+닉네임)와 PC 슬롯 상태 | [T03](./T03-lobby-slot-cards.md) |
 | T04 | `done ✅` | 슬롯별 폰 어댑터·마우스 어댑터를 플레이어 처리부에 묶기, 플레이어 수만큼 십자선 | [T04](./T04-per-slot-input.md) |
-| T05 | `in_progress 🔵` | 시작 게이트·같은 구성 재시작·로비 복귀·점수 제출(같은 반복문)·튜토리얼 1P 고정 | [T05](./T05-start-and-result-flow.md) |
-| T06 | `pending` | 끊김 유예(규칙 표 값), 이탈 처리, 복귀 | [T06](./T06-disconnect-grace.md) |
+| T05 | `done ✅` | 시작 게이트·같은 구성 재시작·로비 복귀·점수 제출(같은 반복문)·튜토리얼 1P 고정 | [T05](./T05-start-and-result-flow.md) |
+| T06 | `done ✅` | 끊김 유예(규칙 표 값), 이탈 처리, 복귀 | [T06](./T06-disconnect-grace.md) |
 
 ## Progress
-- done: 4/6 (active: T05)
+- done: 6/6 (Phase P04 완료)

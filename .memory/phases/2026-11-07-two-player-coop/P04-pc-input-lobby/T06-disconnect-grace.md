@@ -1,6 +1,6 @@
 # Task: T06 끊김 유예 30초와 이탈·복귀
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판 도중 한 사람의 폰이 끊기면 전체를 일시정지하고 "2P 재접속 대기 중 · 27초"를 보여 준다(D08). 30초 안에 다시 연결되면 3초 카운트다운 뒤 그대로 이어서 한다. 30초가 지나면(또는 PC에서 "혼자 계속하기"를 누르면) 그 플레이어를 이탈 처리(`engine.setPlayerAway`)하고 남은 사람이 계속한다. 이탈자의 패널은 남고 십자선만 사라지며(D20, 화면 표시는 P05-T01·P04-T02), 이탈자가 나중에 다시 연결되면 영점 조정 없이 바로 복귀한다(D20). 1인 판의 기존 "폰 재연결 중" 일시정지는 그대로다.
@@ -73,9 +73,9 @@
 - `PauseMenuOverlay` `reason='PLAYER_LOST' lostSlot={2} graceRemainingSec={27}` → "2P 재접속 대기 중 · 27초", "혼자 계속하기" 버튼.
 
 ## Acceptance Criteria
-- [ ] 2인 판에서 폰 하나를 끄면 일시정지 + 30초 카운트다운, 30초 안에 켜면 이어서 플레이.
-- [ ] 30초가 지나면 남은 사람이 계속 플레이하고, 끈 폰을 다시 켜면 영점 없이 바로 복귀.
-- [ ] 1인 판 끊김 동작은 기존과 같다(`tests/pause-menu.test.ts`, `tests/controller-reconnect.test.ts` 통과).
+- [x] 2인 판에서 폰 하나를 끄면 일시정지 + 30초 카운트다운, 30초 안에 켜면 이어서 플레이.
+- [x] 30초가 지나면 남은 사람이 계속 플레이하고, 끈 폰을 다시 켜면 영점 없이 바로 복귀.
+- [x] 1인 판 끊김 동작은 기존과 같다(`tests/pause-menu.test.ts`, `tests/controller-reconnect.test.ts` 통과).
 
 ## Validation
 - `npx vitest run tests/coop-disconnect.test.ts tests/pause-menu.test.ts tests/controller-reconnect.test.ts` — 통과
@@ -98,6 +98,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

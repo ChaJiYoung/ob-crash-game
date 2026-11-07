@@ -4,20 +4,20 @@
 [2인팟 (Two-Player Co-op)](./plans/2026-11-07-two-player-coop.md)
 
 ## Active Phase
-[P04 PC 로비·연결](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md)
+[P04 PC 로비·연결 (완료)](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md)
 
 ## Active Task
-[T05 시작 게이트·같은 구성 재시작·로비 복귀·점수 제출(같은 반복문)·튜토리얼 1P 고정](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/T05-start-and-result-flow.md)
+[T06 끊김 유예 30초와 이탈·복귀 (완료)](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/T06-disconnect-grace.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
 - P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
-- P04 PC 로비·연결 진행 중 (4/6 Tasks 완료)
-- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 진행 중)
+- P04 PC 로비·연결 완료 (6/6 Tasks 완료)
+- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 완료, P05 대기)
 
 ## Next Step (IMPORTANT)
-P04-T05 청사진을 읽고 시작 게이트·재시작·점수 제출·튜토리얼 1P 고정 흐름 구현 및 검증.
+P04 완료 및 사용자 리뷰 대기 (P05는 사용자 승인 전까지 시작하지 않음).
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

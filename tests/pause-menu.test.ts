@@ -166,3 +166,32 @@ describe('exit to lobby from the pause menu', () => {
     expect(source).toMatch(/isExitConfirmOpenRef\.current\) \{\s*setIsExitConfirmOpen\(false\);\s*return;/);
   });
 });
+
+describe('PLAYER_LOST state', () => {
+  const render = (props: Partial<React.ComponentProps<typeof PauseMenuOverlay>>) =>
+    renderToStaticMarkup(
+      React.createElement(PauseMenuOverlay, {
+        reason: 'PLAYER_LOST',
+        lostSlot: 2,
+        graceRemainingSec: 27,
+        isControllerConnected: false,
+        onResume: () => {},
+        onRestart: () => {},
+        onContinueAlone: () => {},
+        isExitConfirmOpen: false,
+        onRequestExit: () => {},
+        onCancelExit: () => {},
+        onConfirmExit: () => {},
+        ...props,
+      })
+    );
+
+  it('renders countdown and continue alone button, while resume is disabled', () => {
+    const html = render({});
+    expect(html).toContain('2P 재접속 대기 중 · 27초');
+    expect(html).toContain('혼자 계속하기');
+    expect(html).toContain('disabled');
+    expect(html).toContain('다시시작');
+    expect(html).toContain('로비로 나가기');
+  });
+});
