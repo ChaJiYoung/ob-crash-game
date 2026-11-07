@@ -9,6 +9,7 @@ import {
   getStartGate,
   buildSlotIndexMap,
   indexToSlot,
+  getSoloSlot,
   getMouseIndex,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
@@ -160,5 +161,39 @@ describe('coopSlots pure model (P04-T01)', () => {
     expect(switched[0].input).toBe('mouse');
     expect(switched[0].player).toBeUndefined();
     expect(switched[0].isZeroCalibrated).toBe(false);
+  });
+
+  describe('getSoloSlot', () => {
+    it('returns slot 2 when only slot 2 is joined (슬롯 2만 참여 → 슬롯 2)', () => {
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 2, 'mobile').slots;
+      slots = updateSlot(slots, 2, {
+        player: makeProfile('phone_2', '선수2'),
+        isConnected: true,
+        isZeroCalibrated: true,
+      });
+
+      // Before map is fixed (lobby state)
+      expect(getSoloSlot(undefined, slots)).toBe(2);
+
+      // Once map is built
+      const map = buildSlotIndexMap(slots);
+      expect(map).toEqual({ 2: 0 });
+      expect(getSoloSlot(map, slots)).toBe(2);
+      expect(getSoloSlot(map)).toBe(2);
+    });
+
+    it('returns slot 1 when both slots are joined or empty', () => {
+      expect(getSoloSlot()).toBe(1);
+
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 1, 'mouse').slots;
+      slots = updateSlot(slots, 1, { player: makeProfile('m', 'M') });
+      slots = chooseSlotInput(slots, 2, 'mobile').slots;
+      slots = updateSlot(slots, 2, { player: makeProfile('p', 'P') });
+
+      const map = buildSlotIndexMap(slots);
+      expect(getSoloSlot(map, slots)).toBe(1);
+    });
   });
 });

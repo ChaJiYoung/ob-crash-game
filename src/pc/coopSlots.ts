@@ -142,6 +142,27 @@ export function indexToSlot(
   return undefined;
 }
 
+/**
+ * 1인 모드(튜토리얼/센서랩/진단 등)나 단일 플레이어 관점 도구에서 기준 슬롯(플레이어 0)을 계산.
+ * - map의 플레이어 0에 매핑된 슬롯이 있으면 그 슬롯 (예: 슬롯 2만 참여하여 map[2] === 0인 경우 2)
+ * - map에 없으면 slots의 첫 번째 joined 슬롯 (예: 슬롯 2만 참여한 상태의 slots면 2)
+ * - 둘 다 없으면 기본값 1
+ */
+export function getSoloSlot(
+  map?: Partial<Record<PlayerSlot, PlayerIndex>>,
+  slots?: SlotPair
+): PlayerSlot {
+  if (map) {
+    const fromMap = indexToSlot(map, 0);
+    if (fromMap !== undefined) return fromMap;
+  }
+  if (slots) {
+    const joined = getJoinedSlots(slots);
+    if (joined.length > 0) return joined[0].slot;
+  }
+  return 1;
+}
+
 /** 마우스 슬롯의 엔진 번호. 마우스 참여자가 없으면 null. */
 export function getMouseIndex(
   slots: SlotPair,

@@ -42,6 +42,7 @@ import {
   getStartGate,
   buildSlotIndexMap,
   indexToSlot,
+  getSoloSlot,
   getMouseBinding,
   decideLobbyStart,
   SlotPair,
@@ -519,7 +520,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             if (!adapter) break;
 
             const map = slotIndexMapRef.current;
-            const soloSlot = indexToSlot(map, 0) ?? 1;
+            const soloSlot = getSoloSlot(map, slotsRef.current);
             const isPlayerZeroSlot = slot === soloSlot;
 
             if (isPlayerZeroSlot) {
@@ -1037,12 +1038,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   );
 
   const handleResetSensorZero = useCallback(() => {
-    phoneAdaptersRef.current[1]?.autoZeroFromLatest();
+    const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
+    phoneAdaptersRef.current[soloSlot]?.autoZeroFromLatest();
   }, []);
 
   const handleStartSandbox = useCallback(() => {
     setIsGuideOpen(false);
-    const soloSlot = getJoinedSlots(slotsRef.current)[0]?.slot ?? 1;
+    const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
     slotIndexMapRef.current = { [soloSlot]: 0 };
     engine.startSandboxMode();
     syncProcessors();
@@ -1051,7 +1053,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleStartTutorial = useCallback(() => {
     setIsGuideOpen(false);
-    const soloSlot = getJoinedSlots(slotsRef.current)[0]?.slot ?? 1;
+    const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
     slotIndexMapRef.current = { [soloSlot]: 0 };
     engine.startTutorialMode();
     const director = new TutorialDirector(engine, (step) => setTutorialStep(step));
@@ -1408,7 +1410,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             ammo={hudState.ammo}
             maxAmmo={hudState.maxAmmo}
             isReloading={hudState.isReloading}
-            onStartRealGame={handleStartGame}
+            onStartRealGame={() => pressScreenButton('start')}
             onExitToLobby={handleExitTutorial}
           />
           <CrosshairOverlay
@@ -1482,9 +1484,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }));
             }}
             onResetZeroCenter={() => {
-              phoneAdaptersRef.current[1]?.autoZeroFromLatest();
+              const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
+              phoneAdaptersRef.current[soloSlot]?.autoZeroFromLatest();
             }}
-            onStartRealGame={startCountdownAndGame}
+            onStartRealGame={() => pressScreenButton('start')}
             onExitToLobby={() => {
               engine.exitSandboxMode();
               setGamePhase('PAIRING');
