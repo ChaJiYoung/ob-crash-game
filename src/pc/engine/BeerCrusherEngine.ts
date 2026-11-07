@@ -1986,7 +1986,7 @@ export class BeerCrusherEngine {
       aimX,
       aimY,
       nowMs,
-      (t) => (!!t.weaponSelectKind || !!t.rewardCardKind) && (t.ownerIndex === undefined || t.ownerIndex === playerIndex),
+      (t) => (!!t.weaponSelectKind || !!t.rewardCardKind) && t.ownerIndex === playerIndex,
       playerIndex
     );
 
