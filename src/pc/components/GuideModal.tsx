@@ -14,7 +14,7 @@ export interface GuideModalProps {
   onClose: () => void;
 }
 
-type TabType = 'weapons' | 'monsters' | 'cards' | 'items';
+type TabType = 'weapons' | 'monsters' | 'cards' | 'items' | 'coop';
 
 type WeaponKindKey = 'shotgun' | 'revolver' | 'gatling';
 
@@ -304,6 +304,22 @@ export const GuideModal: React.FC<GuideModalProps> = ({
             }}
           >
             🍺 펍 아이템 버프
+          </button>
+          <button
+            onClick={() => setActiveTab('coop')}
+            style={{
+              background: activeTab === 'coop' ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'coop' ? '3px solid #fbbf24' : '3px solid transparent',
+              color: activeTab === 'coop' ? '#fbbf24' : '#94a3b8',
+              padding: '12px 18px',
+              fontSize: '15px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            👥 2인팟 협동 모드
           </button>
         </div>
 
@@ -638,15 +654,15 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
-                    • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
-                    • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림!)<br />
+                    • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 첫 발은 즉시 단발 강타 후 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
+                    • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림, 카드 선택 직후 0.3초간은 안전 잠금)<br />
                     • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 명중 점수 1.5배, 명중은 모두 GREAT 판정!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
                     • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
-                    • <strong>⚡ 필살 액티브 스킬:</strong> <strong>마우스 우클릭</strong><br />
+                    • <strong>⚡ 필살 액티브 스킬:</strong> <strong>마우스 우클릭</strong> (시작 카운트다운 중·카드 선택 중엔 미발동, 카드 선택 직후 0.3초 안전 잠금)<br />
                     • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>마우스 더블클릭</strong> (4초간 무한 탄창 자동 연사 & 명중 점수 1.5배, 명중은 모두 GREAT 판정)<br />
                     • <strong>⏸ 일시정지:</strong> <strong>Esc 키</strong> 또는 상단 일시정지 버튼 (이어하기 / 다시시작)
                   </div>
@@ -717,6 +733,78 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* TAB 5: CO-OP */}
+          {activeTab === 'coop' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Co-op Connection & Lobby */}
+              <div
+                style={{
+                  background: 'rgba(56, 189, 248, 0.08)',
+                  border: '1.5px solid rgba(56, 189, 248, 0.4)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#38bdf8' }}>
+                  👥 2인팟 로비 연결 & 슬롯 시스템
+                </div>
+                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
+                  • <strong>1P(#38bdf8 하늘색) / 2P(#ff6b3d 주황색) 슬롯:</strong> 각 슬롯마다 📱 스마트폰(슬롯별 전용 QR 스캔) 또는 🖱 마우스(닉네임 입력) 중 원하는 조작 방식을 자유롭게 선택할 수 있습니다.<br />
+                  • <strong>마우스 단독 배정:</strong> 마우스는 한 슬롯만 사용할 수 있으며, 다른 슬롯은 스마트폰을 연결해야 합니다.<br />
+                  • <strong>시작 게이트:</strong> 참여한 슬롯이 모두 준비(모바일 영점 완료 또는 마우스 닉네임 입력)되면 게임을 시작할 수 있습니다. 한쪽 슬롯만 참여하면 기존 1인 모드로 진행됩니다.
+                </div>
+              </div>
+
+              {/* Co-op Combat Rules */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#fbbf24' }}>
+                  ⚔️ 협동 전투 & 보상 선택 규칙
+                </div>
+                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
+                  • <strong>공유 요소:</strong> 목숨(BAR DEFENSE 5개 공유), 웨이브 진행 상태, 보스 몬스터는 팀 전체가 공유합니다.<br />
+                  • <strong>개인 요소:</strong> 득점, 콤보, 처치 수, 무기 종류 및 레벨, 보상 카드는 각 플레이어 개인별로 누적됩니다.<br />
+                  • <strong>몬스터 밸런스:</strong> 2인 참여 시 몬스터의 체력과 웨이브 스폰량이 2인 기준 규칙에 맞추어 강화됩니다.<br />
+                  • <strong>보상 카드 선택:</strong> 웨이브 클리어 시 양쪽 플레이어 앞에 각자의 카드 3장이 소환됩니다. 두 플레이어가 모두 카드를 쏠 때까지 전장이 정지되며, 시간 제한 없이 여유롭게 선택할 수 있습니다.<br />
+                  • <strong>펍 아이템:</strong> 파워샷·와이드스코프는 맞힌 플레이어 개인에게만 적용되며, 아이스 프리즈는 전장 전체(팀 공유)에 적용됩니다.
+                </div>
+              </div>
+
+              {/* Disconnect Protection & Team Rankings */}
+              <div
+                style={{
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#f59e0b' }}>
+                  🛡️ 연결 끊김 보호(Grace Period) & 팀 랭킹
+                </div>
+                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
+                  • <strong>30초 연결 보호:</strong> 모바일 컨트롤러 연결이 끊기면 30초 동안 '나감(AWAY)' 상태로 총이 숨겨지고 남은 플레이어가 게임을 계속 진행합니다. 30초 내에 재접속하면 기존 점수와 무기를 그대로 유지한 채 복귀합니다.<br />
+                  • <strong>팀 랭킹 명예의 전당:</strong> 2인팟 경기 결과는 솔로 랭킹을 침범하지 않으며, '팀 랭킹' 탭에 두 사람의 팀 합계 점수로 등록됩니다.
+                </div>
+              </div>
             </div>
           )}
         </div>

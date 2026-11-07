@@ -23,6 +23,9 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /MISS 페널티 완전 폐지/, why: 'misses now cost ammo and reload time' },
   { pattern: /8초마다 (부하|소환)|부하를 8초마다|4마리를 공유/, why: 'boss summons are HP-driven now, not a shared timer' },
   { pattern: /\+150 PTS|\+100 PTS|\+50 PTS|\+500점|\+1,500점|2배 화력|기본 피해의 3배/, why: 'scores are scaled by GAME_TUNING.score.scale (x0.1) and fever no longer boosts damage' },
+  { pattern: /위로 휙! \/ 우클릭/, why: '스킬 안내는 입력 방식별 하나(D09)' },
+  { pattern: /10초.*자동 선택|자동 선택.*10초/, why: '선택 시간 제한 없음(D34)' },
+  { pattern: /튜토리얼.*(넉넉|넓은) (판정|명중)/, why: '연습 판정이 실전과 같음(D30)' },
 ];
 
 function collect(): string[] {

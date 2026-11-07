@@ -1,6 +1,6 @@
 # Task: T05 튜토리얼 패널 통일
 
-## Status: pending
+## Status: done
 
 ## Goal
 튜토리얼 화면이 자체 탄약·피버 표시 대신 메인 전투와 같은 `PlayerPanel`(1인 형태: 배지 없음, 앰버, 입력별 스킬 안내)을 왼쪽 아래에 쓰게 한다. 단계 안내 문구(`TutorialGuideOverlay`의 단계 카드·버튼)는 튜토리얼 전용으로 남긴다. 센서 랩(`SensorAndModuleTestLabOverlay`)은 바꾸지 않는다(D14). 튜토리얼은 여전히 1인 전용(D12).
@@ -62,6 +62,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: 09357de

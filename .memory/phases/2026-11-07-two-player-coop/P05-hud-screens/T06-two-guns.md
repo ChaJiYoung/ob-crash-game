@@ -1,6 +1,6 @@
 # Task: T06 3D 총 두 자루
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판에서 화면 아래에 3D 총(`DraftTapGun3D`)을 플레이어마다 한 자루씩 띄운다(D21, 시안 3~6: 1P 왼쪽, 2P 오른쪽). 각 총은 자기 플레이어의 조준을 따라 돌고, 자기 무기·레벨 외형과 파워샷·스코프·피버 표시를 하며, 쏘면 자기 총만 반동하고 사격 광선은 자기 총구에서 나간다. 이탈자의 총은 숨긴다(D20). 1인 판은 지금처럼 가운데 한 자루.
@@ -88,6 +88,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: 2f85d92

@@ -1,6 +1,6 @@
 # Task: T08 문서 갱신
 
-## Status: pending
+## Status: done
 
 ## Goal
 플레이어가 읽는 문서와 인게임 가이드에 2인팟과 바뀐 1인 동작을 반영한다(D39). 낡은 문구가 다시 들어오지 않도록 문서 동기화 테스트에 금지 규칙을 더한다.
@@ -37,8 +37,8 @@
 - 기존 `collect()`가 `README.md`, `docs/*.md`, `src/pc/components/*.tsx`를 읽으므로 대상 추가는 필요 없다.
 
 ## Acceptance Criteria
-- [ ] README와 인게임 가이드만 읽고 2인팟을 연결해 시작할 수 있다.
-- [ ] 바뀐 1인 동작이 문서와 일치한다.
+- [x] README와 인게임 가이드만 읽고 2인팟을 연결해 시작할 수 있다.
+- [x] 바뀐 1인 동작이 문서와 일치한다.
 
 ## Validation
 - `npx vitest run tests/docs-sync.test.ts` — 통과
@@ -61,6 +61,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

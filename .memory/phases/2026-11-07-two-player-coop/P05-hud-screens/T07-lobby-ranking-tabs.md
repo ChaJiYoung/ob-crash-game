@@ -1,6 +1,6 @@
 # Task: T07 로비 랭킹 탭(개인 / 팀)
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비 하단 명예의 전당을 탭 두 개로 바꾼다(D22): "개인 랭킹"(지금의 솔로 Top5)과 "팀 랭킹"(P03-T04 `teamRankings`, `닉네임A & 닉네임B · 팀 합계 · 도달 웨이브`). 지금 로비에 참여한 두 사람의 팀 기록이 목록에 있으면 강조한다. 결과 화면 랭킹 영역도 2인 판이면 팀 랭킹 탭을 기본으로 연다.
@@ -84,6 +84,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: aaed7e8
