@@ -1,6 +1,6 @@
 # Task: T05 입력 어댑터와 플레이어 동작 처리부
 
-## Status: pending
+## Status: done
 
 ## Goal
 입력을 두 층으로 나눈다(D25).
@@ -206,6 +206,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

@@ -28,6 +28,10 @@ import { SoundSynthesizer } from './audio/SoundSynthesizer';
 import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, RunRankingEntry, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
+import { PlayerIndex } from './engine/PlayerCombatState';
+import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProcessor';
+import { MouseAdapter } from './input/MouseAdapter';
+import { PhoneAdapter } from './input/PhoneAdapter';
 
 export interface PCGamePageProps {
   initialPhase?: GamePhase;
@@ -44,6 +48,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const gamePhaseRef = useRef<GamePhase>(gamePhase);
   gamePhaseRef.current = gamePhase;
   const [roomId, setRoomId] = useState<string>('');
+  const roomIdRef = useRef<string>(roomId);
+  roomIdRef.current = roomId;
   const [lanIp, setLanIp] = useState<string>('');
   const [pairedPlayer, setPairedPlayer] = useState<PlayerProfile | undefined>();
   const [topRankings, setTopRankings] = useState<RunRankingEntry[]>([]);
@@ -108,7 +114,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [sandboxInfiniteAmmo, setSandboxInfiniteAmmo] = useState<boolean>(false);
   const packetCountRef = useRef(0);
   const lastPacketTimeRef = useRef(performance.now());
-  const zeroOffsetRef = useRef({ offsetX: 0, offsetY: 0 });
   const diagnosticsRef = useRef(diagnostics);
   diagnosticsRef.current = diagnostics;
 
@@ -153,54 +158,28 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     hpLayerRef.current?.update(projections);
   }, []);
 
-  const handleAimChange = useCallback(
-    (x: number, y: number) => {
-      updateAimDirect(x, y, true);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
   const wsRef = useRef<WebSocket | null>(null);
-  const rapidFireTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const feverAutoFireTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pairedPlayerRef = useRef<PlayerProfile | undefined>(undefined);
   pairedPlayerRef.current = pairedPlayer;
 
   const latestAimRef = useRef({ aimX: 0, aimY: 0 });
-  const lastSentFeverReadyRef = useRef<boolean>(false);
-  const lastSentSkillStockRef = useRef<number>(-1);
-  const lastSkillSyncTimeRef = useRef<number>(0);
-  const lastIsCockedRef = useRef<boolean>(false);
   const lastDiagUpdateTimeRef = useRef<number>(0);
 
   const [hoveredResultAction, setHoveredResultAction] = useState<'restart' | 'lobby' | null>(null);
   const hoveredResultActionRef = useRef<'restart' | 'lobby' | null>(null);
-  const restartButtonRef = useRef<HTMLButtonElement | null>(null);
-  const lobbyButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const checkResultButtonHover = useCallback((aimX: number, aimY: number): 'restart' | 'lobby' | null => {
+  const hitTestButton = useCallback((aimX: number, aimY: number): ShootableButton | null => {
     if (typeof window === 'undefined') return null;
-    const curPhase = gamePhaseRef.current;
-    if (curPhase !== 'GAMEOVER' && curPhase !== 'VICTORY') return null;
-
     const screenX = ((aimX + 1) / 2) * window.innerWidth;
     const screenY = ((1 - aimY) / 2) * window.innerHeight;
 
-    if (restartButtonRef.current) {
-      const rect = restartButtonRef.current.getBoundingClientRect();
+    const elements = document.querySelectorAll<HTMLElement>('[data-shootable]');
+    for (const el of Array.from(elements)) {
+      const rect = el.getBoundingClientRect();
       if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
-        return 'restart';
+        return (el.getAttribute('data-shootable') as ShootableButton) || null;
       }
     }
-
-    if (lobbyButtonRef.current) {
-      const rect = lobbyButtonRef.current.getBoundingClientRect();
-      if (screenX >= rect.left && screenX <= rect.right && screenY >= rect.top && screenY <= rect.bottom) {
-        return 'lobby';
-      }
-    }
-
     return null;
   }, []);
 
@@ -208,12 +187,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     latestAimRef.current = { aimX: x, aimY: y };
     canvasRef.current?.setAim(x, y, immediate);
     crosshairRef.current?.updatePosition(x, y, immediate);
-    const action = checkResultButtonHover(x, y);
-    if (hoveredResultActionRef.current !== action) {
-      hoveredResultActionRef.current = action;
-      setHoveredResultAction(action);
+    const action = hitTestButton(x, y);
+    const resultAction = action === 'restart' || action === 'lobby' ? action : null;
+    if (hoveredResultActionRef.current !== resultAction) {
+      hoveredResultActionRef.current = resultAction;
+      setHoveredResultAction(resultAction);
     }
-  }, [checkResultButtonHover]);
+  }, [hitTestButton]);
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (!result.fired) return;
@@ -241,28 +221,92 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     crosshairRef.current?.kick();
   }, [engine, soundSynth]);
 
-  const executeSkill = useCallback(() => {
-    if (pauseMenuOpenRef.current) return;
-    const now = performance.now();
-    const res = engine.triggerWeaponSkill(now);
-    if (res.activated) {
-      soundSynth.playSkillActivation(res.weaponKind);
-      canvasRef.current?.triggerSkillEffect?.(res.weaponKind);
+  const handleStartGameRef = useRef<() => void>(() => {});
+  const handleReturnToLobbyRef = useRef<() => void>(() => {});
+
+  const pressScreenButton = useCallback((button: ShootableButton) => {
+    if (button === 'start') {
+      startCountdownAndGameRef.current();
+    } else if (button === 'restart') {
+      handleStartGameRef.current();
+    } else if (button === 'lobby') {
+      handleReturnToLobbyRef.current();
     }
-  }, [engine, soundSynth]);
+  }, []);
+
+  const processorsRef = useRef<PlayerActionProcessor[]>([]);
+  const phoneAdapterRef = useRef<PhoneAdapter | null>(null);
+  const mouseAdapterRef = useRef<MouseAdapter | null>(null);
+
+  const syncProcessors = useCallback(() => {
+    const targetCount = engine.players.length;
+    processorsRef.current.forEach((p) => p.stopAll());
+    processorsRef.current = [];
+
+    for (let p = 0; p < targetCount; p++) {
+      const processor = new PlayerActionProcessor({
+        engine,
+        playerIndex: p as PlayerIndex,
+        getPhase: () => gamePhaseRef.current,
+        isPauseMenuOpen: () => pauseMenuOpenRef.current,
+        getSkillGraceUntilMs: () => skillGraceUntilRef.current,
+        hitTestButton,
+        onButton: (btn) => {
+          soundSynth.playHit('PERFECT');
+          pressScreenButton(btn);
+        },
+        onShot: handleShootEvent,
+        onSkill: (res) => {
+          soundSynth.playSkillActivation(res.weaponKind);
+          canvasRef.current?.triggerSkillEffect?.(res.weaponKind);
+        },
+        onFeverStarted: (_idx) => {
+          soundSynth.playFeverStart();
+        },
+        onAim: (x, y, _idx) => {
+          updateAimDirect(x, y, false);
+        },
+      });
+      processorsRef.current.push(processor);
+    }
+  }, [engine, hitTestButton, pressScreenButton, handleShootEvent, soundSynth, updateAimDirect]);
+
+  if (!phoneAdapterRef.current) {
+    phoneAdapterRef.current = new PhoneAdapter({
+      sink: () => processorsRef.current[0] ?? null,
+      send: (msg) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify(msg));
+        }
+      },
+      roomId: () => roomIdRef.current,
+      getTuning: () => tuningConfigRef.current,
+    });
+  }
+
+  if (!mouseAdapterRef.current) {
+    mouseAdapterRef.current = new MouseAdapter(
+      () => processorsRef.current[0] ?? null,
+      WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS
+    );
+  }
+
+  useEffect(() => {
+    syncProcessors();
+  }, [syncProcessors]);
 
   // Mouse right-click skill trigger
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      executeSkill();
+      mouseAdapterRef.current?.onRightClick();
     };
 
     window.addEventListener('contextmenu', handleContextMenu);
     return () => {
       window.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [executeSkill]);
+  }, []);
 
   // 1. WebSocket Setup (Isolated from pairedPlayer re-renders to prevent socket close loop)
   useEffect(() => {
@@ -309,7 +353,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               break;
             }
             setIsZeroCalibrated(true);
-            zeroOffsetRef.current = { offsetX: 0, offsetY: 0 };
+            phoneAdapterRef.current?.resetZero();
             if (gamePhaseRef.current === 'PAIRING') {
               setGamePhase('ZEROING');
             }
@@ -351,13 +395,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               lastPacketTimeRef.current = now;
             }
 
-            const curTuning = tuningConfigRef.current;
-            const rawFromPayloadX = p.rawAimX ?? p.aimX;
-            const rawFromPayloadY = p.rawAimY ?? p.aimY;
-
             let currentJitterRms = 0;
             if (isDiagnosticsNeeded) {
-              // Rolling window of raw samples (up to 30) for jitter calculation
+              const rawFromPayloadX = p.rawAimX ?? p.aimX;
+              const rawFromPayloadY = p.rawAimY ?? p.aimY;
               recentRawSamplesRef.current.push({ x: rawFromPayloadX, y: rawFromPayloadY });
               if (recentRawSamplesRef.current.length > 30) {
                 recentRawSamplesRef.current.shift();
@@ -375,124 +416,39 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }
             }
 
-            const rawAimX = (p.aimX - zeroOffsetRef.current.offsetX) * curTuning.sensitivityX;
-            const signedAimY = curTuning.invertY ? -p.aimY : p.aimY;
-            const rawAimY = (signedAimY - zeroOffsetRef.current.offsetY) * curTuning.sensitivityY;
-            const effectiveAimX = Math.max(-1, Math.min(1, rawAimX));
-            const effectiveAimY = Math.max(-1, Math.min(1, rawAimY));
-
-            const offsetRawX = Math.max(-1, Math.min(1, (rawFromPayloadX - zeroOffsetRef.current.offsetX) * curTuning.sensitivityX));
-            const signedRawY = curTuning.invertY ? -rawFromPayloadY : rawFromPayloadY;
-            const offsetRawY = Math.max(-1, Math.min(1, (signedRawY - zeroOffsetRef.current.offsetY) * curTuning.sensitivityY));
-
-            updateAimDirect(effectiveAimX, effectiveAimY, false);
-
-            // The pause menu swallows every action; the aim still follows so the crosshair is right on resume.
-            if (pauseMenuOpenRef.current) {
-              if (rapidFireTimerRef.current) {
-                clearInterval(rapidFireTimerRef.current);
-                rapidFireTimerRef.current = null;
+            const frameResult = phoneAdapterRef.current?.onSensorFrame(p);
+            if (frameResult) {
+              setIsAimLocked(frameResult.isAimLocked);
+              if (frameResult.cockedJustNow) {
+                soundSynth.playCocking();
               }
-              break;
-            }
 
-            if (isDiagnosticsNeeded && now - lastDiagUpdateTimeRef.current >= 60) {
-              lastDiagUpdateTimeRef.current = now;
-              setDiagnostics((prev) => ({
-                ...prev,
-                aimX: effectiveAimX,
-                aimY: effectiveAimY,
-                yawDeg: p.yawDeg,
-                pitchDeg: p.pitchDeg,
-                rollDeg: p.rollDeg,
-                rapidFireHold: p.rapidFireHold,
-                lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
-              }));
+              if (isDiagnosticsNeeded && now - lastDiagUpdateTimeRef.current >= 60) {
+                lastDiagUpdateTimeRef.current = now;
+                setDiagnostics((prev) => ({
+                  ...prev,
+                  aimX: frameResult.aimX,
+                  aimY: frameResult.aimY,
+                  yawDeg: p.yawDeg,
+                  pitchDeg: p.pitchDeg,
+                  rollDeg: p.rollDeg,
+                  rapidFireHold: p.rapidFireHold,
+                  lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
+                }));
 
-              setSensorLiveMetrics({
-                rawAimX: offsetRawX,
-                rawAimY: offsetRawY,
-                aimX: effectiveAimX,
-                aimY: effectiveAimY,
-                yawDeg: p.yawDeg,
-                pitchDeg: p.pitchDeg,
-                rollDeg: p.rollDeg,
-                packetHz: packetCountRef.current * 4 || 60,
-                jitterRms: currentJitterRms,
-                isCocked: p.isCocked,
-                lastSnapAt: p.snapFire ? Date.now() : undefined,
-              });
-            }
-
-            if (p.isCocked && !lastIsCockedRef.current) {
-              soundSynth.playCocking();
-            }
-            lastIsCockedRef.current = !!p.isCocked;
-
-            const isFever = engine.scoreManager.getState().isFeverActive;
-            const aimLocked = Boolean(p.isCocked && !isFever && !p.rapidFireHold);
-            setIsAimLocked(aimLocked);
-
-            // A flick that picks a card must not also fire the skill in the same packet.
-            const cardPendingBeforeShot = engine.isCardSelectPending;
-            if (p.snapFire) {
-              setIsAimLocked(false);
-              const curPhase = gamePhaseRef.current;
-              if (curPhase === 'PAIRING' || curPhase === 'ZEROING') {
-                soundSynth.playShoot(false);
-                // Shoot to start target hit when aiming at monitor center
-                if (Math.abs(effectiveAimX) < 0.65 && Math.abs(effectiveAimY) < 0.65) {
-                  soundSynth.playHit('PERFECT');
-                  startCountdownAndGameRef.current();
-                }
-              } else if (curPhase === 'GAMEOVER' || curPhase === 'VICTORY') {
-                soundSynth.playShoot(false);
-                const action = checkResultButtonHover(effectiveAimX, effectiveAimY);
-                if (action === 'restart') {
-                  soundSynth.playHit('PERFECT');
-                  handleStartGame();
-                } else if (action === 'lobby') {
-                  soundSynth.playHit('PERFECT');
-                  handleReturnToLobby();
-                } else {
-                  soundSynth.playHit('MISS');
-                }
-              } else {
-                const res = engine.shootAt(effectiveAimX, effectiveAimY, performance.now(), 'press');
-                handleShootEvent(res);
-              }
-            }
-
-            // Rapid fire hold using live aim coordinates (5ms polling interval to respect fast fire rates like gatling 58ms without quantization loss)
-            if (p.rapidFireHold) {
-              if (!rapidFireTimerRef.current) {
-                rapidFireTimerRef.current = setInterval(() => {
-                  const curAim = latestAimRef.current;
-                  const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now(), 'hold');
-                  if (res.fired) {
-                    handleShootEvent(res);
-                  }
-                }, 5);
-              }
-            } else {
-              if (rapidFireTimerRef.current) {
-                clearInterval(rapidFireTimerRef.current);
-                rapidFireTimerRef.current = null;
-              }
-            }
-
-            if (p.feverTriggered) {
-              const activated = engine.activateFever(performance.now());
-              if (activated) {
-                soundSynth.playFeverStart();
-              }
-            }
-
-            if (p.skillSnapTriggered) {
-              const isPendingCard = cardPendingBeforeShot || engine.isCardSelectPending;
-              const inGrace = performance.now() < skillGraceUntilRef.current;
-              if ((gamePhaseRef.current === 'PLAYING' || gamePhaseRef.current === 'TUTORIAL') && !isPendingCard && !inGrace) {
-                executeSkill();
+                setSensorLiveMetrics({
+                  rawAimX: frameResult.rawAimX,
+                  rawAimY: frameResult.rawAimY,
+                  aimX: frameResult.aimX,
+                  aimY: frameResult.aimY,
+                  yawDeg: p.yawDeg,
+                  pitchDeg: p.pitchDeg,
+                  rollDeg: p.rollDeg,
+                  packetHz: packetCountRef.current * 4 || 60,
+                  jitterRms: currentJitterRms,
+                  isCocked: p.isCocked,
+                  lastSnapAt: p.snapFire ? Date.now() : undefined,
+                });
               }
             }
             break;
@@ -509,10 +465,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'ERROR':
             if (msg.code === 'CONTROLLER_DISCONNECTED') {
-              if (rapidFireTimerRef.current) {
-                clearInterval(rapidFireTimerRef.current);
-                rapidFireTimerRef.current = null;
-              }
+              processorsRef.current.forEach((p) => p.stopAll());
               isControllerConnectedRef.current = false;
               setIsControllerConnected(false);
               if (gamePhaseRef.current === 'PLAYING') {
@@ -532,8 +485,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     };
 
     return () => {
-      if (rapidFireTimerRef.current) clearInterval(rapidFireTimerRef.current);
-      if (feverAutoFireTimerRef.current) clearInterval(feverAutoFireTimerRef.current);
+      processorsRef.current.forEach((p) => p.stopAll());
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
       socket.close();
     };
@@ -543,7 +495,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       const feverState = engine.scoreManager.getState();
-      const weaponState = engine.weaponSystem.getState();
       const now = performance.now();
 
       const nextHud = buildHudSnapshot(engine, now, tutorialDirectorRef.current?.step ?? tutorialStep);
@@ -562,69 +513,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       if (nextHud.isBossWarning && !lastBossWarningRef.current) soundSynth.playBossWarningSound();
       lastBossWarningRef.current = nextHud.isBossWarning;
 
-      // Auto-fire loop during active Fever mode: polls fast, the weapon's own fire interval gates the actual shots
-      if (feverState.isFeverActive && !engine.isPaused && !engine.isCardSelectPending && (gamePhase === 'PLAYING' || gamePhase === 'SANDBOX' || gamePhase === 'TUTORIAL')) {
-        if (!feverAutoFireTimerRef.current) {
-          feverAutoFireTimerRef.current = setInterval(() => {
-            const curAim = latestAimRef.current;
-            const res = engine.shootAt(curAim.aimX, curAim.aimY, performance.now(), 'fever');
-            handleShootEvent(res);
-          }, 16);
-        }
-      } else {
-        if (feverAutoFireTimerRef.current) {
-          clearInterval(feverAutoFireTimerRef.current);
-          feverAutoFireTimerRef.current = null;
-        }
-      }
-
-      // Sync fever ready status to mobile controller
-      if (roomId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        if (lastSentFeverReadyRef.current !== feverState.isFeverReady) {
-          lastSentFeverReadyRef.current = feverState.isFeverReady;
-          wsRef.current.send(
-            JSON.stringify({
-              type: 'FEVER_STATUS_SYNC',
-              roomId,
-              isFeverReady: feverState.isFeverReady,
-            })
-          );
-        }
-
-        // Sync skill state to mobile controller (on state change or throttled 150ms)
-        const stockChanged = lastSentSkillStockRef.current !== weaponState.skillStock;
-        if (stockChanged || now - lastSkillSyncTimeRef.current >= 150) {
-          lastSkillSyncTimeRef.current = now;
-          lastSentSkillStockRef.current = weaponState.skillStock;
-          wsRef.current.send(
-            JSON.stringify({
-              type: 'SKILL_STATE_SYNC',
-              roomId,
-              weaponKind: weaponState.weaponKind,
-              weaponLevel: weaponState.weaponLevel,
-              skillStock: weaponState.skillStock,
-              maxSkillStock: weaponState.maxSkillStock,
-              skillCooldownRemainingMs: weaponState.skillCooldownRemainingMs,
-              skillCooldownTotalMs: weaponState.skillCooldownTotalMs,
-            })
-          );
-        }
+      // Player action processor tick & phone feedback sync
+      processorsRef.current.forEach((proc) => proc.tick());
+      if (processorsRef.current[0]) {
+        phoneAdapterRef.current?.syncFeedback(processorsRef.current[0].getState());
       }
 
       // Synchronize game over / victory
       if (engine.gamePhase === 'GAMEOVER' && gamePhase === 'PLAYING') {
-        if (rapidFireTimerRef.current) {
-          clearInterval(rapidFireTimerRef.current);
-          rapidFireTimerRef.current = null;
-        }
+        processorsRef.current.forEach((p) => p.stopAll());
         setGamePhase('GAMEOVER');
         soundSynth.playHit('MISS');
         submitScore(feverState.totalScore, engine.currentWave, feverState.maxCombo);
       } else if (engine.gamePhase === 'VICTORY' && gamePhase === 'PLAYING') {
-        if (rapidFireTimerRef.current) {
-          clearInterval(rapidFireTimerRef.current);
-          rapidFireTimerRef.current = null;
-        }
+        processorsRef.current.forEach((p) => p.stopAll());
         setGamePhase('VICTORY');
         soundSynth.playFeverStart();
         submitScore(feverState.totalScore, STAGE_CONSTANTS.TOTAL_WAVES, feverState.maxCombo);
@@ -653,15 +555,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   };
 
   const handleStartGame = useCallback(() => {
-    if (rapidFireTimerRef.current) {
-      clearInterval(rapidFireTimerRef.current);
-      rapidFireTimerRef.current = null;
-    }
+    processorsRef.current.forEach((p) => p.stopAll());
     skillGraceUntilRef.current = performance.now() + 1500;
     engine.startGame({ withWeaponSelect: true });
+    syncProcessors();
     setGamePhase('PLAYING');
     setIsNewRecord(false);
-  }, [engine]);
+  }, [engine, syncProcessors]);
+  handleStartGameRef.current = handleStartGame;
 
   const startCountdownAndGame = useCallback(() => {
     soundSynth.unlockAudio();
@@ -692,10 +593,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         }
         setCountdownSec(null);
         // Automatically calibrate zero to current aim angle when countdown reaches 0
-        zeroOffsetRef.current = {
-          offsetX: latestAimRef.current.aimX,
-          offsetY: latestAimRef.current.aimY,
-        };
+        phoneAdapterRef.current?.autoZeroFromLatest();
         handleStartGame();
       }
     }, 1000);
@@ -732,10 +630,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         }
         setCountdownSec(null);
         // Automatically calibrate zero to current aim angle when countdown reaches 0
-        zeroOffsetRef.current = {
-          offsetX: latestAimRef.current.aimX,
-          offsetY: latestAimRef.current.aimY,
-        };
+        phoneAdapterRef.current?.autoZeroFromLatest();
         engine.setPaused(false, performance.now());
       }
     }, 1000);
@@ -754,10 +649,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       ) {
         return;
       }
-      if (rapidFireTimerRef.current) {
-        clearInterval(rapidFireTimerRef.current);
-        rapidFireTimerRef.current = null;
-      }
+      processorsRef.current.forEach((p) => p.stopAll());
       engine.setPaused(true, performance.now());
       setIsExitConfirmOpen(false);
       setPauseMenu({ open: true, reason });
@@ -860,17 +752,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   );
 
   const handleResetSensorZero = useCallback(() => {
-    zeroOffsetRef.current = {
-      offsetX: latestAimRef.current.aimX,
-      offsetY: latestAimRef.current.aimY,
-    };
+    phoneAdapterRef.current?.autoZeroFromLatest();
   }, []);
 
   const handleStartSandbox = useCallback(() => {
     setIsGuideOpen(false);
     engine.startSandboxMode();
+    syncProcessors();
     setGamePhase('SANDBOX');
-  }, [engine]);
+  }, [engine, syncProcessors]);
 
   const handleStartTutorial = useCallback(() => {
     setIsGuideOpen(false);
@@ -879,21 +769,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     tutorialDirectorRef.current = director;
     director.start(performance.now());
     setTutorialStep(director.step);
+    syncProcessors();
     setGamePhase('TUTORIAL');
-  }, [engine]);
+  }, [engine, syncProcessors]);
 
   const handleExitTutorial = useCallback(() => {
-    if (rapidFireTimerRef.current) {
-      clearInterval(rapidFireTimerRef.current);
-      rapidFireTimerRef.current = null;
-    }
+    processorsRef.current.forEach((p) => p.stopAll());
     if (tutorialDirectorRef.current) {
       tutorialDirectorRef.current.stop();
       tutorialDirectorRef.current = null;
     }
     engine.exitTutorialMode();
+    syncProcessors();
     setGamePhase('PAIRING');
-  }, [engine]);
+  }, [engine, syncProcessors]);
 
   const handleRenewRoom = useCallback(() => {
     clearSavedRoomId();
@@ -901,13 +790,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, []);
 
   const handleReturnToLobby = useCallback(() => {
-    if (rapidFireTimerRef.current) {
-      clearInterval(rapidFireTimerRef.current);
-      rapidFireTimerRef.current = null;
-    }
+    processorsRef.current.forEach((p) => p.stopAll());
     engine.gamePhase = 'PAIRING';
+    syncProcessors();
     setGamePhase('PAIRING');
-  }, [engine]);
+  }, [engine, syncProcessors]);
+  handleReturnToLobbyRef.current = handleReturnToLobby;
 
   // Leaving from the pause menu drops this run's score (no submitScore), like restart does.
   const handleExitToLobbyFromPause = useCallback(() => {
@@ -942,8 +830,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         engine={engine}
         aimX={0}
         aimY={0}
-        onAimChange={handleAimChange}
-        onShoot={handleShootEvent}
+        onMouseAim={(x, y) => mouseAdapterRef.current?.onMove(x, y)}
+        onMouseDown={() => mouseAdapterRef.current?.onLeftDown()}
+        onMouseUp={() => mouseAdapterRef.current?.onLeftUp()}
         soundSynth={soundSynth}
         onMonsterProjectionsUpdate={handleProjections}
         onRenderMetrics={handleRenderMetrics}
@@ -1249,13 +1138,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               engine.setInfiniteAmmo(inf);
             }}
             onTestFireShot={() => {
-              const res = engine.shootAt(
-                latestAimRef.current.aimX,
-                latestAimRef.current.aimY,
-                performance.now(),
-                'press'
-              );
-              handleShootEvent(res);
+              processorsRef.current[0]?.send({ type: 'fireDown' });
+              processorsRef.current[0]?.send({ type: 'fireUp' });
             }}
             onSensitivityChange={(sx, sy, inv) => {
               setDiagnostics((prev) => ({
@@ -1266,10 +1150,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }));
             }}
             onResetZeroCenter={() => {
-              zeroOffsetRef.current = {
-                offsetX: latestAimRef.current.aimX,
-                offsetY: latestAimRef.current.aimY,
-              };
+              phoneAdapterRef.current?.autoZeroFromLatest();
             }}
             onStartRealGame={startCountdownAndGame}
             onExitToLobby={() => {
@@ -1392,8 +1273,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onRestart={handleStartGame}
             onReturnToLobby={handleReturnToLobby}
             hoveredAction={hoveredResultAction}
-            restartButtonRef={restartButtonRef}
-            lobbyButtonRef={lobbyButtonRef}
           />
           {/* Result Crosshair Overlay on top of result modal */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 160 }}>

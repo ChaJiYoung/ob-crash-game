@@ -177,12 +177,11 @@ describe('card selection input gate and freeze (gameplay-polish P02-T03)', () =>
     expect(engine.isCardSelectPending).toBe(false);
   });
 
-  it("only forwards 'hold' / 'fever' from the auto-fire loops (source check)", async () => {
+  // T05: hold/fever 연사 루프는 PCGamePage/GameCanvas3D에서 PlayerActionProcessor로 이동함
+  it("only forwards 'hold' / 'fever' from the action processor auto-fire loops (source check)", async () => {
     const fs = await import('node:fs');
-    const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
-    const canvas = fs.readFileSync('src/pc/components/GameCanvas3D.tsx', 'utf8');
-    expect(page).toContain("performance.now(), 'hold')");
-    expect(page).toContain("performance.now(), 'fever')");
-    expect(canvas).toContain("executeShot('hold')");
+    const processor = fs.readFileSync('src/pc/input/PlayerActionProcessor.ts', 'utf8');
+    expect(processor).toContain("'hold')");
+    expect(processor).toContain("'fever')");
   });
 });

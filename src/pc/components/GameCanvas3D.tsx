@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, forwardRef, useImperativeHandle 
 import * as THREE from 'three';
 import { computeRenderPixelRatio } from '../three/renderBudget';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
-import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult, ShotSource } from '../engine/BeerCrusherEngine';
+import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
   createTargetMesh3D,
@@ -23,8 +23,7 @@ import {
 import { DraftTapGun3D } from '../three/DraftTapGun3D';
 import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
-import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, TARGET_SPECS, WEAPON_CONSTANTS } from '../../shared/constants';
-import { detectDoubleClick } from '../mouseFever';
+import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
@@ -149,8 +148,9 @@ export interface GameCanvas3DProps {
   engine: BeerCrusherEngine;
   aimX: number;
   aimY: number;
-  onAimChange?: (aimX: number, aimY: number) => void;
-  onShoot?: (result: EngineShootResult) => void;
+  onMouseAim?: (aimX: number, aimY: number) => void;
+  onMouseDown?: () => void;
+  onMouseUp?: () => void;
   soundSynth: SoundSynthesizer;
   onMonsterProjectionsUpdate?: (projections: MonsterHudProjection[]) => void;
   onRenderMetrics?: (metrics: RenderPerformanceMetrics) => void;
@@ -163,8 +163,9 @@ export const GameCanvas3D = React.memo(
     engine,
     aimX,
     aimY,
-    onAimChange,
-    onShoot,
+    onMouseAim,
+    onMouseDown,
+    onMouseUp,
     soundSynth,
     onMonsterProjectionsUpdate,
     onRenderMetrics,
@@ -173,10 +174,12 @@ export const GameCanvas3D = React.memo(
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
     const currentAimRef = useRef({ aimX, aimY });
-    const onAimChangeRef = useRef(onAimChange);
-    onAimChangeRef.current = onAimChange;
-    const onShootRef = useRef(onShoot);
-    onShootRef.current = onShoot;
+    const onMouseAimRef = useRef(onMouseAim);
+    onMouseAimRef.current = onMouseAim;
+    const onMouseDownRef = useRef(onMouseDown);
+    onMouseDownRef.current = onMouseDown;
+    const onMouseUpRef = useRef(onMouseUp);
+    onMouseUpRef.current = onMouseUp;
     const onMonsterProjectionsUpdateRef = useRef(onMonsterProjectionsUpdate);
     onMonsterProjectionsUpdateRef.current = onMonsterProjectionsUpdate;
     const onPlayerHitRef = useRef(onPlayerHit);
@@ -432,67 +435,44 @@ export const GameCanvas3D = React.memo(
         const mapped = viewportRatioToAim(normX, normY);
         targetAimRef.current = mapped;
         currentAimRef.current = mapped;
-        if (onAimChangeRef.current) {
-          onAimChangeRef.current(mapped.aimX, mapped.aimY);
-        }
-      };
-
-      const executeShot = (source: ShotSource) => {
-        const now = performance.now();
-        const curAim = targetAimRef.current;
-        const result = engine.shootAt(curAim.aimX, curAim.aimY, now, source);
-
-        if (onShootRef.current) {
-          onShootRef.current(result);
-        }
-      };
-
-      let mouseHoldInterval: ReturnType<typeof setInterval> | null = null;
-
-      const stopMouseHold = () => {
-        if (mouseHoldInterval !== null) {
-          clearInterval(mouseHoldInterval);
-          mouseHoldInterval = null;
-        }
-      };
-
-      let lastClickMs = 0;
-
-      const tryActivateFever = () => {
-        const activated = engine.activateFever(performance.now());
-        if (activated) {
-          soundSynth.playFeverStart();
+        if (onMouseAimRef.current) {
+          onMouseAimRef.current(mapped.aimX, mapped.aimY);
         }
       };
 
       const handleMouseDown = (e: MouseEvent) => {
         if (e.button === 0) {
-          executeShot('press');
-          const dbl = detectDoubleClick(lastClickMs, performance.now(), WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS);
-          lastClickMs = dbl.nextLastClickMs;
-          if (dbl.triggered) tryActivateFever();
-          stopMouseHold();
-          mouseHoldInterval = setInterval(() => {
-            executeShot('hold');
-          }, 5);
+          if (onMouseDownRef.current) {
+            onMouseDownRef.current();
+          }
         }
       };
 
       const handleMouseUp = (e: MouseEvent) => {
         if (e.button === 0) {
-          stopMouseHold();
+          if (onMouseUpRef.current) {
+            onMouseUpRef.current();
+          }
         }
       };
 
       const handleMouseLeave = () => {
-        stopMouseHold();
+        if (onMouseUpRef.current) {
+          onMouseUpRef.current();
+        }
+      };
+
+      const handleBlur = () => {
+        if (onMouseUpRef.current) {
+          onMouseUpRef.current();
+        }
       };
 
       container.addEventListener('mousemove', handleMouseMove);
       container.addEventListener('mousedown', handleMouseDown);
       window.addEventListener('mouseup', handleMouseUp);
       container.addEventListener('mouseleave', handleMouseLeave);
-      window.addEventListener('blur', stopMouseHold);
+      window.addEventListener('blur', handleBlur);
 
       // 6. Animation loop
       let animId = 0;
@@ -798,13 +778,12 @@ export const GameCanvas3D = React.memo(
         }
         disposed = true;
         window.clearTimeout(fallbackWarmupTimer);
-        stopMouseHold();
         window.removeEventListener('resize', handleResize);
         container.removeEventListener('mousemove', handleMouseMove);
         container.removeEventListener('mousedown', handleMouseDown);
         window.removeEventListener('mouseup', handleMouseUp);
         container.removeEventListener('mouseleave', handleMouseLeave);
-        window.removeEventListener('blur', stopMouseHold);
+        window.removeEventListener('blur', handleBlur);
 
         // Clean up target meshes
         targetMeshMap.forEach((mesh) => {

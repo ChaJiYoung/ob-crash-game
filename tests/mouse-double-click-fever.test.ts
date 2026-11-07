@@ -27,10 +27,13 @@ describe('detectDoubleClick', () => {
 describe('mouse controls wiring', () => {
   const canvas = fs.readFileSync('src/pc/components/GameCanvas3D.tsx', 'utf8');
   const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+  const adapter = fs.readFileSync('src/pc/input/MouseAdapter.ts', 'utf8');
+  const processor = fs.readFileSync('src/pc/input/PlayerActionProcessor.ts', 'utf8');
 
-  it('fever uses the double-click helper and the shared window, not the Space key', () => {
-    expect(canvas).toContain('detectDoubleClick');
-    expect(canvas).toContain('FEVER_DOUBLE_TAP_MS');
+  it('fever uses the double-click helper and the shared window in MouseAdapter, not the Space key', () => {
+    // T05: 마우스 피버 감지는 GameCanvas3D 대신 MouseAdapter가 수행
+    expect(adapter).toContain('detectDoubleClick');
+    expect(adapter).toContain('FEVER_DOUBLE_TAP_MS');
     expect(canvas).not.toContain("'Space'");
     expect(canvas).not.toContain("'keydown'");
   });
@@ -41,8 +44,7 @@ describe('mouse controls wiring', () => {
   });
 
   it('fever auto-fire also runs in the tutorial, where the fever training step needs it', () => {
-    const m = page.match(/Auto-fire loop during active Fever mode[\s\S]*?feverAutoFireTimerRef\.current\) \{/);
-    expect(m).not.toBeNull();
-    expect(m![0]).toContain("gamePhase === 'TUTORIAL'");
+    // T05: 피버 자동 연사 루프는 PCGamePage 대신 PlayerActionProcessor.tick()이 담당
+    expect(processor).toContain("phase === 'TUTORIAL'");
   });
 });

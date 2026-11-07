@@ -287,6 +287,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
         <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
           <button
             ref={restartButtonRef}
+            data-shootable="restart"
             onClick={onRestart}
             style={{
               flex: 1,
@@ -309,6 +310,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           </button>
           <button
             ref={lobbyButtonRef}
+            data-shootable="lobby"
             onClick={onReturnToLobby}
             style={{
               padding: '16px 24px',

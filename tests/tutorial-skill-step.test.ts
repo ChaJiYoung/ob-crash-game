@@ -99,10 +99,11 @@ describe('tutorial guide overlay for the skill and fever steps', () => {
     expect(fever).toContain('더블클릭');
   });
 
-  it('the phone snap skill is also handled during the tutorial', () => {
-    const page = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
-    const m = page.match(/if \(p\.skillSnapTriggered\) \{[\s\S]*?executeSkill\(\);/);
-    expect(m).not.toBeNull();
-    expect(m![0]).toContain("'TUTORIAL'");
+  // T05: 폰 스냅 스킬 및 튜토리얼 스킬 허용 처리는 PhoneAdapter와 PlayerActionProcessor가 담당
+  it('the phone snap skill is also handled during the tutorial in PlayerActionProcessor', () => {
+    const adapter = fs.readFileSync('src/pc/input/PhoneAdapter.ts', 'utf8');
+    const processor = fs.readFileSync('src/pc/input/PlayerActionProcessor.ts', 'utf8');
+    expect(adapter).toContain("p.skillSnapTriggered");
+    expect(processor).toContain("phase !== 'TUTORIAL'");
   });
 });

@@ -283,6 +283,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
             {pairedPlayer ? (
               <button
                 id="shoot-to-start-target"
+                data-shootable="start"
                 onClick={onStartWithController}
                 style={{
                   flex: 1,
@@ -309,6 +310,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               </button>
             ) : (
               <button
+                data-shootable="start"
                 onClick={onStartAsPc}
                 style={{
                   flex: 1,
