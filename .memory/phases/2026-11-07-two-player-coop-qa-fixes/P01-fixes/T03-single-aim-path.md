@@ -1,6 +1,6 @@
 # Task: T03 조준 경로를 하나로
 
-## Status: pending
+## Status: done
 
 ## Goal
 조준(십자선·총)이 바뀌는 경로를 "어댑터 → 처리부 `aim` 신호 → `onAim(x, y, playerIndex)` → 캔버스 `setAim(..., playerIndex)`" 하나로 만든다. 지금은 캔버스의 마우스 핸들러가 이 경로를 건너뛰고 1P 총(0번)과 옛 조준 ref를 직접 덮어써서, 마우스가 2P에 묶였거나(1P 폰+2P 마우스) 어디에도 묶이지 않은(폰 2대) 판에서 1P 총이 마우스를 따라 움직인다.
@@ -82,6 +82,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

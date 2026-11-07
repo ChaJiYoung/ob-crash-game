@@ -14,7 +14,7 @@ export class MouseAdapter {
   public onMove(aimX: number, aimY: number): void {
     const s = this.sink();
     if (!s) return;
-    s.send({ type: 'aim', aimX, aimY });
+    s.send({ type: 'aim', aimX, aimY, immediate: true });
   }
 
   /**

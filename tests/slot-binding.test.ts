@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { describe, it, expect, vi } from 'vitest';
 import {
   createInitialSlots,
@@ -11,6 +13,7 @@ import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import { PlayerIndex } from '../src/pc/engine/PlayerCombatState';
 import { PlayerActionProcessor, ShootableButton } from '../src/pc/input/PlayerActionProcessor';
 import { PhoneAdapter } from '../src/pc/input/PhoneAdapter';
+import { MouseAdapter } from '../src/pc/input/MouseAdapter';
 import type { ClientToServerMessage, PlayerProfile, PlayerSlot } from '../src/shared/types';
 
 const mockProfile = (deviceId: string, nickname: string): PlayerProfile => ({
@@ -244,6 +247,94 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       // HTML click still calls pressScreenButton directly
       pressScreenButton('restart');
       expect(onButtonMock).toHaveBeenCalledWith('restart');
+    });
+  });
+
+  describe('Single Aim Path (T03)', () => {
+    it('1P phone and 2P mouse: mouse movement invokes processor 1 onAim(..., 1, true) only', () => {
+      const engine = new BeerCrusherEngine();
+      engine.startGame({ playerCount: 2 });
+      const onAimP0 = vi.fn();
+      const onAimP1 = vi.fn();
+      const proc0 = new PlayerActionProcessor({
+        engine,
+        playerIndex: 0,
+        getPhase: () => 'PLAYING',
+        isPauseMenuOpen: () => false,
+        hitTestButton: () => null,
+        onAim: onAimP0,
+      });
+      const proc1 = new PlayerActionProcessor({
+        engine,
+        playerIndex: 1,
+        getPhase: () => 'PLAYING',
+        isPauseMenuOpen: () => false,
+        hitTestButton: () => null,
+        onAim: onAimP1,
+      });
+      const processors = [proc0, proc1];
+
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 1, 'mobile').slots;
+      slots = updateSlot(slots, 1, { player: mockProfile('d1', 'P1'), isConnected: true });
+      slots = chooseSlotInput(slots, 2, 'mouse').slots;
+      slots = updateSlot(slots, 2, { player: mockProfile('dm', 'Mouse') });
+      const map = buildSlotIndexMap(slots);
+      const binding = getMouseBinding(slots, map, 2);
+      expect(binding).toBe(1);
+
+      const mouseAdapter = new MouseAdapter(() => (binding !== null ? processors[binding] : null));
+      mouseAdapter.onMove(0.35, -0.2);
+
+      expect(onAimP0).not.toHaveBeenCalled();
+      expect(onAimP1).toHaveBeenCalledWith(0.35, -0.2, 1, true);
+    });
+
+    it('two phones: mouse binding is null and mouse movement does not invoke any processor onAim', () => {
+      const engine = new BeerCrusherEngine();
+      engine.startGame({ playerCount: 2 });
+      const onAimP0 = vi.fn();
+      const onAimP1 = vi.fn();
+      const proc0 = new PlayerActionProcessor({
+        engine,
+        playerIndex: 0,
+        getPhase: () => 'PLAYING',
+        isPauseMenuOpen: () => false,
+        hitTestButton: () => null,
+        onAim: onAimP0,
+      });
+      const proc1 = new PlayerActionProcessor({
+        engine,
+        playerIndex: 1,
+        getPhase: () => 'PLAYING',
+        isPauseMenuOpen: () => false,
+        hitTestButton: () => null,
+        onAim: onAimP1,
+      });
+      const processors = [proc0, proc1];
+
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 1, 'mobile').slots;
+      slots = updateSlot(slots, 1, { player: mockProfile('d1', 'P1'), isConnected: true });
+      slots = chooseSlotInput(slots, 2, 'mobile').slots;
+      slots = updateSlot(slots, 2, { player: mockProfile('d2', 'P2'), isConnected: true });
+      const map = buildSlotIndexMap(slots);
+      const binding = getMouseBinding(slots, map, 2);
+      expect(binding).toBeNull();
+
+      const mouseAdapter = new MouseAdapter(() => (binding !== null ? processors[binding] : null));
+      mouseAdapter.onMove(0.5, 0.5);
+
+      expect(onAimP0).not.toHaveBeenCalled();
+      expect(onAimP1).not.toHaveBeenCalled();
+    });
+
+    it('GameCanvas3D handleMouseMove does not reference gunAimsRef', () => {
+      const filePath = path.resolve(__dirname, '../src/pc/components/GameCanvas3D.tsx');
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const match = content.match(/const handleMouseMove = \(e: MouseEvent\) => \{([\s\S]*?)\};/);
+      expect(match).not.toBeNull();
+      expect(match![1]).not.toContain('gunAimsRef');
     });
   });
 });

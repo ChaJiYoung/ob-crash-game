@@ -183,8 +183,6 @@ export const GameCanvas3D = React.memo(
     onCardAnchorsUpdate,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
-    const targetAimRef = useRef({ aimX, aimY });
-    const currentAimRef = useRef({ aimX, aimY });
     const gunAimsRef = useRef<Array<{ target: { aimX: number; aimY: number }; current: { aimX: number; aimY: number } }>>([
       { target: { aimX, aimY }, current: { aimX, aimY } },
     ]);
@@ -238,7 +236,7 @@ export const GameCanvas3D = React.memo(
 
         if (particlesRef.current && gun && cameraRef.current) {
           const muzzlePos = gun.getMuzzleWorldPosition(cameraRef.current);
-          const curAim = aim ?? gunAimsRef.current[result.playerIndex]?.current ?? targetAimRef.current;
+          const curAim = aim ?? gunAimsRef.current[result.playerIndex]?.current ?? { aimX: 0, aimY: 0 };
 
           let targetPos: THREE.Vector3;
           const overrideColor = playerColorsRef.current?.[result.playerIndex] ?? null;
@@ -302,12 +300,6 @@ export const GameCanvas3D = React.memo(
           gunAimsRef.current[pIdx].target = { aimX: nextX, aimY: nextY };
           if (immediate) {
             gunAimsRef.current[pIdx].current = { aimX: nextX, aimY: nextY };
-          }
-          if (pIdx === 0) {
-            targetAimRef.current = { aimX: nextX, aimY: nextY };
-            if (immediate) {
-              currentAimRef.current = { aimX: nextX, aimY: nextY };
-            }
           }
         },
         triggerSkillEffect(kind: WeaponKind, playerIndex: PlayerIndex = 0) {
@@ -494,12 +486,6 @@ export const GameCanvas3D = React.memo(
         const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         const normY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
         const mapped = viewportRatioToAim(normX, normY);
-        targetAimRef.current = mapped;
-        currentAimRef.current = mapped;
-        if (gunAimsRef.current[0]) {
-          gunAimsRef.current[0].target = mapped;
-          gunAimsRef.current[0].current = mapped;
-        }
         if (onMouseAimRef.current) {
           onMouseAimRef.current(mapped.aimX, mapped.aimY);
         }
@@ -555,14 +541,6 @@ export const GameCanvas3D = React.memo(
         lastTime = time;
 
         const feverState = engine.getPlayer(0).scoreManager.getState();
-
-        // Smooth aim interpolation for 60~120fps display
-        const lerpFactor = Math.min(1, dtSec * 28);
-        currentAimRef.current.aimX +=
-          (targetAimRef.current.aimX - currentAimRef.current.aimX) * lerpFactor;
-        currentAimRef.current.aimY +=
-          (targetAimRef.current.aimY - currentAimRef.current.aimY) * lerpFactor;
-        const curAim = currentAimRef.current;
 
         // Update Engine
         const { reloadedJustNow, breaches } = engine.update(time, dtSec);
@@ -760,6 +738,7 @@ export const GameCanvas3D = React.memo(
         });
 
         // Sync and update 3D guns for all players
+        const aimLerpFactor = Math.min(1, dtSec * 28);
         syncGuns();
         const camera = cameraRef.current;
         if (camera) {
@@ -779,8 +758,8 @@ export const GameCanvas3D = React.memo(
             });
           }
           const aimState = gunAimsRef.current[i];
-          aimState.current.aimX += (aimState.target.aimX - aimState.current.aimX) * lerpFactor;
-          aimState.current.aimY += (aimState.target.aimY - aimState.current.aimY) * lerpFactor;
+          aimState.current.aimX += (aimState.target.aimX - aimState.current.aimX) * aimLerpFactor;
+          aimState.current.aimY += (aimState.target.aimY - aimState.current.aimY) * aimLerpFactor;
 
           if (
             gun.currentWeaponKind !== pWeapon.weaponKind ||

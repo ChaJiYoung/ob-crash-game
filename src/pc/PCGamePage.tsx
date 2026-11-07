@@ -216,7 +216,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const pairedPlayerRef = useRef<PlayerProfile | undefined>(undefined);
   pairedPlayerRef.current = pairedPlayer;
 
-  const latestAimRef = useRef({ aimX: 0, aimY: 0 });
   const lastDiagUpdateTimeRef = useRef<number>(0);
 
   const [hoveredResultAction, setHoveredResultAction] = useState<'restart' | 'lobby' | null>(null);
@@ -332,17 +331,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     return null;
   }, []);
 
-  const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
-    latestAimRef.current = { aimX: x, aimY: y };
-    canvasRef.current?.setAim(x, y, immediate);
-    crosshairRefs.current[0]?.current?.updatePosition(x, y, immediate);
-    const action = hitTestButton(x, y);
-    const resultAction = action === 'restart' || action === 'lobby' ? action : null;
-    if (hoveredResultActionRef.current !== resultAction) {
-      hoveredResultActionRef.current = resultAction;
-      setHoveredResultAction(resultAction);
-    }
-  }, [hitTestButton]);
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (!result.fired) return;
@@ -464,12 +452,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         onFeverStarted: (_idx) => {
           soundSynth.playFeverStart();
         },
-        onAim: (x, y, idx) => {
-          crosshairRefs.current[idx]?.current?.updatePosition(x, y, false);
-          if (idx === 0) {
-            latestAimRef.current = { aimX: x, aimY: y };
-          }
-          canvasRef.current?.setAim(x, y, false, idx);
+        onAim: (x, y, idx, immediate) => {
+          crosshairRefs.current[idx]?.current?.updatePosition(x, y, immediate);
+          canvasRef.current?.setAim(x, y, immediate, idx);
           const phase = gamePhaseRef.current;
           if (phase === 'GAMEOVER' || phase === 'VICTORY') {
             updateResultButtonHover();
@@ -762,7 +747,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
       socket.close();
     };
-  }, [engine, soundSynth, updateAimDirect, handleShootEvent]);
+  }, [engine, soundSynth, handleShootEvent]);
 
   const submitScores = useCallback(() => {
     submitTimeRef.current = Date.now();
@@ -1520,8 +1505,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           ))}
           <CrosshairOverlay
             ref={crosshairRefs.current[0]}
-            aimX={latestAimRef.current.aimX}
-            aimY={latestAimRef.current.aimY}
+            aimX={processorsRef.current[0]?.aim.aimX ?? 0}
+            aimY={processorsRef.current[0]?.aim.aimY ?? 0}
             isFeverActive={hudState.players[0]?.isFeverActive ?? false}
             isWideScopeActive={false}
             isPowerShotActive={false}
@@ -1600,8 +1585,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           <CrosshairOverlay
             ref={crosshairRefs.current[0]}
-            aimX={latestAimRef.current.aimX}
-            aimY={latestAimRef.current.aimY}
+            aimX={processorsRef.current[0]?.aim.aimX ?? 0}
+            aimY={processorsRef.current[0]?.aim.aimY ?? 0}
             isFeverActive={hudState.players[0]?.isFeverActive ?? false}
             isWideScopeActive={hudState.players[0]?.isWideScopeActive ?? false}
             isPowerShotActive={hudState.players[0]?.isPowerShotActive ?? false}

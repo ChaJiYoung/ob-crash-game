@@ -51,7 +51,7 @@ describe('Input Adapters (P01-T05)', () => {
       const adapter = new MouseAdapter(() => mockSink, 300, () => currentTime);
 
       adapter.onMove(0.4, -0.3);
-      expect(signals).toEqual([{ type: 'aim', aimX: 0.4, aimY: -0.3 }]);
+      expect(signals).toEqual([{ type: 'aim', aimX: 0.4, aimY: -0.3, immediate: true }]);
 
       signals = [];
       adapter.onLeftDown();

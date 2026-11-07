@@ -1,5 +1,5 @@
 export type InputSignal =
-  | { type: 'aim'; aimX: number; aimY: number }
+  | { type: 'aim'; aimX: number; aimY: number; immediate?: boolean }
   | { type: 'fireDown' }
   | { type: 'fireUp' }
   | { type: 'skill' }

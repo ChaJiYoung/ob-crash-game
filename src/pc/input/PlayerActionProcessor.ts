@@ -21,7 +21,7 @@ export interface ProcessorContext {
   onShot?: (result: EngineShootResult) => void;     // 소리·연출·판정 배너
   onSkill?: (result: SkillExecuteResult) => void;
   onFeverStarted?: (playerIndex: PlayerIndex) => void;
-  onAim?: (aimX: number, aimY: number, playerIndex: PlayerIndex) => void; // 십자선·총 조준 표시
+  onAim?: (aimX: number, aimY: number, playerIndex: PlayerIndex, immediate: boolean) => void; // 십자선·총 조준 표시
   now?: () => number;
   timers?: { setInterval: typeof setInterval; clearInterval: typeof clearInterval };
 }
@@ -67,7 +67,7 @@ export class PlayerActionProcessor implements InputSink {
       case 'aim': {
         this.aim.aimX = signal.aimX;
         this.aim.aimY = signal.aimY;
-        this.ctx.onAim?.(signal.aimX, signal.aimY, this.ctx.playerIndex);
+        this.ctx.onAim?.(signal.aimX, signal.aimY, this.ctx.playerIndex, Boolean(signal.immediate));
         break;
       }
       case 'fireDown': {
