@@ -12,7 +12,7 @@ import { QRPairingModal } from './components/QRPairingModal';
 import { PauseMenuOverlay } from './components/PauseMenuOverlay';
 import { canOpenPauseMenu, PauseReason } from './pauseFlow';
 import { loadSavedRoomId, saveRoomId, clearSavedRoomId } from './roomMemory';
-import { ResultRankingModal } from './components/ResultRankingModal';
+import { ResultRankingModal, CoopResultInfo } from './components/ResultRankingModal';
 import { SelectRoundOverlay } from './components/SelectRoundOverlay';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
@@ -241,6 +241,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     [presentations]
   );
   const [cardAnchors, setCardAnchors] = useState<{ ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[]>([]);
+  const [coopResult, setCoopResult] = useState<CoopResultInfo | null>(null);
+  const submitTimeRef = useRef<number>(0);
 
   const hitTestButton = useCallback((aimX: number, aimY: number): ShootableButton | null => {
     if (typeof window === 'undefined') return null;
@@ -656,6 +658,21 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 }
               } else {
                 setIsNewRecord(false);
+                const p0Slot = indexToSlot(slotIndexMapRef.current, 0);
+                const p1Slot = indexToSlot(slotIndexMapRef.current, 1);
+                const p0Dev = slotsRef.current.find((s) => s.slot === p0Slot)?.player?.deviceId;
+                const p1Dev = slotsRef.current.find((s) => s.slot === p1Slot)?.player?.deviceId;
+                const partnerDev = up.deviceId === p0Dev ? p1Dev : up.deviceId === p1Dev ? p0Dev : undefined;
+
+                if (partnerDev) {
+                  const best = up.coopBests?.[partnerDev] ?? null;
+                  setCoopResult((r) => {
+                    if (!r) return null;
+                    const submittedIso = new Date(submitTimeRef.current).toISOString();
+                    const isNew = !!best && best.teamScore === r.teamScore && best.playedAt >= submittedIso;
+                    return { ...r, teamBest: best, isNewTeamBest: isNew };
+                  });
+                }
               }
             }
             break;
@@ -713,11 +730,57 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [engine, soundSynth, updateAimDirect, handleShootEvent]);
 
   const submitScores = useCallback(() => {
+    submitTimeRef.current = Date.now();
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
       const messages = buildScoreSubmissions(engine, slotsRef.current, slotIndexMapRef.current, roomId);
       messages.forEach((msg) => wsRef.current!.send(JSON.stringify(msg)));
     }
-  }, [engine, roomId]);
+    if (engine.players.length >= 2) {
+      const p0Stats = engine.getPlayRunStats(0);
+      const p1Stats = engine.getPlayRunStats(1);
+      if (p0Stats && p1Stats) {
+        const p0Pres = presentations[0];
+        const p1Pres = presentations[1];
+        const p0Slot = indexToSlot(slotIndexMapRef.current, 0);
+        const p1Slot = indexToSlot(slotIndexMapRef.current, 1);
+        const p0Profile = slotsRef.current.find((s) => s.slot === p0Slot)?.player;
+        const p1Profile = slotsRef.current.find((s) => s.slot === p1Slot)?.player;
+        const teamScore = p0Stats.totalScore + p1Stats.totalScore;
+
+        setCoopResult({
+          players: [
+            {
+              slotLabel: p0Pres?.slotLabel ?? '1P',
+              color: p0Pres?.color ?? '#38bdf8',
+              nickname: p0Profile?.nickname ?? p0Pres?.nickname ?? '1P',
+              score: p0Stats.totalScore,
+              maxCombo: p0Stats.maxCombo,
+              kills: p0Stats.kills,
+              accuracy: p0Stats.accuracy,
+              weaponKind: p0Stats.weaponKind,
+              leftEarly: Boolean(p0Stats.coop?.leftEarly),
+            },
+            {
+              slotLabel: p1Pres?.slotLabel ?? '2P',
+              color: p1Pres?.color ?? '#ff6b3d',
+              nickname: p1Profile?.nickname ?? p1Pres?.nickname ?? '2P',
+              score: p1Stats.totalScore,
+              maxCombo: p1Stats.maxCombo,
+              kills: p1Stats.kills,
+              accuracy: p1Stats.accuracy,
+              weaponKind: p1Stats.weaponKind,
+              leftEarly: Boolean(p1Stats.coop?.leftEarly),
+            },
+          ],
+          teamScore,
+          teamBest: undefined,
+          isNewTeamBest: false,
+        });
+      }
+    } else {
+      setCoopResult(null);
+    }
+  }, [engine, roomId, presentations]);
 
   // 2. Engine HUD Tick
   useEffect(() => {
@@ -787,6 +850,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     syncProcessors();
     setGamePhase('PLAYING');
     setIsNewRecord(false);
+    setCoopResult(null);
   }, [engine, syncProcessors]);
   handleStartGameRef.current = handleStartGame;
 
@@ -1153,6 +1217,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       return next;
     });
     setGamePhase('PAIRING');
+    setCoopResult(null);
   }, [engine, syncProcessors]);
   handleReturnToLobbyRef.current = handleReturnToLobby;
 
@@ -1626,6 +1691,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             currentPlayer={pairedPlayer}
             isNewRecord={isNewRecord}
             rankings={topRankings}
+            coop={coopResult ?? undefined}
             onRestart={() => pressScreenButton('restart')}
             onReturnToLobby={() => pressScreenButton('lobby')}
             hoveredAction={hoveredResultAction}

@@ -7,18 +7,18 @@
 [P05 HUD·화면](./phases/2026-11-07-two-player-coop/P05-hud-screens/phase.md)
 
 ## Active Task
-[T04 결과 화면 1P·2P 비교와 팀 최고 기록](./phases/2026-11-07-two-player-coop/P05-hud-screens/T04-coop-result-screen.md)
+[T05 튜토리얼이 메인과 같은 개인 패널을 쓴다(D14)](./phases/2026-11-07-two-player-coop/P05-hud-screens/T05-tutorial-panel.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
 - P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
 - P04 PC 로비·연결 완료 (6/6 Tasks 완료) + 리뷰 피드백 수정 커밋 완료 (150b0bb)
-- P05 HUD·화면 진행 중 (3/8 Tasks 완료)
-- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 완료, P05 3 완료 / 5 남음)
+- P05 HUD·화면 진행 중 (4/8 Tasks 완료)
+- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 완료, P05 4 완료 / 4 남음)
 
 ## Next Step (IMPORTANT)
-P05-T04 청사진을 읽고 결과 화면(1P·2P 비교와 팀 최고 기록) 구현 및 검증.
+P05-T05 청사진을 읽고 튜토리얼 개인 패널 통합(D14) 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

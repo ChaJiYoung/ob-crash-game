@@ -1,6 +1,6 @@
 # Task: T04 2인팟 결과 화면
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판이 끝나면 결과 화면(`ResultRankingModal`)이 1P와 2P를 나란히 비교한다: 각자 닉네임·점수·최대 콤보·처치 수·명중률·무기, 이탈했으면 "나감", 그리고 팀 합계와 "이 팀 최고 기록"(D11, D18). 솔로 랭킹 Top5는 그대로 보여 주되 "2인팟 점수는 솔로 랭킹에 오르지 않습니다" 안내를 붙인다(D05). 1인 결과 화면은 그대로.
@@ -66,8 +66,8 @@
 - 2P `leftEarly` → "나감".
 
 ## Acceptance Criteria
-- [ ] 2인 판 결과 화면에서 1P·2P 점수와 팀 최고가 보인다.
-- [ ] 1인 결과 화면은 바뀌지 않는다.
+- [x] 2인 판 결과 화면에서 1P·2P 점수와 팀 최고가 보인다.
+- [x] 1인 결과 화면은 바뀌지 않는다.
 
 ## Validation
 - `npx vitest run tests/coop-result.test.tsx tests/result-breakdown.test.ts` — 통과
@@ -90,6 +90,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
