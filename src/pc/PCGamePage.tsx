@@ -72,6 +72,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [gamePhase, setGamePhase] = useState<GamePhase>(initialPhase ?? 'PAIRING');
   const gamePhaseRef = useRef<GamePhase>(gamePhase);
   gamePhaseRef.current = gamePhase;
+  /** 단계를 바꿀 때 ref를 먼저 바꿔, 같은 틱에 도는 처리부·핸들러가 새 단계를 본다(렌더를 기다리지 않는다). */
+  const setPhase = useCallback((next: GamePhase) => {
+    gamePhaseRef.current = next;
+    setGamePhase(next);
+  }, []);
   const [roomId, setRoomId] = useState<string>('');
   const roomIdRef = useRef<string>(roomId);
   roomIdRef.current = roomId;
@@ -549,7 +554,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               phoneAdaptersRef.current[slot]?.resetZero();
             }
             if (gamePhaseRef.current === 'PAIRING') {
-              setGamePhase('ZEROING');
+              setPhase('ZEROING');
             } else if (gamePhaseRef.current === 'PLAYING') {
               onSlotReconnectedRef.current(slot);
             }
@@ -854,12 +859,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       // Synchronize game over / victory
       if (engine.gamePhase === 'GAMEOVER' && gamePhase === 'PLAYING') {
         processorsRef.current.forEach((p) => p.stopAll());
-        setGamePhase('GAMEOVER');
+        setPhase('GAMEOVER');
         soundSynth.playHit('MISS');
         submitScores();
       } else if (engine.gamePhase === 'VICTORY' && gamePhase === 'PLAYING') {
         processorsRef.current.forEach((p) => p.stopAll());
-        setGamePhase('VICTORY');
+        setPhase('VICTORY');
         soundSynth.playFeverStart();
         submitScores();
       }
@@ -884,8 +889,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         engine.setPlayerAway(pIdx, true, performance.now());
       }
     });
+    setPhase('PLAYING');
     syncProcessors();
-    setGamePhase('PLAYING');
     setIsNewRecord(false);
     setCoopResult(null);
   }, [engine, syncProcessors]);
@@ -1181,7 +1186,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     slotIndexMapRef.current = { [soloSlot]: 0 };
     engine.startSandboxMode();
     syncProcessors();
-    setGamePhase('SANDBOX');
+    setPhase('SANDBOX');
   }, [engine, syncProcessors]);
 
   const handleStartTutorial = useCallback(() => {
@@ -1194,7 +1199,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     director.start(performance.now());
     setTutorialStep(director.step);
     syncProcessors();
-    setGamePhase('TUTORIAL');
+    setPhase('TUTORIAL');
   }, [engine, syncProcessors]);
 
   const handleExitTutorial = useCallback(() => {
@@ -1205,7 +1210,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
     engine.exitTutorialMode();
     syncProcessors();
-    setGamePhase('PAIRING');
+    setPhase('PAIRING');
   }, [engine, syncProcessors]);
 
   const handleRenewRoom = useCallback(() => {
@@ -1250,7 +1255,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       }
       return next;
     });
-    setGamePhase('PAIRING');
+    setPhase('PAIRING');
     setCoopResult(null);
   }, [engine, syncProcessors]);
   handleReturnToLobbyRef.current = handleReturnToLobby;
@@ -1597,7 +1602,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onStartRealGame={() => pressScreenButton('start')}
             onExitToLobby={() => {
               engine.exitSandboxMode();
-              setGamePhase('PAIRING');
+              setPhase('PAIRING');
             }}
           />
           <CrosshairOverlay

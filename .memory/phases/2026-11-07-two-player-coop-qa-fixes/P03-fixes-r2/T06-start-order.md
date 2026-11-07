@@ -1,6 +1,6 @@
 # Task: T06 판 시작 순서 점검(화면 단계 → 처리부)
 
-## Status: pending
+## Status: done
 
 ## Goal
 판이 시작될 때 처리부가 "게임 중" 상태로 만들어지게 한다. 지금 `PCGamePage.handleStartGame`은 `syncProcessors()`를 `setGamePhase('PLAYING')`보다 먼저 부른다. 그 순간 `gamePhaseRef.current`는 아직 `PAIRING`/`ZEROING`이라 `syncProcessors`가 로비 분기(슬롯 매핑 다시 만들기)를 탄다. 또 화면 단계가 다음 렌더까지 `ZEROING`으로 남는다(A DIFF-2: 폰 시작 뒤 무기 선택 중 단계값 `ZEROING`). 그동안 처리부는 `fireDown`을 메뉴 사격(가운데 = 시작 버튼)으로 처리하므로, 무기 선택 첫 사격이 무시되거나 시작을 다시 누르는 것으로 처리될 수 있다.
@@ -41,6 +41,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T06-start-order)

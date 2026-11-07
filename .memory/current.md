@@ -7,7 +7,7 @@
 [P03 2차 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/phase.md)
 
 ## Active Task
-[T06 판 시작 순서 점검(화면 단계 → 처리부)](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T06-start-order.md)
+[T07 2인 난이도 배율 조정(D41)](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T07-coop-difficulty-v2.md)
 
 ## Status
 - T01 처리부 타이머 바인딩 수정 완료 (44e9dd5)
@@ -21,6 +21,7 @@
 - P03 T03 완료: 결과·로비 십자선 menu variant(이름표 없음, 0.6배, 반투명, 모달 아래 층)
 - P03 T04 완료: 배지·이름표 화면 안 clamp(clampToViewport)
 - P03 T05 완료: 개틀링 링 border longhand 분리(콘솔 경고 0건)
+- P03 T06 완료: setPhase 헬퍼로 ref 먼저 갱신, 시작 시 PLAYING 후 syncProcessors
 - P01 QA 수정 완료 (6/6 Tasks 완료, P02 재QA 대기)
 
 ## Next Step (IMPORTANT)
