@@ -1,9 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { PCGamePage } from '../src/pc/PCGamePage';
 
 describe('PCGamePage smoke test (P05 review regression guard)', () => {
+  const origWindow = (globalThis as any).window;
+  const origWebSocket = (globalThis as any).WebSocket;
+
   beforeEach(() => {
     if (typeof window === 'undefined') {
       (globalThis as any).window = {
@@ -26,6 +29,19 @@ describe('PCGamePage smoke test (P05 review regression guard)', () => {
         send = vi.fn();
         close = vi.fn();
       };
+    }
+  });
+
+  afterEach(() => {
+    if (origWindow === undefined) {
+      delete (globalThis as any).window;
+    } else {
+      (globalThis as any).window = origWindow;
+    }
+    if (origWebSocket === undefined) {
+      delete (globalThis as any).WebSocket;
+    } else {
+      (globalThis as any).WebSocket = origWebSocket;
     }
   });
 

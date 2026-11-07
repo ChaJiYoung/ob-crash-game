@@ -1,6 +1,6 @@
 # Task: T05 불안정 테스트 찾기
 
-## Status: pending
+## Status: done
 
 ## Goal
 전체 테스트를 돌릴 때 가끔 1개가 실패하는 원인을 찾아 없앤다(2인팟 P05 완료 직후 640개 중 1개 실패, 재실행 3번은 모두 통과).
@@ -46,6 +46,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
