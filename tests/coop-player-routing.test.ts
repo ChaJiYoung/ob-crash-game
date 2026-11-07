@@ -27,9 +27,7 @@ describe('coop routing (P02-T01)', () => {
 
   beforeEach(() => {
     engine = new BeerCrusherEngine();
-    // 2인 구성 (P02-T02 전 직접 주입)
-    engine.players = [new PlayerCombatState(0), new PlayerCombatState(1)];
-    engine.startGame({ withWeaponSelect: false });
+    engine.startGame({ withWeaponSelect: false, playerCount: 2 });
     engine.players.forEach((p) => p.weaponSystem.selectWeapon('revolver', 1));
   });
 

@@ -1,6 +1,6 @@
 # Task: T02 인원수 규칙 표와 판 시작
 
-## Status: pending
+## Status: done
 
 ## Goal
 `GAME_TUNING.playerCountRules`에 1인·2인 값을 한 표로 두고, 엔진은 `startGame({ playerCount })` 때 그 행을 `this.rules`로 잡아 **같은 코드**로 체력·스폰 수·카드 목표·카드 배치·끊김 유예를 계산한다(D10, D24). 2인 행은 체력 1.6배·스폰 1.3배, 1인 행은 지금 값(배율 1, 제한 시간 없음, 지금 카드 배치)이라 1인 동작은 바뀌지 않는다. 이탈자가 생겨도 행은 판이 끝날 때까지 그대로다(D19).
@@ -79,8 +79,8 @@
 - 2인 판 뒤 `startTutorialMode()` → `players.length === 1`, `rules.hpMult === 1`.
 
 ## Acceptance Criteria
-- [ ] 1인 수치가 하나도 바뀌지 않는다(기존 테스트 통과).
-- [ ] `grep -n "isCoop\|players.length === 2" src/pc/engine` 결과 0.
+- [x] 1인 수치가 하나도 바뀌지 않는다(기존 테스트 통과).
+- [x] `grep -n "isCoop\|players.length === 2" src/pc/engine` 결과 0.
 
 ## Validation
 - `npx vitest run tests/player-count-rules.test.ts tests/game-tuning.test.ts` — 통과
@@ -103,6 +103,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

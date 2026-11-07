@@ -21,7 +21,7 @@ import {
 } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
-import { GAME_TUNING, EngineMode, ModeRules } from '../../shared/gameTuning';
+import { GAME_TUNING, EngineMode, ModeRules, PlayerCountRules } from '../../shared/gameTuning';
 import type { ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
@@ -281,6 +281,10 @@ export class BeerCrusherEngine {
   private pausedAtMs: number | null = null;
 
   public players: PlayerCombatState[] = [new PlayerCombatState(0)];
+  public rules: PlayerCountRules = GAME_TUNING.playerCountRules[1];
+  public get playerCount(): number {
+    return this.players.length;
+  }
   public getPlayer(index: PlayerIndex = 0): PlayerCombatState {
     return this.players[index] ?? this.players[0];
   }
@@ -297,9 +301,7 @@ export class BeerCrusherEngine {
   public set pendingWaveAdvance(v: boolean) {
     if (this.selectRound) this.selectRound.isWaveClear = v;
   }
-  private waveCardKillTargets: Record<number, number | null> = Object.fromEntries(
-    GAME_TUNING.waves.map((w) => [w.waveIndex, w.cardKillTarget])
-  );
+  private waveCardKillTargets: Record<number, number | null> = {};
   public dropRng: () => number = () => Math.random();
 
   // Boss summon state
@@ -310,27 +312,49 @@ export class BeerCrusherEngine {
   private bossShooterIndex = 0;
 
   // Wave definitions
-  private waveDefinitions: Record<number, WaveDefinition> = Object.fromEntries(
-    GAME_TUNING.waves.map((w) => [
-      w.waveIndex,
-      {
-        waveIndex: w.waveIndex,
-        totalSpawns: w.totalSpawns,
-        maxSimultaneous: w.maxSimultaneous,
-        spawnIntervalMs: w.spawnIntervalMs,
-        parTimeSec: w.parTimeSec,
-        kinds: [...w.kinds] as TargetKind[],
-        allowedItems: [],
-        boss: w.boss
-          ? {
-              coolerHp: w.boss.coolerHp,
-              kingHp: w.boss.kingHp,
-              summonKinds: w.boss.summonKinds as readonly TargetKind[],
-            }
-          : null,
-      } satisfies WaveDefinition,
-    ])
-  ) as Record<number, WaveDefinition>;
+  private waveDefinitions: Record<number, WaveDefinition> = {};
+
+  constructor() {
+    this.buildWaveDefinitions();
+  }
+
+  /** 판 시작·튜토리얼·샌드박스가 공통으로 부른다. players를 n명으로 만들고 rules와 웨이브 표를 맞춘다. */
+  private setupPlayers(count: 1 | 2): void {
+    this.players = Array.from({ length: count }, (_, i) => new PlayerCombatState(i as PlayerIndex));
+    this.rules = GAME_TUNING.playerCountRules[count];
+    this.buildWaveDefinitions();
+  }
+
+  private buildWaveDefinitions(): void {
+    const mult = this.rules.spawnCountMult;
+    this.waveCardKillTargets = Object.fromEntries(
+      GAME_TUNING.waves.map((w) => [
+        w.waveIndex,
+        w.cardKillTarget === null ? null : Math.ceil(w.cardKillTarget * mult),
+      ])
+    );
+    this.waveDefinitions = Object.fromEntries(
+      GAME_TUNING.waves.map((w) => [
+        w.waveIndex,
+        {
+          waveIndex: w.waveIndex,
+          totalSpawns: Math.ceil(w.totalSpawns * mult),
+          maxSimultaneous: w.maxSimultaneous,
+          spawnIntervalMs: w.spawnIntervalMs,
+          parTimeSec: w.parTimeSec,
+          kinds: [...w.kinds] as TargetKind[],
+          allowedItems: [],
+          boss: w.boss
+            ? {
+                coolerHp: w.boss.coolerHp,
+                kingHp: w.boss.kingHp,
+                summonKinds: w.boss.summonKinds as readonly TargetKind[],
+              }
+            : null,
+        } satisfies WaveDefinition,
+      ])
+    ) as Record<number, WaveDefinition>;
+  }
 
   public isBossEncounterActive = false;
 
@@ -461,7 +485,8 @@ export class BeerCrusherEngine {
     }
   }
 
-  public startGame(options?: { withWeaponSelect?: boolean }): void {
+  public startGame(options?: { withWeaponSelect?: boolean; playerCount?: 1 | 2 }): void {
+    this.setupPlayers(options?.playerCount ?? 1);
     this.clearSkillProjectiles();
     this.resetBossClear();
     this.gamePhase = 'PLAYING';
@@ -525,7 +550,7 @@ export class BeerCrusherEngine {
   }
 
   private computeSelectLayout(): { ownerIndex: PlayerIndex; slotInGroup: 0 | 1 | 2; x: number; z: number; hitRadiusM: number; modelScaleMult: number }[] {
-    const L = GAME_TUNING.selectLayout;
+    const L = this.rules.selectLayout;
     const vFovRad = (this.vFovDeg * Math.PI) / 180;
     const depth = 2.2 - L.depthZ;
     const halfW = depth * Math.tan(vFovRad / 2) * this.aspect;
@@ -789,6 +814,7 @@ export class BeerCrusherEngine {
   }
 
   public startTutorialMode(): void {
+    this.setupPlayers(1);
     this.clearSkillProjectiles();
     this.resetBossClear();
     this.gamePhase = 'TUTORIAL';
@@ -864,6 +890,7 @@ export class BeerCrusherEngine {
   }
 
   public startSandboxMode(): void {
+    this.setupPlayers(1);
     this.clearSkillProjectiles();
     this.resetBossClear();
     this.gamePhase = 'SANDBOX';
@@ -1144,11 +1171,12 @@ export class BeerCrusherEngine {
       const z = -Math.cos(theta) * radius;
       placed.push({ x, z });
 
+      const maxHp = Number((spec.maxHp * this.rules.hpMult).toFixed(3));
       const entity: ActiveTargetEntity = {
         id: `boss_minion_${this.targetCounter}_${kind}`,
         kind,
-        hp: spec.maxHp,
-        maxHp: spec.maxHp,
+        hp: maxHp,
+        maxHp,
         radiusM: radius,
         thetaRad: theta,
         initialThetaRad: theta,
@@ -1512,11 +1540,12 @@ export class BeerCrusherEngine {
     });
 
     this.targetCounter += 1;
+    const maxHp = Number((spec.maxHp * this.rules.hpMult).toFixed(3));
     const entity: ActiveTargetEntity = {
       id: `target_${this.targetCounter}_${kind}`,
       kind,
-      hp: spec.maxHp,
-      maxHp: spec.maxHp,
+      hp: maxHp,
+      maxHp,
       radiusM: pt.radiusM,
       thetaRad: pt.thetaRad,
       initialThetaRad: pt.thetaRad,
@@ -1589,11 +1618,12 @@ export class BeerCrusherEngine {
       const side = i % 2 === 0 ? -1 : 1;
       const thetaRad = parent.thetaRad + side * cfg.splitOffsetRad;
       this.targetCounter += 1;
+      const childHp = Number((cfg.childHp * this.rules.hpMult).toFixed(3));
       this.activeTargets.push({
         id: `bottle_child_${this.targetCounter}`,
         kind: 'bottle',
-        hp: cfg.childHp,
-        maxHp: cfg.childHp,
+        hp: childHp,
+        maxHp: childHp,
         radiusM: parent.radiusM,
         thetaRad,
         initialThetaRad: thetaRad,
@@ -1661,10 +1691,12 @@ export class BeerCrusherEngine {
     };
 
     coolerHp.forEach((hp, i) => {
-      this.activeTargets.push(make('cooler', hp, thetas[i], spec.hitRadiusM));
+      const scaledHp = Number((hp * this.rules.hpMult).toFixed(3));
+      this.activeTargets.push(make('cooler', scaledHp, thetas[i], spec.hitRadiusM));
     });
     if (kingHp !== null) {
-      const king = make('king', kingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
+      const scaledKingHp = Number((kingHp * this.rules.hpMult).toFixed(3));
+      const king = make('king', scaledKingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
       king.modelScaleMult = GAME_TUNING.boss.kingScale;
       // The model scales around its center, so lift it to stand on the floor (the hit center follows).
       king.customBaseY = getTargetBaseY('boss', false) * GAME_TUNING.boss.kingScale;

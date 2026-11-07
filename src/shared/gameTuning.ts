@@ -141,6 +141,26 @@ export const GAME_TUNING = {
     },
   },
   /**
+   * 인원수별 규칙(D24). 1인과 2인은 이 표의 값만 다르고 엔진 로직은 같다.
+   * selectLayout: 선택 라운드(무기·보상 카드) 표적 배치. 플레이어 p의 k번째(0~2) 카드 x = groupCentersX[p] + (k - 1) * spacingM,
+   *   z = depthZ. P01-T04의 `GAME_TUNING.selectLayout`을 1인 행으로 옮긴 것이다(그 상수는 삭제). 화면 맞춤은 P01-T04 `computeSelectLayout`이 모든 인원에 똑같이 한다.
+   */
+  playerCountRules: {
+    1: {
+      hpMult: 1,
+      spawnCountMult: 1,
+      /** null이면 끊긴 플레이어를 이탈 처리하지 않고 무기한 기다린다(지금 1인 동작). */
+      disconnectGraceMs: null as number | null,
+      selectLayout: { depthZ: -3.5, groupCentersX: [0] as readonly number[], spacingM: 1.85, hitRadiusM: 1.75 },
+    },
+    2: {
+      hpMult: 1.6,
+      spawnCountMult: 1.3,
+      disconnectGraceMs: 30000 as number | null,
+      selectLayout: { depthZ: -5.5, groupCentersX: [-3.2, 3.2] as readonly number[], spacingM: 2.05, hitRadiusM: 1.0 },
+    },
+  },
+  /**
    * 웨이브 표. kinds / summonKinds는 이 파일이 다른 파일을 import하지 않으므로 문자열 리터럴이며,
    * 엔진에서 TargetKind로 해석한다. kinds의 중복 항목은 등장 비중이 그만큼 큼을 뜻한다.
    * cardKillTarget이 null이면 중간 카드가 없다. 보스 웨이브(3·5·7)는 null이다(보스를 안 죽이고 처치 수로 카드를 모으는 파밍을 막으려고). 4·6웨이브는 그 처치 수마다 카드가 나온다.
@@ -154,7 +174,6 @@ export const GAME_TUNING = {
     { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'], cardKillTarget: 26, boss: null },
     { waveIndex: 7, parTimeSec: 45, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], cardKillTarget: null, boss: { coolerHp: [150, 150], kingHp: 250, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
   ],
-  selectLayout: { depthZ: -3.5, groupCentersX: [0], spacingM: 1.85, hitRadiusM: 1.75 },
   breachRespawnRadiusM: 16,
   /** 모드별 규칙(D31). 엔진은 모드를 묻지 않고 이 값만 읽는다. */
   modeRules: {
@@ -199,6 +218,7 @@ export const GAME_TUNING = {
 
 export type BreachEffect = 'damageLives' | 'respawnFar' | 'remove';
 export type EngineMode = 'game' | 'tutorial' | 'sandbox';
+export type PlayerCountRules = (typeof GAME_TUNING.playerCountRules)[1 | 2];
 export type ModeRules = {
   readonly waveSpawning: boolean;
   readonly breachEffect: BreachEffect;

@@ -119,3 +119,31 @@ describe('2026-11-05 skill / guard / magazine tuning', () => {
     expect(cd[3]).toBeGreaterThan(cd[4]);
   });
 });
+
+describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
+  it('keeps solo row at multiplier 1, no disconnect grace, and 1P select layout', () => {
+    const solo = GAME_TUNING.playerCountRules[1];
+    expect(solo.hpMult).toBe(1);
+    expect(solo.spawnCountMult).toBe(1);
+    expect(solo.disconnectGraceMs).toBeNull();
+    expect(solo.selectLayout).toEqual({
+      depthZ: -3.5,
+      groupCentersX: [0],
+      spacingM: 1.85,
+      hitRadiusM: 1.75,
+    });
+  });
+
+  it('defines 2P row with hp 1.6x, spawns 1.3x, 30s disconnect grace, and 2P select layout', () => {
+    const coop = GAME_TUNING.playerCountRules[2];
+    expect(coop.hpMult).toBe(1.6);
+    expect(coop.spawnCountMult).toBe(1.3);
+    expect(coop.disconnectGraceMs).toBe(30000);
+    expect(coop.selectLayout).toEqual({
+      depthZ: -5.5,
+      groupCentersX: [-3.2, 3.2],
+      spacingM: 2.05,
+      hitRadiusM: 1.0,
+    });
+  });
+});
