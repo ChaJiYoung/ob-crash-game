@@ -39,24 +39,27 @@ export interface PlayerActionState {
 
 export const LOBBY_START_ZONE = 0.65;
 
+type IntervalFns = {
+  set: (cb: () => void, ms: number) => ReturnType<typeof setInterval>;
+  clear: (id: ReturnType<typeof setInterval>) => void;
+};
+
 export class PlayerActionProcessor implements InputSink {
   public readonly aim = { aimX: 0, aimY: 0 };
   private holdFireInterval: ReturnType<typeof setInterval> | null = null;
   private feverAutoFireInterval: ReturnType<typeof setInterval> | null = null;
   private skillLockUntilMs = 0;
+  private readonly timers: IntervalFns;
 
-  constructor(private readonly ctx: ProcessorContext) {}
+  constructor(private readonly ctx: ProcessorContext) {
+    const t = ctx.timers;
+    this.timers = t
+      ? { set: (cb, ms) => t.setInterval(cb, ms), clear: (id) => t.clearInterval(id) }
+      : { set: (cb, ms) => setInterval(cb, ms), clear: (id) => clearInterval(id) };
+  }
 
   private getNow(): number {
     return this.ctx.now ? this.ctx.now() : (typeof performance !== 'undefined' ? performance.now() : Date.now());
-  }
-
-  private get setIntervalFn(): typeof setInterval {
-    return this.ctx.timers?.setInterval ?? setInterval;
-  }
-
-  private get clearIntervalFn(): typeof clearInterval {
-    return this.ctx.timers?.clearInterval ?? clearInterval;
   }
 
   public send(signal: InputSignal): void {
@@ -102,7 +105,7 @@ export class PlayerActionProcessor implements InputSink {
 
           // fireUp까지 무기 간격대로 연사 (5ms polling)
           this.stopHoldFire();
-          this.holdFireInterval = this.setIntervalFn(() => {
+          this.holdFireInterval = this.timers.set(() => {
             const t = this.getNow();
             const holdRes = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, t, 'hold', this.ctx.playerIndex);
             if (holdRes.fired) {
@@ -156,7 +159,7 @@ export class PlayerActionProcessor implements InputSink {
 
     if (shouldFeverAutoFire) {
       if (!this.feverAutoFireInterval) {
-        this.feverAutoFireInterval = this.setIntervalFn(() => {
+        this.feverAutoFireInterval = this.timers.set(() => {
           const now = this.getNow();
           const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'fever', this.ctx.playerIndex);
           if (res.fired) {
@@ -193,14 +196,14 @@ export class PlayerActionProcessor implements InputSink {
 
   private stopHoldFire(): void {
     if (this.holdFireInterval !== null) {
-      this.clearIntervalFn(this.holdFireInterval);
+      this.timers.clear(this.holdFireInterval);
       this.holdFireInterval = null;
     }
   }
 
   private stopFeverAutoFire(): void {
     if (this.feverAutoFireInterval !== null) {
-      this.clearIntervalFn(this.feverAutoFireInterval);
+      this.timers.clear(this.feverAutoFireInterval);
       this.feverAutoFireInterval = null;
     }
   }

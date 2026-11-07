@@ -1,6 +1,6 @@
 # Task: T01 처리부 타이머 바인딩 수정
 
-## Status: pending
+## Status: done
 
 ## Goal
 브라우저에서 사격·누른 채 연사·피버 자동 연사 때 나는 `TypeError: Illegal invocation`을 없앤다. 지금은 연사·피버 자동 연사 인터벌이 만들어지지 않아 1인·2인 모두 해당 기능이 동작하지 않는다.
@@ -56,8 +56,8 @@
   `ctx.timers` 없이 만든 처리부에 `fireDown` → 예외 없음, 연사 인터벌 생성 확인. 피버 활성 상태에서 `tick()` → 예외 없음.
 
 ## Acceptance Criteria
-- [ ] 처리부가 브라우저 내장 타이머를 다른 `this`로 호출하지 않는다.
-- [ ] 위 테스트가 수정 전 코드에서는 실패하고 수정 후 통과한다(수정 전 실패를 한 번 확인).
+- [x] 처리부가 브라우저 내장 타이머를 다른 `this`로 호출하지 않는다.
+- [x] 위 테스트가 수정 전 코드에서는 실패하고 수정 후 통과한다(수정 전 실패를 한 번 확인).
 
 ## Validation
 - `npx vitest run tests/player-action-processor.test.ts` — 통과
@@ -79,6 +79,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

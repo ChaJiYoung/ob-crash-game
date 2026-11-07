@@ -234,4 +234,47 @@ describe('PlayerActionProcessor (P01-T05)', () => {
 
     processor.stopAll();
   });
+
+  it('calls global setInterval/clearInterval without illegal invocation when timers are not provided (T01)', () => {
+    const realSet = globalThis.setInterval;
+    const realClear = globalThis.clearInterval;
+
+    // Simulate browser strict checking: this must be undefined or globalThis
+    globalThis.setInterval = function (this: unknown, cb: () => void, ms?: number) {
+      if (this !== undefined && this !== globalThis) {
+        throw new TypeError('Illegal invocation');
+      }
+      return realSet(cb, ms);
+    } as typeof setInterval;
+
+    globalThis.clearInterval = function (this: unknown, id: any) {
+      if (this !== undefined && this !== globalThis) {
+        throw new TypeError('Illegal invocation');
+      }
+      return realClear(id);
+    } as typeof clearInterval;
+
+    try {
+      const ctx = createContext();
+      delete (ctx as any).timers;
+      const processor = new PlayerActionProcessor(ctx);
+
+      expect(() => {
+        processor.send({ type: 'fireDown' });
+      }).not.toThrow();
+
+      engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
+      engine.activateFever(Date.now());
+      expect(() => {
+        processor.tick();
+      }).not.toThrow();
+
+      expect(() => {
+        processor.stopAll();
+      }).not.toThrow();
+    } finally {
+      globalThis.setInterval = realSet;
+      globalThis.clearInterval = realClear;
+    }
+  });
 });
