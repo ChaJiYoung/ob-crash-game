@@ -10,7 +10,8 @@ export const RANKING_RULESET_VERSION = 5;
 
 export const GAME_TUNING = {
   fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50 },
-  judgment: { perfectDamage: 2.0, greatDamage: 1.0, goodDamage: 0.5 },
+  /** feverDamage: 피버 중 모든 명중(등급은 GREAT 고정)에 쓰는 판정 배율. */
+  judgment: { perfectDamage: 2.0, greatDamage: 1.0, goodDamage: 0.5, feverDamage: 2.0 },
   /**
    * scale: 명중 점수·처치 보너스에 곱하는 전체 점수 단위(표의 기본 점수 150/100/50, 처치 30~1500은 scale 1.0 기준).
    * 클리어(VICTORY) 시 한 번 더해지는 정밀도 보너스 = k × (가중 판정 비율)^power. k는 최종 점수 단위(scale 적용 후).

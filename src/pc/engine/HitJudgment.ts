@@ -1,5 +1,6 @@
 import { JudgmentGrade } from '../../shared/types';
 import { JUDGMENT_SPECS } from '../../shared/constants';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface HitJudgmentResult {
   grade: JudgmentGrade;
@@ -51,7 +52,7 @@ export function evaluateHitJudgment(
         baseScore: JUDGMENT_SPECS.GREAT.baseScore,
         feverDelta: 0,
         damage: baseDamage,
-        damageMultiplier: JUDGMENT_SPECS.GREAT.damageMultiplier,
+        damageMultiplier: GAME_TUNING.judgment.feverDamage,
       };
     }
     return { grade: 'MISS', errorRatio, baseScore: 0, feverDelta: 0, damage: 0, damageMultiplier: 0 };

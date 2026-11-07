@@ -76,10 +76,10 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(miss.feverDelta).toBe(0);
     expect(miss.damageMultiplier).toBe(0);
 
-    // Fever: any hit inside the target is a GREAT (never PERFECT), at normal damage
+    // Fever: any hit inside the target is a GREAT (never PERFECT), at fever damage
     const feverHit = evaluateHitJudgment(0.75, 1.0, true);
     expect(feverHit.grade).toBe('GREAT');
-    expect(feverHit.damageMultiplier).toBe(JUDGMENT_SPECS.GREAT.damageMultiplier);
+    expect(feverHit.damageMultiplier).toBe(GAME_TUNING.judgment.feverDamage);
     expect(evaluateHitJudgment(0.05, 1.0, true).grade).toBe('GREAT');
     expect(evaluateHitJudgment(1.15, 1.0, true).grade).toBe('MISS');
 
