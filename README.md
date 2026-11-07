@@ -100,12 +100,16 @@ npm run server
 ```
 * 포트 `8787`에서 구동되며 세션 룸 매칭, 센서 패킷 릴레이, 플레이어 영구 랭킹을 처리합니다.
 
-#### 터미널 2: Vite HTTPS 프론트엔드 개발 서버 실행
+#### 터미널 2: Vite 개발 서버 및 모바일 터널 실행 (권장)
 ```bash
 npm run dev
 ```
-* 포트 `5173`에서 HTTPS(`basicSsl`)로 구동됩니다.
-* PC 브라우저에서 `https://localhost:5173`에 접속합니다.
+* 포트 `5173`에서 Vite HTTPS 개발 서버와 함께 **Cloudflare Tunnel**이 자동으로 구동됩니다.
+* 터미널 로그의 `[tunnel] ➜ https://xxxx.trycloudflare.com` 주소를 확인합니다.
+* **PC 브라우저에서 해당 터널 주소(`https://xxxx.trycloudflare.com`)로 접속**합니다.
+  * 💡 PC에서 터널 주소로 접속해야 대기실의 QR 코드와 링크가 외부 접속 가능한 공인 HTTPS 주소로 자동 생성됩니다.
+  * 💡 카페/외부 Wi-Fi의 기기간 통신 차단(AP 격리), Windows 방화벽, LTE/5G 환경에서도 모바일 폰과 즉시 연결됩니다.
+  * 💡 로컬 전용(오프라인)으로 작업할 때는 `npm run dev:vite`를 사용하세요.
 
 ---
 
