@@ -23,7 +23,7 @@ const atLine = (over: Partial<ActiveTargetEntity>): ActiveTargetEntity =>
 function run(target: ActiveTargetEntity, sandbox = false) {
   const engine = new BeerCrusherEngine();
   engine.startGame({ withWeaponSelect: false });
-  engine.isSandboxMode = sandbox;
+  engine.mode = sandbox ? 'sandbox' : 'game';
   engine.activeTargets = [target];
   const before = engine.lives;
   const { breaches } = engine.update(100_000, 0.05);

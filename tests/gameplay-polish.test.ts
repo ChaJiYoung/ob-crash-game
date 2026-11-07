@@ -105,7 +105,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       const extraMonster = engine.spawnSandboxTarget('bottle', { radiusM: 14.0, thetaRad: 0.35 });
       extraMonster.id = 'monster_survivor';
       engine.gamePhase = 'PLAYING';
-      engine.isSandboxMode = false;
+      engine.mode = 'game';
       engine.activeTargets = [extraMonster];
 
       // Simulate killing 22 monsters (Wave 4 target is 22)

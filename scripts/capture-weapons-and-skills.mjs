@@ -174,7 +174,7 @@ async function captureWeaponsAndSkills() {
   await page.evaluate(() => {
     const eng = window.__engine;
     if (eng) {
-      eng.isSandboxMode = false;
+      eng.mode = 'game';
       eng.startGame({ withWeaponSelect: false }); // fresh state: no fever, no leftover banners
       eng.activeTargets = [];
       eng.weaponSystem.selectWeapon('shotgun', 1);
@@ -188,7 +188,7 @@ async function captureWeaponsAndSkills() {
   await page.evaluate(() => {
     const eng = window.__engine;
     if (eng) {
-      eng.isSandboxMode = false;
+      eng.mode = 'game';
       eng.startGame({ withWeaponSelect: false });
       eng.weaponSystem.selectWeapon('revolver', 1);
       eng.startWave(3);

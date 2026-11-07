@@ -154,4 +154,59 @@ export const GAME_TUNING = {
     { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'], cardKillTarget: 26, boss: null },
     { waveIndex: 7, parTimeSec: 45, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], cardKillTarget: null, boss: { coolerHp: [150, 150], kingHp: 250, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
   ],
+  breachRespawnRadiusM: 16,
+  /** 모드별 규칙(D31). 엔진은 모드를 묻지 않고 이 값만 읽는다. */
+  modeRules: {
+    game: {
+      waveSpawning: true,
+      breachEffect: 'damageLives' as const,
+      pilgoodCharge: true,
+      hanmacBlast: true,
+      killEffects: true,
+      bossEncounter: true,
+      freezeOnSelect: true,
+      waveTimeBonus: true,
+      victoryBonus: true,
+      holdDamagePenalty: true,
+    },
+    tutorial: {
+      waveSpawning: false,
+      breachEffect: 'remove' as const,
+      pilgoodCharge: false,
+      hanmacBlast: false,
+      killEffects: false,
+      bossEncounter: false,
+      freezeOnSelect: false,
+      waveTimeBonus: false,
+      victoryBonus: false,
+      holdDamagePenalty: false,
+    },
+    sandbox: {
+      waveSpawning: false,
+      breachEffect: 'respawnFar' as const,
+      pilgoodCharge: false,
+      hanmacBlast: false,
+      killEffects: false,
+      bossEncounter: false,
+      freezeOnSelect: false,
+      waveTimeBonus: false,
+      victoryBonus: false,
+      holdDamagePenalty: false,
+    },
+  },
 } as const;
+
+export type BreachEffect = 'damageLives' | 'respawnFar' | 'remove';
+export type EngineMode = 'game' | 'tutorial' | 'sandbox';
+export type ModeRules = {
+  readonly waveSpawning: boolean;
+  readonly breachEffect: BreachEffect;
+  readonly pilgoodCharge: boolean;
+  readonly hanmacBlast: boolean;
+  readonly killEffects: boolean;
+  readonly bossEncounter: boolean;
+  readonly freezeOnSelect: boolean;
+  readonly waveTimeBonus: boolean;
+  readonly victoryBonus: boolean;
+  readonly holdDamagePenalty: boolean;
+};

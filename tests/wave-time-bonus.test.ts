@@ -118,7 +118,7 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
     });
 
     it('is not paid in the tutorial or sandbox', () => {
-      engine.isSandboxMode = true;
+      engine.mode = 'sandbox';
       const before = engine.scoreManager.getState().totalScore;
       engine.awardWaveTimeBonus(5000);
       expect(engine.scoreManager.getState().totalScore).toBe(before);

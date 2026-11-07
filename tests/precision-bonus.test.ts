@@ -58,7 +58,7 @@ describe('precision bonus (score = hit points + one-off bonus at VICTORY)', () =
   it('is not paid in the tutorial or sandbox', () => {
     const before = engine.scoreManager.getState().totalScore;
     stats(engine, { PERFECT: 100 });
-    (engine as any).isTutorialMode = true;
+    (engine as any).mode = 'tutorial';
     (engine as any).declareVictory();
     expect(engine.scoreManager.getState().totalScore).toBe(before);
   });

@@ -21,7 +21,7 @@ import {
 } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
-import { GAME_TUNING } from '../../shared/gameTuning';
+import { GAME_TUNING, EngineMode, ModeRules } from '../../shared/gameTuning';
 import type { ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
@@ -210,11 +210,12 @@ export class BeerCrusherEngine {
   public maxLives: number = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
   public activeTargets: ActiveTargetEntity[] = [];
 
-  public isTutorialMode = false;
+  public mode: EngineMode = 'game';
+  public get modeRules(): ModeRules { return GAME_TUNING.modeRules[this.mode]; }
+  public get isTutorialMode(): boolean { return this.mode === 'tutorial'; }
+  public get isSandboxMode(): boolean { return this.mode === 'sandbox'; }
   public tutorialStep: TutorialStep = 1;
   public tutorialCompleted = false;
-
-  public isSandboxMode = false;
   public infiniteAmmo = false;
 
   public isPaused = false;
@@ -421,8 +422,7 @@ export class BeerCrusherEngine {
     this.lastBossProjectileMs = 0;
     this.bossEncounterStartMs = 0;
     this.bossWarningUntilMs = 0;
-    this.isTutorialMode = false;
-    this.isSandboxMode = false;
+    this.mode = 'game';
     this.cardKillCount = 0;
     this.pendingWaveAdvance = false;
     this.bossSummonActionUntilMs = 0;
@@ -690,7 +690,7 @@ export class BeerCrusherEngine {
     this.clearSkillProjectiles();
     this.resetBossClear();
     this.gamePhase = 'TUTORIAL';
-    this.isTutorialMode = true;
+    this.mode = 'tutorial';
     this.currentWave = 1;
     this.isBossEncounterActive = false;
     this.bossSpawned = false;
@@ -817,7 +817,7 @@ export class BeerCrusherEngine {
   }
 
   public exitTutorialMode(): void {
-    this.isTutorialMode = false;
+    this.mode = 'game';
     this.tutorialStep = 1;
     this.activeTargets = [];
     this.clearSkillProjectiles();
@@ -834,7 +834,7 @@ export class BeerCrusherEngine {
   }
 
   public exitSandboxMode(): void {
-    this.isSandboxMode = false;
+    this.mode = 'game';
     this.activeTargets = [];
     this.clearSkillProjectiles();
     this.resetBossClear();
@@ -875,7 +875,7 @@ export class BeerCrusherEngine {
     this.clearSkillProjectiles();
     this.resetBossClear();
     this.gamePhase = 'SANDBOX';
-    this.isSandboxMode = true;
+    this.mode = 'sandbox';
     this.currentWave = 1;
     this.isBossEncounterActive = false;
     this.bossSpawned = false;
@@ -1199,7 +1199,7 @@ export class BeerCrusherEngine {
     }
 
     // While cards are pending the whole game clock stops: fever, buffs, skill cooldown, reload, spawns.
-    if (!this.isTutorialMode && !this.isSandboxMode && this.isCardSelectPending) {
+    if (this.modeRules.freezeOnSelect && this.isCardSelectPending) {
       const realElapsedMs = prevUpdateNowMs > 0 ? Math.max(0, nowMs - prevUpdateNowMs) : dtSec * 1000;
       this.freezeTimers(realElapsedMs);
       return { breaches: [], phaseChanged: false, reloadedJustNow: false };
@@ -1231,7 +1231,7 @@ export class BeerCrusherEngine {
     const { reloadedJustNow } = this.weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
     this.scoreManager.updateFeverTimer(nowMs);
 
-    if (this.isTutorialMode && this.tutorialStep === 4) {
+    if (this.mode === 'tutorial' && this.tutorialStep === 4) {
       if (!this.scoreManager.getState().isFeverActive && this.scoreManager.getState().feverGauge === 0 && this.activeTargets.length === 0) {
         this.advanceTutorialStep('COMPLETED');
       }
@@ -1289,7 +1289,7 @@ export class BeerCrusherEngine {
         effectiveSpeed = 0;
       }
 
-      const isRegularPlay = !this.isTutorialMode && !this.isSandboxMode;
+      const isRegularPlay = this.modeRules.pilgoodCharge;
       const isPlainMonster = !target.isItem && !target.isProjectile && !target.isGoldenCan;
 
       // Pilgood: ground rocket can that charges once it gets close to the defense line
@@ -1339,51 +1339,54 @@ export class BeerCrusherEngine {
       }
 
       if (target.breached) {
-        if (this.isSandboxMode) {
-          target.radiusM = 16.0;
-          target.x = Math.sin(target.thetaRad) * 16.0;
-          target.z = -Math.cos(target.thetaRad) * 16.0;
-          target.breached = false;
-          continue;
-        }
-
-        if (this.isTutorialMode) {
-          if (this.tutorialStep === 2) {
-            target.radiusM = 14.0;
-            target.x = 0;
-            target.z = -14.0;
+        switch (this.modeRules.breachEffect) {
+          case 'respawnFar': {
+            target.radiusM = GAME_TUNING.breachRespawnRadiusM;
+            target.x = Math.sin(target.thetaRad) * GAME_TUNING.breachRespawnRadiusM;
+            target.z = -Math.cos(target.thetaRad) * GAME_TUNING.breachRespawnRadiusM;
             target.breached = false;
             continue;
-          } else if (this.tutorialStep === 4) {
-            this.activeTargets.splice(i, 1);
-            if (this.activeTargets.length === 0) {
-              this.advanceTutorialStep('COMPLETED');
+          }
+          case 'remove': {
+            if (this.tutorialStep === 2) {
+              target.radiusM = 14.0;
+              target.x = 0;
+              target.z = -14.0;
+              target.breached = false;
+              continue;
+            } else if (this.tutorialStep === 4) {
+              this.activeTargets.splice(i, 1);
+              if (this.activeTargets.length === 0) {
+                this.advanceTutorialStep('COMPLETED');
+              }
+              continue;
             }
+            this.activeTargets.splice(i, 1);
             continue;
           }
-          this.activeTargets.splice(i, 1);
-          continue;
-        }
+          case 'damageLives': {
+            this.activeTargets.splice(i, 1);
 
-        this.activeTargets.splice(i, 1);
+            if (target.isItem || target.isGoldenCan || target.weaponSelectKind || target.rewardCardKind) {
+              continue;
+            }
 
-        if (target.isItem || target.isGoldenCan || target.weaponSelectKind || target.rewardCardKind) {
-          continue;
-        }
+            breaches.push(target);
+            const damage = target.isProjectile ? 1 : target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
+            this.damageTaken += Math.min(this.lives, damage);
+            this.lives = Math.max(0, this.lives - damage);
 
-        breaches.push(target);
-        const damage = target.isProjectile ? 1 : target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
-        this.damageTaken += Math.min(this.lives, damage);
-        this.lives = Math.max(0, this.lives - damage);
-
-        if (this.lives <= 0) {
-          this.gamePhase = 'GAMEOVER';
-          return { breaches, phaseChanged: true, reloadedJustNow };
+            if (this.lives <= 0) {
+              this.gamePhase = 'GAMEOVER';
+              return { breaches, phaseChanged: true, reloadedJustNow };
+            }
+            break;
+          }
         }
       }
     }
 
-    if (this.isTutorialMode || this.isSandboxMode) {
+    if (!this.modeRules.waveSpawning) {
       return { breaches, phaseChanged: false, reloadedJustNow };
     }
 
@@ -1682,7 +1685,7 @@ export class BeerCrusherEngine {
     const baseHitRadius = (target.hitRadiusM * 2.8 * wideScopeMult) / Math.max(2.5, camDist * tanHalfFov);
     // Cards, the tutorial and the sandbox keep the generous legacy hit zone.
     const isCard = !!target.weaponSelectKind || !!target.rewardCardKind;
-    const baseZoneScale = isCard || this.isTutorialMode || this.isSandboxMode ? 1.0 : GAME_TUNING.hitZone.scale;
+    const baseZoneScale = isCard || this.mode !== 'game' ? 1.0 : GAME_TUNING.hitZone.scale;
     const zoneScale = isCard
       ? baseZoneScale
       : baseZoneScale * (1 + GAME_TUNING.cards.hitZoneUp.amount * this.cardStacks.hit_zone_up);
@@ -1697,7 +1700,7 @@ export class BeerCrusherEngine {
       return;
     }
 
-    if (target.kind === 'boss' && (this.isSandboxMode || this.isTutorialMode)) {
+    if (target.kind === 'boss' && !this.modeRules.bossEncounter) {
       // Sandbox / tutorial bosses are just targets: no encounter flow, no victory
       return;
     }
@@ -1711,12 +1714,12 @@ export class BeerCrusherEngine {
     if (this.bossClearUntilMs > 0) return; // 연출 중에는 분열·드롭·킬 카운트가 없다
 
     // 사격·스킬이 목록을 처리하는 도중일 수 있으므로 여기서 터뜨리지 않고 다음 update로 미룬다.
-    if (target.kind === 'hanmac' && !this.isTutorialMode && !this.isSandboxMode && !target.isItem && !target.isProjectile) {
+    if (target.kind === 'hanmac' && this.modeRules.hanmacBlast && !target.isItem && !target.isProjectile) {
       this.pendingHanmacBlasts.push({ x: target.x, z: target.z });
     }
 
     if (!target.isItem && !target.isProjectile && !target.isGoldenCan && !target.weaponSelectKind && !target.rewardCardKind) {
-      if (!this.isTutorialMode && !this.isSandboxMode) {
+      if (this.modeRules.killEffects) {
         if (target.kind === 'bottle' && !target.isSplitChild) {
           this.splitBottle(target);
         }
@@ -1884,7 +1887,7 @@ export class BeerCrusherEngine {
 
   /** Pays the current wave's time bonus once (not in the tutorial or sandbox). */
   private awardWaveTimeBonus(nowMs: number): void {
-    if (this.isTutorialMode || this.isSandboxMode || this.waveStartMs === null) return;
+    if (!this.modeRules.waveTimeBonus || this.waveStartMs === null) return;
     if (this.lastWaveClear && this.lastWaveClear.wave === this.currentWave) return;
     const seconds = Math.max(0, (nowMs - this.waveStartMs) / 1000);
     const bonus = this.scoreManager.addBonusScore(this.computeWaveTimeBonus(this.currentWave, seconds));
@@ -1958,7 +1961,7 @@ export class BeerCrusherEngine {
     if (this.gamePhase === 'VICTORY') return;
     this.gamePhase = 'VICTORY';
     this.clearSkillProjectiles();
-    if (!this.isTutorialMode && !this.isSandboxMode) {
+    if (this.modeRules.victoryBonus) {
       // 레벨 보너스는 기본 점수에만 곱하므로 다른 보너스를 더하기 전에 계산한다.
       const { base } = this.getScoreBreakdown();
       const mult = GAME_TUNING.score.weaponLevelBonusMult[this.weaponSystem.getState().weaponLevel];
@@ -2019,7 +2022,7 @@ export class BeerCrusherEngine {
       const proj = this.computeTargetAimCoords(target, wideScopeMult);
       // Aim x spans half the screen width per unit, so convert to the vertical unit to get a round zone.
       // The tutorial and sandbox keep the legacy (uncorrected) zone their guidance assumes.
-      const aspectFactor = this.isTutorialMode || this.isSandboxMode ? 1.0 : this.aspect;
+      const aspectFactor = this.mode !== 'game' ? 1.0 : this.aspect;
       const dx = (aimX - proj.targetNormX) * aspectFactor;
       const dy = target.customNormY !== undefined
         ? (aimY - proj.targetNormY)
@@ -2104,7 +2107,7 @@ export class BeerCrusherEngine {
       const weaponBonusMult = this.weaponSystem.getDamageBonusMultiplier();
       // Held rapid fire is weaker than tapping; fever auto-fire is exempt.
       const holdMult =
-        source === 'hold' && !isFever && !this.isTutorialMode && !this.isSandboxMode
+        source === 'hold' && !isFever && this.modeRules.holdDamagePenalty
           ? GAME_TUNING.fire.holdDamageByWeapon[weaponKind]
           : 1.0;
       const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.damageScaleByWeapon[weaponKind] : 1.0;
@@ -2195,7 +2198,7 @@ export class BeerCrusherEngine {
           this.totalKills += 1;
         }
 
-        if (this.isTutorialMode) {
+        if (this.mode === 'tutorial') {
           if (this.tutorialStep === 1) {
             if (this.activeTargets.length === 0) {
               this.advanceTutorialStep(2);
@@ -2500,7 +2503,7 @@ export class BeerCrusherEngine {
 
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
     const result = this.runWeaponSkill(nowMs);
-    if (result.activated && this.isTutorialMode && this.tutorialStep === 3) {
+    if (result.activated && this.mode === 'tutorial' && this.tutorialStep === 3) {
       this.advanceTutorialStep(4);
     }
     return result;

@@ -1,6 +1,6 @@
 # Task: T02 모드 규칙 표
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진 안에서 "튜토리얼이야? 샌드박스야?"를 물어 규칙을 켜고 끄는 분기를 모드 규칙 표 하나로 옮긴다(D31-1). 엔진은 `this.mode`('game' | 'tutorial' | 'sandbox')에 해당하는 행(`this.modeRules`)의 값만 읽는다. 동작은 바뀌지 않는다(판정 범위 통일은 T04). 튜토리얼 단계 진행 코드는 이 Task에서 건드리지 않는다(T03).
@@ -80,8 +80,8 @@
 - 엔진 내부 분기 제거 확인: `grep -c "isTutorialMode\|isSandboxMode" src/pc/engine/BeerCrusherEngine.ts`가 getter 정의 2곳만(1246·2210·2515행 튜토리얼 진행은 `mode === 'tutorial'`로 바뀌어 있어야 함).
 
 ## Acceptance Criteria
-- [ ] 엔진이 규칙을 켜고 끌 때 모드를 묻지 않고 `modeRules` 값만 읽는다.
-- [ ] 기존 테스트가 동작 변화 없이 통과한다(대입 문법만 고친 테스트 제외).
+- [x] 엔진이 규칙을 켜고 끌 때 모드를 묻지 않고 `modeRules` 값만 읽는다.
+- [x] 기존 테스트가 동작 변화 없이 통과한다(대입 문법만 고친 테스트 제외).
 
 ## Validation
 - `npx vitest run tests/mode-rules.test.ts` — 통과
@@ -104,6 +104,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
