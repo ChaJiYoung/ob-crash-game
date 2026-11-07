@@ -1,6 +1,6 @@
 # Task: T02 Next Charge Timer
 
-## Status: pending
+## Status: done
 
 ## Goal
 스킬 스톡이 1개 이상 최대치 미만일 때, 폰과 PC HUD에 다음 충전까지 남은 초가 보인다.
@@ -49,6 +49,6 @@ Task: T02-next-charge-timer
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과 (vitest 515 passed, tsc OK)
+- commit: see git log

@@ -4,6 +4,21 @@ import { triggerHaptic } from '../sensors/HapticFeedback';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
 
+/** 폰 스킬 상태 문구. 스톡이 일부만 찼을 때는 다음 충전까지 남은 초를 함께 보여 준다. */
+export function formatControllerSkillStatus(
+  skillName: string,
+  stock: number,
+  maxStock: number,
+  remainingMs: number
+): string {
+  const sec = (Math.max(0, remainingMs) / 1000).toFixed(1);
+  if (stock <= 0) return `스킬 재충전 중... ${sec}s`;
+  if (stock < maxStock && remainingMs > 0) {
+    return `⚡ ${skillName} READY! (${stock}/${maxStock} · 다음 충전 ${sec}s) 총구를 위로 '휙!' 젖히기`;
+  }
+  return `⚡ ${skillName} READY! 총구를 위로 '휙!' 젖히기`;
+}
+
 export interface GunGripSkillInfo {
   weaponKind: WeaponKind;
   weaponLevel: WeaponLevel;
@@ -249,9 +264,12 @@ export const GunGripPad: React.FC<GunGripPadProps> = ({
                 textAlign: 'center',
               }}
             >
-              {isSkillReady
-                ? `⚡ ${skillName} READY! 총구를 위로 '휙!' 젖히기`
-                : `스킬 재충전 중... ${(skillState.skillCooldownRemainingMs / 1000).toFixed(1)}s`}
+              {formatControllerSkillStatus(
+                skillName,
+                skillState.skillStock,
+                skillState.maxSkillStock,
+                skillState.skillCooldownRemainingMs
+              )}
             </div>
           </div>
         )}
