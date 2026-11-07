@@ -127,7 +127,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const crosshairRef = useRef<CrosshairOverlayHandle>(null);
   // Read once by the reload ring when it mounts, so it can skip the part of the reload already elapsed.
   const getReloadRemainingMs = useCallback(
-    () => Math.max(0, engine.weaponSystem.getState().reloadEndTimeMs - performance.now()),
+    () => Math.max(0, engine.getPlayer(0).weaponSystem.getState().reloadEndTimeMs - performance.now()),
     [engine]
   );
 
@@ -197,8 +197,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (!result.fired) return;
-    const isFever = engine.scoreManager.getState().isFeverActive;
-    const currentWeapon = result.weaponKind || engine.weaponSystem.getState().weaponKind;
+    const isFever = engine.getPlayer(0).scoreManager.getState().isFeverActive;
+    const currentWeapon = result.weaponKind || engine.getPlayer(0).weaponSystem.getState().weaponKind;
     soundSynth.playWeaponShoot(currentWeapon, isFever);
 
     if (result.shieldBlocked) {
@@ -494,7 +494,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   // 2. Engine HUD Tick
   useEffect(() => {
     const interval = setInterval(() => {
-      const feverState = engine.scoreManager.getState();
+      const feverState = engine.getPlayer(0).scoreManager.getState();
       const now = performance.now();
 
       const nextHud = buildHudSnapshot(engine, now, tutorialDirectorRef.current?.step ?? tutorialStep);
@@ -1119,8 +1119,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             lastJudgment={sandboxJudgment}
             weaponKind={hudState.weaponKind}
             weaponLevel={hudState.weaponLevel}
-            onSelectWeapon={(k) => engine.weaponSystem.selectWeapon(k)}
-            onUpgradeWeapon={() => engine.weaponSystem.upgradeWeaponLevel()}
+            onSelectWeapon={(k) => engine.getPlayer(0).weaponSystem.selectWeapon(k)}
+            onUpgradeWeapon={() => engine.getPlayer(0).weaponSystem.upgradeWeaponLevel()}
             onSpawnRewardCards={() => engine.spawnWaveRewardCards(performance.now(), false)}
             onSummonBossMinions={() => engine.spawnBossMinionWave(performance.now(), 2)}
             onToggleStationarySpawn={setStationarySpawn}
@@ -1264,7 +1264,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             score={hudState.score}
             breakdown={engine.getScoreBreakdown()}
             lastWaveClear={engine.lastWaveClear}
-            maxCombo={engine.scoreManager.getState().maxCombo}
+            maxCombo={engine.getPlayer(0).scoreManager.getState().maxCombo}
             kills={engine.getPlayRunStats()?.kills ?? 0}
             waveReached={engine.currentWave}
             currentPlayer={pairedPlayer}

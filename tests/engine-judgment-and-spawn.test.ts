@@ -427,8 +427,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 1. Setup target, fever, and buff
     const now = 1000;
-    engine.scoreManager.forceSetFeverGauge(100);
-    engine.scoreManager.activateFever(now); // 5000ms duration, ends at 6000
+    engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
+    engine.getPlayer(0).scoreManager.activateFever(now); // 5000ms duration, ends at 6000
     engine.activateItemBuff('wide_scope', now); // 6000ms duration, ends at 7000
 
     const target = {
@@ -471,14 +471,14 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     // After unpausing at 10000, feverEndTimeMs should be 5000 + 8000 = 13000!
     // At now = 12000 (2s after unpause), fever and wide_scope must STILL be active!
     engine.update(12000, 2.0);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(true);
     expect(engine.isBuffActive('wide_scope', 12000)).toBe(true);
     // Target moved another 2.0s * 2.0m/s = 4.0m -> radius is 4.0m
     expect(target.radiusM).toBe(4.0);
 
     // At now = 14000: fever is expired (> 13000), but wide_scope (ends at 17000) is still active!
     engine.update(14000, 2.0);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(false);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(false);
     expect(engine.isBuffActive('wide_scope', 14000)).toBe(true);
 
     // At now = 18000, wide_scope is also expired (> 17000)
@@ -491,8 +491,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.startGame();
 
     // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 base DMG. With PERFECT (1.5x) -> 2.40 DMG + 0.3m knockback
-    engine.weaponSystem.selectWeapon('shotgun', 2);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 2);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const sgTarget = {
       id: 'sg_dummy',
       kind: 'bottle' as const,
@@ -517,8 +517,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
     // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const revFront = {
       id: 'rev_front',
       kind: 'bottle' as const,
@@ -558,8 +558,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(revRear.hp).toBeCloseTo(3.0 - revPerfect * 0.467, 2);
 
     // 3. Gatling Lv.1: 0.25 base DMG x1.5 tuning. With PERFECT (2.0x) -> 0.75 DMG rapid fire
-    engine.weaponSystem.selectWeapon('gatling', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const gatTarget = {
       id: 'gat_dummy',
       kind: 'obi' as const,
@@ -618,8 +618,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.activeTargets = [m1, m2];
 
     // 1. Shotgun skill: 사방 뚫어뻥 폭풍 (AoE 0.5 DMG + 1000ms Stun)
-    engine.weaponSystem.selectWeapon('shotgun', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const sgSkill = engine.triggerWeaponSkill(1000);
     expect(sgSkill.activated).toBe(true);
     expect(sgSkill.weaponKind).toBe('shotgun');
@@ -632,8 +632,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(m1.radiusM).toBe(7.0); // No movement!
 
     // 2. Revolver skill: 오프너 참격 (fan blades, damage on contact)
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const revSkill = engine.triggerWeaponSkill(3000);
     expect(revSkill.activated).toBe(true);
     expect(revSkill.bladeCount).toBe(3);
@@ -642,8 +642,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.activeSkillBlades = [];
 
     // 3. Gatling skill: 거품 해일 (foam wave, push on contact)
-    engine.weaponSystem.selectWeapon('gatling', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const initialRadius = m1.radiusM;
     const gatSkill = engine.triggerWeaponSkill(5000);
     expect(gatSkill.activated).toBe(true);
@@ -669,7 +669,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const selectShot = engine.shootAt(projGat.targetNormX, projGat.targetNormY, 1000);
     expect(selectShot.fired).toBe(true);
     expect(selectShot.selectedWeapon).toBe('gatling');
-    expect(engine.weaponSystem.getState().weaponKind).toBe('gatling');
+    expect(engine.getPlayer(0).weaponSystem.getState().weaponKind).toBe('gatling');
     expect(engine.isWeaponSelectPending).toBe(false);
     expect(engine.activeTargets.length).toBe(0);
 
@@ -695,24 +695,24 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(engine.isRewardCardPending).toBe(false);
     expect(engine.currentWave).toBe(2); // Advanced to wave 2!
     // The card draw is random, so check the level-up effect directly and relative to the current level
-    const levelBefore = engine.weaponSystem.getState().weaponLevel;
+    const levelBefore = engine.getPlayer(0).weaponSystem.getState().weaponLevel;
     engine.applyRewardCard('weapon_level_up', 2950);
-    expect(engine.weaponSystem.getState().weaponLevel).toBe(Math.min(4, levelBefore + 1));
+    expect(engine.getPlayer(0).weaponSystem.getState().weaponLevel).toBe(Math.min(4, levelBefore + 1));
 
     // 3. Golden Can Bonus
     const goldenCan = engine.spawnGoldenCanTarget(3000);
     expect(goldenCan.isGoldenCan).toBe(true);
     const projGold = engine.computeTargetAimCoords(goldenCan);
-    const skillBefore = engine.weaponSystem.getState().skillStock;
-    const feverBefore = engine.scoreManager.getState().feverGauge;
+    const skillBefore = engine.getPlayer(0).weaponSystem.getState().skillStock;
+    const feverBefore = engine.getPlayer(0).scoreManager.getState().feverGauge;
     const goldShot = engine.shootAt(projGold.targetNormX, projGold.targetNormY, 3100);
     expect(goldShot.fired).toBe(true);
     expect(goldShot.goldenCanKilled).toBe(true);
     // Golden can gives +30% fever (not a full charge) and one skill charge
-    expect(engine.scoreManager.getState().feverGauge).toBeGreaterThanOrEqual(feverBefore + 30);
-    expect(engine.scoreManager.getState().isFeverReady).toBe(false);
-    expect(engine.weaponSystem.getState().skillStock).toBe(
-      Math.min(engine.weaponSystem.getMaxSkillStock(), skillBefore + 1)
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBeGreaterThanOrEqual(feverBefore + 30);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverReady).toBe(false);
+    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBe(
+      Math.min(engine.getPlayer(0).weaponSystem.getMaxSkillStock(), skillBefore + 1)
     );
 
     // 4. Projectile Interception
@@ -730,8 +730,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     engine.startGame();
 
     // 1. Revolver Lv.1 vs 1HP Can (pilgood)
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
 
     // PERFECT shot (1.5x) -> 1.0 * 1.5 = 1.5 -> one-shot kill!
     const canPerfect = {
@@ -806,8 +806,8 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(canGood.hp).toBeCloseTo(1 - 1.0 * GAME_TUNING.weaponDamageScale.revolver * 0.5, 2);
 
     // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.5x) -> 0.63 DMG (0.37 HP remains)
-    engine.weaponSystem.selectWeapon('shotgun', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const canSgGreat = {
       id: 'can_sg_great',
       kind: 'caslight' as const,
@@ -875,8 +875,8 @@ describe('revolver pierce feedback', () => {
     const front = mkT(8);
     const rear = mkT(10);
     engine.activeTargets = [front, rear];
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(front);
     const res = engine.shootAt(p.targetNormX, p.targetNormY, 2000, 'press');
     expect(getPiercedTargets(res)).toEqual([rear]);

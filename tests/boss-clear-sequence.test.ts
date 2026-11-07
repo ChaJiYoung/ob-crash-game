@@ -28,8 +28,8 @@ describe('boss clear sequence', () => {
   const step = (ms = 50) => { now += ms; return engine.update(now, ms / 1000); };
   const killBoss = (boss: ActiveTargetEntity) => {
     boss.hp = 0.1;
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(boss);
     const res = engine.shootAt(p.targetNormX, p.targetNormY, now);
     expect(res.killed).toBe(true);
@@ -58,7 +58,7 @@ describe('boss clear sequence', () => {
     const boss = bosses(engine)[0];
     engine.activeTargets.push(mkMonster('near', 4), mkMonster('far', 12));
     killBoss(boss);
-    const scoreBefore = engine.scoreManager.getState().totalScore;
+    const scoreBefore = engine.getPlayer(0).scoreManager.getState().totalScore;
     const nearBefore = engine.activeTargets.find((t) => t.id === 'near')!.radiusM;
     const order: string[] = [];
     for (let i = 0; i < 4; i++) {
@@ -66,7 +66,7 @@ describe('boss clear sequence', () => {
       for (const ev of engine.drainBossClearEvents()) if (ev.type === 'cascade') order.push(ev.target.id);
     }
     expect(order).toEqual(['near', 'far']);
-    expect(engine.scoreManager.getState().totalScore).toBe(scoreBefore);
+    expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBe(scoreBefore);
     expect(nearBefore).toBe(4);
   });
 
@@ -83,14 +83,14 @@ describe('boss clear sequence', () => {
     startBossWave(engine, 3, now);
     killBoss(bosses(engine)[0]);
     engine.activeTargets.push(mkMonster('m', 9));
-    const ammo = engine.weaponSystem.getState().ammo;
-    const stock = engine.weaponSystem.getState().skillStock;
+    const ammo = engine.getPlayer(0).weaponSystem.getState().ammo;
+    const stock = engine.getPlayer(0).weaponSystem.getState().skillStock;
     const shot = engine.shootAt(0, 0, now + 10);
     expect(shot.fired).toBe(false);
     expect(engine.triggerWeaponSkill(now + 10).activated).toBe(false);
-    expect(engine.weaponSystem.getState().ammo).toBe(ammo);
-    expect(engine.weaponSystem.getState().skillStock).toBe(stock);
-    engine.scoreManager.addFeverGauge(100);
+    expect(engine.getPlayer(0).weaponSystem.getState().ammo).toBe(ammo);
+    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBe(stock);
+    engine.getPlayer(0).scoreManager.addFeverGauge(100);
     expect(engine.activateFever(now + 10)).toBe(false);
   });
 
@@ -113,8 +113,8 @@ describe('boss clear sequence', () => {
     const all = e2.activeTargets.filter((t) => t.kind === 'boss');
     for (const b of all) {
       b.hp = 0.1;
-      e2.weaponSystem.selectWeapon('revolver', 1);
-      e2.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      e2.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+      e2.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const p = e2.computeTargetAimCoords(b);
       t2 += 600;
       e2.shootAt(p.targetNormX, p.targetNormY, t2);
@@ -145,10 +145,10 @@ describe('boss clear sequence', () => {
   it('the skill cooldown keeps running during the sequence', () => {
     startBossWave(engine, 3, now);
     killBoss(bosses(engine)[0]);
-    engine.weaponSystem.consumeSkill(now);
-    const before = engine.weaponSystem.getState().skillCooldownRemainingMs;
+    engine.getPlayer(0).weaponSystem.consumeSkill(now);
+    const before = engine.getPlayer(0).weaponSystem.getState().skillCooldownRemainingMs;
     step(500);
-    expect(engine.weaponSystem.getState().skillCooldownRemainingMs).toBeLessThan(before);
+    expect(engine.getPlayer(0).weaponSystem.getState().skillCooldownRemainingMs).toBeLessThan(before);
   });
 
   it('the wave time bonus is paid at the moment of the kill, not after the sequence', () => {
@@ -197,8 +197,8 @@ describe('boss clear sequence', () => {
     boss.radiusM = 12; boss.z = -12; boss.thetaRad = 0; boss.x = 0; boss.hp = 0.1;
     const front: ActiveTargetEntity = { ...mkMonster('front', 8), kind: 'bottle', hp: 0.1, maxHp: 4 };
     engine.activeTargets.push(front);
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(front);
     engine.shootAt(p.targetNormX, p.targetNormY, now);
     expect(engine.isBossClearSequence()).toBe(true);

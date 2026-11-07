@@ -97,7 +97,7 @@ async function testGame() {
   // 5. A real shot at the nearest target must register and spend ammo
   const shot = await page.evaluate(() => {
     const eng = window.__engine;
-    const ammoBefore = eng.weaponSystem.getState().ammo;
+    const ammoBefore = eng.getPlayer(0).weaponSystem.getState().ammo;
     const t = [...eng.activeTargets]
       .filter((x) => !x.isItem && !x.isProjectile && !x.rewardCardKind && !x.weaponSelectKind && !x.isGuarding)
       .sort((a, b) => a.radiusM - b.radiusM)[0];
@@ -108,8 +108,8 @@ async function testGame() {
       fired: res.fired,
       grade: res.grade,
       ammoBefore,
-      ammoAfter: eng.weaponSystem.getState().ammo,
-      totalScore: eng.scoreManager.getState().totalScore,
+      ammoAfter: eng.getPlayer(0).weaponSystem.getState().ammo,
+      totalScore: eng.getPlayer(0).scoreManager.getState().totalScore,
     };
   });
   console.log('Shot result:', JSON.stringify(shot));

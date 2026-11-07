@@ -22,17 +22,17 @@ describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
     engine.activeTargets = [];
-    engine.weaponSystem.selectWeapon('shotgun', 4);
-    engine.weaponSystem.consumeSkill(0);
-    engine.weaponSystem.consumeSkill(0);
-    expect(engine.weaponSystem.getState().skillStock).toBe(0);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
+    engine.getPlayer(0).weaponSystem.consumeSkill(0);
+    engine.getPlayer(0).weaponSystem.consumeSkill(0);
+    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBe(0);
 
     const can = engine.spawnGoldenCanTarget(1000);
     const p = engine.computeTargetAimCoords(can);
     const res = engine.shootAt(p.targetNormX, p.targetNormY, 1100);
     expect(res.goldenCanKilled).toBe(true);
-    expect(engine.weaponSystem.getState().skillStock).toBe(1);
-    const fever = engine.scoreManager.getState();
+    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBe(1);
+    const fever = engine.getPlayer(0).scoreManager.getState();
     expect(fever.isFeverReady).toBe(false);
     expect(fever.feverGauge).toBeGreaterThanOrEqual(GAME_TUNING.goldenCan.feverGain);
     expect(fever.feverGauge).toBeLessThan(60);
@@ -42,9 +42,9 @@ describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
     engine.applyRewardCard('fever_boost', 1000);
-    expect(engine.scoreManager.getState().feverGauge).toBe(50);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(50);
     engine.applyRewardCard('fever_boost', 2000);
-    expect(engine.scoreManager.getState().feverGauge).toBe(100);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(100);
   });
 
   it('addSkillStock never exceeds max stock and clears cooldown when full', () => {

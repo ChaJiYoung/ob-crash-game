@@ -6,7 +6,7 @@ describe('TutorialDirector', () => {
   it('drives 1 -> 2 -> 3 -> 4 -> COMPLETED sequentially through events', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
-    engine.weaponSystem.setInfiniteAmmo(true);
+    engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
 
     const director = new TutorialDirector(engine);
     let now = 1000;
@@ -42,7 +42,7 @@ describe('TutorialDirector', () => {
     // Should advance to Step 3: skill targets (5)
     expect(director.step).toBe(3);
     expect(engine.activeTargets.length).toBe(5);
-    expect(engine.weaponSystem.getState().skillStock).toBeGreaterThan(0);
+    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBeGreaterThan(0);
 
     // Use skill
     now += 500;
@@ -51,7 +51,7 @@ describe('TutorialDirector', () => {
 
     // Should advance to Step 4: fever ready (gauge 100), targets cleared
     expect(director.step).toBe(4);
-    expect(engine.scoreManager.getState().isFeverReady).toBe(true);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverReady).toBe(true);
     expect(engine.activeTargets.length).toBe(0);
 
     // Activate fever -> spawns 6 fever targets
@@ -105,7 +105,7 @@ describe('TutorialDirector', () => {
   it('re-spawns targets and stays on step 3 if cleared by regular shots', () => {
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
-    engine.weaponSystem.setInfiniteAmmo(true);
+    engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
 
     const director = new TutorialDirector(engine);
     let now = 1000;

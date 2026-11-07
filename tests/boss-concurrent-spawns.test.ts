@@ -16,7 +16,7 @@ function freezeNonBosses(e: BeerCrusherEngine): void {
 
 function killBoss(engine: BeerCrusherEngine, boss: ActiveTargetEntity, now: number): void {
   boss.hp = 0.1;
-  engine.weaponSystem.selectWeapon('revolver', 1);
+  engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
   const p = engine.computeTargetAimCoords(boss);
   const res = engine.shootAt(p.targetNormX, p.targetNormY, now);
   expect(res.killed).toBe(true);

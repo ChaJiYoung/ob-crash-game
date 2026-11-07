@@ -20,17 +20,17 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
   const cardsOnField = () => engine.activeTargets.filter((t) => t.rewardCardKind).map((t) => t.rewardCardKind!);
 
   it('has no weapon_level_up at Lv.4 and respects the per-wave level cap', () => {
-    engine.weaponSystem.selectWeapon('shotgun', 4);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
     engine.startWave(7);
     expect(engine.buildRewardCardPool()).not.toContain('weapon_level_up');
 
-    engine.weaponSystem.selectWeapon('shotgun', 2);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 2);
     engine.startWave(1);
     expect(engine.buildRewardCardPool()).not.toContain('weapon_level_up'); // wave 1 cap is Lv.2
-    engine.weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     expect(engine.buildRewardCardPool()).toContain('weapon_level_up');
 
-    engine.weaponSystem.selectWeapon('shotgun', 3);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 3);
     engine.startWave(3);
     expect(engine.buildRewardCardPool()).not.toContain('weapon_level_up'); // wave 3 cap is Lv.3
     engine.startWave(5);
@@ -63,9 +63,9 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
 
     // Fever ready / active -> no booster
     expect(engine.buildRewardCardPool()).toContain('fever_boost');
-    engine.scoreManager.forceSetFeverGauge(100);
+    engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
     expect(engine.buildRewardCardPool()).not.toContain('fever_boost');
-    engine.scoreManager.activateFever(0);
+    engine.getPlayer(0).scoreManager.activateFever(0);
     expect(engine.buildRewardCardPool()).not.toContain('fever_boost');
   });
 
@@ -78,8 +78,8 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
       engine.applyRewardCard('fever_extend', 0);
     }
     for (let i = 0; i < 2; i++) engine.applyRewardCard('hit_zone_up', 0);
-    engine.weaponSystem.selectWeapon('shotgun', 4);
-    engine.scoreManager.forceSetFeverGauge(100);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
+    engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
     for (let round = 0; round < 30; round++) {
       engine.spawnWaveRewardCards(1000 + round, false);
       const cards = cardsOnField();
@@ -111,24 +111,24 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
   it('applies the four new card effects', () => {
     // damage +10% per stack
     engine.applyRewardCard('damage_up', 0);
-    expect(engine.weaponSystem.getDamageBonusMultiplier()).toBeCloseTo(1.1, 5);
+    expect(engine.getPlayer(0).weaponSystem.getDamageBonusMultiplier()).toBeCloseTo(1.1, 5);
 
     // skill cooldown x0.9 per stack
-    const base = engine.weaponSystem.getSkillCooldownTotalMs();
+    const base = engine.getPlayer(0).weaponSystem.getSkillCooldownTotalMs();
     engine.applyRewardCard('skill_cooldown', 0);
-    expect(engine.weaponSystem.getSkillCooldownTotalMs()).toBe(Math.round(base * 0.9));
+    expect(engine.getPlayer(0).weaponSystem.getSkillCooldownTotalMs()).toBe(Math.round(base * 0.9));
     engine.applyRewardCard('skill_cooldown', 0);
-    expect(engine.weaponSystem.getSkillCooldownTotalMs()).toBe(Math.round(base * 0.81));
+    expect(engine.getPlayer(0).weaponSystem.getSkillCooldownTotalMs()).toBe(Math.round(base * 0.81));
 
     // fever duration +500ms per stack
     engine.applyRewardCard('fever_extend', 0);
-    expect(engine.scoreManager.getFeverDurationMs()).toBe(4500);
-    engine.scoreManager.forceSetFeverGauge(100);
-    engine.scoreManager.activateFever(1000);
-    engine.scoreManager.updateFeverTimer(5400);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
-    engine.scoreManager.updateFeverTimer(5600);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(false);
+    expect(engine.getPlayer(0).scoreManager.getFeverDurationMs()).toBe(4500);
+    engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
+    engine.getPlayer(0).scoreManager.activateFever(1000);
+    engine.getPlayer(0).scoreManager.updateFeverTimer(5400);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(true);
+    engine.getPlayer(0).scoreManager.updateFeverTimer(5600);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(false);
 
     // hit zone +5% per stack, monsters only
     const t = {
@@ -143,7 +143,7 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
 
   it('does not stack beyond the configured maximums', () => {
     for (let i = 0; i < 6; i++) engine.applyRewardCard('damage_up', 0);
-    expect(engine.weaponSystem.getDamageBonusMultiplier()).toBeCloseTo(
+    expect(engine.getPlayer(0).weaponSystem.getDamageBonusMultiplier()).toBeCloseTo(
       1 + GAME_TUNING.cards.damageUp.amount * GAME_TUNING.cards.damageUp.maxStacks,
       5
     );
@@ -156,8 +156,8 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
     engine.applyRewardCard('hit_zone_up', 0);
     engine.startGame({ withWeaponSelect: false });
 
-    expect(engine.weaponSystem.getDamageBonusMultiplier()).toBe(1);
-    expect(engine.scoreManager.getFeverDurationMs()).toBe(4000);
+    expect(engine.getPlayer(0).weaponSystem.getDamageBonusMultiplier()).toBe(1);
+    expect(engine.getPlayer(0).scoreManager.getFeverDurationMs()).toBe(4000);
     const pool = engine.buildRewardCardPool();
     ['damage_up', 'skill_cooldown', 'fever_extend', 'hit_zone_up'].forEach((k) => expect(pool).toContain(k));
     expect(ALL.length).toBe(9);
@@ -167,7 +167,7 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
     engine.applyRewardCard('damage_up', 0);
     engine.applyRewardCard('hit_zone_up', 0);
     engine.startSandboxMode();
-    expect(engine.weaponSystem.getDamageBonusMultiplier()).toBe(1);
+    expect(engine.getPlayer(0).weaponSystem.getDamageBonusMultiplier()).toBe(1);
     expect(engine.buildRewardCardPool()).toContain('damage_up');
 
     engine.applyRewardCard('skill_cooldown', 0);
@@ -184,18 +184,18 @@ describe('reward card pool (gameplay-polish P03-T03)', () => {
   });
 
   it('ignores fever gauge gains while fever is active (no ready flag mid-fever)', () => {
-    engine.scoreManager.forceSetFeverGauge(100);
-    engine.scoreManager.activateFever(0);
-    engine.scoreManager.updateFeverTimer(1000); // gauge shows the countdown
-    const before = engine.scoreManager.getState().feverGauge;
-    engine.scoreManager.addFeverGauge(30);
-    const after = engine.scoreManager.getState();
+    engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
+    engine.getPlayer(0).scoreManager.activateFever(0);
+    engine.getPlayer(0).scoreManager.updateFeverTimer(1000); // gauge shows the countdown
+    const before = engine.getPlayer(0).scoreManager.getState().feverGauge;
+    engine.getPlayer(0).scoreManager.addFeverGauge(30);
+    const after = engine.getPlayer(0).scoreManager.getState();
     expect(after.feverGauge).toBe(before);
     expect(after.isFeverReady).toBe(false);
   });
 
   it('wave-clear cards use the cap of the wave being cleared', () => {
-    engine.weaponSystem.selectWeapon('shotgun', 2);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 2);
     engine.startWave(1);
     expect(engine.buildRewardCardPool()).not.toContain('weapon_level_up');
     engine.startWave(2);

@@ -35,7 +35,7 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     const proj = engine.computeTargetAimCoords(target);
 
     // 1. Gatling shot (aim dead-center => PERFECT)
-    engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
     const gatlingShot = engine.shootAt(proj.targetNormX, proj.targetNormY, 1000);
     expect(gatlingShot.fired).toBe(true);
     expect(gatlingShot.grade).toBe('PERFECT');
@@ -43,10 +43,10 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     expect(gatlingShot.earnedScore).toBe(sc(75));
 
     // Reset score manager for isolated revolver comparison
-    engine.scoreManager.reset();
+    engine.getPlayer(0).scoreManager.reset();
 
     // 2. Revolver shot (aim dead-center => PERFECT)
-    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     const revolverShot = engine.shootAt(proj.targetNormX, proj.targetNormY, 2000);
     expect(revolverShot.fired).toBe(true);
     expect(revolverShot.grade).toBe('PERFECT');
@@ -74,17 +74,17 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     const proj = engine.computeTargetAimCoords(target);
 
     // 1. Gatling non-kill hit: base fever delta is round(2 * 0.33) = 1
-    engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
     engine.shootAt(proj.targetNormX, proj.targetNormY, 1000);
-    expect(engine.scoreManager.getState().feverGauge).toBe(1);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(1);
 
     // Reset score manager
-    engine.scoreManager.reset();
+    engine.getPlayer(0).scoreManager.reset();
 
     // 2. Revolver non-kill hit: base fever delta is 2 * 1.0 = 2
-    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     engine.shootAt(proj.targetNormX, proj.targetNormY, 2000);
-    expect(engine.scoreManager.getState().feverGauge).toBe(2);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(2);
   });
 
   it('should preserve full kill bonus score when gatling kills a target', () => {
@@ -107,7 +107,7 @@ describe('Gatling Gun Balance & Score Normalization', () => {
     const target = engine.activeTargets[0];
     const proj = engine.computeTargetAimCoords(target);
 
-    engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
     const shot = engine.shootAt(proj.targetNormX, proj.targetNormY, 1000);
     expect(shot.killed).toBe(true);
     // Base PERFECT (75) + Kill Bonus (80) = 155

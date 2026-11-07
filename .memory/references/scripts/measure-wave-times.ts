@@ -20,9 +20,9 @@ function play(kind: (typeof WEAPONS)[number], k: number, w: number): { times: Re
   const e: any = new BeerCrusherEngine();
   e.aspect = 16 / 9;
   e.startGame({ withWeaponSelect: false });
-  e.weaponSystem.selectWeapon(kind, 1);
+  e.getPlayer(0).weaponSystem.selectWeapon(kind, 1);
   e.lives = e.maxLives = 999;
-  const sm = e.scoreManager;
+  const sm = e.getPlayer(0).scoreManager;
   const times: Record<number, number> = {};
   let now = 1000;
   const dt = 1000 / 60;
@@ -50,7 +50,7 @@ function play(kind: (typeof WEAPONS)[number], k: number, w: number): { times: Re
     const fs = sm.getState();
     if (fs.isFeverReady && !fs.isFeverActive) e.activateFever(now);
     const mons = e.activeTargets.filter((t: any) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.rewardCardKind);
-    if (e.weaponSystem.getState().skillStock > 0 && mons.length >= 2) e.triggerWeaponSkill(now);
+    if (e.getPlayer(0).weaponSystem.getState().skillStock > 0 && mons.length >= 2) e.triggerWeaponSkill(now);
     tSec += dt / 1000;
     const pos = e.activeTargets
       .filter((t: any) => !t.isItem && !t.rewardCardKind)

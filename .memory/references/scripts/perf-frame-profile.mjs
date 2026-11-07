@@ -74,7 +74,7 @@ await page.evaluate(() => {
   };
   eng.activeTargets = window.__benchTargets(12);
   window.__keep = setInterval(() => {
-    const w=eng.weaponSystem; w.ammo=w.getMaxAmmo(); w.isReloading=false;
+    const w=eng.getPlayer(0).weaponSystem; w.ammo=w.getMaxAmmo(); w.isReloading=false;
     eng.isRewardCardPending=false; eng.isWeaponSelectPending=false;
     if(!window.__allowNatural) eng.activeTargets = eng.activeTargets.filter(t=>String(t.id).startsWith('bench_'));
     eng.lives=999;
@@ -86,8 +86,8 @@ await page.evaluate(() => {
     send('mousemove'); send('mousedown'); window.__aimTick=setInterval(()=>send('mousemove'),50);
   };
   window.__holdStop=()=>{ if(window.__aimTick)clearInterval(window.__aimTick); window.__aimTick=null; window.dispatchEvent(new MouseEvent('mouseup',{button:0})); };
-  window.__setWeapon=(k,l)=>eng.weaponSystem.selectWeapon(k,l);
-  window.__setFever=(on)=>{ const s=eng.scoreManager; if(on){ s.forceSetFeverGauge(100); eng.activateFever(performance.now()); s.feverEndTimeMs=performance.now()+1e6; } else { s.feverEndTimeMs=0; } };
+  window.__setWeapon=(k,l)=>eng.getPlayer(0).weaponSystem.selectWeapon(k,l);
+  window.__setFever=(on)=>{ const s=eng.getPlayer(0).scoreManager; if(on){ s.forceSetFeverGauge(100); eng.activateFever(performance.now()); s.feverEndTimeMs=performance.now()+1e6; } else { s.feverEndTimeMs=0; } };
 });
 await page.waitForTimeout(800);
 
@@ -145,7 +145,7 @@ await spike('A15_wave7_boss_encounter_with_king_shield', `()=>{ const e=window._
 await spike('A16_boss_minion_summon', `()=>{ window.__engine.spawnBossMinionWave(performance.now(), 4); }`, 2500);
 // Back to a clean wave-1 state with the bench cluster for the sustained-fire and natural-play sections
 await page.evaluate(()=>{ const e=window.__engine; e.startWave(1); e.activeTargets=window.__benchTargets(12); e.isBossEncounterActive=false; });
-await page.evaluate(()=>{ const eng=window.__engine; window.__keep=setInterval(()=>{ const w=eng.weaponSystem; w.ammo=w.getMaxAmmo(); w.isReloading=false; eng.isRewardCardPending=false; eng.isWeaponSelectPending=false; eng.activeTargets=eng.activeTargets.filter(t=>String(t.id).startsWith('bench_')); eng.lives=999; },25); });
+await page.evaluate(()=>{ const eng=window.__engine; window.__keep=setInterval(()=>{ const w=eng.getPlayer(0).weaponSystem; w.ammo=w.getMaxAmmo(); w.isReloading=false; eng.isRewardCardPending=false; eng.isWeaponSelectPending=false; eng.activeTargets=eng.activeTargets.filter(t=>String(t.id).startsWith('bench_')); eng.lives=999; },25); });
 
 // --- B. Sustained fire (gatling Lv.4 / shotgun Lv.4 / fever), mouse-hold on a moving cluster
 await page.evaluate(()=>{ window.__holdStart(); });
@@ -161,7 +161,7 @@ for (const [name,setup] of [
 await page.evaluate(()=>{ window.__setFever(false); window.__holdStop(); });
 
 // --- C. Screenshot right after one shot (muzzle flash must not cover the screen)
-await page.evaluate(()=>{ window.__setWeapon('shotgun',2); const eng=window.__engine; const w=eng.weaponSystem; w.ammo=w.getMaxAmmo(); });
+await page.evaluate(()=>{ window.__setWeapon('shotgun',2); const eng=window.__engine; const w=eng.getPlayer(0).weaponSystem; w.ammo=w.getMaxAmmo(); });
 await page.waitForTimeout(500);
 await page.evaluate(()=>{
   const c=document.querySelector('canvas').parentElement; const eng=window.__engine;
@@ -184,7 +184,7 @@ await page.evaluate(()=>{
   eng.activeTargets=eng.activeTargets.filter(t=>!String(t.id).startsWith('bench_'));
   eng.startWave ? 0 : 0;
   window.__setWeapon('gatling',2);
-  window.__livesKeep=setInterval(()=>{ eng.lives=999; const w=eng.weaponSystem; w.ammo=Math.max(w.ammo,1); },200);
+  window.__livesKeep=setInterval(()=>{ eng.lives=999; const w=eng.getPlayer(0).weaponSystem; w.ammo=Math.max(w.ammo,1); },200);
   const c=document.querySelector('canvas').parentElement;
   const send=(type)=>{ const ts=[...eng.activeTargets].sort((a,b)=>(a.radiusM??0)-(b.radiusM??0)); const t=ts[0]; const m=t&&window.__targetMeshMap.get(t.id); if(!m) return; const v=m.position.clone(); v.y+=0.3; v.project(window.__camera); const x=(v.x+1)/2*innerWidth,y=(1-v.y)/2*innerHeight; c.dispatchEvent(new MouseEvent(type,{button:0,bubbles:true,clientX:x,clientY:y})); };
   window.__natural=setInterval(()=>send('mousemove'),40);

@@ -3,7 +3,7 @@ import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 
 const stats = (engine: BeerCrusherEngine, s: Partial<Record<'PERFECT' | 'GREAT' | 'GOOD' | 'MISS', number>>) => {
-  (engine as any).shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0, ...s };
+  engine.getPlayer(0).shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0, ...s };
 };
 
 describe('precision bonus (score = hit points + one-off bonus at VICTORY)', () => {
@@ -45,22 +45,22 @@ describe('precision bonus (score = hit points + one-off bonus at VICTORY)', () =
 
   it('is added exactly once, when the game is won', () => {
     stats(engine, { PERFECT: 60, GREAT: 30, MISS: 10 });
-    const before = engine.scoreManager.getState().totalScore;
+    const before = engine.getPlayer(0).scoreManager.getState().totalScore;
     const bonus = engine.getPrecisionStats().bonus;
     expect(bonus).toBeGreaterThan(0);
     (engine as any).declareVictory();
     (engine as any).declareVictory();
     expect(engine.gamePhase).toBe('VICTORY');
-    expect(engine.scoreManager.getState().totalScore).toBe(before + bonus);
+    expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBe(before + bonus);
     expect(engine.getPrecisionStats().applied).toBe(bonus);
   });
 
   it('is not paid in the tutorial or sandbox', () => {
-    const before = engine.scoreManager.getState().totalScore;
+    const before = engine.getPlayer(0).scoreManager.getState().totalScore;
     stats(engine, { PERFECT: 100 });
     (engine as any).mode = 'tutorial';
     (engine as any).declareVictory();
-    expect(engine.scoreManager.getState().totalScore).toBe(before);
+    expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBe(before);
   });
 
   it('counts a fired shot at an empty field as a MISS', () => {
@@ -69,7 +69,7 @@ describe('precision bonus (score = hit points + one-off bonus at VICTORY)', () =
     const r = engine.shootAt(0, 0, 5000, 'press');
     expect(r.fired).toBe(true);
     expect(engine.getPrecisionStats().shots).toBe(1);
-    expect((engine as any).shotStats.MISS).toBe(1);
+    expect(engine.getPlayer(0).shotStats.MISS).toBe(1);
   });
 
   it('resets between games', () => {

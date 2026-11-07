@@ -204,7 +204,7 @@ export const GameCanvas3D = React.memo(
           stageRigRef.current.triggerHealPulse();
         }
 
-        const isFever = engine.scoreManager.getState().isFeverActive;
+        const isFever = engine.getPlayer(0).scoreManager.getState().isFeverActive;
         const isPower = engine.isBuffActive('power_shot');
         const isFeverOrPower = isFever || isPower;
 
@@ -221,7 +221,7 @@ export const GameCanvas3D = React.memo(
           const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
           const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
 
-          const weaponState = engine.weaponSystem.getState();
+          const weaponState = engine.getPlayer(0).weaponSystem.getState();
 
           if (result.grade !== 'MISS' && result.target) {
             const mesh = targetMeshMapRef.current.get(result.target.id);
@@ -279,7 +279,7 @@ export const GameCanvas3D = React.memo(
           const monsterPositions = skillTargets.map(
             (t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z)
           );
-          const actualLevel = level ?? engine.weaponSystem.getState().weaponLevel;
+          const actualLevel = level ?? engine.getPlayer(0).weaponSystem.getState().weaponLevel;
           particlesRef.current.spawnSkillEffect(
             kind,
             actualLevel,
@@ -489,7 +489,7 @@ export const GameCanvas3D = React.memo(
         const dtSec = Math.min(0.1, (time - lastTime) / 1000);
         lastTime = time;
 
-        const feverState = engine.scoreManager.getState();
+        const feverState = engine.getPlayer(0).scoreManager.getState();
 
         // Smooth aim interpolation for 60~120fps display
         const lerpFactor = Math.min(1, dtSec * 28);
@@ -681,7 +681,7 @@ export const GameCanvas3D = React.memo(
         });
 
         // Sync weapon 3D model archetype and level
-        const currentWeaponState = engine.weaponSystem.getState();
+        const currentWeaponState = engine.getPlayer(0).weaponSystem.getState();
         if (
           tapGun.currentWeaponKind !== currentWeaponState.weaponKind ||
           tapGun.currentWeaponLevel !== currentWeaponState.weaponLevel

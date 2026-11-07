@@ -48,10 +48,10 @@ describe('wave clear banner and score breakdown (score-differentiation P01-T02)'
 
   it('breakdown parts add up to the total score', () => {
     clearWave(engine, 1000, 6000);
-    engine.scoreManager.registerHit('GREAT', 30, true);
+    engine.getPlayer(0).scoreManager.registerHit('GREAT', 30, true);
     const b = engine.getScoreBreakdown();
     expect(b.timeBonus).toBe(engine.lastWaveClear.bonus);
     expect(b.base).toBeGreaterThan(0);
-    expect(b.base + b.timeBonus + b.precisionBonus).toBe(engine.scoreManager.getState().totalScore);
+    expect(b.base + b.timeBonus + b.precisionBonus).toBe(engine.getPlayer(0).scoreManager.getState().totalScore);
   });
 });

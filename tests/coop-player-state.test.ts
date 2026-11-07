@@ -58,18 +58,18 @@ describe('PlayerCombatState', () => {
   it('BeerCrusherEngine delegates legacy fields to players[0]', () => {
     const engine = new BeerCrusherEngine();
     expect(engine.players.length).toBe(1);
-    expect(engine.scoreManager).toBe(engine.players[0].scoreManager);
-    expect(engine.weaponSystem).toBe(engine.players[0].weaponSystem);
+    expect(engine.getPlayer(0).scoreManager).toBe(engine.players[0].scoreManager);
+    expect(engine.getPlayer(0).weaponSystem).toBe(engine.players[0].weaponSystem);
     expect(engine.getPlayer(0)).toBe(engine.players[0]);
 
     // Mutation via engine accessor / any-cast
-    (engine as any).shotStats = { PERFECT: 5, GREAT: 4, GOOD: 3, MISS: 2 };
+    engine.getPlayer(0).shotStats = { PERFECT: 5, GREAT: 4, GOOD: 3, MISS: 2 };
     expect(engine.players[0].shotStats.PERFECT).toBe(5);
 
-    engine.luckyDropStacks = 3;
+    engine.getPlayer(0).luckyDropStacks = 3;
     expect(engine.players[0].luckyDropStacks).toBe(3);
 
-    (engine as any).activeBuffUntilMs.set('power_shot', 9999);
+    engine.getPlayer(0).buffUntilMs.set('power_shot', 9999);
     expect(engine.players[0].buffUntilMs.get('power_shot')).toBe(9999);
   });
 });

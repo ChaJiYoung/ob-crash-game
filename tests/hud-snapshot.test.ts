@@ -29,8 +29,8 @@ describe('HUD snapshot (gameplay-polish P01-T07)', () => {
   it('builds rounded cooldown and buff values from the engine', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
-    const realGetState = engine.weaponSystem.getState.bind(engine.weaponSystem);
-    engine.weaponSystem.getState = () => ({ ...realGetState(), skillCooldownRemainingMs: 12345 });
+    const realGetState = engine.getPlayer(0).weaponSystem.getState.bind(engine.getPlayer(0).weaponSystem);
+    engine.getPlayer(0).weaponSystem.getState = () => ({ ...realGetState(), skillCooldownRemainingMs: 12345 });
     const snap = buildHudSnapshot(engine, 1000);
     expect(snap.skillCooldownRemainingMs).toBe(12300);
   });
@@ -75,10 +75,10 @@ describe('HUD snapshot (gameplay-polish P01-T07)', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
     const before = buildHudSnapshot(engine, 1000);
-    expect(before.reloadDurationMs).toBe(engine.weaponSystem.getReloadDurationMs());
+    expect(before.reloadDurationMs).toBe(engine.getPlayer(0).weaponSystem.getReloadDurationMs());
     expect(before.reloadDurationMs).toBe(1680); // shotgun Lv.1: 1400 x 1.2
 
-    engine.weaponSystem.applyRapidReloadBuff();
+    engine.getPlayer(0).weaponSystem.applyRapidReloadBuff();
     const after = buildHudSnapshot(engine, 1000);
     expect(after.reloadDurationMs).toBe(1344); // 1680 x 0.8
     expect(isHudSnapshotEqual(before, after)).toBe(false);

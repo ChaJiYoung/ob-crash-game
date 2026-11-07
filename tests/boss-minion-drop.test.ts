@@ -99,7 +99,7 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
 
     it('takes no damage from a weapon skill until it lands', () => {
       engine.activeTargets = [m, { ...m, id: 'second', dropLandAtMs: undefined, hp: 5, maxHp: 5 }];
-      engine.weaponSystem.refillSkillInstant();
+      engine.getPlayer(0).weaponSystem.refillSkillInstant();
       const res = engine.triggerWeaponSkill(1000 + 100);
       expect(res.activated).toBe(true);
       expect(m.hp).toBe(m.maxHp);

@@ -28,8 +28,8 @@ const finishBossSequence = (e: BeerCrusherEngine, from: number): number => {
 
 function killBoss(engine: BeerCrusherEngine, boss: ActiveTargetEntity, now: number): void {
   boss.hp = 0.1;
-  engine.weaponSystem.selectWeapon('revolver', 1);
-  engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+  engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+  engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
   const p = engine.computeTargetAimCoords(boss);
   const res = engine.shootAt(p.targetNormX, p.targetNormY, now);
   expect(res.killed).toBe(true);
@@ -121,15 +121,15 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     boss.x = 0;
     boss.z = -12;
 
-    engine.weaponSystem.selectWeapon('shotgun', 2);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 2);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(boss);
     engine.shootAt(p.targetNormX, p.targetNormY, 3000);
     expect(boss.radiusM).toBe(12);
 
-    engine.weaponSystem.selectWeapon('gatling', 4);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
-    engine.weaponSystem.addSkillStock(2);
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 4);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.addSkillStock(2);
     expect(engine.triggerWeaponSkill(4000).activated).toBe(true);
     expect(boss.radiusM).toBe(12);
   });
@@ -140,25 +140,25 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     boss.radiusM = 12; boss.x = 0; boss.z = -12;
     const hp0 = boss.hp;
 
-    engine.weaponSystem.selectWeapon('shotgun', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     expect(engine.triggerWeaponSkill(3000).activated).toBe(true);
     expect(boss.hp).toBeLessThan(hp0);
     expect(boss.stunUntilMs).toBeUndefined();
     expect(boss.stuckPlungerCount).toBeFalsy();
 
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant();
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant();
     engine.triggerWeaponSkill(3100);
     expect(boss.slowUntilMs).toBeUndefined();
 
-    engine.weaponSystem.selectWeapon('gatling', 1);
-    engine.weaponSystem.refillSkillInstant();
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant();
     engine.triggerWeaponSkill(3200);
     expect(boss.slowUntilMs).toBeUndefined();
 
-    engine.weaponSystem.selectWeapon('shotgun', 4);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(boss);
     engine.shootAt(p.targetNormX, p.targetNormY, 3300, 'press');
     expect(boss.slowUntilMs).toBeUndefined();
@@ -170,8 +170,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       hitRadiusM: 0.95, killBonusScore: 0, breached: false,
     };
     engine.activeTargets = [m];
-    engine.weaponSystem.selectWeapon('shotgun', 4);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(m);
     engine.shootAt(p.targetNormX, p.targetNormY, 3000, 'press');
     expect(m.slowUntilMs).toBe(4000);
@@ -183,8 +183,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       hitRadiusM: 0.95, killBonusScore: 0, breached: false,
     };
     engine.activeTargets = [m];
-    engine.weaponSystem.selectWeapon('shotgun', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     engine.triggerWeaponSkill(1000);
     expect(m.stunUntilMs).toBe(2000);
     expect(m.stuckPlungerCount).toBe(2);
@@ -330,8 +330,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       for (const ratio of [1, 0.6, 0.3]) {
         t += 1000;
         king.hp = king.maxHp * ratio;
-        engine.weaponSystem.selectWeapon('revolver', 1);
-        engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+        engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+        engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
         const p = engine.computeTargetAimCoords(king);
         const before = king.hp;
         engine.shootAt(p.targetNormX, p.targetNormY, t, 'press');
@@ -346,14 +346,14 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       const boss = bosses(engine)[0];
       boss.x = 0;
       boss.thetaRad = 0;
-      engine.weaponSystem.selectWeapon('revolver', 1);
-      engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+      engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const p = engine.computeTargetAimCoords(boss);
       const res = engine.shootAt(p.targetNormX, p.targetNormY, 101_000);
       expect(res.fired).toBe(true);
       expect(res.shieldBlocked).toBeUndefined();
       expect(boss.hp).toBeLessThan(boss.maxHp);
-      expect(engine.scoreManager.getState().feverGauge).toBe(0);
+      expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(0);
 
       const minion = engine.spawnBossMinionWave(101_100, 1)[0];
       minion.hp = 0.05;
@@ -362,7 +362,7 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       minion.z = -minion.radiusM;
       const mp = engine.computeTargetAimCoords(minion);
       engine.shootAt(mp.targetNormX, mp.targetNormY, minion.dropLandAtMs! + 1); // right after the minion has landed
-      expect(engine.scoreManager.getState().feverGauge).toBeGreaterThan(0);
+      expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBeGreaterThan(0);
     });
 
     it('summoned minions drop items at 10% while regular monsters stay at 4%', () => {
@@ -422,8 +422,8 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
       engine.update(1000, 0.1);
       expect(boss.thetaRad).toBeCloseTo(0.3, 5); // not swept by the encounter movement
       boss.hp = 0.01;
-      engine.weaponSystem.selectWeapon('revolver', 1);
-      engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+      engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const p = engine.computeTargetAimCoords(boss);
       engine.shootAt(p.targetNormX, p.targetNormY, 1100);
       expect(engine.gamePhase).toBe('SANDBOX'); // no VICTORY freeze

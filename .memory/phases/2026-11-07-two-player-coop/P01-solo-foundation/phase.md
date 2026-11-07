@@ -5,12 +5,12 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 개인 상태를 `PlayerCombatState`로 옮기는 순수 리팩터(동작 불변) | [T01](./T01-extract-player-state.md) |
-| T02 | `pending` | 모드 규칙 표 `modeRules`: 튜토리얼·샌드박스 규칙 분기를 값으로 | [T02](./T02-mode-rules.md) |
-| T03 | `pending` | 엔진 사건 알림 + `TutorialDirector`: 튜토리얼 단계 진행을 엔진 밖으로 | [T03](./T03-tutorial-director.md) |
-| T04 | `pending` | 명중 판정 하나(실전 기준, D30), 선택 라운드 하나(무기·카드 공통) | [T04](./T04-hit-and-select-round.md) |
-| T05 | `pending` | 입력 어댑터(폰·마우스) → 플레이어 동작 처리부, 쏴서 누르는 버튼, 폰 알림은 어댑터 | [T05](./T05-input-processor.md) |
-| T06 | `pending` | 플레이어 0 지름길(`engine.scoreManager` 등) 제거 | [T06](./T06-remove-solo-aliases.md) |
+| T01 | `done ✅` | 개인 상태를 `PlayerCombatState`로 옮기는 순수 리팩터(동작 불변) | [T01](./T01-extract-player-state.md) |
+| T02 | `done ✅` | 모드 규칙 표 `modeRules`: 튜토리얼·샌드박스 규칙 분기를 값으로 | [T02](./T02-mode-rules.md) |
+| T03 | `done ✅` | 엔진 사건 알림 + `TutorialDirector`: 튜토리얼 단계 진행을 엔진 밖으로 | [T03](./T03-tutorial-director.md) |
+| T04 | `done ✅` | 명중 판정 하나(실전 기준, D30), 선택 라운드 하나(무기·카드 공통) | [T04](./T04-hit-and-select-round.md) |
+| T05 | `done ✅` | 입력 어댑터(폰·마우스) → 플레이어 동작 처리부, 쏴서 누르는 버튼, 폰 알림은 어댑터 | [T05](./T05-input-processor.md) |
+| T06 | `done ✅` | 플레이어 0 지름길(`engine.scoreManager` 등) 제거 | [T06](./T06-remove-solo-aliases.md) |
 
 ## Progress
-- done: 0/6 (active: T01)
+- done: 6/6 (Phase completed 🎉)

@@ -37,10 +37,10 @@ export class TutorialDirector {
     if (nextStep === 2) {
       this.spawnStep2();
     } else if (nextStep === 3) {
-      this.engine.weaponSystem.refillSkillInstant();
+      this.engine.getPlayer(0).weaponSystem.refillSkillInstant();
       this.spawnStep3();
     } else if (nextStep === 4) {
-      this.engine.scoreManager.forceSetFeverGauge(100);
+      this.engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
       this.engine.activeTargets = [];
     } else if (nextStep === 'COMPLETED') {
       this.completed = true;
@@ -171,7 +171,7 @@ export class TutorialDirector {
         if (
           this.step === 4 &&
           this.engine.activeTargets.length === 0 &&
-          this.engine.scoreManager.getState().feverGauge === 0
+          this.engine.getPlayer(0).scoreManager.getState().feverGauge === 0
         ) {
           this.advanceStep('COMPLETED');
         }

@@ -18,11 +18,11 @@ describe('tutorial skill step (step 3)', () => {
     expect(director.step).toBe(3);
     expect(engine.activeTargets.length).toBe(5);
     expect(engine.activeTargets.every((t) => t.speedMps === 0)).toBe(true);
-    expect(engine.weaponSystem.getState().skillStock).toBeGreaterThan(0);
+    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBeGreaterThan(0);
   });
 
   it('does not charge fever yet', () => {
-    expect(toSkillStep().engine.scoreManager.getState().feverGauge).toBe(0);
+    expect(toSkillStep().engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(0);
   });
 
   it('moves to the fever step once the skill is used', () => {
@@ -30,7 +30,7 @@ describe('tutorial skill step (step 3)', () => {
     const res = engine.triggerWeaponSkill(1000);
     expect(res.activated).toBe(true);
     expect(director.step).toBe(4);
-    expect(engine.scoreManager.getState().feverGauge).toBe(100);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(100);
     expect(engine.activeTargets.length).toBe(0);
   });
 

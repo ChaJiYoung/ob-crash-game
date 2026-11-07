@@ -80,11 +80,11 @@ async function runPlaytest() {
 
       out.bossCount = eng.getBossEntities().length;
 
-      const fs = eng.scoreManager.getState();
+      const fs = eng.getPlayer(0).scoreManager.getState();
       if (fs.isFeverReady && !fs.isFeverActive && eng.activateFever(now)) out.fever = true;
 
       const monsters = eng.activeTargets.filter((t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.rewardCardKind);
-      if (eng.weaponSystem.getState().skillStock > 0 && monsters.length >= 2 && eng.triggerWeaponSkill(now).activated) {
+      if (eng.getPlayer(0).weaponSystem.getState().skillStock > 0 && monsters.length >= 2 && eng.triggerWeaponSkill(now).activated) {
         out.skill = true;
       }
 
@@ -100,7 +100,7 @@ async function runPlaytest() {
       });
       const chosen = list[0];
       const p = eng.computeTargetAimCoords(chosen);
-      const source = eng.scoreManager.getState().isFeverActive ? 'fever' : 'press';
+      const source = eng.getPlayer(0).scoreManager.getState().isFeverActive ? 'fever' : 'press';
       out.shot = eng.shootAt(p.targetNormX, p.targetNormY, now, source);
       return out;
     });
@@ -177,8 +177,8 @@ async function runPlaytest() {
   console.log('5. Switching to revolver Lv.3...');
   await page.evaluate(() => {
     const eng = window.__engine;
-    eng.weaponSystem.selectWeapon('revolver', 3);
-    eng.weaponSystem.refillSkillInstant();
+    eng.getPlayer(0).weaponSystem.selectWeapon('revolver', 3);
+    eng.getPlayer(0).weaponSystem.refillSkillInstant();
     eng.spawnSandboxTarget('hanmac', { radiusM: 9.0, thetaRad: 0.0 });
     eng.spawnSandboxTarget('bottle', { radiusM: 13.0, thetaRad: 0.0 });
     eng.spawnMonsterProjectile(performance.now(), 'boss');
@@ -189,8 +189,8 @@ async function runPlaytest() {
   console.log('6. Wave 7: mini-wave, then the boss encounter with a gatling Lv.4...');
   await page.evaluate(() => {
     const eng = window.__engine;
-    eng.weaponSystem.selectWeapon('gatling', 4);
-    eng.weaponSystem.refillSkillInstant();
+    eng.getPlayer(0).weaponSystem.selectWeapon('gatling', 4);
+    eng.getPlayer(0).weaponSystem.refillSkillInstant();
     eng.startWave(7);
     eng.activeTargets = [];
     // The bot is a smoke test, not a skill test: keep the defense line up while it learns the encounter
@@ -202,13 +202,13 @@ async function runPlaytest() {
     const eng = window.__engine;
     return {
       phase: eng.gamePhase,
-      score: eng.scoreManager.getState().totalScore,
-      combo: eng.scoreManager.getState().combo,
+      score: eng.getPlayer(0).scoreManager.getState().totalScore,
+      combo: eng.getPlayer(0).scoreManager.getState().combo,
       lives: eng.lives,
       wave: eng.currentWave,
-      weaponKind: eng.weaponSystem.getState().weaponKind,
-      weaponLevel: eng.weaponSystem.getState().weaponLevel,
-      ammo: eng.weaponSystem.getState().ammo,
+      weaponKind: eng.getPlayer(0).weaponSystem.getState().weaponKind,
+      weaponLevel: eng.getPlayer(0).weaponSystem.getState().weaponLevel,
+      ammo: eng.getPlayer(0).weaponSystem.getState().ammo,
     };
   });
   metrics.victory = finalSummary.phase === 'VICTORY';

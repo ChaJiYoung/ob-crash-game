@@ -30,7 +30,7 @@ await page.mouse.move(150, 760); // aim away so nothing is shot by accident
 await page.evaluate(() => {
   const eng = window.__engine;
   eng.startGame({ withWeaponSelect: false });
-  eng.weaponSystem.selectWeapon('shotgun', 1);
+  eng.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
   eng.startWave(5);
   eng.activeTargets = [];
   eng.spawnBossEncounter(performance.now());
@@ -44,7 +44,7 @@ await page.evaluate(() => {
   const eng = window.__engine;
   eng.startGame({ withWeaponSelect: false });
   eng.activeTargets = [];
-  eng.weaponSystem.selectWeapon('shotgun', 1);
+  eng.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
   eng.spawnMonsterProjectile(performance.now(), 'boss', { thetaRad: 0.05, radiusM: 7.0 });
 });
 await page.waitForTimeout(200);

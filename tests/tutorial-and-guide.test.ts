@@ -69,15 +69,15 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     director.advanceStep(2);
 
     expect(director.step).toBe(2);
-    expect(engine.scoreManager.getState().isFeverReady).toBe(false);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverReady).toBe(false);
 
     // Step 3 is the skill step; the fever gauge is only charged at Step 4
     director.advanceStep(3);
-    expect(engine.scoreManager.getState().feverGauge).toBe(0);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(0);
     director.advanceStep(4);
 
     expect(director.step).toBe(4);
-    const feverState = engine.scoreManager.getState();
+    const feverState = engine.getPlayer(0).scoreManager.getState();
     expect(feverState.feverGauge).toBe(100);
     expect(feverState.isFeverReady).toBe(true);
   });
@@ -92,7 +92,7 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
     const now = 2000;
     const activated = engine.activateFever(now);
     expect(activated).toBe(true);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(true);
 
     expect(engine.activeTargets.length).toBe(6);
 
@@ -182,12 +182,12 @@ describe('BeerCrusher 3-Step Interactive Tutorial & Shooting Range', () => {
       const res = engine.shootAt(0, 0, 1500 + i * 350);
       expect(res.fired).toBe(true);
     }
-    expect(engine.weaponSystem.getState().isReloading).toBe(false);
+    expect(engine.getPlayer(0).weaponSystem.getState().isReloading).toBe(false);
 
     // 3. Trigger sandbox fever
     const feverOk = engine.triggerSandboxFever(5000);
     expect(feverOk).toBe(true);
-    expect(engine.scoreManager.getState().isFeverActive).toBe(true);
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(true);
 
     // 4. Moving sandbox target should respawn at 16m without life loss
     engine.clearSandboxTargets();

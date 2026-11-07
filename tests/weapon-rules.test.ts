@@ -22,10 +22,10 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     const e = new BeerCrusherEngine();
     e.startGame({ withWeaponSelect: false });
     e.activeTargets = [];
-    e.weaponSystem.selectWeapon(weapon, 1);
+    e.getPlayer(0).weaponSystem.selectWeapon(weapon, 1);
     if (fever) {
-      e.scoreManager.forceSetFeverGauge(100);
-      e.scoreManager.activateFever(0);
+      e.getPlayer(0).scoreManager.forceSetFeverGauge(100);
+      e.getPlayer(0).scoreManager.activateFever(0);
     }
     const t = makeTarget('t');
     e.activeTargets.push(t);
@@ -69,7 +69,7 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
   });
 
   it('makes the same aim offset miss on an ultrawide screen but hit on 16:9 (aspect correction)', () => {
-    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     const t = makeTarget('t');
     engine.activeTargets.push(t);
     const p = engine.computeTargetAimCoords(t);
@@ -107,7 +107,7 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
 
   it('keeps the legacy (non aspect-corrected) zone in the sandbox', () => {
     engine.startSandboxMode();
-    engine.weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     const t = makeTarget('s');
     engine.activeTargets.push(t);
     const p = engine.computeTargetAimCoords(t);

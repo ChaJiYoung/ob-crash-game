@@ -65,7 +65,7 @@ async function captureWeaponsAndSkills() {
           eng.activeTargets = [];
           eng.isWeaponSelectPending = false;
           eng.isRewardCardPending = false;
-          eng.weaponSystem.selectWeapon(k, l);
+          eng.getPlayer(0).weaponSystem.selectWeapon(k, l);
           eng.selectedWeaponKind = k;
           // Spawn one target in far distance to show clean aiming view
           eng.spawnSandboxTarget('obi', { radiusM: 14.0, thetaRad: 0.1, stationary: true });
@@ -90,8 +90,8 @@ async function captureWeaponsAndSkills() {
       // Pending card flags gate shooting, skills and fever; clear them together with the cards
       eng.isWeaponSelectPending = false;
       eng.isRewardCardPending = false;
-      eng.weaponSystem.selectWeapon('shotgun', 3);
-      eng.weaponSystem.refillSkillInstant();
+      eng.getPlayer(0).weaponSystem.selectWeapon('shotgun', 3);
+      eng.getPlayer(0).weaponSystem.refillSkillInstant();
       const now = performance.now();
       eng.spawnSandboxTarget('obi', { radiusM: 9.0, thetaRad: -0.25, stationary: true });
       eng.spawnSandboxTarget('hanmac', { radiusM: 11.0, thetaRad: 0.05, stationary: true });
@@ -114,8 +114,8 @@ async function captureWeaponsAndSkills() {
       eng.activeTargets = [];
       eng.isWeaponSelectPending = false;
       eng.isRewardCardPending = false;
-      eng.weaponSystem.selectWeapon('revolver', 3);
-      eng.weaponSystem.refillSkillInstant();
+      eng.getPlayer(0).weaponSystem.selectWeapon('revolver', 3);
+      eng.getPlayer(0).weaponSystem.refillSkillInstant();
       const now = performance.now();
       eng.spawnSandboxTarget('hanmac', { radiusM: 9.0, thetaRad: -0.15, stationary: true });
       eng.spawnSandboxTarget('bottle', { radiusM: 12.0, thetaRad: 0.1, stationary: true });
@@ -137,8 +137,8 @@ async function captureWeaponsAndSkills() {
       eng.activeTargets = [];
       eng.isWeaponSelectPending = false;
       eng.isRewardCardPending = false;
-      eng.weaponSystem.selectWeapon('gatling', 4);
-      eng.weaponSystem.refillSkillInstant();
+      eng.getPlayer(0).weaponSystem.selectWeapon('gatling', 4);
+      eng.getPlayer(0).weaponSystem.refillSkillInstant();
       const now = performance.now();
       eng.spawnSandboxTarget('boss', { radiusM: 13.0, thetaRad: 0.0, stationary: true });
       eng.spawnSandboxTarget('hanmac', { radiusM: 10.0, thetaRad: -0.3, stationary: true });
@@ -157,8 +157,8 @@ async function captureWeaponsAndSkills() {
   await page.evaluate(() => {
     const eng = window.__engine;
     if (eng) {
-      eng.weaponSystem.refillSkillInstant();
-      eng.scoreManager.addFeverGauge(100);
+      eng.getPlayer(0).weaponSystem.refillSkillInstant();
+      eng.getPlayer(0).scoreManager.addFeverGauge(100);
       eng.activateFever(performance.now());
     }
   });
@@ -177,7 +177,7 @@ async function captureWeaponsAndSkills() {
       eng.mode = 'game';
       eng.startGame({ withWeaponSelect: false }); // fresh state: no fever, no leftover banners
       eng.activeTargets = [];
-      eng.weaponSystem.selectWeapon('shotgun', 1);
+      eng.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
       eng.spawnMonsterProjectile(performance.now(), 'boss', { thetaRad: 0.05, radiusM: 7.0 });
     }
   });
@@ -190,7 +190,7 @@ async function captureWeaponsAndSkills() {
     if (eng) {
       eng.mode = 'game';
       eng.startGame({ withWeaponSelect: false });
-      eng.weaponSystem.selectWeapon('revolver', 1);
+      eng.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
       eng.startWave(3);
       eng.activeTargets = [];
       eng.spawnedInWave = 999;

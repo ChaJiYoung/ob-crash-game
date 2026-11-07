@@ -85,7 +85,7 @@ async function verifyGameplay() {
     const eng = window.__engine;
     if (eng?.isWeaponSelectPending) {
       // 직접 샷건 선택
-      eng.weaponSystem.selectWeapon('shotgun');
+      eng.getPlayer(0).weaponSystem.selectWeapon('shotgun');
       eng.isWeaponSelectPending = false;
       eng.clearPendingCards();
       eng.startNextWave(performance.now());
@@ -143,9 +143,9 @@ async function verifyGameplay() {
       avgFrameTimeMs: avgFrameTime.toFixed(2),
       estimatedFps: fps,
       slowFramesCount: slowFrames,
-      ammo: eng.weaponSystem.getState().ammo,
-      score: eng.scoreManager.getState().score,
-      combo: eng.scoreManager.getState().combo,
+      ammo: eng.getPlayer(0).weaponSystem.getState().ammo,
+      score: eng.getPlayer(0).scoreManager.getState().score,
+      combo: eng.getPlayer(0).scoreManager.getState().combo,
     };
   });
   console.log('   연타 벤치마크 결과:', JSON.stringify(perfBenchmark, null, 2));
@@ -157,8 +157,8 @@ async function verifyGameplay() {
   const skillPreState = await page.evaluate(() => {
     const eng = window.__engine;
     return {
-      stockBefore: eng.weaponSystem.getState().skillStock,
-      maxStock: eng.weaponSystem.getState().maxSkillStock,
+      stockBefore: eng.getPlayer(0).weaponSystem.getState().skillStock,
+      maxStock: eng.getPlayer(0).weaponSystem.getState().maxSkillStock,
     };
   });
   console.log('   스킬 발동 전 스톡:', skillPreState);
@@ -169,7 +169,7 @@ async function verifyGameplay() {
 
   const skillPostState = await page.evaluate(() => {
     const eng = window.__engine;
-    const ws = eng.weaponSystem.getState();
+    const ws = eng.getPlayer(0).weaponSystem.getState();
     return {
       stockAfter: ws.skillStock,
       cooldownRemainingMs: ws.skillCooldownRemainingMs,

@@ -13,8 +13,8 @@ let engine: BeerCrusherEngine;
 let now = 1000;
 const tick = (n: number) => { for (let i = 0; i < n; i++) { now += 16; engine.update(now, 0.016); } };
 const cast = (level: 1 | 2 | 3 | 4 = 1) => {
-  engine.weaponSystem.selectWeapon('gatling', level);
-  engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+  engine.getPlayer(0).weaponSystem.selectWeapon('gatling', level);
+  engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
   return engine.triggerWeaponSkill(now);
 };
 
@@ -113,7 +113,7 @@ describe('gatling foam wave', () => {
   });
 
   it('the damage card raises foam damage but Lv.4 foam with +30% cannot one-shot a 1hp monster', () => {
-    engine.weaponSystem.addDamageBonus(0.3);
+    engine.getPlayer(0).weaponSystem.addDamageBonus(0.3);
     const m = mk('pilgood', 12, { hp: 1, maxHp: 1 });
     engine.activeTargets = [m];
     cast(4);

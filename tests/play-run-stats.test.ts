@@ -15,7 +15,7 @@ describe('play run stats', () => {
   beforeEach(() => {
     e = new BeerCrusherEngine();
     e.startGame({ withWeaponSelect: false });
-    e.weaponSystem.selectWeapon('revolver', 2);
+    e.getPlayer(0).weaponSystem.selectWeapon('revolver', 2);
   });
 
   it('is null while the game is running', () => {
@@ -64,9 +64,9 @@ describe('play run stats', () => {
   });
 
   it.each([[1, 1.2], [2, 1.1], [3, 1.05], [4, 1]] as const)('a win at Lv.%i multiplies only the base score by %f', (level, mult) => {
-    e.weaponSystem.selectWeapon('revolver', level);
-    e.scoreManager.addBonusScore(1000);
-    e.waveTimeBonusTotal = 0;
+    e.getPlayer(0).weaponSystem.selectWeapon('revolver', level);
+    e.getPlayer(0).scoreManager.addBonusScore(1000);
+    e.getPlayer(0).waveTimeBonusTotal = 0;
     (e as any).declareVictory();
     const s = e.getPlayRunStats()!;
     expect(s.baseScore).toBe(1000);
@@ -75,8 +75,8 @@ describe('play run stats', () => {
   });
 
   it('a defeat gets no level bonus', () => {
-    e.weaponSystem.selectWeapon('revolver', 1);
-    e.scoreManager.addBonusScore(1000);
+    e.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    e.getPlayer(0).scoreManager.addBonusScore(1000);
     e.gamePhase = 'GAMEOVER';
     expect(e.getPlayRunStats()!.levelBonus).toBe(0);
   });

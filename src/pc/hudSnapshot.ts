@@ -66,8 +66,8 @@ export function buildHudSnapshot(
   nowMs: number,
   tutorialStep: TutorialStep = 1
 ): HudSnapshot {
-  const feverState = engine.scoreManager.getState();
-  const weaponState = engine.weaponSystem.getState();
+  const feverState = engine.getPlayer(0).scoreManager.getState();
+  const weaponState = engine.getPlayer(0).weaponSystem.getState();
   const passiveCards = engine.getPassiveCardStacks();
   const activeBuffs = engine.getActiveBuffs(nowMs).map((b) => ({
     ...b,
@@ -85,7 +85,7 @@ export function buildHudSnapshot(
     ammo: weaponState.ammo,
     maxAmmo: weaponState.maxAmmo,
     isReloading: weaponState.isReloading,
-    reloadDurationMs: engine.weaponSystem.getReloadDurationMs(),
+    reloadDurationMs: engine.getPlayer(0).weaponSystem.getReloadDurationMs(),
     feverGauge: feverState.feverGauge,
     isFeverReady: feverState.isFeverReady,
     isFeverActive: feverState.isFeverActive,

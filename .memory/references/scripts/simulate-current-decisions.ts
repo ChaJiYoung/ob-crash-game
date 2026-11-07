@@ -80,10 +80,10 @@ function play(kind: (typeof WEAPONS)[number], bot: Bot): GameResult {
   const e: any = new BeerCrusherEngine();
   e.aspect = 16 / 9;
   e.startGame({ withWeaponSelect: false });
-  e.weaponSystem.selectWeapon(kind, 1);
+  e.getPlayer(0).weaponSystem.selectWeapon(kind, 1);
   if (process.env.INVINCIBLE) e.lives = e.maxLives = 999; // score-vs-skill measurement: everyone finishes the game
-  const ws = e.weaponSystem;
-  const sm = e.scoreManager;
+  const ws = e.getPlayer(0).weaponSystem;
+  const sm = e.getPlayer(0).scoreManager;
 
   const st = {
     cards: 0, fevers: 0, skills: 0, maxWave: null as number | null,

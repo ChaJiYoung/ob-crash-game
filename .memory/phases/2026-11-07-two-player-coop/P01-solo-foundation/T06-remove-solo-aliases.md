@@ -1,6 +1,6 @@
 # Task: T06 플레이어 0 지름길 제거
 
-## Status: pending
+## Status: done
 
 ## Goal
 T01에서 리팩터 안전망으로 남긴 엔진의 위임 접근자(`engine.scoreManager`, `engine.weaponSystem`, `engine.luckyDropStacks`, `shotStats`·`cardStacks`·`totalKills`·`itemsCollected`·`precisionBonusApplied`·`levelBonusApplied`·`waveTimeBonusTotal`·`waveClears`·`activeBuffUntilMs`)를 모두 지우고, 소스·테스트·스크립트가 `engine.getPlayer(i)`로만 개인 값을 읽게 한다. 이 지름길이 남아 있으면 이후 P03·P04 코드가 무심코 "플레이어 0 전용" 경로를 다시 만들기 때문이다(D24). P01의 마지막 Task로 두어, P03·P04는 지름길이 없는 엔진 위에서 짠다.
@@ -41,8 +41,8 @@ T01에서 리팩터 안전망으로 남긴 엔진의 위임 접근자(`engine.sc
 - `BeerCrusherEngine.prototype`에 `scoreManager`/`weaponSystem` 속성 서술자가 없음.
 
 ## Acceptance Criteria
-- [ ] 엔진에 플레이어 0 위임 접근자가 없다.
-- [ ] 전체 테스트·봇 스크립트가 `getPlayer(i)`로 동작한다.
+- [x] 엔진에 플레이어 0 위임 접근자가 없다.
+- [x] 전체 테스트·봇 스크립트가 `getPlayer(i)`로 동작한다.
 
 ## Validation
 - `grep -rnE "\b(engine|eng|e|game)\.(scoreManager|weaponSystem|luckyDropStacks)\b" src tests scripts .memory/references/scripts | wc -l` — `0`
@@ -66,6 +66,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

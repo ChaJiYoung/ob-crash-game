@@ -17,8 +17,8 @@ function play(kind: (typeof WEAPONS)[number], strategy: Strategy) {
   const e: any = new BeerCrusherEngine();
   e.aspect = 16 / 9;
   e.startGame({ withWeaponSelect: false });
-  e.weaponSystem.selectWeapon(kind, 1);
-  const sm = e.scoreManager;
+  e.getPlayer(0).weaponSystem.selectWeapon(kind, 1);
+  const sm = e.getPlayer(0).scoreManager;
   let now = 1000, tSec = Math.random() * 6, cx = 0, cy = 0, lastTap = 0;
   const dt = 1000 / 60;
   let bossStart = 0, bossWave = 0, livesAtStart = 0;
@@ -53,7 +53,7 @@ function play(kind: (typeof WEAPONS)[number], strategy: Strategy) {
     }
     const stalling = strategy === 'stall' && e.isBossEncounterActive && now - bossStart < STALL_UNTIL_MS;
     // A weapon skill damages every monster including the boss, so the stalling bot holds it during the window
-    if (!stalling && e.weaponSystem.getState().skillStock > 0 && mons.length >= 2) e.triggerWeaponSkill(now);
+    if (!stalling && e.getPlayer(0).weaponSystem.getState().skillStock > 0 && mons.length >= 2) e.triggerWeaponSkill(now);
     tSec += dt / 1000;
 
     let pool = e.activeTargets.filter((t: any) => !t.isItem && !t.rewardCardKind && !t.isGuarding && !t.isShielded && e.isTargetLanded(t, now));

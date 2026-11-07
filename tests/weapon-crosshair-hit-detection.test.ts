@@ -52,13 +52,13 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const aimY = proj.targetNormY;
 
     // 1. Shotgun test -> Should HIT (effective radius is 1.40x, so 1.35x is within circle)
-    engine.weaponSystem.selectWeapon('shotgun', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     const shotgunShot = engine.shootAt(aimX, aimY, 1000);
     expect(shotgunShot.fired).toBe(true);
     expect(shotgunShot.grade).not.toBe('MISS');
 
     // 2. Revolver test at same offset -> Should MISS (effective radius is 0.95x, so 1.35x misses)
-    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     const revolverShot = engine.shootAt(aimX, aimY, 2000);
     expect(revolverShot.fired).toBe(true);
     expect(revolverShot.grade).toBe('MISS');
@@ -87,7 +87,7 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const insideAimX = proj.targetNormX + (proj.apparentHitRadius * 1.02) / engine.aspect;
     const aimY = proj.targetNormY;
 
-    engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
     const hitShot = engine.shootAt(insideAimX, aimY, 1000);
     expect(hitShot.fired).toBe(true);
     expect(hitShot.grade).not.toBe('MISS');
@@ -123,7 +123,7 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const aimX = proj.targetNormX;
     const aimY = proj.targetNormY + proj.apparentHitRadius * 1.25;
 
-    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     const shot = engine.shootAt(aimX, aimY, 1000);
     expect(shot.fired).toBe(true);
     expect(shot.grade).not.toBe('MISS');

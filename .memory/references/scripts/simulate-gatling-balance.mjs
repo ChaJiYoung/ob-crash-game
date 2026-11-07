@@ -73,7 +73,7 @@ async function runGatlingSimulation() {
     const proj1 = engine.computeTargetAimCoords(target1);
 
     // 개틀링 장착
-    engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
 
     // A. 1.02x 오프셋 사격 (1.05x 이내 -> HIT)
     const insideShot = engine.shootAt(proj1.targetNormX + proj1.apparentHitRadius * 1.02, proj1.targetNormY, performance.now());
@@ -100,7 +100,7 @@ async function runGatlingSimulation() {
     const outsideShot = engine.shootAt(proj2.targetNormX + proj2.apparentHitRadius * 1.12, proj2.targetNormY, performance.now() + 200);
 
     // 테스트 2: 개틀링 vs 리볼버 점수 및 피버 충전율 비교
-    engine.scoreManager.reset();
+    engine.getPlayer(0).scoreManager.reset();
     engine.activeTargets = [{
       id: 'target_score_test',
       kind: 'boss',
@@ -128,14 +128,14 @@ async function runGatlingSimulation() {
       });
     }
     const gatlingState = {
-      totalScore: engine.scoreManager.getState().totalScore,
-      feverGauge: engine.scoreManager.getState().feverGauge,
-      combo: engine.scoreManager.getState().combo,
+      totalScore: engine.getPlayer(0).scoreManager.getState().totalScore,
+      feverGauge: engine.getPlayer(0).scoreManager.getState().feverGauge,
+      combo: engine.getPlayer(0).scoreManager.getState().combo,
     };
 
     // 리볼버 비교 측정
-    engine.scoreManager.reset();
-    engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).scoreManager.reset();
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     const revolverShots = [];
     for (let i = 0; i < 5; i++) {
       const shot = engine.shootAt(bossProj.targetNormX, bossProj.targetNormY, performance.now() + 2000 + i * 300);
@@ -145,9 +145,9 @@ async function runGatlingSimulation() {
       });
     }
     const revolverState = {
-      totalScore: engine.scoreManager.getState().totalScore,
-      feverGauge: engine.scoreManager.getState().feverGauge,
-      combo: engine.scoreManager.getState().combo,
+      totalScore: engine.getPlayer(0).scoreManager.getState().totalScore,
+      feverGauge: engine.getPlayer(0).scoreManager.getState().feverGauge,
+      combo: engine.getPlayer(0).scoreManager.getState().combo,
     };
 
     return {

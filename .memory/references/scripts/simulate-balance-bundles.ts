@@ -32,7 +32,7 @@ function applyPreset(p:any){
   for(const k of WEAPONS) for(const l of [1,2,3,4]) (WEAPON_ARCHETYPE_SPECS as any)[k].levels[l].skillCooldownMs=p.cd[l-1]*1000;
 }
 function resolveCards(e:any,p:any,st:any,now:number){
-  const fs=e.scoreManager.getState(), ws=e.weaponSystem, lvl=ws.getState().weaponLevel;
+  const fs=e.getPlayer(0).scoreManager.getState(), ws=e.getPlayer(0).weaponSystem, lvl=ws.getState().weaponLevel;
   st.cards++;
   let hand:string[];
   if(p.pool==='old'){
@@ -40,7 +40,7 @@ function resolveCards(e:any,p:any,st:any,now:number){
   } else {
     const pool:string[]=[];
     if(lvl<4&&lvl<(st.rule.waves===7?{1:2,2:3,3:3,4:3,5:4,6:4,7:4}:p.gate)[st.vw]) pool.push('weapon_level_up');
-    if(e.luckyDropStacks<3) pool.push('lucky_drop');
+    if(e.getPlayer(0).luckyDropStacks<3) pool.push('lucky_drop');
     if(st.reload<3) pool.push('rapid_reload');
     if(!fs.isFeverReady&&!fs.isFeverActive) pool.push('fever_boost');
     pool.push('bar_repair');
@@ -54,7 +54,7 @@ function resolveCards(e:any,p:any,st:any,now:number){
   // Player preference: weapon first, otherwise random
   const pick=hand.includes('weapon_level_up')?'weapon_level_up':hand[Math.floor(Math.random()*hand.length)];
   if(pick==='weapon_level_up'){ e.applyRewardCard('weapon_level_up',now); if(ws.getState().weaponLevel===4&&st.maxAt===null){ st.maxAt=now/1000; st.maxWave=e.currentWave; } }
-  else if(pick==='fever_boost'){ if(p.pool==='old') e.applyRewardCard('fever_boost',now); else e.scoreManager.addFeverGauge(50); }
+  else if(pick==='fever_boost'){ if(p.pool==='old') e.applyRewardCard('fever_boost',now); else e.getPlayer(0).scoreManager.addFeverGauge(50); }
   else if(pick==='rapid_reload'){ st.reload++; e.applyRewardCard(pick,now); }
   else if(pick==='lucky_drop'||pick==='bar_repair'){ e.applyRewardCard(pick,now); }
   else if(pick==='damage'){ st.dmg++; ws.damageBonusMultiplier=+(ws.damageBonusMultiplier+0.10).toFixed(2); }
@@ -79,19 +79,19 @@ function resolveCards(e:any,p:any,st:any,now:number){
 }
 function play(p:any,kind:string,bot:any,rule:any={}){
   const e:any=new BeerCrusherEngine();
-  const K=rule.k||1; { const o=e.computeTargetAimCoords.bind(e); e.computeTargetAimCoords=(t:any,m:any)=>{ const r=o(t,m); const ws0=e.weaponSystem.getState().weaponKind; const f=(rule.rad||1)*(ws0==='shotgun'&&rule.sg?rule.sg:1); return {...r,targetNormX:r.targetNormX*K,apparentHitRadius:r.apparentHitRadius*f}; }; }
+  const K=rule.k||1; { const o=e.computeTargetAimCoords.bind(e); e.computeTargetAimCoords=(t:any,m:any)=>{ const r=o(t,m); const ws0=e.getPlayer(0).weaponSystem.getState().weaponKind; const f=(rule.rad||1)*(ws0==='shotgun'&&rule.sg?rule.sg:1); return {...r,targetNormX:r.targetNormX*K,apparentHitRadius:r.apparentHitRadius*f}; }; }
   let missRun=0, jamUntil=0, tSweep=Math.random()*6;
   const GD=rule.gd||1;
   e.aspect=16/9;
   e.startGame();
-  e.weaponSystem.selectWeapon(kind,1);
+  e.getPlayer(0).weaponSystem.selectWeapon(kind,1);
   e.isWeaponSelectPending=false;
   e.waveCardKillTargets={...p.cards};
   for(const w of [1,2,3,4,5]){ const d=e.waveDefinitions[w]; d.spawnIntervalMs=Math.round(d.spawnIntervalMs*p.m.int); d.maxSimultaneous+=p.m.sim; }
   const st:any={rule,vw:1,cards:0,maxAt:null,maxWave:null,reload:0,dmg:0,cdn:0,fev:0,hit:0,firstFever:null,fevers:0,skills:0,grades:{PERFECT:0,GREAT:0,GOOD:0,MISS:0},waveFever:{},lastReadyT:null,gapSum:0,gapN:0,skillReadyWait:[],prevReady:false,wave1End:null,wave1Fevers:0,wave1Skills:0,wave1Cards:0};
-  const ws=e.weaponSystem; const baseCd=ws.getSkillCooldownTotalMs.bind(ws);
+  const ws=e.getPlayer(0).weaponSystem; const baseCd=ws.getSkillCooldownTotalMs.bind(ws);
   ws.getSkillCooldownTotalMs=()=>baseCd()*Math.pow(0.9,st.cdn);
-  e.scoreManager.chargeFeverToMax=function(){ this.addFeverGauge(p.goldFever); };
+  e.getPlayer(0).scoreManager.chargeFeverToMax=function(){ this.addFeverGauge(p.goldFever); };
   const baseRefill=ws.refillSkillInstant.bind(ws);
   ws.refillSkillInstant=function(){ if(p.goldSkill==='full') return baseRefill(); if(p.goldSkill==='one'){ if(ws.skillStock<ws.getMaxSkillStock()) ws.skillStock+=1; } };
   st.breach=0; st.radSum=0; st.radN=0;
@@ -104,10 +104,10 @@ function play(p:any,kind:string,bot:any,rule:any={}){
     { const spM=1+(rule.sp||0)*(st.vw-1), hpM=1+(rule.hp||0)*(st.vw-1);
       for(const t of e.activeTargets){ if(t.__s) continue; t.__s=1; if(t.isItem||t.isProjectile||t.isGoldenCan||t.rewardCardKind||t.kind==='boss') continue; t.hp*=hpM; t.maxHp*=hpM; t.speedMps*=spM; } }
     if(e.isRewardCardPending){ resolveCards(e,p,st,now); if(e.currentWave===1) st.wave1Cards++; continue; }
-    const fs=e.scoreManager.getState();
+    const fs=e.getPlayer(0).scoreManager.getState();
     if(fs.isFeverReady&&!fs.isFeverActive){
       if(!st.prevReady){ const t=now/1000; if(st.firstFever===null) st.firstFever=t; if(st.lastReadyT!==null){ st.gapSum+=t-st.lastReadyT; st.gapN++; } st.lastReadyT=t; st.prevReady=true; }
-      if(e.activateFever(now)){ st.fevers++; if(e.currentWave===1) st.wave1Fevers++; if(st.fev) e.scoreManager.feverEndTimeMs+=500*st.fev; st.prevReady=false; }
+      if(e.activateFever(now)){ st.fevers++; if(e.currentWave===1) st.wave1Fevers++; if(st.fev) e.getPlayer(0).scoreManager.feverEndTimeMs+=500*st.fev; st.prevReady=false; }
     }
     const mons=e.activeTargets.filter((t:any)=>!t.isItem&&!t.isProjectile&&!t.isGoldenCan);
     if(ws.getState().skillStock>0&&mons.length>=2){ const r=e.triggerWeaponSkill(now); if(r.activated){ st.skills++; if(e.currentWave===1) st.wave1Skills++; } }
@@ -120,7 +120,7 @@ function play(p:any,kind:string,bot:any,rule:any={}){
       st.grades[r.grade]=(st.grades[r.grade]||0)+1;
       if(r.grade==='MISS'){
         missRun++;
-        if(rule.missFever&&!fs.isFeverActive) e.scoreManager.addFeverGauge(-rule.missFever);
+        if(rule.missFever&&!fs.isFeverActive) e.getPlayer(0).scoreManager.addFeverGauge(-rule.missFever);
         if(rule.jam&&missRun>=rule.jam.n&&!fs.isFeverActive){ jamUntil=now+rule.jam.ms; missRun=0; st.jams=(st.jams||0)+1; }
       } else missRun=0;
     };

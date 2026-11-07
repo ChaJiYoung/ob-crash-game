@@ -60,14 +60,14 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
 
   describe('wave clock and payment', () => {
     it('pays once on wave clear and records it', () => {
-      const before = engine.scoreManager.getState().totalScore;
+      const before = engine.getPlayer(0).scoreManager.getState().totalScore;
       finishEmptyWave(engine, 1000, 1000 + 5000);
       expect(engine.lastWaveClear).not.toBeNull();
       expect(engine.lastWaveClear.wave).toBe(1);
       expect(engine.lastWaveClear.seconds).toBeCloseTo(5, 1);
       expect(engine.lastWaveClear.bonus).toBe(cfg.maxPerWave);
-      expect(engine.scoreManager.getState().totalScore).toBe(before + cfg.maxPerWave);
-      expect(engine.waveTimeBonusTotal).toBe(cfg.maxPerWave);
+      expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBe(before + cfg.maxPerWave);
+      expect(engine.getPlayer(0).waveTimeBonusTotal).toBe(cfg.maxPerWave);
     });
 
     it('pays less for a slow wave', () => {
@@ -77,9 +77,9 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
 
     it('does not pay twice for the same wave', () => {
       finishEmptyWave(engine, 1000, 6000);
-      const total = engine.scoreManager.getState().totalScore;
+      const total = engine.getPlayer(0).scoreManager.getState().totalScore;
       engine.awardWaveTimeBonus(7000);
-      expect(engine.scoreManager.getState().totalScore).toBe(total);
+      expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBe(total);
     });
 
     it('excludes frozen time (card selection / pause) from the wave time', () => {
@@ -104,7 +104,7 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
     it('pays the last wave before victory so it is part of the final score', () => {
       engine.startWave(7);
       engine.update(1000, 0.016);
-      const before = engine.scoreManager.getState().totalScore;
+      const before = engine.getPlayer(0).scoreManager.getState().totalScore;
       engine.currentWave = 7;
       engine.isBossEncounterActive = true;
       engine.activeTargets = [];
@@ -113,22 +113,22 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
       for (let t = 21_000; t < 21_000 + 1800; t += 50) engine.update(t + 50, 0.05);
       expect(engine.gamePhase).toBe('VICTORY');
       expect(engine.lastWaveClear.wave).toBe(7);
-      expect(engine.scoreManager.getState().totalScore).toBeGreaterThan(before + engine.lastWaveClear.bonus - 1);
+      expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBeGreaterThan(before + engine.lastWaveClear.bonus - 1);
       expect(engine.lastWaveClear.bonus).toBeGreaterThan(0);
     });
 
     it('is not paid in the tutorial or sandbox', () => {
       engine.mode = 'sandbox';
-      const before = engine.scoreManager.getState().totalScore;
+      const before = engine.getPlayer(0).scoreManager.getState().totalScore;
       engine.awardWaveTimeBonus(5000);
-      expect(engine.scoreManager.getState().totalScore).toBe(before);
+      expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBe(before);
       expect(engine.lastWaveClear).toBeNull();
     });
 
     it('resets on a new game', () => {
       finishEmptyWave(engine, 1000, 3000);
       engine.startGame({ withWeaponSelect: false });
-      expect(engine.waveTimeBonusTotal).toBe(0);
+      expect(engine.getPlayer(0).waveTimeBonusTotal).toBe(0);
       expect(engine.lastWaveClear).toBeNull();
     });
   });
@@ -138,7 +138,7 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
     const b = engine.getScoreBreakdown();
     expect(b.timeBonus).toBe(cfg.maxPerWave);
     expect(b.base + b.timeBonus + b.precisionBonus).toBe(b.total);
-    expect(b.total).toBe(engine.scoreManager.getState().totalScore);
+    expect(b.total).toBe(engine.getPlayer(0).scoreManager.getState().totalScore);
   });
 
   describe('real flows (regressions from the P01 review)', () => {
@@ -161,7 +161,7 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
       expect(engine.lastWaveClear).not.toBeNull();
       expect(engine.lastWaveClear.wave).toBe(4);
       expect(engine.lastWaveClear.bonus).toBeGreaterThan(0);
-      expect(engine.waveTimeBonusTotal).toBe(engine.lastWaveClear.bonus);
+      expect(engine.getPlayer(0).waveTimeBonusTotal).toBe(engine.lastWaveClear.bonus);
     });
 
     it('does not count time spent choosing the card', () => {
@@ -190,14 +190,14 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
       engine.activeTargets = [];
       engine.update(9000, 0.016);
       expect(engine.lastWaveClear).toBeNull();
-      expect(engine.waveTimeBonusTotal).toBe(0);
+      expect(engine.getPlayer(0).waveTimeBonusTotal).toBe(0);
 
       const tutorial: any = new BeerCrusherEngine();
       tutorial.startTutorialMode();
       tutorial.update(1000, 0.016);
       tutorial.update(9000, 0.016);
       expect(tutorial.lastWaveClear).toBeNull();
-      expect(tutorial.waveTimeBonusTotal).toBe(0);
+      expect(tutorial.getPlayer(0).waveTimeBonusTotal).toBe(0);
     });
 
     it('excludes paused time through the real pause API', () => {

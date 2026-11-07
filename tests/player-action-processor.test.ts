@@ -20,8 +20,8 @@ describe('PlayerActionProcessor (P01-T05)', () => {
     engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false });
     // 빠른 연사 검증을 위해 개틀링(쿨다운 ~58ms) 선택
-    engine.weaponSystem.selectWeapon('gatling', 1);
-    engine.weaponSystem.refillSkillInstant();
+    engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant();
 
     phase = 'PLAYING';
     pauseMenuOpen = false;
@@ -165,7 +165,7 @@ describe('PlayerActionProcessor (P01-T05)', () => {
     processor.send({ type: 'aim', aimX: 0, aimY: 0 });
 
     // 피버 준비 후 발동
-    engine.scoreManager.forceSetFeverGauge(100);
+    engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
     engine.activateFever(Date.now());
 
     processor.tick();
@@ -176,8 +176,8 @@ describe('PlayerActionProcessor (P01-T05)', () => {
 
     // 피버 종료
     vi.advanceTimersByTime(10_000);
-    engine.scoreManager.updateFeverTimer(Date.now());
-    expect(engine.scoreManager.getState().isFeverActive).toBe(false);
+    engine.getPlayer(0).scoreManager.updateFeverTimer(Date.now());
+    expect(engine.getPlayer(0).scoreManager.getState().isFeverActive).toBe(false);
 
     processor.tick(); // 피버 종료 감지 및 자동 연사 중지
     const shotsAfterEnd = shotsFired;

@@ -132,8 +132,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     const h = mk('hanmac', 14, { speedMps: 2 });
     engine.activeTargets = [h];
     engine.update(1000, 0.0001);
-    engine.weaponSystem.selectWeapon('revolver', 1);
-    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+    engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+    engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(h);
     engine.shootAt(p.targetNormX, p.targetNormY, 1100);
     expect(h.hp).toBeLessThan(3);
@@ -163,14 +163,14 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     it('blocks damage while raised: hp unchanged, no score or fever, ammo is spent', () => {
       const e = engine;
       const t = guarded(0);
-      const ammo = e.weaponSystem.getState().ammo;
+      const ammo = e.getPlayer(0).weaponSystem.getState().ammo;
       const res = shoot(e, t, UP);
       expect(res.shieldBlocked).toBe(true);
       expect(res.killed).toBe(false);
       expect(t.hp).toBe(2);
-      expect(e.scoreManager.getState().totalScore).toBe(0);
-      expect(e.scoreManager.getState().feverGauge).toBe(0);
-      expect(e.weaponSystem.getState().ammo).toBe(ammo - 1);
+      expect(e.getPlayer(0).scoreManager.getState().totalScore).toBe(0);
+      expect(e.getPlayer(0).scoreManager.getState().feverGauge).toBe(0);
+      expect(e.getPlayer(0).weaponSystem.getState().ammo).toBe(ammo - 1);
     });
 
     it('takes damage while lowered', () => {
@@ -181,8 +181,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     });
 
     it('fever shots are blocked by the shield, skills pierce it', () => {
-      engine.scoreManager.forceSetFeverGauge(100);
-      engine.scoreManager.activateFever(UP - 100);
+      engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
+      engine.getPlayer(0).scoreManager.activateFever(UP - 100);
       const t = guarded(0);
       const res = shoot(engine, t, UP, 'fever');
       expect(res.shieldBlocked).toBe(true);
@@ -190,8 +190,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
 
       const e2 = new BeerCrusherEngine();
       e2.startGame({ withWeaponSelect: false });
-      e2.weaponSystem.selectWeapon('shotgun', 1);
-      e2.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      e2.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+      e2.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const t2 = guarded(0);
       e2.activeTargets = [t2];
       (e2 as any).updateGuards(UP);
@@ -231,8 +231,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     });
 
     it('revolver pierce skips a guarding obi behind the target', () => {
-      engine.weaponSystem.selectWeapon('revolver', 3);
-      engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 3);
+      engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const front = mk('bottle', 6, { hp: 10, maxHp: 10 });
       const rear = guarded(0);
       rear.radiusM = 9;
@@ -250,8 +250,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     const bigBottle = () => mk('bottle', 10, { thetaRad: 0.1, initialThetaRad: 0.1, x: Math.sin(0.1) * 10, z: -Math.cos(0.1) * 10, hp: 0.1, maxHp: 4 });
 
     const shootKill = (e: BeerCrusherEngine, t: ActiveTargetEntity, now: number) => {
-      e.weaponSystem.selectWeapon('revolver', 1);
-      e.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      e.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+      e.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const p = e.computeTargetAimCoords(t);
       return e.shootAt(p.targetNormX, p.targetNormY, now);
     };
@@ -290,8 +290,8 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       const b = bigBottle();
       b.thetaRad = 0;
       engine.activeTargets = [b];
-      engine.weaponSystem.selectWeapon('shotgun', 4);
-      engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
+      engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       expect(engine.triggerWeaponSkill(1000).activated).toBe(true);
       expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(2);
     });

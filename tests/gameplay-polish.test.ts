@@ -45,7 +45,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
 
   describe('D04: Fever Burst Instant Ammo Refill & Reload Cancel', () => {
     it('should instantly refill ammo to 100% and cancel reload when fever activates', () => {
-      const weaponSystem = engine.weaponSystem;
+      const weaponSystem = engine.getPlayer(0).weaponSystem;
       weaponSystem.selectWeapon('shotgun', 1);
 
       // Empty magazine completely
@@ -58,7 +58,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(stateBefore.isReloading).toBe(true);
 
       // Activate Fever
-      engine.scoreManager.forceSetFeverGauge(100);
+      engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
       const activated = engine.activateFever(3000);
       expect(activated).toBe(true);
 
@@ -98,8 +98,8 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.startWave(4);
       engine.activeTargets = [];
-      engine.weaponSystem.selectWeapon('revolver', 1);
-      engine.weaponSystem.setInfiniteAmmo(true);
+      engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
+      engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
 
       // Spawn 10 normal monsters and 1 extra monster that stays on field (placed at thetaRad = 0.35 outside revolver pierce cone)
       const extraMonster = engine.spawnSandboxTarget('bottle', { radiusM: 14.0, thetaRad: 0.35 });
@@ -293,7 +293,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.startWave(7);
       engine.isBossEncounterActive = true;
-      engine.weaponSystem.selectWeapon('revolver', 1);
+      engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
 
       const boss = {
         id: 'boss_unit',
