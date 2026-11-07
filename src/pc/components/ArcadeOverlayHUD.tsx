@@ -3,6 +3,7 @@ import { ActiveBuffState, PlayerProfile, TargetKind, WeaponKind, WeaponLevel } f
 import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, STAGE_CONSTANTS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
 import { PassiveCardStack, WaveProgressInfo } from '../engine/BeerCrusherEngine';
 import type { BossHudInfo } from '../hudSnapshot';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface MonsterHudProjection {
   id: string;
@@ -110,7 +111,7 @@ export function formatFeverStatusBadge(
 } {
   if (isFeverActive) {
     return {
-      label: '🔥 FEVER ACTIVE (무한 탄창·명중 점수 1.5배)',
+      label: `🔥 FEVER ACTIVE (무한 탄창·점수 ${GAME_TUNING.fever.scoreMult}배·대미지 ${GAME_TUNING.judgment.feverDamage}배)`,
       isLocked: false,
       accentColor: '#f59e0b',
     };

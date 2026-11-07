@@ -44,7 +44,7 @@ export class ScoreAndFeverManager {
 
     const spec = JUDGMENT_SPECS[grade];
     const mult = this.getComboMultiplier();
-    const feverBonusMult = this.isFeverActive ? 1.5 : 1.0;
+    const feverBonusMult = this.isFeverActive ? GAME_TUNING.fever.scoreMult : 1.0;
     const scoreMult = options?.scoreMultiplier ?? 1.0;
     const feverMult = options?.feverMultiplier ?? 1.0;
 
