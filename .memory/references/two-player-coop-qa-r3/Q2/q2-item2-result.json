@@ -1,0 +1,56 @@
+{
+  "testName": "Q2-Item2-WeaponSelectDisconnect",
+  "timestamp": "2026-11-07T22:31:12.003Z",
+  "observations": [
+    {
+      "step": "before_disconnect",
+      "phase": "PLAYING",
+      "selectionKind": "weapon",
+      "isPaused": false,
+      "p2Away": false,
+      "bodyTextSnippet": "각자 시작 무기를 쏴서 고르세요\n내 색 십자선으로 내 카드만 맞힐 수 있어요\n1P\n1P\n1P\n2P\n2P\n2P\nTEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 40\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n폰1P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n2P\n폰2P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n1P · SHOTGUN Lv.1\n2P · SHOT"
+    },
+    {
+      "step": "after_p2_dc_1s",
+      "phase": "PLAYING",
+      "selectionKind": "weapon",
+      "isPaused": true,
+      "p2Away": false,
+      "bodyTextSnippet": "각자 시작 무기를 쏴서 고르세요\n내 색 십자선으로 내 카드만 맞힐 수 있어요\n1P\n1P\n1P\n2P\n2P\n2P\nTEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 40\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n폰1P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n2P\n폰2P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n1P · SHOTGUN Lv.1\n2P · SHOTGUN Lv.1\n📡 2P 재접속 대기 중 · 30초\n2P 폰 화면을 켜 주세요. 시간이 지나면 2P는 '나감' 처리되고 남은 사람이 계속합니다.\n▶ 이어하기 (Esc)혼자 계속하",
+      "hasGraceText": true,
+      "hasAloneBtn": true
+    },
+    {
+      "step": "after_p2_dc_4s",
+      "phase": "PLAYING",
+      "selectionKind": "weapon",
+      "isPaused": true,
+      "p2Away": false,
+      "bodyTextSnippet": "각자 시작 무기를 쏴서 고르세요\n내 색 십자선으로 내 카드만 맞힐 수 있어요\n1P\n1P\n1P\n2P\n2P\n2P\nTEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 40\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n폰1P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n2P\n폰2P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n1P · SHOTGUN Lv.1\n2P · SHOTGUN Lv.1\n📡 2P 재접속 대기 중 · 22초\n2P 폰 화면을 켜 주세요. 시간이 지나면 2P는 '나감' 처리되고 남은 사람이 계속합니다.\n▶ 이어하기 (Esc)혼자 계속하",
+      "hasGraceText": true,
+      "hasAloneBtn": true
+    },
+    {
+      "step": "after_alone_clicked",
+      "phase": "PLAYING",
+      "selectionKind": "weapon",
+      "isPaused": true,
+      "p2Away": true,
+      "p2SelectionDone": true,
+      "p1SelectionDone": false,
+      "bodyTextSnippet": "1P 선택 중 · 2P 선택 완료\n1P가 고르면 게임이 시작됩니다\n2P\n✓ 황금 병따개 리볼버 선택 완료\n1P 선택을 기다리는 중…\n1P\n1P\n1P\nTEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 40\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n폰1P\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 0.0s\nFEVER GAUGE 0%\n0%\n2P\n폰2P\n나감\n0\nLv.1\n황금 병따개 리볼버\n10 / 10\n⏸ 정지됨\nFEVER GAUGE 0%\n0%\n1P · SHOTGUN Lv.1\n1\n게임 재개! 조준선을 정렬하세요"
+    },
+    {
+      "step": "after_p1_card_picked",
+      "phase": "PLAYING",
+      "selectionKind": null,
+      "isPaused": false,
+      "p2Away": true,
+      "p1Weapon": "shotgun",
+      "p2Weapon": "revolver"
+    }
+  ],
+  "errors": [],
+  "pageErrors": [],
+  "consoleErrors": []
+}

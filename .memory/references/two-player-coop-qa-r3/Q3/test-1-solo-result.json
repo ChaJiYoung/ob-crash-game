@@ -1,0 +1,305 @@
+{
+  "test": "1P Solo Combat",
+  "reportItems": {
+    "singleFire": {
+      "status": "PASS",
+      "load": {
+        "ok": true,
+        "rafCount": 61,
+        "uptime": "7:45  up 14 days,  5:23, 17 users, load averages: 24.70 30.51 23.62",
+        "trials": 2,
+        "history": [
+          {
+            "trial": 1,
+            "rafCount": 4,
+            "uptime": "7:45  up 14 days,  5:22, 16 users, load averages: 33.58 32.57 24.07",
+            "timeMs": 1048
+          },
+          {
+            "trial": 2,
+            "rafCount": 61,
+            "uptime": "7:45  up 14 days,  5:23, 17 users, load averages: 24.70 30.51 23.62",
+            "timeMs": 32510
+          }
+        ]
+      },
+      "missedCount": 0,
+      "trials": [
+        {
+          "trial": 1,
+          "targetAim": {
+            "aimX": -0.585268422343604,
+            "aimY": 0.08147305164378078
+          },
+          "ammoBefore": 4,
+          "ammoAfter": 3,
+          "ammoSpent": 1,
+          "scoreBefore": 472,
+          "scoreAfter": 491,
+          "scoreGained": 19,
+          "isSuccess": true
+        },
+        {
+          "trial": 2,
+          "targetAim": {
+            "aimX": 0.6109459307605011,
+            "aimY": -0.13195097020941512
+          },
+          "ammoBefore": 3,
+          "ammoAfter": 2,
+          "ammoSpent": 1,
+          "scoreBefore": 491,
+          "scoreAfter": 509,
+          "scoreGained": 18,
+          "isSuccess": true
+        },
+        {
+          "trial": 3,
+          "targetAim": {
+            "aimX": 0.38284363836564234,
+            "aimY": -0.1310639529460087
+          },
+          "ammoBefore": 2,
+          "ammoAfter": 1,
+          "ammoSpent": 1,
+          "scoreBefore": 509,
+          "scoreAfter": 527,
+          "scoreGained": 18,
+          "isSuccess": true
+        },
+        {
+          "trial": 4,
+          "targetAim": {
+            "aimX": -0.0024631140952944743,
+            "aimY": -0.08525206682422991
+          },
+          "ammoBefore": 1,
+          "ammoAfter": 0,
+          "ammoSpent": 1,
+          "scoreBefore": 527,
+          "scoreAfter": 549,
+          "scoreGained": 22,
+          "isSuccess": true
+        },
+        {
+          "trial": 5,
+          "targetAim": {
+            "aimX": -0.1724811134252329,
+            "aimY": -0.29581226622456636
+          },
+          "ammoBefore": 16,
+          "ammoAfter": 15,
+          "ammoSpent": 1,
+          "scoreBefore": 549,
+          "scoreAfter": 567,
+          "scoreGained": 18,
+          "isSuccess": true
+        },
+        {
+          "trial": 6,
+          "targetAim": {
+            "aimX": -0.5537902664944832,
+            "aimY": -0.14432114617697547
+          },
+          "ammoBefore": 15,
+          "ammoAfter": 14,
+          "ammoSpent": 1,
+          "scoreBefore": 567,
+          "scoreAfter": 589,
+          "scoreGained": 22,
+          "isSuccess": true
+        },
+        {
+          "trial": 7,
+          "targetAim": {
+            "aimX": 0.4705088631593312,
+            "aimY": 0.08503331836743677
+          },
+          "ammoBefore": 14,
+          "ammoAfter": 13,
+          "ammoSpent": 1,
+          "scoreBefore": 589,
+          "scoreAfter": 608,
+          "scoreGained": 19,
+          "isSuccess": true
+        },
+        {
+          "trial": 8,
+          "targetAim": {
+            "aimX": 0.5571822065468642,
+            "aimY": -0.1716761725959947
+          },
+          "ammoBefore": 13,
+          "ammoAfter": 12,
+          "ammoSpent": 1,
+          "scoreBefore": 608,
+          "scoreAfter": 626,
+          "scoreGained": 18,
+          "isSuccess": true
+        },
+        {
+          "trial": 9,
+          "targetAim": {
+            "aimX": 0.613805259620362,
+            "aimY": 0.08666272749477753
+          },
+          "ammoBefore": 12,
+          "ammoAfter": 11,
+          "ammoSpent": 1,
+          "scoreBefore": 626,
+          "scoreAfter": 640,
+          "scoreGained": 14,
+          "isSuccess": true
+        },
+        {
+          "trial": 10,
+          "targetAim": {
+            "aimX": -0.3928234395120725,
+            "aimY": -0.0917475289976352
+          },
+          "ammoBefore": 11,
+          "ammoAfter": 10,
+          "ammoSpent": 1,
+          "scoreBefore": 640,
+          "scoreAfter": 658,
+          "scoreGained": 18,
+          "isSuccess": true
+        }
+      ]
+    },
+    "rapidShotgun": {
+      "status": "PASS",
+      "load": {
+        "ok": true,
+        "rafCount": 61,
+        "uptime": "7:46  up 14 days,  5:23, 16 users, load averages: 23.02 29.87 23.51",
+        "trials": 1,
+        "history": [
+          {
+            "trial": 1,
+            "rafCount": 61,
+            "uptime": "7:46  up 14 days,  5:23, 16 users, load averages: 23.02 29.87 23.51",
+            "timeMs": 1033
+          }
+        ]
+      },
+      "ammoBefore": 16,
+      "ammoAfter": 9,
+      "shotsFired": 7,
+      "expectedEng": "~6"
+    },
+    "fever": {
+      "status": "PASS",
+      "load": {
+        "ok": true,
+        "rafCount": 61,
+        "uptime": "7:46  up 14 days,  5:23, 16 users, load averages: 23.02 29.87 23.51",
+        "trials": 1,
+        "history": [
+          {
+            "trial": 1,
+            "rafCount": 61,
+            "uptime": "7:46  up 14 days,  5:23, 16 users, load averages: 23.02 29.87 23.51",
+            "timeMs": 1024
+          }
+        ]
+      },
+      "isFeverActive": true,
+      "scoreBefore": 849,
+      "scoreAfter": 902,
+      "scoreDelta": 53
+    },
+    "skill": {
+      "status": "BUG",
+      "load": {
+        "ok": true,
+        "rafCount": 62,
+        "uptime": "7:46  up 14 days,  5:23, 16 users, load averages: 21.41 29.43 23.39",
+        "trials": 1,
+        "history": [
+          {
+            "trial": 1,
+            "rafCount": 62,
+            "uptime": "7:46  up 14 days,  5:23, 16 users, load averages: 21.41 29.43 23.39",
+            "timeMs": 1029
+          }
+        ]
+      },
+      "failedCount": 10,
+      "trials": [
+        {
+          "trial": 1,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 2,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 3,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 4,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 5,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 6,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 7,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 8,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 9,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        },
+        {
+          "trial": 10,
+          "stockBefore": 2,
+          "stockAfter": 2,
+          "consumed": false,
+          "success": false
+        }
+      ]
+    }
+  },
+  "pageErrors": [],
+  "errors": []
+}

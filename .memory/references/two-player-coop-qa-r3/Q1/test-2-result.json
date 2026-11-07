@@ -1,0 +1,71 @@
+{
+  "step1_1pHits2pCard": {
+    "expected": [
+      false,
+      false
+    ],
+    "actual": [
+      false,
+      false
+    ],
+    "pass": true
+  },
+  "step2_1pHits1pCard": {
+    "expected": [
+      true,
+      false
+    ],
+    "actual": [
+      true,
+      false
+    ],
+    "pass": true
+  },
+  "step3_2pHits1pCard": {
+    "expected": [
+      true,
+      false
+    ],
+    "actual": [
+      true,
+      false
+    ],
+    "pass": true
+  },
+  "step4_2pHits2pCard": {
+    "expected": "all done / playing",
+    "actual": {
+      "selection": {
+        "kind": null,
+        "done": [
+          true,
+          true
+        ]
+      },
+      "phase": "PLAYING"
+    },
+    "pass": true
+  },
+  "step5_soloOutsideRadius": {
+    "expected": [
+      false
+    ],
+    "actual": [
+      false
+    ],
+    "pass": true
+  },
+  "step6_soloCenterHit": {
+    "expected": "done or PLAYING",
+    "actual": {
+      "selection": {
+        "kind": null,
+        "done": [
+          true
+        ]
+      },
+      "phase": "PLAYING"
+    },
+    "pass": true
+  }
+}

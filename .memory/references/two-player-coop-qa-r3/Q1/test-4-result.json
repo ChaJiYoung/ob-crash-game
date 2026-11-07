@@ -1,0 +1,76 @@
+{
+  "weaponSelectBadges": {
+    "badges": [
+      {
+        "id": "card-owner-badge-1P",
+        "text": "1P",
+        "left": 63.1875,
+        "right": 101.046875,
+        "width": 37.859375,
+        "inBounds": true
+      },
+      {
+        "id": "card-owner-badge-1P",
+        "text": "1P",
+        "left": 231.015625,
+        "right": 268.875,
+        "width": 37.859375,
+        "inBounds": true
+      },
+      {
+        "id": "card-owner-badge-1P",
+        "text": "1P",
+        "left": 398.84375,
+        "right": 436.703125,
+        "width": 37.859375,
+        "inBounds": true
+      },
+      {
+        "id": "card-owner-badge-2P",
+        "text": "2P",
+        "left": 587.140625,
+        "right": 625,
+        "width": 37.859375,
+        "inBounds": true
+      },
+      {
+        "id": "card-owner-badge-2P",
+        "text": "2P",
+        "left": 754.96875,
+        "right": 792.828125,
+        "width": 37.859375,
+        "inBounds": true
+      },
+      {
+        "id": "card-owner-badge-2P",
+        "text": "2P",
+        "left": 922.796875,
+        "right": 960.65625,
+        "width": 37.859375,
+        "inBounds": true
+      }
+    ],
+    "allInBounds": true
+  },
+  "combatNametags": {
+    "nametags": [
+      {
+        "index": 0,
+        "text": "1P · SHOTGUN Lv.1",
+        "left": 8.123748779296875,
+        "right": 137.87374877929688,
+        "width": 129.75,
+        "inBounds": true
+      },
+      {
+        "index": 1,
+        "text": "2P · SHOTGUN Lv.1",
+        "left": 520.255615234375,
+        "right": 691.525634765625,
+        "width": 171.27001953125,
+        "inBounds": true
+      }
+    ],
+    "allInBounds": true
+  }
+}

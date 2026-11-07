@@ -1,0 +1,543 @@
+{
+  "weapon": "gatling",
+  "renderer": "chromium headless, --use-angle=metal --enable-webgl",
+  "startedAt": "2026-11-07T22:46:52.243Z",
+  "pick": "gatling",
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startT": 13,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 14,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "2": {
+      "wave": 2,
+      "startT": 26,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 18,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "3": {
+      "wave": 3,
+      "startT": 44,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 20,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "4": {
+      "wave": 4,
+      "startT": 64,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 25,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "5": {
+      "wave": 5,
+      "startT": 89,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 53,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "6": {
+      "wave": 6,
+      "startT": 142,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 26,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "7": {
+      "wave": 7,
+      "startT": 168,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 42,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 0
+    }
+  },
+  "waveRafChecks": {
+    "1": {
+      "wave": 1,
+      "raf1s": 60,
+      "loadavg": [
+        13.94,
+        25.99,
+        22.45
+      ],
+      "uptime": 1229037,
+      "measuredAtSec": 13
+    },
+    "2": {
+      "wave": 2,
+      "raf1s": 60,
+      "loadavg": [
+        14.3,
+        25.46,
+        22.32
+      ],
+      "uptime": 1229051,
+      "measuredAtSec": 26
+    },
+    "3": {
+      "wave": 3,
+      "raf1s": 61,
+      "loadavg": [
+        20.24,
+        26.08,
+        22.62
+      ],
+      "uptime": 1229068,
+      "measuredAtSec": 44
+    },
+    "4": {
+      "wave": 4,
+      "raf1s": 61,
+      "loadavg": [
+        23.66,
+        26.53,
+        22.86
+      ],
+      "uptime": 1229088,
+      "measuredAtSec": 64
+    },
+    "5": {
+      "wave": 5,
+      "raf1s": 61,
+      "loadavg": [
+        29.08,
+        27.57,
+        23.34
+      ],
+      "uptime": 1229114,
+      "measuredAtSec": 89
+    },
+    "6": {
+      "wave": 6,
+      "raf1s": 61,
+      "loadavg": [
+        29.18,
+        27.88,
+        23.7
+      ],
+      "uptime": 1229166,
+      "measuredAtSec": 142
+    },
+    "7": {
+      "wave": 7,
+      "raf1s": 61,
+      "loadavg": [
+        27.96,
+        27.75,
+        23.77
+      ],
+      "uptime": 1229192,
+      "measuredAtSec": 168
+    }
+  },
+  "bossEncounters": [
+    {
+      "wave": 3,
+      "maxHp": 100,
+      "preRaf": 61,
+      "preLoadavg": [
+        22.3,
+        26.41,
+        22.75
+      ],
+      "preUptime": 1229073,
+      "skippedDueToLoad": false,
+      "startedAtSec": 50,
+      "durationSec": 11,
+      "outcome": "boss killed"
+    },
+    {
+      "wave": 5,
+      "maxHp": 120,
+      "preRaf": 61,
+      "preLoadavg": [
+        29.24,
+        27.62,
+        23.38
+      ],
+      "preUptime": 1229119,
+      "skippedDueToLoad": false,
+      "startedAtSec": 95,
+      "durationSec": 43,
+      "outcome": "boss killed"
+    },
+    {
+      "wave": 7,
+      "maxHp": 150,
+      "preRaf": 61,
+      "preLoadavg": [
+        27.83,
+        27.73,
+        23.82
+      ],
+      "preUptime": 1229199,
+      "skippedDueToLoad": false,
+      "startedAtSec": 176,
+      "durationSec": 32,
+      "outcome": "boss killed"
+    }
+  ],
+  "cardRounds": [
+    {
+      "wave": 1,
+      "offered": [
+        "fever_extend",
+        "rapid_reload",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "gatling-wave1-cards.png",
+      "t": 25
+    },
+    {
+      "wave": 2,
+      "offered": [
+        "rapid_reload",
+        "damage_up",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "gatling-wave2-cards.png",
+      "t": 42
+    },
+    {
+      "wave": 3,
+      "offered": [
+        "fever_boost",
+        "skill_cooldown",
+        "hit_zone_up"
+      ],
+      "chosen": "fever_boost",
+      "screenshot": "gatling-wave3-cards.png",
+      "t": 62
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "hit_zone_up",
+        "fever_boost",
+        "damage_up"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "gatling-wave4-cards.png",
+      "t": 73
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "fever_extend",
+        "hit_zone_up",
+        "skill_cooldown"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "gatling-wave4-cards.png",
+      "t": 84
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "lucky_drop",
+        "fever_boost",
+        "skill_cooldown"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "gatling-wave4-cards.png",
+      "t": 87
+    },
+    {
+      "wave": 5,
+      "offered": [
+        "lucky_drop",
+        "hit_zone_up",
+        "fever_extend"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "gatling-wave5-cards.png",
+      "t": 140
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "weapon_level_up",
+        "fever_boost",
+        "fever_extend"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "gatling-wave6-cards.png",
+      "t": 152
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "fever_extend",
+        "rapid_reload",
+        "hit_zone_up"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "gatling-wave6-cards.png",
+      "t": 163
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "lucky_drop",
+        "hit_zone_up",
+        "rapid_reload"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "gatling-wave6-cards.png",
+      "t": 166
+    }
+  ],
+  "fever": [
+    {
+      "wave": 2,
+      "activatedAtSec": 28,
+      "scoreBefore": 1203,
+      "scoreAfter2s": 1373,
+      "scoreGainIn2s": 170,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 48,
+      "scoreBefore": 2700,
+      "scoreAfter2s": 2814,
+      "scoreGainIn2s": 114,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 64,
+      "scoreBefore": 6851,
+      "scoreAfter2s": 6862,
+      "scoreGainIn2s": 11,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 82,
+      "scoreBefore": 7789,
+      "scoreAfter2s": 8018,
+      "scoreGainIn2s": 229,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 96,
+      "scoreBefore": 9513,
+      "scoreAfter2s": 9872,
+      "scoreGainIn2s": 359,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 109,
+      "scoreBefore": 11186,
+      "scoreAfter2s": 11598,
+      "scoreGainIn2s": 412,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 122,
+      "scoreBefore": 12849,
+      "scoreAfter2s": 13145,
+      "scoreGainIn2s": 296,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 132,
+      "scoreBefore": 14329,
+      "scoreAfter2s": 14570,
+      "scoreGainIn2s": 241,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 153,
+      "scoreBefore": 17165,
+      "scoreAfter2s": 17435,
+      "scoreGainIn2s": 270,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 176,
+      "scoreBefore": 19049,
+      "scoreAfter2s": 19341,
+      "scoreGainIn2s": 292,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 186,
+      "scoreBefore": 20641,
+      "scoreAfter2s": 21164,
+      "scoreGainIn2s": 523,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 197,
+      "scoreBefore": 22565,
+      "scoreAfter2s": 23022,
+      "scoreGainIn2s": 457,
+      "feverStillActive": true
+    }
+  ],
+  "skill": [
+    {
+      "wave": 1,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    }
+  ],
+  "stalls": [],
+  "shots": {
+    "ammoDrops": 886
+  },
+  "viewport": "1440x900",
+  "kills": 617,
+  "result": {
+    "phase": "VICTORY",
+    "finalWave": 7,
+    "finalLives": 5,
+    "finalScore": 33445,
+    "durationSec": 212,
+    "loops": 4100,
+    "screenshot": "gatling-result-VICTORY.png",
+    "bodyTextSnippet": "🎉 VICTORY! 브루어리 수호 성공!\n생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!\n최종 득점\n33445점\n기본 17659점\n시간 보너스 +9729점\nWAVE 7 CLEAR · 40.7초 · +2800점\n정밀도 보너스 +6057점\nNEW RECORD!\n누적 격파 (KILL)\n533 KILL\n최대 콤보\n1505 COMBO\n도달 웨이브\nWAVE 7\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\nQA-Q4-REVO\n🍾 리볼버\n77522점\nW7\n2\nQA-Q4-SHOT\n🪠 샷건\n38193점\nW7\n3\nQA-Q4-GATL\n🍺 개틀링\n33445점\nW7\n🔄 다시 도전하기\n🏠 로비로 이동"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "finishedAt": "2026-11-07T22:50:23.529Z"
+}

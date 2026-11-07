@@ -1,0 +1,35 @@
+{
+  "coopCrosshairInfo": {
+    "hasContainer": true,
+    "crosshairElementsCount": 2,
+    "nametagsCount": 0,
+    "nametags": [],
+    "hasRestartBtn": true,
+    "scoreRect": null,
+    "restartRect": {
+      "x": 212,
+      "y": 626.28125,
+      "width": 859.78125,
+      "height": 59,
+      "top": 626.28125,
+      "right": 1071.78125,
+      "bottom": 685.28125,
+      "left": 212
+    },
+    "crosshairStyles": [
+      {
+        "style": "position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; transform: translate(-50%, -50%) scale(1); pointer-events: none; opacity: 0.55; display: flex; align-items: center; justify-content: center; z-index: 40; transition: transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28);",
+        "opacity": "0.55",
+        "display": "flex",
+        "visibility": "visible"
+      },
+      {
+        "style": "position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; transform: translate(-50%, -50%) scale(1); pointer-events: none; opacity: 0.55; display: flex; align-items: center; justify-content: center; z-index: 40; transition: transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28);",
+        "opacity": "0.55",
+        "display": "flex",
+        "visibility": "visible"
+      }
+    ]
+  },
+  "pass": true
+}

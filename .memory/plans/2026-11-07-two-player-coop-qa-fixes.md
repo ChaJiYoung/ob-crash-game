@@ -25,4 +25,4 @@
 | P01 | `done` | 수정 5건(타이머 바인딩, 조준 좌표 모듈 분리와 총구 조준 계산, 조준 경로 하나로, 로비 모달 맞춤, 불안정 테스트) | [P01](../phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md) |
 | P02 | `done` | 체크리스트 보강(총구 조준 정량 확인 등) 후 QA 3개 재실행·결과 리뷰 | [P02](../phases/2026-11-07-two-player-coop-qa-fixes/P02-requa/phase.md) |
 | P03 | `done` | 2차 QA 확정 버그 6건 + 2인 난이도 D41(슬롯 이동, 카드 몸체 판정, 결과 화면 겹침, 작은 화면 배지, 개틀링 링 경고, 시작 순서) | [P03](../phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/phase.md) |
-| P04 | `in_progress` | 3차 QA 단독 실행(폰 입력 재측정, P03 확인, 풀플레이, C 미완 항목) | [P04](../phases/2026-11-07-two-player-coop-qa-fixes/P04-requa-r3/phase.md) |
+| P04 | `done` | 3차 QA 단독 실행(폰 입력 재측정, P03 확인, 풀플레이, C 미완 항목) | [P04](../phases/2026-11-07-two-player-coop-qa-fixes/P04-requa-r3/phase.md) |

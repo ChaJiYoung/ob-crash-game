@@ -1,0 +1,234 @@
+{
+  "testName": "Q2-Items-5-6-Verified",
+  "timestamp": "2026-11-07T23:09:56.290Z",
+  "mouseDeviceId": "dev_mw70nfzm_k8vb6f50",
+  "phoneDeviceId": "fixed_phone_q2_partner_id",
+  "match1": {
+    "p1Score": 152,
+    "p2Score": 13,
+    "teamScore": 165,
+    "totalRecordsInFile": 4,
+    "coopRecordsInFile": 4,
+    "exactTwoLines": false,
+    "records": [
+      {
+        "playedAt": "2026-11-07T23:10:52.191Z",
+        "deviceId": "dev_mw70nfzm_k8vb6f50",
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "score": 152,
+        "coop": {
+          "slot": 1,
+          "teamScore": 165,
+          "partnerScore": 13,
+          "partnerDeviceId": "fixed_phone_q2_partner_id",
+          "partnerNickname": "고정폰2P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:10:52.192Z",
+        "deviceId": "fixed_phone_q2_partner_id",
+        "nickname": "고정폰2P",
+        "mode": "coop",
+        "score": 13,
+        "coop": {
+          "slot": 2,
+          "teamScore": 165,
+          "partnerScore": 152,
+          "partnerDeviceId": "dev_mw70nfzm_k8vb6f50",
+          "partnerNickname": "마우스1P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:10:52.513Z",
+        "deviceId": "dev_mw70nfzm_k8vb6f50",
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "score": 152,
+        "coop": {
+          "slot": 1,
+          "teamScore": 165,
+          "partnerScore": 13,
+          "partnerDeviceId": "fixed_phone_q2_partner_id",
+          "partnerNickname": "고정폰2P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:10:52.514Z",
+        "deviceId": "fixed_phone_q2_partner_id",
+        "nickname": "고정폰2P",
+        "mode": "coop",
+        "score": 13,
+        "coop": {
+          "slot": 2,
+          "teamScore": 165,
+          "partnerScore": 152,
+          "partnerDeviceId": "dev_mw70nfzm_k8vb6f50",
+          "partnerNickname": "마우스1P",
+          "leftEarly": false
+        }
+      }
+    ]
+  },
+  "match2": {
+    "p1Score": 487,
+    "p2Score": 117,
+    "teamScore": 604,
+    "totalRecordsInFile": 8,
+    "coopRecordsInFile": 8,
+    "exactFourLines": false,
+    "records": [
+      {
+        "playedAt": "2026-11-07T23:10:52.191Z",
+        "deviceId": "dev_mw70nfzm_k8vb6f50",
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "score": 152,
+        "coop": {
+          "slot": 1,
+          "teamScore": 165,
+          "partnerScore": 13,
+          "partnerDeviceId": "fixed_phone_q2_partner_id",
+          "partnerNickname": "고정폰2P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:10:52.192Z",
+        "deviceId": "fixed_phone_q2_partner_id",
+        "nickname": "고정폰2P",
+        "mode": "coop",
+        "score": 13,
+        "coop": {
+          "slot": 2,
+          "teamScore": 165,
+          "partnerScore": 152,
+          "partnerDeviceId": "dev_mw70nfzm_k8vb6f50",
+          "partnerNickname": "마우스1P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:10:52.513Z",
+        "deviceId": "dev_mw70nfzm_k8vb6f50",
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "score": 152,
+        "coop": {
+          "slot": 1,
+          "teamScore": 165,
+          "partnerScore": 13,
+          "partnerDeviceId": "fixed_phone_q2_partner_id",
+          "partnerNickname": "고정폰2P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:10:52.514Z",
+        "deviceId": "fixed_phone_q2_partner_id",
+        "nickname": "고정폰2P",
+        "mode": "coop",
+        "score": 13,
+        "coop": {
+          "slot": 2,
+          "teamScore": 165,
+          "partnerScore": 152,
+          "partnerDeviceId": "dev_mw70nfzm_k8vb6f50",
+          "partnerNickname": "마우스1P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:12:04.683Z",
+        "deviceId": "dev_mw70nfzm_k8vb6f50",
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "score": 487,
+        "coop": {
+          "slot": 1,
+          "teamScore": 604,
+          "partnerScore": 117,
+          "partnerDeviceId": "fixed_phone_q2_partner_id",
+          "partnerNickname": "고정폰2P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:12:04.686Z",
+        "deviceId": "fixed_phone_q2_partner_id",
+        "nickname": "고정폰2P",
+        "mode": "coop",
+        "score": 117,
+        "coop": {
+          "slot": 2,
+          "teamScore": 604,
+          "partnerScore": 487,
+          "partnerDeviceId": "dev_mw70nfzm_k8vb6f50",
+          "partnerNickname": "마우스1P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:12:05.098Z",
+        "deviceId": "dev_mw70nfzm_k8vb6f50",
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "score": 487,
+        "coop": {
+          "slot": 1,
+          "teamScore": 604,
+          "partnerScore": 117,
+          "partnerDeviceId": "fixed_phone_q2_partner_id",
+          "partnerNickname": "고정폰2P",
+          "leftEarly": false
+        }
+      },
+      {
+        "playedAt": "2026-11-07T23:12:05.100Z",
+        "deviceId": "fixed_phone_q2_partner_id",
+        "nickname": "고정폰2P",
+        "mode": "coop",
+        "score": 117,
+        "coop": {
+          "slot": 2,
+          "teamScore": 604,
+          "partnerScore": 487,
+          "partnerDeviceId": "dev_mw70nfzm_k8vb6f50",
+          "partnerNickname": "마우스1P",
+          "leftEarly": false
+        }
+      }
+    ]
+  },
+  "teamRankingCheck": {
+    "mouseDeviceId": "dev_mw70nfzm_k8vb6f50",
+    "phoneDeviceId": "fixed_phone_q2_partner_id",
+    "resultRankRows": [
+      "💥 GAME OVER! 바 방어선 함락!\n맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다.\n1P\n마우스1P\n487 PTS\n최대 콤보: 27 COMBO\n처치 수: 23 KILL\n명중률: 71%\n선택 무기: 🪠 샷건\n2P\n고정폰2P\n117 PTS\n최대 콤보: 8 COMBO\n처치 수: 6 KILL\n명중률: 15%\n선택 무기: 🪠 샷건\n팀 합계\n604 PTS\n이 팀 최고: 604 PTS\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660점\nW2\n2\n마우스1P & 고정폰2P\n604점\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0점\nW1\n4\nP1_Diag & P2_Diag\n0점\nW1\n5\nP1_Probe & P2_Probe\n0점\nW1\n🔄 다시 도전하기\n🏠 로비로 이동",
+      "1P\n마우스1P\n487 PTS\n최대 콤보: 27 COMBO\n처치 수: 23 KILL\n명중률: 71%\n선택 무기: 🪠 샷건\n2P\n고정폰2P\n117 PTS\n최대 콤보: 8 COMBO\n처치 수: 6 KILL\n명중률: 15%\n선택 무기: 🪠 샷건\n팀 합계\n604 PTS\n이 팀 최고: 604 PTS\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660점\nW2\n2\n마우스1P & 고정폰2P\n604점\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0점\nW1\n4\nP1_Diag & P2_Diag\n0점\nW1\n5\nP1_Probe & P2_Probe\n0점\nW1",
+      "1P\n마우스1P\n487 PTS\n최대 콤보: 27 COMBO\n처치 수: 23 KILL\n명중률: 71%\n선택 무기: 🪠 샷건\n2P\n고정폰2P\n117 PTS\n최대 콤보: 8 COMBO\n처치 수: 6 KILL\n명중률: 15%\n선택 무기: 🪠 샷건\n팀 합계\n604 PTS\n이 팀 최고: 604 PTS",
+      "1P\n마우스1P\n487 PTS\n최대 콤보: 27 COMBO\n처치 수: 23 KILL\n명중률: 71%\n선택 무기: 🪠 샷건\n2P\n고정폰2P\n117 PTS\n최대 콤보: 8 COMBO\n처치 수: 6 KILL\n명중률: 15%\n선택 무기: 🪠 샷건",
+      "🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660점\nW2\n2\n마우스1P & 고정폰2P\n604점\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0점\nW1\n4\nP1_Diag & P2_Diag\n0점\nW1\n5\nP1_Probe & P2_Probe\n0점\nW1",
+      "1\n블루폰1P & 오렌지폰2P\n660점\nW2\n2\n마우스1P & 고정폰2P\n604점\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0점\nW1\n4\nP1_Diag & P2_Diag\n0점\nW1\n5\nP1_Probe & P2_Probe\n0점\nW1",
+      "2\n마우스1P & 고정폰2P\n604점\nW1",
+      "2\n마우스1P & 고정폰2P"
+    ],
+    "lobbyRankRows": [
+      "🍺 BEER CRUSHER 3D\n플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.\n1P\n1P 슬롯\n비어 있음\n📱 모바일\n🖱 마우스\n입력 방식을 선택하세요\n📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용\n2P\n2P 슬롯\n● 준비 완료\n📱 모바일\n🖱 마우스\n🔫 고정폰2P님 접속 완료\n🎯 영점 완료\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660\nW2\n2\n마우스1P & 고정폰2P\n604\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0\nW1\n4\nP1_Diag & P2_Diag\n0\nW1\n5\nP1_Probe & P2_Probe\n0\nW1\n▶\n게임 시작 (폰은 화면 가운데를 쏘세요)\n🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)\n🎓 튜토리얼 시작\n📖 게임 가이드\n🎮 조작법\n📱 폰: 기울여 조준 · 탭 발사(꾹 누르면 연사) · 더블탭 피버 · 총구를 위로 휙 젖혀 스킬\n🖱️ 마우스: 클릭 발사(누르고 있으면 연사) · 더블클릭 피버 · 우클릭 스킬 · Esc 일시정지\n🔄 새 방 만들기 (모든 슬롯 초기화)\n🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.\n🎯\n모바일 센서 진단 & 안정화 랩",
+      "🍺 BEER CRUSHER 3D\n플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.\n1P\n1P 슬롯\n비어 있음\n📱 모바일\n🖱 마우스\n입력 방식을 선택하세요\n📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용\n2P\n2P 슬롯\n● 준비 완료\n📱 모바일\n🖱 마우스\n🔫 고정폰2P님 접속 완료\n🎯 영점 완료\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660\nW2\n2\n마우스1P & 고정폰2P\n604\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0\nW1\n4\nP1_Diag & P2_Diag\n0\nW1\n5\nP1_Probe & P2_Probe\n0\nW1\n▶\n게임 시작 (폰은 화면 가운데를 쏘세요)\n🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)\n🎓 튜토리얼 시작\n📖 게임 가이드\n🎮 조작법\n📱 폰: 기울여 조준 · 탭 발사(꾹 누르면 연사) · 더블탭 피버 · 총구를 위로 휙 젖혀 스킬\n🖱️ 마우스: 클릭 발사(누르고 있으면 연사) · 더블클릭 피버 · 우클릭 스킬 · Esc 일시정지\n🔄 새 방 만들기 (모든 슬롯 초기화)\n🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.",
+      "🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660\nW2\n2\n마우스1P & 고정폰2P\n604\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0\nW1\n4\nP1_Diag & P2_Diag\n0\nW1\n5\nP1_Probe & P2_Probe\n0\nW1\n▶\n게임 시작 (폰은 화면 가운데를 쏘세요)\n🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)\n🎓 튜토리얼 시작\n📖 게임 가이드\n🎮 조작법\n📱 폰: 기울여 조준 · 탭 발사(꾹 누르면 연사) · 더블탭 피버 · 총구를 위로 휙 젖혀 스킬\n🖱️ 마우스: 클릭 발사(누르고 있으면 연사) · 더블클릭 피버 · 우클릭 스킬 · Esc 일시정지\n🔄 새 방 만들기 (모든 슬롯 초기화)\n🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.",
+      "🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660\nW2\n2\n마우스1P & 고정폰2P\n604\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0\nW1\n4\nP1_Diag & P2_Diag\n0\nW1\n5\nP1_Probe & P2_Probe\n0\nW1",
+      "1\n블루폰1P & 오렌지폰2P\n660\nW2\n2\n마우스1P & 고정폰2P\n604\nW1\n3\n폰1P_버튼검증 & 폰2P_버튼검증\n0\nW1\n4\nP1_Diag & P2_Diag\n0\nW1\n5\nP1_Probe & P2_Probe\n0\nW1",
+      "2\n마우스1P & 고정폰2P\n604\nW1",
+      "2\n마우스1P & 고정폰2P"
+    ],
+    "singleRowInResult": true,
+    "singleRowInLobby": true
+  },
+  "errors": [],
+  "pageErrors": [],
+  "consoleErrors": []
+}

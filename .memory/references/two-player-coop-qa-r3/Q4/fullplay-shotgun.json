@@ -1,0 +1,709 @@
+{
+  "weapon": "shotgun",
+  "renderer": "chromium headless, --use-angle=metal --enable-webgl",
+  "startedAt": "2026-11-07T22:30:23.364Z",
+  "pick": "shotgun",
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startT": 12,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 14,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "2": {
+      "wave": 2,
+      "startT": 25,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 17,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "3": {
+      "wave": 3,
+      "startT": 43,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 35,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "4": {
+      "wave": 4,
+      "startT": 78,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 25,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "5": {
+      "wave": 5,
+      "startT": 102,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 100,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "6": {
+      "wave": 6,
+      "startT": 203,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 25,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "7": {
+      "wave": 7,
+      "startT": 228,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 69,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 0
+    }
+  },
+  "waveRafChecks": {
+    "1": {
+      "wave": 1,
+      "raf1s": 61,
+      "loadavg": [
+        3.6,
+        6.67,
+        7.13
+      ],
+      "uptime": 1228047,
+      "measuredAtSec": 12
+    },
+    "2": {
+      "wave": 2,
+      "raf1s": 61,
+      "loadavg": [
+        3.35,
+        6.52,
+        7.07
+      ],
+      "uptime": 1228061,
+      "measuredAtSec": 25
+    },
+    "3": {
+      "wave": 3,
+      "raf1s": 61,
+      "loadavg": [
+        5.32,
+        6.72,
+        7.12
+      ],
+      "uptime": 1228078,
+      "measuredAtSec": 43
+    },
+    "4": {
+      "wave": 4,
+      "raf1s": 61,
+      "loadavg": [
+        18.18,
+        9.88,
+        8.27
+      ],
+      "uptime": 1228113,
+      "measuredAtSec": 78
+    },
+    "5": {
+      "wave": 5,
+      "raf1s": 61,
+      "loadavg": [
+        26.18,
+        12.53,
+        9.27
+      ],
+      "uptime": 1228138,
+      "measuredAtSec": 102
+    },
+    "6": {
+      "wave": 6,
+      "raf1s": 61,
+      "loadavg": [
+        22.62,
+        14.67,
+        10.45
+      ],
+      "uptime": 1228238,
+      "measuredAtSec": 203
+    },
+    "7": {
+      "wave": 7,
+      "raf1s": 61,
+      "loadavg": [
+        25.86,
+        16.04,
+        11.07
+      ],
+      "uptime": 1228264,
+      "measuredAtSec": 228
+    }
+  },
+  "bossEncounters": [
+    {
+      "wave": 3,
+      "maxHp": 100,
+      "preRaf": 60,
+      "preLoadavg": [
+        6.97,
+        7.04,
+        7.23
+      ],
+      "preUptime": 1228083,
+      "skippedDueToLoad": false,
+      "startedAtSec": 48,
+      "durationSec": 27,
+      "outcome": "boss killed"
+    },
+    {
+      "wave": 5,
+      "maxHp": 120,
+      "preRaf": 55,
+      "preLoadavg": [
+        28.49,
+        13.24,
+        9.54
+      ],
+      "preUptime": 1228143,
+      "skippedDueToLoad": false,
+      "startedAtSec": 108,
+      "durationSec": 91,
+      "outcome": "boss killed"
+    },
+    {
+      "wave": 7,
+      "maxHp": 150,
+      "preRaf": 56,
+      "preLoadavg": [
+        26.84,
+        16.4,
+        11.22
+      ],
+      "preUptime": 1228270,
+      "skippedDueToLoad": false,
+      "startedAtSec": 236,
+      "durationSec": 60,
+      "outcome": "boss killed"
+    }
+  ],
+  "cardRounds": [
+    {
+      "wave": 1,
+      "offered": [
+        "damage_up",
+        "rapid_reload",
+        "lucky_drop"
+      ],
+      "chosen": "damage_up",
+      "screenshot": "shotgun-wave1-cards.png",
+      "t": 24
+    },
+    {
+      "wave": 2,
+      "offered": [
+        "lucky_drop",
+        "fever_extend",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "shotgun-wave2-cards.png",
+      "t": 41
+    },
+    {
+      "wave": 3,
+      "offered": [
+        "fever_extend",
+        "weapon_level_up",
+        "rapid_reload"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "shotgun-wave3-cards.png",
+      "t": 76
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "hit_zone_up",
+        "skill_cooldown",
+        "lucky_drop"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "shotgun-wave4-cards.png",
+      "t": 87
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "lucky_drop",
+        "hit_zone_up",
+        "rapid_reload"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "shotgun-wave4-cards.png",
+      "t": 96
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "hit_zone_up",
+        "lucky_drop",
+        "fever_boost"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "shotgun-wave4-cards.png",
+      "t": 101
+    },
+    {
+      "wave": 5,
+      "offered": [
+        "lucky_drop",
+        "weapon_level_up",
+        "fever_boost"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "shotgun-wave5-cards.png",
+      "t": 201
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "lucky_drop",
+        "damage_up",
+        "fever_extend"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "shotgun-wave6-cards.png",
+      "t": 211
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "rapid_reload",
+        "skill_cooldown",
+        "fever_extend"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "shotgun-wave6-cards.png",
+      "t": 222
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "fever_boost",
+        "skill_cooldown",
+        "rapid_reload"
+      ],
+      "chosen": "fever_boost",
+      "screenshot": "shotgun-wave6-cards.png",
+      "t": 226
+    }
+  ],
+  "fever": [
+    {
+      "wave": 1,
+      "activatedAtSec": 17,
+      "scoreBefore": 268,
+      "scoreAfter2s": 330,
+      "scoreGainIn2s": 62,
+      "feverStillActive": true
+    },
+    {
+      "wave": 2,
+      "activatedAtSec": 33,
+      "scoreBefore": 1494,
+      "scoreAfter2s": 1603,
+      "scoreGainIn2s": 109,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 49,
+      "scoreBefore": 2733,
+      "scoreAfter2s": 2929,
+      "scoreGainIn2s": 196,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 60,
+      "scoreBefore": 3697,
+      "scoreAfter2s": 3870,
+      "scoreGainIn2s": 173,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 70,
+      "scoreBefore": 4572,
+      "scoreAfter2s": 4738,
+      "scoreGainIn2s": 166,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 83,
+      "scoreBefore": 8279,
+      "scoreAfter2s": 8332,
+      "scoreGainIn2s": 53,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 92,
+      "scoreBefore": 8783,
+      "scoreAfter2s": 8942,
+      "scoreGainIn2s": 159,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 104,
+      "scoreBefore": 10178,
+      "scoreAfter2s": 10376,
+      "scoreGainIn2s": 198,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 111,
+      "scoreBefore": 10811,
+      "scoreAfter2s": 11064,
+      "scoreGainIn2s": 253,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 119,
+      "scoreBefore": 11739,
+      "scoreAfter2s": 11936,
+      "scoreGainIn2s": 197,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 127,
+      "scoreBefore": 12568,
+      "scoreAfter2s": 12829,
+      "scoreGainIn2s": 261,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 136,
+      "scoreBefore": 13546,
+      "scoreAfter2s": 13825,
+      "scoreGainIn2s": 279,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 145,
+      "scoreBefore": 14534,
+      "scoreAfter2s": 14944,
+      "scoreGainIn2s": 410,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 153,
+      "scoreBefore": 15603,
+      "scoreAfter2s": 15827,
+      "scoreGainIn2s": 224,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 161,
+      "scoreBefore": 16496,
+      "scoreAfter2s": 16730,
+      "scoreGainIn2s": 234,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 169,
+      "scoreBefore": 17382,
+      "scoreAfter2s": 17606,
+      "scoreGainIn2s": 224,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 178,
+      "scoreBefore": 18323,
+      "scoreAfter2s": 18523,
+      "scoreGainIn2s": 200,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 186,
+      "scoreBefore": 19201,
+      "scoreAfter2s": 19399,
+      "scoreGainIn2s": 198,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 194,
+      "scoreBefore": 20073,
+      "scoreAfter2s": 20287,
+      "scoreGainIn2s": 214,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 206,
+      "scoreBefore": 21115,
+      "scoreAfter2s": 21252,
+      "scoreGainIn2s": 137,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 216,
+      "scoreBefore": 21729,
+      "scoreAfter2s": 21828,
+      "scoreGainIn2s": 99,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 228,
+      "scoreBefore": 22996,
+      "scoreAfter2s": 23063,
+      "scoreGainIn2s": 67,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 238,
+      "scoreBefore": 23755,
+      "scoreAfter2s": 24154,
+      "scoreGainIn2s": 399,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 246,
+      "scoreBefore": 24948,
+      "scoreAfter2s": 25188,
+      "scoreGainIn2s": 240,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 255,
+      "scoreBefore": 26033,
+      "scoreAfter2s": 26410,
+      "scoreGainIn2s": 377,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 263,
+      "scoreBefore": 27081,
+      "scoreAfter2s": 27279,
+      "scoreGainIn2s": 198,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 271,
+      "scoreBefore": 28063,
+      "scoreAfter2s": 28451,
+      "scoreGainIn2s": 388,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 280,
+      "scoreBefore": 29253,
+      "scoreAfter2s": 29450,
+      "scoreGainIn2s": 197,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 289,
+      "scoreBefore": 30283,
+      "scoreAfter2s": 30511,
+      "scoreGainIn2s": 228,
+      "feverStillActive": true
+    }
+  ],
+  "skill": [
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    }
+  ],
+  "stalls": [],
+  "shots": {
+    "ammoDrops": 623
+  },
+  "viewport": "1440x900",
+  "kills": 904,
+  "result": {
+    "phase": "VICTORY",
+    "finalWave": 7,
+    "finalLives": 5,
+    "finalScore": 38193,
+    "durationSec": 299,
+    "loops": 6471,
+    "screenshot": "shotgun-result-VICTORY.png",
+    "bodyTextSnippet": "🎉 VICTORY! 브루어리 수호 성공!\n생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!\n최종 득점\n38193점\n기본 25599점\n시간 보너스 +6032점\nWAVE 7 CLEAR · 67.8초 · +432점\n정밀도 보너스 +6562점\nNEW RECORD!\n누적 격파 (KILL)\n783 KILL\n최대 콤보\n1168 COMBO\n도달 웨이브\nWAVE 7\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\nQA-Q4-SHOT\n🪠 샷건\n38193점\nW7\n🔄 다시 도전하기\n🏠 로비로 이동"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "finishedAt": "2026-11-07T22:35:22.111Z"
+}

@@ -1,0 +1,13 @@
+{
+  "countdownEndedPhase": "PLAYING",
+  "phaseIsPlaying": true,
+  "targetCard": {
+    "id": "weapon_select_revolver_p0",
+    "kind": "revolver",
+    "aimX": 0,
+    "aimY": 0.1373122215037238
+  },
+  "singleShotSuccess": true,
+  "selectedWeaponKind": "revolver",
+  "pass": true
+}

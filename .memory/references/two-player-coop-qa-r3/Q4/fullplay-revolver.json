@@ -1,0 +1,1123 @@
+{
+  "weapon": "revolver",
+  "renderer": "chromium headless, --use-angle=metal --enable-webgl",
+  "startedAt": "2026-11-07T22:35:31.309Z",
+  "pick": "revolver",
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startT": 14,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 14,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "2": {
+      "wave": 2,
+      "startT": 27,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 18,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "3": {
+      "wave": 3,
+      "startT": 45,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 80,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "4": {
+      "wave": 4,
+      "startT": 125,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 27,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "5": {
+      "wave": 5,
+      "startT": 152,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 325,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "6": {
+      "wave": 6,
+      "startT": 477,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 27,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "7": {
+      "wave": 7,
+      "startT": 504,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 169,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 0
+    }
+  },
+  "waveRafChecks": {
+    "1": {
+      "wave": 1,
+      "raf1s": 61,
+      "loadavg": [
+        45.48,
+        24.37,
+        14.73
+      ],
+      "uptime": 1228356,
+      "measuredAtSec": 14
+    },
+    "2": {
+      "wave": 2,
+      "raf1s": 61,
+      "loadavg": [
+        44.59,
+        25.26,
+        15.21
+      ],
+      "uptime": 1228370,
+      "measuredAtSec": 27
+    },
+    "3": {
+      "wave": 3,
+      "raf1s": 61,
+      "loadavg": [
+        45.34,
+        26.69,
+        15.96
+      ],
+      "uptime": 1228388,
+      "measuredAtSec": 45
+    },
+    "4": {
+      "wave": 4,
+      "raf1s": 61,
+      "loadavg": [
+        37.77,
+        29.19,
+        17.91
+      ],
+      "uptime": 1228468,
+      "measuredAtSec": 125
+    },
+    "5": {
+      "wave": 5,
+      "raf1s": 61,
+      "loadavg": [
+        39.73,
+        30.32,
+        18.64
+      ],
+      "uptime": 1228495,
+      "measuredAtSec": 152
+    },
+    "6": {
+      "wave": 6,
+      "raf1s": 61,
+      "loadavg": [
+        40.17,
+        31.69,
+        22.53
+      ],
+      "uptime": 1228820,
+      "measuredAtSec": 477
+    },
+    "7": {
+      "wave": 7,
+      "raf1s": 61,
+      "loadavg": [
+        39.39,
+        32.12,
+        22.95
+      ],
+      "uptime": 1228847,
+      "measuredAtSec": 504
+    }
+  },
+  "bossEncounters": [
+    {
+      "wave": 3,
+      "maxHp": 100,
+      "preRaf": 60,
+      "preLoadavg": [
+        46.35,
+        27.21,
+        16.21
+      ],
+      "preUptime": 1228393,
+      "skippedDueToLoad": false,
+      "startedAtSec": 50,
+      "durationSec": 72,
+      "outcome": "boss killed"
+    },
+    {
+      "wave": 5,
+      "maxHp": 120,
+      "preRaf": 56,
+      "preLoadavg": [
+        38.63,
+        30.25,
+        18.69
+      ],
+      "preUptime": 1228500,
+      "skippedDueToLoad": false,
+      "startedAtSec": 158,
+      "durationSec": 316,
+      "outcome": "boss killed"
+    },
+    {
+      "wave": 7,
+      "maxHp": 150,
+      "preRaf": 59,
+      "preLoadavg": [
+        38,
+        32.06,
+        23.03
+      ],
+      "preUptime": 1228854,
+      "skippedDueToLoad": false,
+      "startedAtSec": 511,
+      "durationSec": 160,
+      "outcome": "boss killed"
+    }
+  ],
+  "cardRounds": [
+    {
+      "wave": 1,
+      "offered": [
+        "fever_boost",
+        "fever_extend",
+        "lucky_drop"
+      ],
+      "chosen": "fever_boost",
+      "screenshot": "revolver-wave1-cards.png",
+      "t": 25
+    },
+    {
+      "wave": 2,
+      "offered": [
+        "lucky_drop",
+        "skill_cooldown",
+        "hit_zone_up"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "revolver-wave2-cards.png",
+      "t": 43
+    },
+    {
+      "wave": 3,
+      "offered": [
+        "fever_extend",
+        "skill_cooldown",
+        "lucky_drop"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "revolver-wave3-cards.png",
+      "t": 123
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "hit_zone_up",
+        "fever_extend",
+        "lucky_drop"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "revolver-wave4-cards.png",
+      "t": 138
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "rapid_reload",
+        "hit_zone_up",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "revolver-wave4-cards.png",
+      "t": 146
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "fever_extend",
+        "damage_up",
+        "skill_cooldown"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "revolver-wave4-cards.png",
+      "t": 150
+    },
+    {
+      "wave": 5,
+      "offered": [
+        "fever_extend",
+        "weapon_level_up",
+        "fever_boost"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "revolver-wave5-cards.png",
+      "t": 475
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "hit_zone_up",
+        "weapon_level_up",
+        "fever_boost"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "revolver-wave6-cards.png",
+      "t": 486
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "skill_cooldown",
+        "damage_up",
+        "fever_boost"
+      ],
+      "chosen": "skill_cooldown",
+      "screenshot": "revolver-wave6-cards.png",
+      "t": 497
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "hit_zone_up",
+        "rapid_reload",
+        "lucky_drop"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "revolver-wave6-cards.png",
+      "t": 502
+    }
+  ],
+  "fever": [
+    {
+      "wave": 1,
+      "activatedAtSec": 20,
+      "scoreBefore": 266,
+      "scoreAfter2s": 366,
+      "scoreGainIn2s": 100,
+      "feverStillActive": true
+    },
+    {
+      "wave": 2,
+      "activatedAtSec": 29,
+      "scoreBefore": 1268,
+      "scoreAfter2s": 1343,
+      "scoreGainIn2s": 75,
+      "feverStillActive": true
+    },
+    {
+      "wave": 2,
+      "activatedAtSec": 40,
+      "scoreBefore": 1664,
+      "scoreAfter2s": 1726,
+      "scoreGainIn2s": 62,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 52,
+      "scoreBefore": 2844,
+      "scoreAfter2s": 2993,
+      "scoreGainIn2s": 149,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 63,
+      "scoreBefore": 3753,
+      "scoreAfter2s": 3937,
+      "scoreGainIn2s": 184,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 76,
+      "scoreBefore": 4668,
+      "scoreAfter2s": 4814,
+      "scoreGainIn2s": 146,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 87,
+      "scoreBefore": 5547,
+      "scoreAfter2s": 5739,
+      "scoreGainIn2s": 192,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 99,
+      "scoreBefore": 6487,
+      "scoreAfter2s": 6670,
+      "scoreGainIn2s": 183,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 110,
+      "scoreBefore": 7361,
+      "scoreAfter2s": 7549,
+      "scoreGainIn2s": 188,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 122,
+      "scoreBefore": 8345,
+      "scoreAfter2s": 8624,
+      "scoreGainIn2s": 279,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 135,
+      "scoreBefore": 9067,
+      "scoreAfter2s": 9238,
+      "scoreGainIn2s": 171,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 148,
+      "scoreBefore": 9876,
+      "scoreAfter2s": 9976,
+      "scoreGainIn2s": 100,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 158,
+      "scoreBefore": 11248,
+      "scoreAfter2s": 11458,
+      "scoreGainIn2s": 210,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 167,
+      "scoreBefore": 12211,
+      "scoreAfter2s": 12478,
+      "scoreGainIn2s": 267,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 178,
+      "scoreBefore": 13247,
+      "scoreAfter2s": 13519,
+      "scoreGainIn2s": 272,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 188,
+      "scoreBefore": 14318,
+      "scoreAfter2s": 14523,
+      "scoreGainIn2s": 205,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 199,
+      "scoreBefore": 15333,
+      "scoreAfter2s": 15561,
+      "scoreGainIn2s": 228,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 209,
+      "scoreBefore": 16420,
+      "scoreAfter2s": 16625,
+      "scoreGainIn2s": 205,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 220,
+      "scoreBefore": 17493,
+      "scoreAfter2s": 17707,
+      "scoreGainIn2s": 214,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 229,
+      "scoreBefore": 18512,
+      "scoreAfter2s": 18755,
+      "scoreGainIn2s": 243,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 238,
+      "scoreBefore": 19535,
+      "scoreAfter2s": 19731,
+      "scoreGainIn2s": 196,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 246,
+      "scoreBefore": 20569,
+      "scoreAfter2s": 20802,
+      "scoreGainIn2s": 233,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 255,
+      "scoreBefore": 21607,
+      "scoreAfter2s": 21845,
+      "scoreGainIn2s": 238,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 265,
+      "scoreBefore": 22639,
+      "scoreAfter2s": 22897,
+      "scoreGainIn2s": 258,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 276,
+      "scoreBefore": 23894,
+      "scoreAfter2s": 24175,
+      "scoreGainIn2s": 281,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 287,
+      "scoreBefore": 25025,
+      "scoreAfter2s": 25248,
+      "scoreGainIn2s": 223,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 297,
+      "scoreBefore": 26120,
+      "scoreAfter2s": 26338,
+      "scoreGainIn2s": 218,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 306,
+      "scoreBefore": 27204,
+      "scoreAfter2s": 27456,
+      "scoreGainIn2s": 252,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 315,
+      "scoreBefore": 28270,
+      "scoreAfter2s": 28478,
+      "scoreGainIn2s": 208,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 324,
+      "scoreBefore": 29387,
+      "scoreAfter2s": 29610,
+      "scoreGainIn2s": 223,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 332,
+      "scoreBefore": 30400,
+      "scoreAfter2s": 30604,
+      "scoreGainIn2s": 204,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 341,
+      "scoreBefore": 31393,
+      "scoreAfter2s": 31578,
+      "scoreGainIn2s": 185,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 351,
+      "scoreBefore": 32414,
+      "scoreAfter2s": 32653,
+      "scoreGainIn2s": 239,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 362,
+      "scoreBefore": 33561,
+      "scoreAfter2s": 33776,
+      "scoreGainIn2s": 215,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 372,
+      "scoreBefore": 34571,
+      "scoreAfter2s": 34831,
+      "scoreGainIn2s": 260,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 381,
+      "scoreBefore": 35610,
+      "scoreAfter2s": 35820,
+      "scoreGainIn2s": 210,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 390,
+      "scoreBefore": 36611,
+      "scoreAfter2s": 36822,
+      "scoreGainIn2s": 211,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 399,
+      "scoreBefore": 37781,
+      "scoreAfter2s": 38111,
+      "scoreGainIn2s": 330,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 410,
+      "scoreBefore": 39246,
+      "scoreAfter2s": 39471,
+      "scoreGainIn2s": 225,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 419,
+      "scoreBefore": 40228,
+      "scoreAfter2s": 40440,
+      "scoreGainIn2s": 212,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 430,
+      "scoreBefore": 41280,
+      "scoreAfter2s": 41604,
+      "scoreGainIn2s": 324,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 439,
+      "scoreBefore": 42410,
+      "scoreAfter2s": 42638,
+      "scoreGainIn2s": 228,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 449,
+      "scoreBefore": 43510,
+      "scoreAfter2s": 43705,
+      "scoreGainIn2s": 195,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 457,
+      "scoreBefore": 44452,
+      "scoreAfter2s": 44658,
+      "scoreGainIn2s": 206,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 466,
+      "scoreBefore": 45509,
+      "scoreAfter2s": 45828,
+      "scoreGainIn2s": 319,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 479,
+      "scoreBefore": 46782,
+      "scoreAfter2s": 46906,
+      "scoreGainIn2s": 124,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 488,
+      "scoreBefore": 47631,
+      "scoreAfter2s": 47849,
+      "scoreGainIn2s": 218,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 501,
+      "scoreBefore": 48486,
+      "scoreAfter2s": 49285,
+      "scoreGainIn2s": 799,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 512,
+      "scoreBefore": 49957,
+      "scoreAfter2s": 50577,
+      "scoreGainIn2s": 620,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 522,
+      "scoreBefore": 51483,
+      "scoreAfter2s": 51808,
+      "scoreGainIn2s": 325,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 533,
+      "scoreBefore": 52820,
+      "scoreAfter2s": 53072,
+      "scoreGainIn2s": 252,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 543,
+      "scoreBefore": 54025,
+      "scoreAfter2s": 54478,
+      "scoreGainIn2s": 453,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 551,
+      "scoreBefore": 55423,
+      "scoreAfter2s": 55859,
+      "scoreGainIn2s": 436,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 560,
+      "scoreBefore": 56671,
+      "scoreAfter2s": 56928,
+      "scoreGainIn2s": 257,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 570,
+      "scoreBefore": 57865,
+      "scoreAfter2s": 58134,
+      "scoreGainIn2s": 269,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 578,
+      "scoreBefore": 58983,
+      "scoreAfter2s": 59304,
+      "scoreGainIn2s": 321,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 588,
+      "scoreBefore": 60158,
+      "scoreAfter2s": 60569,
+      "scoreGainIn2s": 411,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 598,
+      "scoreBefore": 61474,
+      "scoreAfter2s": 61741,
+      "scoreGainIn2s": 267,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 608,
+      "scoreBefore": 62682,
+      "scoreAfter2s": 62960,
+      "scoreGainIn2s": 278,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 619,
+      "scoreBefore": 64100,
+      "scoreAfter2s": 64354,
+      "scoreGainIn2s": 254,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 629,
+      "scoreBefore": 65327,
+      "scoreAfter2s": 65649,
+      "scoreGainIn2s": 322,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 637,
+      "scoreBefore": 66624,
+      "scoreAfter2s": 66947,
+      "scoreGainIn2s": 323,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 648,
+      "scoreBefore": 67875,
+      "scoreAfter2s": 68149,
+      "scoreGainIn2s": 274,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 658,
+      "scoreBefore": 69084,
+      "scoreAfter2s": 69409,
+      "scoreGainIn2s": 325,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 666,
+      "scoreBefore": 70282,
+      "scoreAfter2s": 70541,
+      "scoreGainIn2s": 259,
+      "feverStillActive": true
+    }
+  ],
+  "skill": [
+    {
+      "wave": 1,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    }
+  ],
+  "stalls": [],
+  "shots": {
+    "ammoDrops": 1420
+  },
+  "viewport": "1440x900",
+  "kills": 2062,
+  "result": {
+    "phase": "VICTORY",
+    "finalWave": 7,
+    "finalLives": 5,
+    "finalScore": 77522,
+    "durationSec": 675,
+    "loops": 15860,
+    "screenshot": "revolver-result-VICTORY.png",
+    "bodyTextSnippet": "🎉 VICTORY! 브루어리 수호 성공!\n생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!\n최종 득점\n77522점\n기본 68420점\n시간 보너스 +2800점\nWAVE 7 CLEAR · 168.1초 · +0점\n정밀도 보너스 +6302점\nNEW RECORD!\n누적 격파 (KILL)\n1646 KILL\n최대 콤보\n3341 COMBO\n도달 웨이브\nWAVE 7\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\nQA-Q4-REVO\n🍾 리볼버\n77522점\nW7\n2\nQA-Q4-SHOT\n🪠 샷건\n38193점\nW7\n🔄 다시 도전하기\n🏠 로비로 이동"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "finishedAt": "2026-11-07T22:46:45.340Z"
+}

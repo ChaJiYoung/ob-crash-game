@@ -1,0 +1,19 @@
+{
+  "wave1": {
+    "hudProgressText": "WAVE 진행도0 / 40",
+    "denominatorIs40": true,
+    "soloMonsterHps": {
+      "caslight": 1
+    },
+    "coopMonsterHps": {},
+    "monsterHpEqualsSolo": true
+  },
+  "boss": {
+    "bossReached": false,
+    "coolerBossMaxHp": null,
+    "bossMaxHpIs200": false,
+    "firstSummonCount": 0,
+    "firstSummonCountIs8": false
+  },
+  "pass": false
+}

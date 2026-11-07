@@ -1,0 +1,47 @@
+{
+  "testName": "Q2-Items3-4-ResultButtons",
+  "timestamp": "2026-11-07T22:41:13.171Z",
+  "restartTest": {
+    "buttonAim": {
+      "screenX": 641.890625,
+      "screenY": 655.78125,
+      "aimX": -0.10848524305555551,
+      "aimY": -0.45729166666666665,
+      "rect": {
+        "left": 212,
+        "right": 1071.78125,
+        "top": 626.28125,
+        "bottom": 685.28125
+      }
+    },
+    "hoverText": "🔄 다시 도전하기",
+    "restarted": false,
+    "phaseAfterRestart": "GAMEOVER",
+    "playerCount": 2,
+    "sameRoster": true
+  },
+  "lobbyTest": {
+    "buttonAim": {
+      "screenX": 1156.890625,
+      "screenY": 655.78125,
+      "aimX": 0.6067925347222223,
+      "aimY": -0.45729166666666665,
+      "rect": {
+        "left": 1085.78125,
+        "right": 1228,
+        "top": 626.28125,
+        "bottom": 685.28125
+      }
+    },
+    "hoverText": "🏠 로비로 이동",
+    "lobbyReturned": false,
+    "phaseAfterLobby": "GAMEOVER"
+  },
+  "lobbySlotCheck": {
+    "bodySnippet": "💥 GAME OVER! 바 방어선 함락!\n맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다.\n1P\n폰1P_버튼검증\n0 PTS\n최대 콤보: 0 COMBO\n처치 수: 0 KILL\n명중률: 0%\n선택 무기: 🪠 샷건\n2P\n폰2P_버튼검증\n나감\n0 PTS\n최대 콤보: 0 COMBO\n처치 수: 0 KILL\n명중률: 0%\n선택 무기: 🪠 샷건\n팀 합계\n0 PTS\n이 팀 최고: 0 PTS\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660점\nW2\n2\n폰1P_버튼검증 & 폰2P_버튼검증\n0점\nW1\n🔄 다시 도전하기\n🏠 로비로 이동",
+    "phoneSlotKept": true
+  },
+  "errors": [],
+  "pageErrors": [],
+  "consoleErrors": []
+}

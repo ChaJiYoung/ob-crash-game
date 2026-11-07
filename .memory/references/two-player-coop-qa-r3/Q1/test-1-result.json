@@ -1,0 +1,59 @@
+{
+  "initialInfo": [
+    {
+      "slotId": "slot-card-1",
+      "text": "1P | 1P 슬롯 | 비어 있음 | 📱 모바일 | 🖱 마우스 | 입력 방식을 선택하세요 | 📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용",
+      "mouseBtnDisabled": false,
+      "hasMouseBtn": true
+    },
+    {
+      "slotId": "slot-card-2",
+      "text": "2P | 2P 슬롯 | 비어 있음 | 📱 모바일 | 🖱 마우스 | 입력 방식을 선택하세요 | 📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용",
+      "mouseBtnDisabled": false,
+      "hasMouseBtn": true
+    }
+  ],
+  "step1Info": [
+    {
+      "slotId": "slot-card-1",
+      "text": "1P | 1P 슬롯 | 비어 있음 | 📱 모바일 | 🖱 마우스 | 입력 방식을 선택하세요 | 📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용",
+      "mouseBtnDisabled": false,
+      "hasMouseBtn": true
+    },
+    {
+      "slotId": "slot-card-2",
+      "text": "2P | 2P 슬롯 | ● 영점 조절 필요 | 📱 모바일 | 🖱 마우스 | 🔫 폰X님 접속 완료 | 폰에서 영점을 맞춰 주세요",
+      "mouseBtnDisabled": true,
+      "hasMouseBtn": true
+    }
+  ],
+  "step2Info": [
+    {
+      "slotId": "slot-card-1",
+      "text": "1P | 1P 슬롯 | ● 영점 조절 필요 | 📱 모바일 | 🖱 마우스 | 🔫 폰X님 접속 완료 | 폰에서 영점을 맞춰 주세요",
+      "mouseBtnDisabled": true,
+      "hasMouseBtn": true
+    },
+    {
+      "slotId": "slot-card-2",
+      "text": "2P | 2P 슬롯 | 비어 있음 | 📱 모바일 | 🖱 마우스 | 입력 방식을 선택하세요 | 📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용",
+      "mouseBtnDisabled": false,
+      "hasMouseBtn": true
+    }
+  ],
+  "step3Info": [
+    {
+      "slotId": "slot-card-1",
+      "text": "1P | 1P 슬롯 | 비어 있음 | 📱 모바일 | 🖱 마우스 | 입력 방식을 선택하세요 | 📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용",
+      "mouseBtnDisabled": false,
+      "hasMouseBtn": true
+    },
+    {
+      "slotId": "slot-card-2",
+      "text": "2P | 2P 슬롯 | ● 영점 조절 필요 | 📱 모바일 | 🖱 마우스 | 🔫 폰X님 접속 완료 | 폰에서 영점을 맞춰 주세요",
+      "mouseBtnDisabled": true,
+      "hasMouseBtn": true
+    }
+  ],
+  "errors": []
+}

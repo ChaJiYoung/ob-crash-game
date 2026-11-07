@@ -1,0 +1,50 @@
+{
+  "revolver": {
+    "weaponKind": "revolver",
+    "status": "PASS",
+    "load": {
+      "ok": true,
+      "rafCount": 61,
+      "uptime": "8:37  up 14 days,  6:14, 10 users, load averages: 3.12 2.90 5.23",
+      "trials": 1,
+      "history": [
+        {
+          "trial": 1,
+          "rafCount": 61,
+          "uptime": "8:37  up 14 days,  6:14, 10 users, load averages: 3.12 2.90 5.23",
+          "timeMs": 1029
+        }
+      ]
+    },
+    "ammoBefore": 10,
+    "ammoAfter": 2,
+    "shotsFired": 8,
+    "expectedEng": "~7",
+    "pageErrors": [],
+    "errors": []
+  },
+  "gatling": {
+    "weaponKind": "gatling",
+    "status": "PASS",
+    "load": {
+      "ok": true,
+      "rafCount": 62,
+      "uptime": "8:37  up 14 days,  6:14, 10 users, load averages: 2.71 2.82 5.15",
+      "trials": 1,
+      "history": [
+        {
+          "trial": 1,
+          "rafCount": 62,
+          "uptime": "8:37  up 14 days,  6:14, 10 users, load averages: 2.71 2.82 5.15",
+          "timeMs": 1038
+        }
+      ]
+    },
+    "ammoBefore": 30,
+    "ammoAfter": 18,
+    "shotsFired": 12,
+    "expectedEng": "~11",
+    "pageErrors": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "test": "1P Solo Skill 10x",
+  "status": "PASS",
+  "load": {
+    "ok": true,
+    "rafCount": 61,
+    "uptime": "8:16  up 14 days,  5:53, 11 users, load averages: 4.85 8.78 12.63",
+    "trials": 1,
+    "history": [
+      {
+        "trial": 1,
+        "rafCount": 61,
+        "uptime": "8:16  up 14 days,  5:53, 11 users, load averages: 4.85 8.78 12.63",
+        "timeMs": 1032
+      }
+    ]
+  },
+  "failedCount": 0,
+  "trials": [
+    {
+      "trial": 1,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 8,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 9,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    },
+    {
+      "trial": 10,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "consumed": true,
+      "success": true
+    }
+  ],
+  "pageErrors": [],
+  "errors": []
+}

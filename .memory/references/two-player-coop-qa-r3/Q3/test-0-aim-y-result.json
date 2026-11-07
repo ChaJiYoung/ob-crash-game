@@ -1,0 +1,38 @@
+{
+  "description": "Verification of aimY sign and vertical screen position",
+  "controllerInvertYDefault": false,
+  "pcTuningInvertYDefault": false,
+  "aimY_plus_0_4": {
+    "topStyle": "33.2%",
+    "leftStyle": "50%",
+    "rectTop": 238.796875,
+    "rectLeft": 660,
+    "rectCenterY": 298.796875,
+    "rectCenterX": 720,
+    "viewportH": 900,
+    "viewportW": 1440
+  },
+  "aimY_minus_0_4": {
+    "topStyle": "66.8%",
+    "leftStyle": "50%",
+    "rectTop": 541.1875,
+    "rectLeft": 660,
+    "rectCenterY": 601.1875,
+    "rectCenterX": 720,
+    "viewportH": 900,
+    "viewportW": 1440
+  },
+  "aimY_0_0": {
+    "topStyle": "66.3296%",
+    "leftStyle": "50%",
+    "rectTop": 536.953125,
+    "rectLeft": 660,
+    "rectCenterY": 596.953125,
+    "rectCenterX": 720,
+    "viewportH": 900,
+    "viewportW": 1440
+  },
+  "conclusion": "CONFIRMED_UP: aimY=+0.4 moves crosshair UP (smaller Y coordinate, ~33.2%), aimY=-0.4 moves crosshair DOWN (larger Y coordinate, ~66.8%). 2차 C의 \"aimY +0.4인데 아래\" 의심은 2P 십자선 또는 잘못된 관찰로 판명됨.",
+  "pageErrors": [],
+  "errors": []
+}

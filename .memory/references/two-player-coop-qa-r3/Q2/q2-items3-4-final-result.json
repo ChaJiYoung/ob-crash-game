@@ -1,0 +1,19 @@
+{
+  "testName": "Q2-Items-3-4-Final",
+  "timestamp": "2026-11-07T23:07:29.144Z",
+  "item3": {
+    "hasAwayBadge": true,
+    "restartShotWorked": true,
+    "lobbyShotWorked": true
+  },
+  "item4": {
+    "sameRosterMaintained": true,
+    "playerCountAfterRestart": 2,
+    "lobbyPhase": "PAIRING",
+    "phoneSlotKept": true,
+    "lobbyBodySnippet": "🍺 BEER CRUSHER 3D\n플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.\n1P\n1P 슬롯\n● 준비 완료\n📱 모바일\n🖱 마우스\n🔫 폰1P님 접속 완료\n🎯 영점 완료\n2P\n2P 슬롯\n● 연결 끊김\n📱 모바일\n🖱 마우스\n🔫 폰2P님 접속 완료\n🎯 영점 완료\n연결이 끊어졌습니다. 다시 연결 중...\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n블루폰1P & 오렌지폰2P\n660\nW2\n2\n폰1P_버튼검증 & 폰2P_버튼검증\n0\nW1\n3\nP1_Diag & P2_Diag\n0\nW1\n4\nP1_Probe & P2_Probe\n0\nW1\n5\n폰1P & 폰2P\n0\nW1\n⏳\n2P 준비 중\n🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)\n🎓 튜토리얼"
+  },
+  "errors": [],
+  "pageErrors": [],
+  "consoleErrors": []
+}
