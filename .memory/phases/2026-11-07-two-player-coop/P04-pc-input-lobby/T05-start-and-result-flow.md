@@ -1,6 +1,6 @@
 # Task: T05 시작 게이트·다시 시작·로비 복귀·점수 제출
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판을 실제로 시작하고 끝낸다. 시작 동작(로비 버튼, 폰의 가운데 사격, 폰의 시작 요청)은 `getStartGate`가 허용할 때만 먹고, 막히면 "2P 준비 중" 같은 안내를 잠깐 띄운다(D07). 카운트다운이 끝나면 참여 인원수로 `engine.startGame({ withWeaponSelect: true, playerCount })`를 부른다. 결과 화면에서는 어느 플레이어의 십자선으로든 "다시 시작"/"로비로"를 쏠 수 있고 먼저 쏜 쪽이 적용된다(D11). 다시 시작은 같은 1P/2P 구성, 로비는 슬롯 선택부터 다시. 판이 끝나면 플레이어마다 점수를 제출한다(2인은 `mode: 'coop'` 두 번, D05/D18). 고정 ID `pc-device-host`/`pc-host`를 없앤다(D15). 튜토리얼·센서 랩은 1인 전용으로 둔다(D12).
@@ -75,10 +75,10 @@
 - `grep -rn "pc-device-host\|pc-host" src` 결과 0건을 검증 커맨드로 확인.
 
 ## Acceptance Criteria
-- [ ] 두 슬롯이 준비되면 2인 판이 시작되고(체력 1.6배), 한쪽이 준비 중이면 "2P 준비 중"이 뜨고 시작되지 않는다.
-- [ ] 결과 화면에서 2P 십자선으로 "다시 시작"을 쏘면 같은 구성으로 새 판.
-- [ ] 2인 판 종료 시 서버 기록에 `mode: "coop"` 두 줄, Top5 불변.
-- [ ] `pc-device-host`/`pc-host`가 소스에 없다.
+- [x] 두 슬롯이 준비되면 2인 판이 시작되고(체력 1.6배), 한쪽이 준비 중이면 "2P 준비 중"이 뜨고 시작되지 않는다.
+- [x] 결과 화면에서 2P 십자선으로 "다시 시작"을 쏘면 같은 구성으로 새 판.
+- [x] 2인 판 종료 시 서버 기록에 `mode: "coop"` 두 줄, Top5 불변.
+- [x] `pc-device-host`/`pc-host`가 소스에 없다.
 
 ## Validation
 - `npx vitest run tests/coop-start-flow.test.ts` — 통과
@@ -103,6 +103,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

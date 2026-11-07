@@ -42,9 +42,11 @@ import {
   buildSlotIndexMap,
   indexToSlot,
   getMouseBinding,
+  decideLobbyStart,
   SlotPair,
   SlotInput,
 } from './coopSlots';
+import { buildScoreSubmissions } from './scoreSubmission';
 import { getOrCreateDeviceId } from '../shared/deviceIdentity';
 import { PlayerSlot } from '../shared/types';
 
@@ -71,6 +73,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const slotsRef = useRef<SlotPair>(slots);
   slotsRef.current = slots;
   const [mouseNicknameError, setMouseNicknameError] = useState<string | null>(null);
+  const [startNotice, setStartNotice] = useState<string | null>(null);
+  const pendingPlayerCountRef = useRef<1 | 2>(1);
   const startGate = useMemo(() => getStartGate(slots), [slots]);
 
   const [savedMouseNickname, setSavedMouseNickname] = useState<string>(() => {
@@ -260,24 +264,52 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     crosshairRefs.current[result.playerIndex]?.current?.kick();
   }, [engine, soundSynth]);
 
-  const handleStartGameRef = useRef<() => void>(() => {});
+  const handleStartGameRef = useRef<(opts?: { sameRoster?: boolean }) => void>(() => {});
   const handleReturnToLobbyRef = useRef<() => void>(() => {});
+
+  const updateResultButtonHover = useCallback(() => {
+    let hovered: 'restart' | 'lobby' | null = null;
+    for (const proc of processorsRef.current) {
+      const action = hitTestButton(proc.aim.aimX, proc.aim.aimY);
+      if (action === 'restart' || action === 'lobby') {
+        hovered = action;
+        break;
+      }
+    }
+    if (hoveredResultActionRef.current !== hovered) {
+      hoveredResultActionRef.current = hovered;
+      setHoveredResultAction(hovered);
+    }
+  }, [hitTestButton]);
+
+  const tryStartFromLobby = useCallback(() => {
+    const decision = decideLobbyStart(slotsRef.current);
+    if (!decision.start) {
+      setStartNotice(decision.notice);
+      setTimeout(() => setStartNotice(null), 2000);
+      soundSynth.playHit('MISS');
+      return;
+    }
+    pendingPlayerCountRef.current = decision.playerCount;
+    slotIndexMapRef.current = decision.map;
+
+    const hasPhone = slotsRef.current.some((s) => s.input === 'mobile' && s.player);
+    if (hasPhone) {
+      startCountdownAndGameRef.current();
+    } else {
+      handleStartGameRef.current();
+    }
+  }, [soundSynth]);
 
   const pressScreenButton = useCallback((button: ShootableButton) => {
     if (button === 'start') {
-      const currentSlots = slotsRef.current;
-      const hasPhone = currentSlots.some((s) => s.input === 'mobile' && s.player);
-      if (hasPhone) {
-        startCountdownAndGameRef.current();
-      } else {
-        handleStartGameRef.current();
-      }
+      tryStartFromLobby();
     } else if (button === 'restart') {
-      handleStartGameRef.current();
+      handleStartGameRef.current({ sameRoster: true });
     } else if (button === 'lobby') {
       handleReturnToLobbyRef.current();
     }
-  }, []);
+  }, [tryStartFromLobby]);
 
   const processorsRef = useRef<PlayerActionProcessor[]>([]);
   const slotIndexMapRef = useRef<Partial<Record<PlayerSlot, PlayerIndex>>>({});
@@ -359,18 +391,16 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           if (idx === 0) {
             latestAimRef.current = { aimX: x, aimY: y };
             canvasRef.current?.setAim(x, y, false);
-            const action = hitTestButton(x, y);
-            const resultAction = action === 'restart' || action === 'lobby' ? action : null;
-            if (hoveredResultActionRef.current !== resultAction) {
-              hoveredResultActionRef.current = resultAction;
-              setHoveredResultAction(resultAction);
-            }
+          }
+          const phase = gamePhaseRef.current;
+          if (phase === 'GAMEOVER' || phase === 'VICTORY') {
+            updateResultButtonHover();
           }
         },
       });
       processorsRef.current.push(processor);
     }
-  }, [engine, hitTestButton, pressScreenButton, handleShootEvent, soundSynth]);
+  }, [engine, hitTestButton, pressScreenButton, handleShootEvent, soundSynth, updateResultButtonHover]);
 
   useEffect(() => {
     syncProcessors();
@@ -464,8 +494,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           case 'GAME_COUNTDOWN_START':
           case 'GAME_START_RELAY':
             soundSynth.unlockAudio();
+            if (countdownTimerRef.current) break;
             if (gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING') {
-              startCountdownAndGameRef.current();
+              tryStartFromLobby();
             }
             break;
 
@@ -570,9 +601,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 const s2 = prev[1].player?.deviceId === up.deviceId ? { ...prev[1], player: up } : prev[1];
                 return [s1, s2];
               });
-              const curP = pairedPlayerRef.current;
-              if (curP && up.deviceId === curP.deviceId) {
-                setIsNewRecord(up.bestScore > (curP.bestScore || 0));
+              if (engine.players.length === 1) {
+                const curP = pairedPlayerRef.current;
+                if (curP && up.deviceId === curP.deviceId) {
+                  setIsNewRecord(up.bestScore > (curP.bestScore || 0));
+                }
+              } else {
+                setIsNewRecord(false);
               }
             }
             break;
@@ -608,6 +643,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       socket.close();
     };
   }, [engine, soundSynth, updateAimDirect, handleShootEvent]);
+
+  const submitScores = useCallback(() => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      const messages = buildScoreSubmissions(engine, slotsRef.current, slotIndexMapRef.current, roomId);
+      messages.forEach((msg) => wsRef.current!.send(JSON.stringify(msg)));
+    }
+  }, [engine, roomId]);
 
   // 2. Engine HUD Tick
   useEffect(() => {
@@ -646,41 +688,34 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         processorsRef.current.forEach((p) => p.stopAll());
         setGamePhase('GAMEOVER');
         soundSynth.playHit('MISS');
-        submitScore(feverState.totalScore, engine.currentWave, feverState.maxCombo);
+        submitScores();
       } else if (engine.gamePhase === 'VICTORY' && gamePhase === 'PLAYING') {
         processorsRef.current.forEach((p) => p.stopAll());
         setGamePhase('VICTORY');
         soundSynth.playFeverStart();
-        submitScore(feverState.totalScore, STAGE_CONSTANTS.TOTAL_WAVES, feverState.maxCombo);
+        submitScores();
       }
     }, 100);
 
     return () => clearInterval(interval);
-  }, [engine, gamePhase, soundSynth]);
+  }, [engine, gamePhase, soundSynth, submitScores]);
 
-  const submitScore = (score: number, waveReached: number, maxCombo: number) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
-      const deviceId = pairedPlayerRef.current ? pairedPlayerRef.current.deviceId : 'pc-device-host';
-      wsRef.current.send(
-        JSON.stringify({
-          type: 'GAME_SCORE_SUBMIT',
-          roomId,
-          deviceId,
-          score,
-          waveReached,
-          maxCombo,
-          rulesetVersion: RANKING_RULESET_VERSION,
-          stats: engine.getPlayRunStats() ?? undefined,
-        })
-      );
-    }
-  };
-
-  const handleStartGame = useCallback(() => {
+  const handleStartGame = useCallback((opts?: { sameRoster?: boolean }) => {
     processorsRef.current.forEach((p) => p.stopAll());
     skillGraceUntilRef.current = performance.now() + 1500;
-    slotIndexMapRef.current = buildSlotIndexMap(slotsRef.current);
-    engine.startGame({ withWeaponSelect: true });
+    const playerCount = opts?.sameRoster ? (engine.players.length as 1 | 2) : pendingPlayerCountRef.current;
+    if (!opts?.sameRoster) {
+      slotIndexMapRef.current = buildSlotIndexMap(slotsRef.current);
+    }
+    engine.startGame({ withWeaponSelect: true, playerCount });
+    const map = slotIndexMapRef.current;
+    ([1, 2] as PlayerSlot[]).forEach((s) => {
+      const pIdx = map[s];
+      const slotState = slotsRef.current.find((slot) => slot.slot === s);
+      if (pIdx !== undefined && slotState?.input === 'mobile' && !slotState.isConnected) {
+        engine.setPlayerAway(pIdx, true, performance.now());
+      }
+    });
     syncProcessors();
     setGamePhase('PLAYING');
     setIsNewRecord(false);
@@ -693,11 +728,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     if (gamePhaseRef.current !== 'PAIRING' && gamePhaseRef.current !== 'ZEROING') return;
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      const firstJoined = getJoinedSlots(slotsRef.current)[0];
+      const deviceId = firstJoined?.player?.deviceId ?? getOrCreateDeviceId();
       wsRef.current.send(
         JSON.stringify({
           type: 'START_GAME_REQUEST',
           roomId,
-          deviceId: pairedPlayerRef.current?.deviceId || 'pc-host',
+          deviceId,
         })
       );
     }
@@ -735,11 +772,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     if (countdownTimerRef.current) return;
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      const firstJoined = getJoinedSlots(slotsRef.current)[0];
+      const deviceId = firstJoined?.player?.deviceId ?? getOrCreateDeviceId();
       wsRef.current.send(
         JSON.stringify({
           type: 'START_GAME_REQUEST',
           roomId,
-          deviceId: pairedPlayerRef.current?.deviceId || 'pc-host',
+          deviceId,
         })
       );
     }
@@ -809,7 +848,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     // startGame() does not clear the pause flag, so lift it first (this also shifts the frozen timers).
     engine.setPaused(false, performance.now());
     setPauseMenu({ open: false, reason: 'USER' });
-    handleStartGame();
+    handleStartGame({ sameRoster: true });
   }, [engine, handleStartGame]);
 
   // Esc: open the menu while playing, resume when it is open.
@@ -890,6 +929,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleStartSandbox = useCallback(() => {
     setIsGuideOpen(false);
+    const soloSlot = getJoinedSlots(slotsRef.current)[0]?.slot ?? 1;
+    slotIndexMapRef.current = { [soloSlot]: 0 };
     engine.startSandboxMode();
     syncProcessors();
     setGamePhase('SANDBOX');
@@ -897,6 +938,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleStartTutorial = useCallback(() => {
     setIsGuideOpen(false);
+    const soloSlot = getJoinedSlots(slotsRef.current)[0]?.slot ?? 1;
+    slotIndexMapRef.current = { [soloSlot]: 0 };
     engine.startTutorialMode();
     const director = new TutorialDirector(engine, (step) => setTutorialStep(step));
     tutorialDirectorRef.current = director;
@@ -1361,6 +1404,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             topRankings={topRankings}
             savedMouseNickname={savedMouseNickname}
             mouseNicknameError={mouseNicknameError}
+            startNotice={startNotice}
             onChooseInput={handleChooseInput}
             onSubmitMouseNickname={handleSubmitMouseNickname}
             onStart={() => pressScreenButton('start')}

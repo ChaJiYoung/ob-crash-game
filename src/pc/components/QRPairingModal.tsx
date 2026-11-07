@@ -20,6 +20,7 @@ export interface QRPairingModalProps {
   topRankings: RunRankingEntry[];
   savedMouseNickname: string;
   mouseNicknameError?: string | null;
+  startNotice?: string | null;
   onChooseInput: (slot: PlayerSlot, input: SlotInput | null) => void;
   onSubmitMouseNickname: (slot: PlayerSlot, nickname: string) => void;
   onStart: () => void;
@@ -364,6 +365,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   topRankings,
   savedMouseNickname,
   mouseNicknameError,
+  startNotice,
   onChooseInput,
   onSubmitMouseNickname,
   onStart,
@@ -541,7 +543,29 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {/* Start Button or Waiting Chip */}
             <div style={{ display: 'flex' }}>
-              {startGate.canStart ? (
+              {startNotice ? (
+                <div
+                  data-testid="start-notice-chip"
+                  style={{
+                    flex: 1,
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: '2px solid #f59e0b',
+                    background: 'rgba(245, 158, 11, 0.2)',
+                    color: '#fbbf24',
+                    fontSize: '15px',
+                    fontWeight: 900,
+                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>⚠️</span>
+                  <span>{startNotice}</span>
+                </div>
+              ) : startGate.canStart ? (
                 <button
                   data-shootable="start"
                   onClick={onStart}

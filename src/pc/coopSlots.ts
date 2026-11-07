@@ -169,3 +169,25 @@ export function getMouseBinding(
   if (playerCount === 1) return 0;
   return null;
 }
+
+export type LobbyStartDecision =
+  | { start: false; notice: string }
+  | { start: true; playerCount: 1 | 2; map: Partial<Record<PlayerSlot, PlayerIndex>> };
+
+/** 로비에서 게임 시작 시도 시 게이트 상태를 확인해 시작 가능 여부와 인원수/매핑을 결정. */
+export function decideLobbyStart(slots: SlotPair): LobbyStartDecision {
+  const gate = getStartGate(slots);
+  if (!gate.canStart) {
+    return {
+      start: false,
+      notice: gate.message || '시작할 수 없습니다',
+    };
+  }
+  const playerCount: 1 | 2 = gate.playerCount === 2 ? 2 : 1;
+  const map = buildSlotIndexMap(slots);
+  return {
+    start: true,
+    playerCount,
+    map,
+  };
+}
