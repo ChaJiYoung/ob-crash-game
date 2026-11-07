@@ -1,6 +1,6 @@
 # Task: T01 Skill Double Trigger Guard
 
-## Status: pending
+## Status: done
 
 ## Goal
 스킬이 2개 찬 상태에서 손목을 한 번 젖히면 스킬이 1회만 발동한다. 지금은 가속도 값이 110ms보다 오래 튕겨 두 번 감지되고, PC에도 연속 발동을 막는 장치가 없다.
@@ -21,6 +21,8 @@
   - `src/controller/sensors/GunGripTracker.ts` :: `GunGripTracker.detectSnapFire` — modify
 #### Details
 - `const cooldownMs = 110;` → `const cooldownMs = GAME_TUNING.skillInput.snapDebounceMs;` (import 추가). 다른 로직은 그대로 둔다.
+
+> 실행 중 변경: `detectSnapFire`는 스냅 사격에도 쓰여 400ms로 늘리면 사격 속도가 떨어진다. 감지 함수는 110ms로 두고, `GunGripTracker.ts`에 `shouldSendSkillSnap(nowMs, lastSkillSnapMs)`를 추가해 `MobileControllerPage`의 스킬 신호에만 400ms를 적용했다. 엔진 잠금은 `triggerWeaponSkill` 래퍼에 두고 `startGame`에서 초기화한다.
 
 ### I03. 엔진 재발동 잠금
 - Related Files:
@@ -51,11 +53,11 @@ Plan: 2026-11-07-skill-charge-and-fever-display
 Phase: P01-skill-and-fever-ux
 Task: T01-skill-double-trigger-guard
 
-- raise snap debounce on the controller from 110ms to 400ms
+- send the controller skill signal at most once per 400ms (snap fire keeps 110ms)
 - reject a second skill within 500ms in the engine
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과 (vitest 513 passed, tsc OK)
+- commit: see git log

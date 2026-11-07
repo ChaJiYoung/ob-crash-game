@@ -223,6 +223,8 @@ export class BeerCrusherEngine {
 
   /** 마지막 보스를 잡은 뒤 연출이 끝나는 게임 시각. 0이면 연출 중이 아니다. */
   private bossClearUntilMs = 0;
+  /** 마지막 스킬 발동 시각. reuseLockMs 안의 재요청은 거부해 스냅 한 번에 스킬이 두 번 나가지 않게 한다. */
+  private lastSkillActivatedMs = -Infinity;
   private bossClearNextCascadeMs = 0;
   private bossClearEvents: BossClearEvent[] = [];
   private projectileLaunchEvents: ProjectileLaunchEvent[] = [];
@@ -393,6 +395,7 @@ export class BeerCrusherEngine {
   }
 
   public startGame(options?: { withWeaponSelect?: boolean }): void {
+    this.lastSkillActivatedMs = -Infinity;
     this.clearSkillProjectiles();
     this.resetBossClear();
     this.gamePhase = 'PLAYING';
@@ -2511,7 +2514,12 @@ export class BeerCrusherEngine {
   }
 
   public triggerWeaponSkill(nowMs: number): SkillExecuteResult {
+    if (nowMs - this.lastSkillActivatedMs < GAME_TUNING.skillInput.reuseLockMs) {
+      const ws = this.weaponSystem.getState();
+      return { activated: false, weaponKind: ws.weaponKind, weaponLevel: ws.weaponLevel, affectedTargets: [] };
+    }
     const result = this.runWeaponSkill(nowMs);
+    if (result.activated) this.lastSkillActivatedMs = nowMs;
     if (result.activated && this.isTutorialMode && this.tutorialStep === 3) {
       this.advanceTutorialStep(4);
     }
