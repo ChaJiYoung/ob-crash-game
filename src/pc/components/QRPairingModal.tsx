@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { PlayerSlot, RunRankingEntry } from '../../shared/types';
+import { PlayerSlot, RunRankingEntry, TeamRankingEntry } from '../../shared/types';
 import { PLAYER_COLORS, WEAPON_RANKING_LABEL } from '../../shared/constants';
-import { SlotPair, SlotState, SlotInput, StartGate, isSlotJoined, isSlotReady } from '../coopSlots';
+import { SlotPair, SlotState, SlotInput, StartGate, isSlotJoined, isSlotReady, getJoinedSlots } from '../coopSlots';
+import { RankingTabs, RankingTab, getDefaultRankTab } from './RankingTabs';
 
 export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string, slot: PlayerSlot = 1): string {
   let cleanOrigin = origin.replace(/\/+$/, '');
@@ -18,6 +19,11 @@ export interface QRPairingModalProps {
   slots: SlotPair;
   startGate: StartGate;
   topRankings: RunRankingEntry[];
+  teamRankings?: TeamRankingEntry[];
+  highlightTeamKey?: string;
+  highlightDeviceIds?: string[];
+  activeRankTab?: RankingTab;
+  onChangeRankTab?: (tab: RankingTab) => void;
   savedMouseNickname: string;
   mouseNicknameError?: string | null;
   startNotice?: string | null;
@@ -363,6 +369,11 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   slots,
   startGate,
   topRankings,
+  teamRankings = [],
+  highlightTeamKey,
+  highlightDeviceIds,
+  activeRankTab,
+  onChangeRankTab,
   savedMouseNickname,
   mouseNicknameError,
   startNotice,
@@ -374,6 +385,46 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   onStartSandbox,
   onRenewRoom,
 }) => {
+  const joinedCount = getJoinedSlots(slots).length;
+  const defaultTab = getDefaultRankTab(joinedCount);
+
+  const [localRankTab, setLocalRankTab] = useState<RankingTab>(() => {
+    try {
+      const saved = localStorage.getItem('beer_crusher_lobby_rank_tab');
+      if (saved === 'solo' || saved === 'team') return saved;
+    } catch {
+      // ignore
+    }
+    return defaultTab;
+  });
+
+  const prevJoinedCountRef = useRef(joinedCount);
+  useEffect(() => {
+    if (prevJoinedCountRef.current !== joinedCount) {
+      prevJoinedCountRef.current = joinedCount;
+      const nextDefault = getDefaultRankTab(joinedCount);
+      setLocalRankTab(nextDefault);
+      try {
+        localStorage.setItem('beer_crusher_lobby_rank_tab', nextDefault);
+      } catch {
+        // ignore
+      }
+    }
+  }, [joinedCount]);
+
+  const currentTab = activeRankTab ?? localRankTab;
+  const handleTabChange = (t: RankingTab) => {
+    if (onChangeRankTab) {
+      onChangeRankTab(t);
+    }
+    setLocalRankTab(t);
+    try {
+      localStorage.setItem('beer_crusher_lobby_rank_tab', t);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div
       style={{
@@ -460,83 +511,15 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               padding: '16px 18px',
             }}
           >
-            <div
-              style={{
-                fontSize: '13px',
-                fontWeight: 900,
-                color: '#f59e0b',
-                letterSpacing: '0.05em',
-                marginBottom: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span>🏆</span>
-              <span>명예의 전당 TOP 5</span>
-            </div>
-
-            {topRankings.length === 0 ? (
-              <div style={{ fontSize: '13px', color: '#64748b', textAlign: 'center', padding: '24px 0' }}>
-                아직 등록된 기록이 없습니다.
-                <br />
-                첫 번째 주인공이 되어보세요!
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {topRankings.map((entry, index) => {
-                  return (
-                    <div
-                      key={`${entry.deviceId}-${entry.playedAt}-${index}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '6px 8px',
-                        borderRadius: '8px',
-                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        fontSize: '12px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                        <span
-                          style={{
-                            fontWeight: 900,
-                            color: index === 0 ? '#fbbf24' : index === 1 ? '#e2e8f0' : index === 2 ? '#b45309' : '#94a3b8',
-                            width: '16px',
-                            textAlign: 'center',
-                          }}
-                        >
-                          {index + 1}
-                        </span>
-                        <span
-                          style={{
-                            fontWeight: 700,
-                            color: '#f8fafc',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            maxWidth: '90px',
-                          }}
-                        >
-                          {entry.nickname}
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>
-                          {WEAPON_RANKING_LABEL[entry.weaponKind]}
-                        </span>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: 800, color: '#f59e0b' }}>
-                          {entry.score.toLocaleString()}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>W{entry.waveReached}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <RankingTabs
+              soloRankings={topRankings}
+              teamRankings={teamRankings}
+              activeTab={currentTab}
+              onChangeTab={handleTabChange}
+              highlightTeamKey={highlightTeamKey}
+              highlightDeviceIds={highlightDeviceIds}
+              compact
+            />
           </div>
 
           {/* Right: Start & Action Buttons */}

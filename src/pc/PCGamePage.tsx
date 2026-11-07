@@ -17,6 +17,7 @@ import { SelectRoundOverlay } from './components/SelectRoundOverlay';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { PlayerPanel } from './components/PlayerPanel';
+import { buildTeamKey } from './components/RankingTabs';
 import { TutorialDirector } from './tutorial/TutorialDirector';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import {
@@ -27,7 +28,7 @@ import {
   SensorTuningConfig,
 } from './components/MobileSensorLabModal';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
-import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, RunRankingEntry, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
+import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, RunRankingEntry, ServerToClientMessage, TeamRankingEntry, WeaponKind, WeaponLevel } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
 import { PlayerIndex } from './engine/PlayerCombatState';
@@ -101,6 +102,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const isControllerConnectedRef = useRef<boolean>(true);
   isControllerConnectedRef.current = isControllerConnected;
   const [topRankings, setTopRankings] = useState<RunRankingEntry[]>([]);
+  const [teamRankings, setTeamRankings] = useState<TeamRankingEntry[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const isGuideOpenRef = useRef<boolean>(false);
@@ -252,6 +254,25 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [cardAnchors, setCardAnchors] = useState<{ ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[]>([]);
   const [coopResult, setCoopResult] = useState<CoopResultInfo | null>(null);
   const submitTimeRef = useRef<number>(0);
+
+  const highlightTeamKey = useMemo(() => {
+    const joined = getJoinedSlots(slots);
+    if (joined.length === 2) {
+      const dev0 = joined[0].player?.deviceId;
+      const dev1 = joined[1].player?.deviceId;
+      return buildTeamKey(dev0, dev1) ?? undefined;
+    }
+    return undefined;
+  }, [slots]);
+
+  const highlightDeviceIds = useMemo(() => {
+    const joined = getJoinedSlots(slots);
+    const ids: string[] = [];
+    for (const s of joined) {
+      if (s.player?.deviceId) ids.push(s.player.deviceId);
+    }
+    return ids.length > 0 ? ids : undefined;
+  }, [slots]);
 
   const hitTestButton = useCallback((aimX: number, aimY: number): ShootableButton | null => {
     if (typeof window === 'undefined') return null;
@@ -499,6 +520,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             setRoomId(msg.roomId);
             saveRoomId(msg.roomId);
             if (msg.rankings) setTopRankings(msg.rankings);
+            if (msg.teamRankings) setTeamRankings(msg.teamRankings);
             if (msg.lanIp) setLanIp(msg.lanIp);
             break;
 
@@ -653,6 +675,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'RANKING_UPDATED':
             setTopRankings(msg.rankings);
+            if (msg.teamRankings) setTeamRankings(msg.teamRankings);
             if (msg.updatedPlayer) {
               const up = msg.updatedPlayer;
               setSlots((prev) => {
@@ -1603,6 +1626,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             slots={slots}
             startGate={startGate}
             topRankings={topRankings}
+            teamRankings={teamRankings}
+            highlightTeamKey={highlightTeamKey}
+            highlightDeviceIds={highlightDeviceIds}
             savedMouseNickname={savedMouseNickname}
             mouseNicknameError={mouseNicknameError}
             startNotice={startNotice}
@@ -1702,6 +1728,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             currentPlayer={pairedPlayer}
             isNewRecord={isNewRecord}
             rankings={topRankings}
+            teamRankings={teamRankings}
+            highlightTeamKey={highlightTeamKey}
+            highlightDeviceIds={highlightDeviceIds}
             coop={coopResult ?? undefined}
             onRestart={() => pressScreenButton('restart')}
             onReturnToLobby={() => pressScreenButton('lobby')}

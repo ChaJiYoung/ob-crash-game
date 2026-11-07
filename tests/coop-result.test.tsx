@@ -77,8 +77,23 @@ describe('Co-op Result Screen (P05-T04)', () => {
     expect(html).toContain('팀 합계');
     expect(html).toContain('177,000 PTS');
     expect(html).toContain('기록 확인 중…');
-    expect(html).toContain('2인팟 점수는 솔로 랭킹에 오르지 않습니다');
     expect(html).not.toContain('나감');
+
+    // P05-T07: 2인 판은 팀 탭이 기본이며, '2인팟 점수는...' 문구는 개인 탭 아래에만 표시된다.
+    const soloTabHtml = renderToStaticMarkup(
+      <ResultRankingModal
+        gamePhase="GAMEOVER"
+        score={177000}
+        maxCombo={22}
+        waveReached={7}
+        rankings={[]}
+        initialRankTab="solo"
+        coop={coop}
+        onRestart={() => {}}
+        onReturnToLobby={() => {}}
+      />
+    );
+    expect(soloTabHtml).toContain('2인팟 점수는 솔로 랭킹에 오르지 않습니다');
   });
 
   it('shows team best score and new record badge when achieved', () => {

@@ -1,6 +1,7 @@
-import React from 'react';
-import { CoopBestEntry, GamePhase, PlayerProfile, RunRankingEntry, WeaponKind } from '../../shared/types';
+import React, { useState } from 'react';
+import { CoopBestEntry, GamePhase, PlayerProfile, RunRankingEntry, TeamRankingEntry, WeaponKind } from '../../shared/types';
 import { WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { RankingTabs, RankingTab } from './RankingTabs';
 
 export interface CoopResultPlayer {
   slotLabel: '1P' | '2P';
@@ -37,6 +38,10 @@ export interface ResultRankingModalProps {
   currentPlayer?: PlayerProfile;
   isNewRecord?: boolean;
   rankings: RunRankingEntry[];
+  teamRankings?: TeamRankingEntry[];
+  highlightTeamKey?: string;
+  highlightDeviceIds?: string[];
+  initialRankTab?: RankingTab;
   coop?: CoopResultInfo;
   onRestart: () => void;
   onReturnToLobby: () => void;
@@ -184,6 +189,10 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   currentPlayer,
   isNewRecord,
   rankings,
+  teamRankings = [],
+  highlightTeamKey,
+  highlightDeviceIds,
+  initialRankTab,
   coop,
   onRestart,
   onReturnToLobby,
@@ -192,6 +201,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   lobbyButtonRef,
 }) => {
   const isVictory = gamePhase === 'VICTORY';
+  const [activeRankTab, setActiveRankTab] = useState<RankingTab>(initialRankTab ?? (coop ? 'team' : 'solo'));
 
   return (
     <div
@@ -366,75 +376,16 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
             marginBottom: '24px',
           }}
         >
-          <div
-            style={{
-              fontSize: '14px',
-              fontWeight: 800,
-              color: '#fbbf24',
-              marginBottom: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            🏆 명예의 전당 TOP 5
-          </div>
+          <RankingTabs
+            soloRankings={rankings}
+            teamRankings={teamRankings}
+            activeTab={activeRankTab}
+            onChangeTab={setActiveRankTab}
+            highlightTeamKey={highlightTeamKey}
+            highlightDeviceIds={highlightDeviceIds ?? (currentPlayer ? [currentPlayer.deviceId] : undefined)}
+          />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {rankings.length === 0 && (
-              <div style={{ fontSize: '13px', color: '#94a3b8', padding: '12px 0', textAlign: 'center' }}>
-                아직 기록이 없습니다. 첫 기록의 주인공이 되어 보세요!
-              </div>
-            )}
-            {rankings.slice(0, 5).map((p, idx) => {
-              const isCurrent = currentPlayer && p.deviceId === currentPlayer.deviceId;
-              return (
-                <div
-                  key={`${p.deviceId}-${p.playedAt}`}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: isCurrent
-                      ? 'rgba(245, 158, 11, 0.25)'
-                      : idx === 0
-                      ? 'rgba(255, 255, 255, 0.08)'
-                      : 'rgba(255, 255, 255, 0.03)',
-                    border: isCurrent
-                      ? '1px solid #fbbf24'
-                      : idx === 0
-                      ? '1px solid rgba(245, 158, 11, 0.3)'
-                      : 'none',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span
-                      style={{
-                        fontWeight: 900,
-                        fontSize: '13px',
-                        color: idx === 0 ? '#fbbf24' : idx === 1 ? '#e2e8f0' : idx === 2 ? '#b45309' : '#94a3b8',
-                      }}
-                    >
-                      #{idx + 1}
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: isCurrent ? 800 : 600 }}>
-                      {p.nickname} {isCurrent && '(나)'}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                      W{p.waveReached} · {WEAPON_RANKING_LABEL[p.weaponKind]}
-                    </span>
-                  </div>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>
-                    {p.score}점
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {coop && (
+          {coop && activeRankTab === 'solo' && (
             <div
               data-testid="coop-ranking-note"
               style={{
