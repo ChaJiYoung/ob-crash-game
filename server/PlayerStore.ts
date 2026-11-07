@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { PlayerProfile } from '../src/shared/types';
+import { CoopBestEntry, PlayerProfile } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface PlayerStoreData {
@@ -96,6 +96,7 @@ export class PlayerStore {
       for (const profile of profiles) {
         profile.bestScore = 0;
         profile.totalGames = 0;
+        delete profile.coopBests;
       }
       parsed.rulesetVersion = RANKING_RULESET_VERSION;
       this.data = parsed;
@@ -186,6 +187,44 @@ export class PlayerStore {
       isNewRecord,
       rankings: this.getTopRankings(5),
     };
+  }
+
+  public recordCoopResult(
+    deviceId: string,
+    entry: CoopBestEntry
+  ): { profile: PlayerProfile; isNewTeamBest: boolean } {
+    let profile = this.data.players[deviceId];
+    const now = new Date().toISOString();
+    let isNewTeamBest = false;
+
+    if (!profile) {
+      profile = {
+        deviceId,
+        nickname: `맥주고수_${deviceId.slice(0, 4)}`,
+        bestScore: 0,
+        totalGames: 1,
+        lastPlayedAt: now,
+      };
+      this.data.players[deviceId] = profile;
+    } else {
+      profile.totalGames += 1;
+      profile.lastPlayedAt = now;
+    }
+
+    if (entry.partnerDeviceId && entry.partnerDeviceId.trim().length > 0) {
+      profile.coopBests ??= {};
+      const partnerKey = entry.partnerDeviceId;
+      const existing = profile.coopBests[partnerKey];
+      if (!existing || entry.teamScore > existing.teamScore) {
+        profile.coopBests[partnerKey] = { ...entry };
+        isNewTeamBest = true;
+      } else {
+        existing.partnerNickname = entry.partnerNickname;
+      }
+    }
+
+    this.save();
+    return { profile, isNewTeamBest };
   }
 
   public getTopRankings(limit = 5): PlayerProfile[] {

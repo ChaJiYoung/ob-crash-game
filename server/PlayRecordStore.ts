@@ -29,12 +29,27 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   if (!s.shots || !SHOT_KEYS.every((k) => isCount(s.shots[k]))) return false;
   if (!s.cardStacks || !CARD_KEYS.every((k) => isCount(s.cardStacks[k]))) return false;
   if (!Array.isArray(s.waves) || s.waves.length > 20) return false;
-  return s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus));
+  if (!s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus))) return false;
+
+  if (s.mode !== undefined && s.mode !== 'solo' && s.mode !== 'coop') return false;
+  if (s.mode === 'coop') {
+    if (!s.coop || typeof s.coop !== 'object') return false;
+    const c = s.coop;
+    if (c.slot !== 1 && c.slot !== 2) return false;
+    if (!isCount(c.teamScore) || !isCount(c.partnerScore)) return false;
+    if (typeof c.partnerDeviceId !== 'string' || c.partnerDeviceId.length > 64) return false;
+    if (typeof c.partnerNickname !== 'string' || c.partnerNickname.length > 64) return false;
+    if (typeof c.leftEarly !== 'boolean') return false;
+  } else {
+    if (s.coop !== undefined) return false;
+  }
+
+  return true;
 }
 
 /** 알 수 없는 키가 파일에 들어가지 않도록 정해진 항목만 다시 만든다. */
 function pickStats(s: PlayRunStats): PlayRunStats {
-  return {
+  const base: PlayRunStats = {
     outcome: s.outcome,
     waveReached: s.waveReached,
     livesLeft: s.livesLeft,
@@ -60,7 +75,19 @@ function pickStats(s: PlayRunStats): PlayRunStats {
       fever_extend: s.cardStacks.fever_extend,
       hit_zone_up: s.cardStacks.hit_zone_up,
     },
+    mode: s.mode === 'coop' ? 'coop' : 'solo',
   };
+  if (s.mode === 'coop' && s.coop) {
+    base.coop = {
+      slot: s.coop.slot,
+      teamScore: s.coop.teamScore,
+      partnerScore: s.coop.partnerScore,
+      partnerDeviceId: s.coop.partnerDeviceId,
+      partnerNickname: s.coop.partnerNickname,
+      leftEarly: s.coop.leftEarly,
+    };
+  }
+  return base;
 }
 
 /** 끝난 판을 JSONL(한 줄에 JSON 하나)로 덧붙인다. 규칙 버전이 바뀌어도 파일은 지우지 않는다. */
@@ -90,6 +117,7 @@ export class PlayRecordStore {
       try {
         const r = JSON.parse(line);
         if (r?.rulesetVersion !== this.rulesetVersion || !isValidPlayRunStats(r)) continue;
+        if (r.mode === 'coop') continue;
         const meta = r as unknown as { deviceId: unknown; nickname: unknown; playedAt: unknown };
         if (typeof meta.deviceId !== 'string' || typeof meta.nickname !== 'string' || typeof meta.playedAt !== 'string') continue;
         this.addToTop({ deviceId: meta.deviceId, nickname: meta.nickname, score: r.totalScore, waveReached: r.waveReached, weaponKind: r.weaponKind, playedAt: meta.playedAt });
@@ -122,7 +150,7 @@ export class PlayRecordStore {
       });
       fs.appendFileSync(this.filePath, `${line}\n`, 'utf-8');
       // 파일에 남은 기록만 보드에 올린다. 재시작 뒤 사라질 기록이 보이면 안 된다.
-      if (record.rulesetVersion === this.rulesetVersion) {
+      if (record.rulesetVersion === this.rulesetVersion && record.stats.mode !== 'coop') {
         this.addToTop({
           deviceId: record.deviceId,
           nickname: record.nickname,

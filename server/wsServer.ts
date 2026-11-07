@@ -4,7 +4,7 @@ import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
 import { RoomManager, normalizeSlot } from './RoomManager';
-import { ClientToServerMessage, ServerToClientMessage } from '../src/shared/types';
+import { ClientToServerMessage, PlayerProfile, ServerToClientMessage } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
 
@@ -417,19 +417,66 @@ export async function createBeerCrusherServer(options?: {
               return;
             }
 
-            const { profile } = playerStore.recordGameScore(deviceId, score);
-            // 기록 실패는 랭킹 저장을 막지 않는다.
-            if (isValidPlayRunStats(msg.stats) && msg.stats.totalScore === score) {
-              playRecordStore.append({
-                playedAt: new Date().toISOString(),
-                deviceId,
-                nickname: profile.nickname,
-                rulesetVersion: RANKING_RULESET_VERSION,
-                stats: msg.stats,
-              });
-            } else if (msg.stats !== undefined) {
-              console.warn('Ignored invalid play stats from', deviceId);
+            const now = new Date().toISOString();
+            const isCoop = msg.mode === 'coop';
+            let profile: PlayerProfile;
+
+            if (!isCoop) {
+              const res = playerStore.recordGameScore(deviceId, score);
+              profile = res.profile;
+              // 기록 실패는 랭킹 저장을 막지 않는다.
+              if (isValidPlayRunStats(msg.stats) && msg.stats.totalScore === score) {
+                playRecordStore.append({
+                  playedAt: now,
+                  deviceId,
+                  nickname: profile.nickname,
+                  rulesetVersion: RANKING_RULESET_VERSION,
+                  stats: msg.stats,
+                });
+              } else if (msg.stats !== undefined) {
+                console.warn('Ignored invalid play stats from', deviceId);
+              }
+            } else {
+              const statsValid =
+                isValidPlayRunStats(msg.stats) &&
+                msg.stats.mode === 'coop' &&
+                !!msg.stats.coop &&
+                msg.stats.totalScore === score;
+
+              if (statsValid && msg.stats && msg.stats.coop) {
+                const res = playerStore.recordCoopResult(deviceId, {
+                  partnerDeviceId: msg.stats.coop.partnerDeviceId,
+                  partnerNickname: msg.stats.coop.partnerNickname,
+                  teamScore: msg.stats.coop.teamScore,
+                  myScore: score,
+                  partnerScore: msg.stats.coop.partnerScore,
+                  waveReached: msg.stats.waveReached,
+                  playedAt: now,
+                });
+                profile = res.profile;
+
+                playRecordStore.append({
+                  playedAt: now,
+                  deviceId,
+                  nickname: profile.nickname,
+                  rulesetVersion: RANKING_RULESET_VERSION,
+                  stats: msg.stats,
+                });
+              } else {
+                console.warn('Ignored invalid coop play stats from', deviceId);
+                const res = playerStore.recordCoopResult(deviceId, {
+                  partnerDeviceId: '',
+                  partnerNickname: '',
+                  teamScore: 0,
+                  myScore: score,
+                  partnerScore: 0,
+                  waveReached: msg.waveReached,
+                  playedAt: now,
+                });
+                profile = res.profile;
+              }
             }
+
             const session = roomManager.getRoom(roomId);
 
             const response: ServerToClientMessage = {

@@ -1,6 +1,6 @@
 # Task: T03 2인팟 점수 제출과 기록
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인팟 판의 점수 제출(`GAME_SCORE_SUBMIT mode: 'coop'`)을 받으면 서버가 (1) `data/play-records.jsonl`에 `mode: "coop"`과 `coop` 정보를 붙여 저장하고, (2) 솔로 랭킹 Top5에는 올리지 않으며(재시작 후 복원 때도 제외), (3) 그 플레이어 프로필의 `totalGames`를 1 올리고 `bestScore`는 건드리지 않으며, (4) `coopBests[partnerDeviceId]`에 팀 합계 최고를 갱신한다(D05, D18).
@@ -97,8 +97,8 @@
 - 소켓 흐름: PC가 slot1·slot2 플레이어 각각 coop 제출 → 두 프로필 모두 같은 팀 기록, Top5 그대로.
 
 ## Acceptance Criteria
-- [ ] 2인팟 점수가 솔로 랭킹과 `bestScore`에 섞이지 않는다.
-- [ ] 두 사람 프로필에 파트너별 팀 최고가 남는다.
+- [x] 2인팟 점수가 솔로 랭킹과 `bestScore`에 섞이지 않는다.
+- [x] 두 사람 프로필에 파트너별 팀 최고가 남는다.
 
 ## Validation
 - `npx vitest run tests/coop-records.test.ts tests/play-records.test.ts tests/server-session.test.ts` — 통과
@@ -120,6 +120,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

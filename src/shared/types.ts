@@ -158,12 +158,24 @@ export interface RunRankingEntry {
   playedAt: string;
 }
 
+export interface CoopBestEntry {
+  partnerDeviceId: string;
+  partnerNickname: string;
+  teamScore: number;
+  myScore: number;
+  partnerScore: number;
+  waveReached: number;
+  playedAt: string;
+}
+
 export interface PlayerProfile {
   deviceId: string;
   nickname: string;
   bestScore: number;
   totalGames: number;
   lastPlayedAt: string;
+  /** 파트너 기기 ID별 2인팟 팀 합계 최고 기록(D18). 옛 프로필엔 없다. */
+  coopBests?: Record<string, CoopBestEntry>;
 }
 
 export interface SensorFramePayload {
@@ -202,7 +214,7 @@ export type ClientToServerMessage =
       slot?: PlayerSlot;
     }
   /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
-  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number }
+  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number; mode?: PlayMode }
   | { type: 'REGISTER_LOCAL_PLAYER'; roomId: string; deviceId: string; nickname: string; slot: PlayerSlot }
   | {
       type: 'SENSOR_CONFIG_UPDATE';

@@ -7,16 +7,16 @@
 [P03 서버·프로토콜](./phases/2026-11-07-two-player-coop/P03-server-protocol/phase.md)
 
 ## Active Task
-[T02 마우스 플레이어 등록 REGISTER_LOCAL_PLAYER](./phases/2026-11-07-two-player-coop/P03-server-protocol/T02-local-player-identity.md)
+[T03 2인팟 기록 mode:"coop", 솔로 Top5 제외, totalGames+1, coopBests](./phases/2026-11-07-two-player-coop/P03-server-protocol/T03-coop-records.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
-- P03 서버·프로토콜 진행 중 (1/4 Tasks 완료, 2f80583)
+- P03 서버·프로토콜 진행 중 (2/4 Tasks 완료, 8404560)
 - 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 진행 중)
 
 ## Next Step (IMPORTANT)
-P03-T02 청사진을 읽고 마우스 플레이어 등록 REGISTER_LOCAL_PLAYER(D15) 구현 및 검증.
+P03-T03 청사진을 읽고 2인팟 기록 mode:"coop", 솔로 Top5 제외, totalGames+1, coopBests 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).
