@@ -16,8 +16,8 @@ UI 시안: [references/two-player-coop-mockups.md](../references/two-player-coop
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 1인 기반 정리: 개인 상태 분리, 모드 규칙 표, TutorialDirector, 판정·선택 라운드 통일, 입력 어댑터→처리부, 플레이어 0 지름길 제거(2인 기능 없음) | [P01](../phases/2026-11-07-two-player-coop/P01-solo-foundation/phase.md) |
 | P02 | `done` | 엔진 2인: 플레이어별 라우팅, 인원수 규칙 표, 모두 기다리는 선택 라운드, 이탈 상태, 개인 통계 | [P02](../phases/2026-11-07-two-player-coop/P02-engine-players/phase.md) |
-| P03 | `in_progress` | 서버: 슬롯 2개, 마우스 플레이어 식별, 2인팟 기록·`coopBests`, 팀 랭킹 | [P03](../phases/2026-11-07-two-player-coop/P03-server-protocol/phase.md) |
-| P04 | `pending` | PC 로비·연결: 슬롯 카드, 어댑터→처리부 바인딩, 시작·결과 흐름, 끊김 유예 | [P04](../phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md) |
+| P03 | `done` | 서버: 슬롯 2개, 마우스 플레이어 식별, 2인팟 기록·`coopBests`, 팀 랭킹 | [P03](../phases/2026-11-07-two-player-coop/P03-server-protocol/phase.md) |
+| P04 | `in_progress` | PC 로비·연결: 슬롯 카드, 어댑터→처리부 바인딩, 시작·결과 흐름, 끊김 유예 | [P04](../phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md) |
 | P05 | `pending` | 화면: 개인 패널 HUD, 플레이어 색, 선택 화면, 결과 화면, 튜토리얼 패널, 총 두 자루, 랭킹 탭, 문서 갱신 | [P05](../phases/2026-11-07-two-player-coop/P05-hud-screens/phase.md) |
 
 ## 설계 원칙 (D24, 모든 Task가 지킨다)
