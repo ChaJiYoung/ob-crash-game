@@ -25,6 +25,7 @@
 | T04 | `pending` | 1024×768에서 배지·이름표가 화면 안에 들어오게 | [T04](./T04-small-screen-badges.md) |
 | T05 | `pending` | 개틀링 링 border 스타일 경고 제거 | [T05](./T05-gatling-ring-style.md) |
 | T06 | `pending` | 판 시작 순서: 화면 단계를 PLAYING으로 바꾼 뒤 처리부 재구성(폰 시작 경로 포함) | [T06](./T06-start-order.md) |
+| T07 | `pending` | 2인 난이도 배율 D41(보스 체력·소환·몬스터 수·카드 목표 2배, 몬스터 체력 1배) | [T07](./T07-coop-difficulty-v2.md) |
 
 ## Progress
-- done: 0/6 (active: T01)
+- done: 0/7 (active: T01)
