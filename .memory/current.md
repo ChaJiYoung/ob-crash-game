@@ -4,23 +4,24 @@
 [2인팟 (Two-Player Co-op)](./plans/2026-11-07-two-player-coop.md)
 
 ## Active Phase
-[P02 엔진 2인](./phases/2026-11-07-two-player-coop/P02-engine-players/phase.md)
+[P02 엔진 2인 (완료)](./phases/2026-11-07-two-player-coop/P02-engine-players/phase.md)
 
 ## Active Task
-[T05 플레이어별 판 통계와 협동 정보 coop](./phases/2026-11-07-two-player-coop/P02-engine-players/T05-coop-run-stats.md)
+None (P02 completed, awaiting P03)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
-- P02 엔진 2인 진행 중 (4/5 Tasks 완료)
+- P02 엔진 2인 완료 (5/5 Tasks 완료)
   - T01 완료 (8439c48)
   - T02 완료 (f4f6598)
   - T03 완료 (a43c958)
   - T04 완료 (008a256)
-- D24 설계 원칙: 인원수는 값만 다르고 로직은 하나, isCoop 분기 금지
-- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 진행 중)
+  - T05 완료 (8289e3d)
+- D24 설계 원칙 검증 완료: 인원수는 값만 다르고 로직은 하나, isCoop 분기 0건
+- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료)
 
 ## Next Step (IMPORTANT)
-P02-T05 청사진을 읽고 플레이어별 판 통계와 협동 정보 coop 구현 및 검증.
+P02 DONE 보고. P03은 시작하지 않고 사용자 승인 대기.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).
