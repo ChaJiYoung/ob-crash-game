@@ -123,7 +123,10 @@ describe('2026-11-05 skill / guard / magazine tuning', () => {
 describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
   it('keeps solo row at multiplier 1, no disconnect grace, and 1P select layout', () => {
     const solo = GAME_TUNING.playerCountRules[1];
-    expect(solo.hpMult).toBe(1);
+    expect(solo.monsterHpMult).toBe(1);
+    expect(solo.bossHpMult).toBe(1);
+    expect(solo.summonCountMult).toBe(1);
+    expect(solo.cardKillTargetMult).toBe(1);
     expect(solo.spawnCountMult).toBe(1);
     expect(solo.disconnectGraceMs).toBeNull();
     expect(solo.selectLayout).toEqual({
@@ -133,10 +136,13 @@ describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
     });
   });
 
-  it('defines 2P row with hp 1.6x, spawns 1.3x, 30s disconnect grace, and 2P select layout', () => {
+  it('defines 2P row (D41: boss hp/summons/spawns/card target x2, monster hp x1), 30s disconnect grace, and 2P select layout', () => {
     const coop = GAME_TUNING.playerCountRules[2];
-    expect(coop.hpMult).toBe(1.6);
-    expect(coop.spawnCountMult).toBe(1.3);
+    expect(coop.monsterHpMult).toBe(1);
+    expect(coop.bossHpMult).toBe(2);
+    expect(coop.summonCountMult).toBe(2);
+    expect(coop.spawnCountMult).toBe(2);
+    expect(coop.cardKillTargetMult).toBe(2);
     expect(coop.disconnectGraceMs).toBe(30000);
     expect(coop.selectLayout).toEqual({
       depthZ: -5.5,

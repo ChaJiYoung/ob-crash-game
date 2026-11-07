@@ -1,6 +1,6 @@
 # Task: T07 2인 난이도 배율 조정(D41)
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판 배율을 D41대로 바꾼다: 보스 체력 2배, 보스 부하 소환 수 2배, 웨이브 몬스터 수 2배, 카드 킬 게이지 목표 2배, 일반 몬스터·부하·분열 병 체력은 1배. 1인 값은 바뀌지 않는다.
@@ -54,6 +54,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T07-coop-difficulty-v2)

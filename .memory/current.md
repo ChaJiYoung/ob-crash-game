@@ -7,7 +7,7 @@
 [P03 2차 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/phase.md)
 
 ## Active Task
-[T07 2인 난이도 배율 조정(D41)](./phases/2026-11-07-two-player-coop-qa-fixes/P03-fixes-r2/T07-coop-difficulty-v2.md)
+없음 — P03-fixes-r2 T01~T07 모두 완료. 리뷰어 검토 후 P04(3차 QA) 진행.
 
 ## Status
 - T01 처리부 타이머 바인딩 수정 완료 (44e9dd5)
@@ -22,10 +22,11 @@
 - P03 T04 완료: 배지·이름표 화면 안 clamp(clampToViewport)
 - P03 T05 완료: 개틀링 링 border longhand 분리(콘솔 경고 0건)
 - P03 T06 완료: setPhase 헬퍼로 ref 먼저 갱신, 시작 시 PLAYING 후 syncProcessors
+- P03 T07 완료: 2인 D41 배율(보스HP·소환·스폰·카드목표 x2, 몬스터HP x1)
 - P01 QA 수정 완료 (6/6 Tasks 완료, P02 재QA 대기)
 
 ## Next Step (IMPORTANT)
-P03-fixes-r2 T01~T06 구현. P04(3차 QA)는 리뷰어가 진행.
+P03-fixes-r2 완료(7/7). P04(3차 QA)는 리뷰어가 진행.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

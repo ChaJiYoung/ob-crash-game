@@ -149,15 +149,21 @@ export const GAME_TUNING = {
    */
   playerCountRules: {
     1: {
-      hpMult: 1,
+      monsterHpMult: 1,
+      bossHpMult: 1,
+      summonCountMult: 1,
       spawnCountMult: 1,
+      cardKillTargetMult: 1,
       /** null이면 끊긴 플레이어를 이탈 처리하지 않고 무기한 기다린다(지금 1인 동작). */
       disconnectGraceMs: null as number | null,
       selectLayout: { depthZ: -3.5, groupCentersX: [0] as readonly number[], spacingM: 1.85 },
     },
     2: {
-      hpMult: 1.6,
-      spawnCountMult: 1.3,
+      monsterHpMult: 1,
+      bossHpMult: 2,
+      summonCountMult: 2,
+      spawnCountMult: 2,
+      cardKillTargetMult: 2,
       disconnectGraceMs: 30000 as number | null,
       selectLayout: { depthZ: -5.5, groupCentersX: [-3.2, 3.2] as readonly number[], spacingM: 2.05 },
     },

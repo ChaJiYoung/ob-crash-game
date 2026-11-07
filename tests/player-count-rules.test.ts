@@ -35,7 +35,7 @@ describe('BeerCrusherEngine playerCountRules (P02-T02)', () => {
       engine.update(1000, 0.016);
       expect(engine.activeTargets.length).toBeGreaterThan(0);
       const firstTarget = engine.activeTargets[0];
-      const expectedHp = Number((TARGET_SPECS[firstTarget.kind].maxHp * rules.hpMult).toFixed(3));
+      const expectedHp = Number((TARGET_SPECS[firstTarget.kind].maxHp * rules.monsterHpMult).toFixed(3));
       expect(firstTarget.maxHp).toBe(expectedHp);
       expect(firstTarget.hp).toBe(expectedHp);
 
@@ -46,9 +46,27 @@ describe('BeerCrusherEngine playerCountRules (P02-T02)', () => {
       engine.update(2000, 0.016);
       const boss = engine.getBossEntities().find((b) => b.bossRole === 'cooler');
       expect(boss).toBeDefined();
-      const expectedCoolerHp = Number((100 * rules.hpMult).toFixed(3));
+      const expectedCoolerHp = Number((100 * rules.bossHpMult).toFixed(3));
       expect(boss!.maxHp).toBe(expectedCoolerHp);
       expect(boss!.hp).toBe(expectedCoolerHp);
+    });
+
+    it('applies the card kill target and boss summon multipliers', () => {
+      const engine: any = new BeerCrusherEngine();
+      engine.startGame({ withWeaponSelect: false, playerCount: count });
+      const rules = GAME_TUNING.playerCountRules[count];
+
+      expect(engine.waveCardKillTargets[4]).toBe(Math.ceil(22 * rules.cardKillTargetMult));
+
+      engine.startWave(3);
+      engine.spawnedInWave = Math.ceil(15 * rules.spawnCountMult);
+      engine.update(2000, 0.016);
+      const cooler = engine.getBossEntities().find((b: any) => b.bossRole === 'cooler')!;
+      const before = engine.activeTargets.filter((t: any) => t.isSummonedMinion).length;
+      cooler.hp = cooler.maxHp * GAME_TUNING.boss.summonHpThresholds[0];
+      engine.update(2100, 0.016);
+      const after = engine.activeTargets.filter((t: any) => t.isSummonedMinion).length;
+      expect(after - before).toBe(Math.round(GAME_TUNING.boss.summonCountByStep[0] * rules.summonCountMult));
     });
   });
 
@@ -56,17 +74,17 @@ describe('BeerCrusherEngine playerCountRules (P02-T02)', () => {
     const engine = new BeerCrusherEngine();
     engine.startGame({ withWeaponSelect: false, playerCount: 2 });
     expect(engine.playerCount).toBe(2);
-    expect(engine.rules.hpMult).toBe(1.6);
+    expect(engine.rules.bossHpMult).toBe(2);
 
     engine.startTutorialMode();
     expect(engine.playerCount).toBe(1);
-    expect(engine.rules.hpMult).toBe(1);
+    expect(engine.rules.bossHpMult).toBe(1);
 
     engine.startGame({ withWeaponSelect: false, playerCount: 2 });
     expect(engine.playerCount).toBe(2);
 
     engine.startSandboxMode();
     expect(engine.playerCount).toBe(1);
-    expect(engine.rules.hpMult).toBe(1);
+    expect(engine.rules.bossHpMult).toBe(1);
   });
 });

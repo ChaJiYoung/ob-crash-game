@@ -1,13 +1,15 @@
 // 1인 판과 2인 판(같은 무기 두 명 또는 지정 조합)을 같은 정확 봇으로 비교한다.
-// Usage: [COOP_HP=x COOP_SPAWN=y] npx tsx .memory/references/scripts/coop-bot-compare.ts [games=40] [weapon|all|mix|coop]
+// Usage: [COOP_BOSS_HP=x COOP_SUMMON=x COOP_SPAWN=y COOP_CARD=z] npx tsx .memory/references/scripts/coop-bot-compare.ts [games=40] [weapon|all|mix|coop]
 // 봇 규칙은 boss-strategy-compare.ts의 minions-first와 같다(가장 가까운 표적, 150ms 탭, 피버 즉시, 스킬은 몬스터 2마리 이상일 때).
 // 2인 판에서는 플레이어마다 따로 조준·사격하고, 2P는 1P와 다른 표적(가까운 순 두 번째)을 우선한다.
 import { BeerCrusherEngine } from '../../../src/pc/engine/BeerCrusherEngine';
 import { GAME_TUNING } from '../../../src/shared/gameTuning';
 
-// 배율 실험: COOP_HP=2.0 COOP_SPAWN=1.3 npx tsx ... (값을 주지 않으면 gameTuning 그대로)
+// 배율 실험: COOP_BOSS_HP=2 COOP_SUMMON=2 COOP_SPAWN=2 COOP_CARD=2 npx tsx ... (값을 주지 않으면 gameTuning 그대로)
 const coopRules: any = (GAME_TUNING as any).playerCountRules[2];
-if (process.env.COOP_HP) coopRules.hpMult = +process.env.COOP_HP;
+if (process.env.COOP_BOSS_HP) coopRules.bossHpMult = +process.env.COOP_BOSS_HP;
+if (process.env.COOP_SUMMON) coopRules.summonCountMult = +process.env.COOP_SUMMON;
+if (process.env.COOP_CARD) coopRules.cardKillTargetMult = +process.env.COOP_CARD;
 if (process.env.COOP_SPAWN) coopRules.spawnCountMult = +process.env.COOP_SPAWN;
 
 type Weapon = 'shotgun' | 'revolver' | 'gatling';
@@ -97,7 +99,7 @@ function report(label: string, weapons: Weapon[]) {
     e.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     e.update(1000, 0.016);
     const m = e.activeTargets.find((t: any) => !t.isItem);
-    console.log(`${n}인 규칙: hpMult ${e.rules.hpMult}, spawnCountMult ${e.rules.spawnCountMult}, 1웨이브 스폰 ${e.getWaveProgress().totalSpawns}, 첫 몬스터 ${m?.kind} maxHp ${m?.maxHp}`);
+    console.log(`${n}인 규칙: monsterHpMult ${e.rules.monsterHpMult}, bossHpMult ${e.rules.bossHpMult}, summonCountMult ${e.rules.summonCountMult}, spawnCountMult ${e.rules.spawnCountMult}, cardKillTargetMult ${e.rules.cardKillTargetMult}, 1웨이브 스폰 ${e.getWaveProgress().totalSpawns}, 첫 몬스터 ${m?.kind} maxHp ${m?.maxHp}`);
   }
 }
 

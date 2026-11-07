@@ -335,11 +335,12 @@ export class BeerCrusherEngine {
   }
 
   private buildWaveDefinitions(): void {
-    const mult = this.rules.spawnCountMult;
+    const spawnMult = this.rules.spawnCountMult;
+    const cardMult = this.rules.cardKillTargetMult;
     this.waveCardKillTargets = Object.fromEntries(
       GAME_TUNING.waves.map((w) => [
         w.waveIndex,
-        w.cardKillTarget === null ? null : Math.ceil(w.cardKillTarget * mult),
+        w.cardKillTarget === null ? null : Math.ceil(w.cardKillTarget * cardMult),
       ])
     );
     this.waveDefinitions = Object.fromEntries(
@@ -347,7 +348,7 @@ export class BeerCrusherEngine {
         w.waveIndex,
         {
           waveIndex: w.waveIndex,
-          totalSpawns: Math.ceil(w.totalSpawns * mult),
+          totalSpawns: Math.ceil(w.totalSpawns * spawnMult),
           maxSimultaneous: w.maxSimultaneous,
           spawnIntervalMs: w.spawnIntervalMs,
           parTimeSec: w.parTimeSec,
@@ -1139,7 +1140,7 @@ export class BeerCrusherEngine {
       let crossed = this.bossSummonCrossed.get(boss.id) ?? 0;
       const ratio = boss.hp / boss.maxHp;
       while (crossed < thresholds.length && ratio <= thresholds[crossed]) {
-        const count = GAME_TUNING.boss.summonCountByStep[crossed];
+        const count = Math.round(GAME_TUNING.boss.summonCountByStep[crossed] * this.rules.summonCountMult);
         crossed += 1;
         this.spawnBossMinionWave(nowMs, count);
       }
@@ -1189,7 +1190,7 @@ export class BeerCrusherEngine {
       const z = -Math.cos(theta) * radius;
       placed.push({ x, z });
 
-      const maxHp = Number((spec.maxHp * this.rules.hpMult).toFixed(3));
+      const maxHp = Number((spec.maxHp * this.rules.monsterHpMult).toFixed(3));
       const entity: ActiveTargetEntity = {
         id: `boss_minion_${this.targetCounter}_${kind}`,
         kind,
@@ -1565,7 +1566,7 @@ export class BeerCrusherEngine {
     });
 
     this.targetCounter += 1;
-    const maxHp = Number((spec.maxHp * this.rules.hpMult).toFixed(3));
+    const maxHp = Number((spec.maxHp * this.rules.monsterHpMult).toFixed(3));
     const entity: ActiveTargetEntity = {
       id: `target_${this.targetCounter}_${kind}`,
       kind,
@@ -1643,7 +1644,7 @@ export class BeerCrusherEngine {
       const side = i % 2 === 0 ? -1 : 1;
       const thetaRad = parent.thetaRad + side * cfg.splitOffsetRad;
       this.targetCounter += 1;
-      const childHp = Number((cfg.childHp * this.rules.hpMult).toFixed(3));
+      const childHp = Number((cfg.childHp * this.rules.monsterHpMult).toFixed(3));
       this.activeTargets.push({
         id: `bottle_child_${this.targetCounter}`,
         kind: 'bottle',
@@ -1716,11 +1717,11 @@ export class BeerCrusherEngine {
     };
 
     coolerHp.forEach((hp, i) => {
-      const scaledHp = Number((hp * this.rules.hpMult).toFixed(3));
+      const scaledHp = Number((hp * this.rules.bossHpMult).toFixed(3));
       this.activeTargets.push(make('cooler', scaledHp, thetas[i], spec.hitRadiusM));
     });
     if (kingHp !== null) {
-      const scaledKingHp = Number((kingHp * this.rules.hpMult).toFixed(3));
+      const scaledKingHp = Number((kingHp * this.rules.bossHpMult).toFixed(3));
       const king = make('king', scaledKingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
       king.modelScaleMult = GAME_TUNING.boss.kingScale;
       // The model scales around its center, so lift it to stand on the floor (the hit center follows).
