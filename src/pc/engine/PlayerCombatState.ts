@@ -22,6 +22,9 @@ export class PlayerCombatState {
   /** 이 플레이어에게 걸린 버프 만료 시각. 아이스 프리즈는 팀 효과라 모든 플레이어 맵에 같은 값으로 들어간다(P02-T01). */
   public buffUntilMs: Map<ItemBuffKind, number> = new Map();
   public selectionDone = false;
+  public isAway = false;
+  /** 이탈 시작 시각(엔진 시계). 복귀 때 그 사이만큼 개인 타이머를 민다. null이면 이탈 아님. */
+  public awaySinceMs: number | null = null;
 
   constructor(index: PlayerIndex) {
     this.index = index;
@@ -42,6 +45,8 @@ export class PlayerCombatState {
     this.buffUntilMs.clear();
     this.luckyDropStacks = 0;
     this.selectionDone = false;
+    this.isAway = false;
+    this.awaySinceMs = null;
   }
 
   /** 카드 스택 초기화 + 무기 쿨다운 배율 1.0 + 피버 연장 0. 엔진의 기존 private resetCardStacks와 같은 내용. */

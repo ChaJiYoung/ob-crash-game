@@ -1,6 +1,6 @@
 # Task: T04 이탈 상태(setPlayerAway)
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진이 "이 플레이어는 지금 나가 있다"를 알 수 있게 한다. 이탈 중인 플레이어는 입력(사격·스킬·피버)이 무시되고, 개인 타이머(스킬 쿨다운·장전·피버 시간·개인 버프)가 멈추며, 선택 라운드는 그 사람을 기다리지 않고 즉시 자동 선택한다. 복귀하면 상태 그대로 이어서 한다(D20). 30초 유예 타이머 자체는 PC 페이지(P04-T06)가 관리하고, 엔진은 상태만 가진다.
@@ -52,8 +52,8 @@
 - 복귀 후 `shootAt(…, 1)` 정상 동작.
 
 ## Acceptance Criteria
-- [ ] 이탈자의 스킬 쿨다운·장전·피버·개인 버프가 이탈 기간 동안 멈춘다.
-- [ ] 이탈자 때문에 선택 라운드가 기다리지 않는다.
+- [x] 이탈자의 스킬 쿨다운·장전·피버·개인 버프가 이탈 기간 동안 멈춘다.
+- [x] 이탈자 때문에 선택 라운드가 기다리지 않는다.
 
 ## Validation
 - `npx vitest run tests/coop-player-away.test.ts` — 통과
@@ -75,6 +75,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

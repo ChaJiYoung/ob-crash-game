@@ -655,6 +655,12 @@ export class BeerCrusherEngine {
     });
 
     this.selectRound = { kind, openedAtMs: nowMs, isWaveClear };
+
+    for (const p of this.players) {
+      if (p.isAway) {
+        this.autoPickFor(p.index, nowMs);
+      }
+    }
   }
 
   public spawnWeaponSelectTargets(nowMs = 0): void {
@@ -984,6 +990,7 @@ export class BeerCrusherEngine {
   }
 
   public activateFever(nowMs: number, playerIndex: PlayerIndex = 0): boolean {
+    if (this.getPlayer(playerIndex).isAway) return false;
     if (this.isSelectPending || this.bossClearUntilMs > 0) return false;
     const player = this.getPlayer(playerIndex);
     const activated = player.scoreManager.activateFever(nowMs);
@@ -996,6 +1003,7 @@ export class BeerCrusherEngine {
   }
 
   public triggerSandboxFever(nowMs: number, playerIndex: PlayerIndex = 0): boolean {
+    if (this.getPlayer(playerIndex).isAway) return false;
     this.getPlayer(playerIndex).scoreManager.forceSetFeverGauge(100);
     return this.activateFever(nowMs, playerIndex);
   }
@@ -1274,8 +1282,15 @@ export class BeerCrusherEngine {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false, reloadedByPlayer: this.players.map(() => false) };
     }
 
+    const realElapsedMs = prevUpdateNowMs > 0 ? Math.max(0, nowMs - prevUpdateNowMs) : dtSec * 1000;
     const reloadedByPlayer: boolean[] = [];
     for (const p of this.players) {
+      if (p.isAway) {
+        p.freezeTimers(realElapsedMs);
+        reloadedByPlayer.push(false);
+        continue;
+      }
+
       // Clean expired buffs
       for (const [kind, untilMs] of p.buffUntilMs.entries()) {
         if (nowMs >= untilMs) {
@@ -1878,6 +1893,26 @@ export class BeerCrusherEngine {
     }
   }
 
+  public setPlayerAway(playerIndex: PlayerIndex, away: boolean, nowMs: number): void {
+    const p = this.getPlayer(playerIndex);
+    if (away) {
+      if (p.isAway) return;
+      p.isAway = true;
+      p.awaySinceMs = nowMs;
+      if (this.isSelectPending && !p.selectionDone) {
+        this.autoPickFor(playerIndex, nowMs);
+      }
+    } else {
+      if (!p.isAway) return;
+      p.isAway = false;
+      p.awaySinceMs = null;
+    }
+  }
+
+  public getActivePlayers(): PlayerCombatState[] {
+    return this.players.filter((p) => !p.isAway);
+  }
+
   public selectWeapon(kind: WeaponKind, level: WeaponLevel = 1, playerIndex: PlayerIndex = 0): void {
     this.getPlayer(playerIndex).weaponSystem.selectWeapon(kind, level);
   }
@@ -1985,6 +2020,7 @@ export class BeerCrusherEngine {
     source: ShotSource = 'press',
     playerIndex: PlayerIndex = 0
   ): EngineShootResult {
+    if (this.getPlayer(playerIndex).isAway) return { fired: false, grade: 'MISS', playerIndex };
     if (this.bossClearUntilMs > 0) return { fired: false, grade: 'MISS', playerIndex };
     const counts = this.gamePhase === 'PLAYING' && !this.isPaused && !this.isSelectPending;
     const result = this.shootAtInner(aimX, aimY, nowMs, source, playerIndex);
@@ -2453,6 +2489,11 @@ export class BeerCrusherEngine {
   private advanceBossClear(nowMs: number, dtSec: number): boolean[] {
     const reloadedByPlayer: boolean[] = [];
     for (const p of this.players) {
+      if (p.isAway) {
+        p.freezeTimers(dtSec * 1000);
+        reloadedByPlayer.push(false);
+        continue;
+      }
       const feverActive = p.scoreManager.getState().isFeverActive;
       const { reloadedJustNow } = p.weaponSystem.update(nowMs, feverActive, dtSec * 1000);
       reloadedByPlayer.push(reloadedJustNow);
@@ -2586,6 +2627,17 @@ export class BeerCrusherEngine {
   }
 
   public triggerWeaponSkill(nowMs: number, playerIndex: PlayerIndex = 0): SkillExecuteResult {
+    const player = this.getPlayer(playerIndex);
+    if (player.isAway) {
+      const weaponState = player.weaponSystem.getState();
+      return {
+        activated: false,
+        weaponKind: weaponState.weaponKind,
+        weaponLevel: weaponState.weaponLevel,
+        affectedTargets: [],
+        playerIndex,
+      };
+    }
     const result = this.runWeaponSkill(nowMs, playerIndex);
     if (result.activated) {
       this.emit({ type: 'skillUsed', playerIndex, result, nowMs });
