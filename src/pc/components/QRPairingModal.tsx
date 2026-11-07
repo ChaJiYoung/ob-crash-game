@@ -433,19 +433,25 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         backgroundColor: 'rgba(5, 7, 12, 0.78)',
         backdropFilter: 'blur(12px)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'safe center',
         justifyContent: 'center',
+        overflowY: 'auto',
+        padding: '16px',
+        boxSizing: 'border-box',
         zIndex: 100,
         fontFamily: "'Noto Sans KR', 'Inter', sans-serif",
         color: '#ffffff',
       }}
     >
       <div
+        data-testid="qr-pairing-modal-container"
         style={{
           width: '1120px',
           maxWidth: '95vw',
-          maxHeight: '92vh',
+          maxHeight: 'calc(100vh - 32px)',
           overflowY: 'auto',
+          boxSizing: 'border-box',
+          margin: 'auto',
           background: 'linear-gradient(145deg, #131a29, #0d121c)',
           border: '2px solid rgba(245, 158, 11, 0.4)',
           borderRadius: '24px',

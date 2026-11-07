@@ -7,13 +7,14 @@
 [P01 QA 수정](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/phase.md)
 
 ## Active Task
-[T04 로비 모달이 1440×900·1024×768 안에 들어오게](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/T04-lobby-fit.md)
+[T05 불안정 테스트 찾기와 원인 제거](./phases/2026-11-07-two-player-coop-qa-fixes/P01-fixes/T05-flaky-test.md)
 
 ## Status
 - T01 처리부 타이머 바인딩 수정 완료 (44e9dd5)
 - T02 총구가 십자선 지점을 겨누게 수정 완료 (73a2316)
-- T03 조준 경로 하나로 정리 완료
-- P01 QA 수정 진행 중 (3/6 Tasks 완료)
+- T03 조준 경로 하나로 정리 완료 (d9ad271)
+- T04 로비 모달 화면 맞춤 및 캡처 완료
+- P01 QA 수정 진행 중 (4/6 Tasks 완료)
 
 ## Next Step (IMPORTANT)
 T01 청사진을 읽고 `src/pc/input/PlayerActionProcessor.ts` 타이머 바인딩부터. P02(재QA)는 리뷰어가 진행하므로 구현 에이전트는 P01만 한다.

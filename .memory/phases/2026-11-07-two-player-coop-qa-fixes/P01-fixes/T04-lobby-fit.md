@@ -1,6 +1,6 @@
 # Task: T04 로비 모달이 화면 안에 들어오게
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비 모달(`QRPairingModal`)이 1440×900과 1024×768에서 잘리지 않게 한다. 지금 1440×900에서 모달 아래 마지막 안내 문구("크롬/사파리 사운드가…")가 화면 밖으로 잘린다(`.memory/references/two-player-coop-screens/01-lobby-empty.png`).
@@ -45,6 +45,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
