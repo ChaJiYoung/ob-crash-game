@@ -1,4 +1,4 @@
-import { ItemBuffKind } from '../../shared/types';
+import { ItemBuffKind, RewardCardKind, WeaponKind } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
 
@@ -22,6 +22,8 @@ export class PlayerCombatState {
   /** 이 플레이어에게 걸린 버프 만료 시각. 아이스 프리즈는 팀 효과라 모든 플레이어 맵에 같은 값으로 들어간다(P02-T01). */
   public buffUntilMs: Map<ItemBuffKind, number> = new Map();
   public selectionDone = false;
+  /** 가장 최근 선택 라운드에서 고른 항목(상태 상자용) */
+  public lastPick: { weapon?: WeaponKind; card?: RewardCardKind; auto: boolean } | null = null;
   public isAway = false;
   /** 이탈 시작 시각(엔진 시계). 복귀 때 그 사이만큼 개인 타이머를 민다. null이면 이탈 아님. */
   public awaySinceMs: number | null = null;
@@ -45,6 +47,7 @@ export class PlayerCombatState {
     this.buffUntilMs.clear();
     this.luckyDropStacks = 0;
     this.selectionDone = false;
+    this.lastPick = null;
     this.isAway = false;
     this.awaySinceMs = null;
   }

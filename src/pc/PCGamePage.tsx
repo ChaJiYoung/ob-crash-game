@@ -13,6 +13,7 @@ import { PauseMenuOverlay } from './components/PauseMenuOverlay';
 import { canOpenPauseMenu, PauseReason } from './pauseFlow';
 import { loadSavedRoomId, saveRoomId, clearSavedRoomId } from './roomMemory';
 import { ResultRankingModal } from './components/ResultRankingModal';
+import { SelectRoundOverlay } from './components/SelectRoundOverlay';
 import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { TutorialDirector } from './tutorial/TutorialDirector';
@@ -235,6 +236,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     () => presentations.map((p) => (p.ringColorMode === 'player' ? p.color : null)),
     [presentations]
   );
+  const ownerOutlineColors = useMemo(
+    () => presentations.map((p) => p.ownerOutlineColor),
+    [presentations]
+  );
+  const [cardAnchors, setCardAnchors] = useState<{ ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[]>([]);
 
   const hitTestButton = useCallback((aimX: number, aimY: number): ShootableButton | null => {
     if (typeof window === 'undefined') return null;
@@ -1183,6 +1189,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         ref={canvasRef}
         engine={engine}
         playerColors={playerColors}
+        ownerOutlineColors={ownerOutlineColors}
+        onCardAnchorsUpdate={setCardAnchors}
         aimX={0}
         aimY={0}
         onMouseAim={(x, y) => mouseAdapterRef.current?.onMove(x, y)}
@@ -1341,37 +1349,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       {/* 2. 4-Corner Arcade Overlay HUD */}
       {gamePhase === 'PLAYING' && (
         <>
-          {(engine.isWeaponSelectPending || engine.isRewardCardPending) && (
-            <div
-              data-testid="card-select-guide-banner"
-              style={{
-                position: 'absolute',
-                top: '28px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 110,
-                padding: '12px 28px',
-                borderRadius: '9999px',
-                background: 'rgba(15, 23, 42, 0.90)',
-                border: '2px solid #06b6d4',
-                color: '#ffffff',
-                fontSize: '18px',
-                fontWeight: 800,
-                letterSpacing: '0.05em',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                pointerEvents: 'none',
-                userSelect: 'none',
-              }}
-            >
-              <span>
-                {engine.isWeaponSelectPending
-                  ? '🎯 원하는 무기를 사격하여 선택하세요! (SHOOT TO SELECT)'
-                  : '🃏 보상 카드를 사격하여 선택하세요! (SHOOT TO SELECT)'}
-              </span>
-            </div>
-          )}
+          <SelectRoundOverlay
+            selection={hudState.selection}
+            presentations={presentations}
+            cardAnchors={cardAnchors}
+          />
           <MonsterHpBarLayer ref={hpLayerRef} />
           <ArcadeOverlayHUD
             lives={hudState.lives}

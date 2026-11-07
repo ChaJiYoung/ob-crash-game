@@ -1,5 +1,5 @@
 import { ActiveBuffState, WeaponKind, WeaponLevel, TutorialStep } from '../shared/types';
-import { BeerCrusherEngine, PassiveCardStack, WaveProgressInfo } from './engine/BeerCrusherEngine';
+import { BeerCrusherEngine, PassiveCardStack, WaveProgressInfo, SelectionStatus } from './engine/BeerCrusherEngine';
 import { PlayerIndex } from './engine/PlayerCombatState';
 
 /**
@@ -58,6 +58,7 @@ export interface HudSnapshot {
   isBossWarning: boolean;
   bossDown: boolean;
   waveClearKey: string;
+  selection: SelectionStatus;
   players: PlayerHudSnapshot[];
 }
 
@@ -140,6 +141,7 @@ export function buildHudSnapshot(
       engine.lastWaveClear && nowMs - engine.lastWaveClear.atMs < WAVE_CLEAR_BANNER_MS
         ? `${engine.lastWaveClear.wave}|${engine.lastWaveClear.seconds.toFixed(1)}|${engine.lastWaveClear.bonus}`
         : '',
+    selection: engine.getSelectionStatus(),
     players,
   };
 }
@@ -148,12 +150,13 @@ export function isHudSnapshotEqual(a: HudSnapshot, b: HudSnapshot): boolean {
   if (a === b) return true;
   const keys = Object.keys(a) as (keyof HudSnapshot)[];
   for (const key of keys) {
-    if (key === 'activeBuffs' || key === 'waveProgress' || key === 'bosses' || key === 'players') continue;
+    if (key === 'activeBuffs' || key === 'waveProgress' || key === 'bosses' || key === 'players' || key === 'selection') continue;
     if (a[key] !== b[key]) return false;
   }
   if (JSON.stringify(a.activeBuffs) !== JSON.stringify(b.activeBuffs)) return false;
   if (JSON.stringify(a.waveProgress) !== JSON.stringify(b.waveProgress)) return false;
   if (JSON.stringify(a.bosses) !== JSON.stringify(b.bosses)) return false;
+  if (JSON.stringify(a.selection) !== JSON.stringify(b.selection)) return false;
   if (JSON.stringify(a.players) !== JSON.stringify(b.players)) return false;
   return true;
 }

@@ -222,6 +222,8 @@ export interface SelectionStatus {
   kind: SelectRoundKind | null;
   /** players 순서. 이미 고른 사람 true. */
   done: boolean[];
+  /** 플레이어별 고른 항목 표시 이름(WEAPON_ARCHETYPE_SPECS[k].nameKo / REWARD_CARD_SPECS[k].nameKo), 없으면 null. */
+  pickedLabels: (string | null)[];
 }
 
 export class BeerCrusherEngine {
@@ -596,6 +598,7 @@ export class BeerCrusherEngine {
     this.activeTargets = this.activeTargets.filter((t) => !t.weaponSelectKind && !t.rewardCardKind);
     for (const p of this.players) {
       p.selectionDone = false;
+      p.lastPick = null;
     }
 
     const layout = this.computeSelectLayout();
@@ -1869,6 +1872,12 @@ export class BeerCrusherEngine {
     return {
       kind: this.selectRound?.kind ?? null,
       done: this.players.map((p) => p.selectionDone),
+      pickedLabels: this.players.map((p) => {
+        if (!p.lastPick) return null;
+        if (p.lastPick.weapon) return WEAPON_ARCHETYPE_SPECS[p.lastPick.weapon]?.nameKo ?? null;
+        if (p.lastPick.card) return REWARD_CARD_SPECS[p.lastPick.card]?.nameKo ?? null;
+        return null;
+      }),
     };
   }
 
@@ -1885,7 +1894,7 @@ export class BeerCrusherEngine {
     if (myTargets.length > 0) {
       const idx = Math.floor(this.dropRng() * myTargets.length);
       const chosen = myTargets[idx];
-      this.applySelection(chosen, playerIndex, nowMs);
+      this.applySelection(chosen, playerIndex, nowMs, true);
     } else {
       player.selectionDone = true;
       if (this.players.every((p) => p.selectionDone)) {
@@ -1918,17 +1927,20 @@ export class BeerCrusherEngine {
     this.getPlayer(playerIndex).weaponSystem.selectWeapon(kind, level);
   }
 
-  private applySelection(target: ActiveTargetEntity, playerIndex: PlayerIndex, nowMs: number): void {
+  private applySelection(target: ActiveTargetEntity, playerIndex: PlayerIndex, nowMs: number, auto = false): void {
+    const player = this.getPlayer(playerIndex);
     if (target.weaponSelectKind) {
-      this.getPlayer(playerIndex).weaponSystem.selectWeapon(target.weaponSelectKind, 1);
+      player.weaponSystem.selectWeapon(target.weaponSelectKind, 1);
+      player.lastPick = { weapon: target.weaponSelectKind, auto };
     } else if (target.rewardCardKind) {
       this.applyRewardCard(target.rewardCardKind, nowMs, playerIndex);
+      player.lastPick = { card: target.rewardCardKind, auto };
     }
 
     this.activeTargets = this.activeTargets.filter(
       (t) => !( (t.weaponSelectKind || t.rewardCardKind) && t.ownerIndex === playerIndex )
     );
-    this.getPlayer(playerIndex).selectionDone = true;
+    player.selectionDone = true;
 
     if (this.players.every((p) => p.selectionDone)) {
       this.finishSelectRound(nowMs);

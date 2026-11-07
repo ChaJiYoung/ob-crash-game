@@ -1,6 +1,6 @@
 # Task: T03 선택 화면(무기·보상 카드)
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인 판의 무기·카드 선택 화면을 시안 3·4·6대로 만든다: 화면 좌우 절반 배경(왼쪽 파랑, 오른쪽 주황 그라데이션)과 가운데 점선, 카드 테두리를 주인 색으로 칠하고 카드 위에 `1P`/`2P` 소유 배지, 상단 안내 문구, 먼저 고른 쪽 절반에는 "✓ 황금 병따개 선택 완료 / 1P 선택을 기다리는 중…" 상자(D13, 시간 제한 없음 D34). 1인 선택 화면은 그대로.
@@ -91,9 +91,9 @@
 - 스냅샷: 2인 엔진 무기 라운드에서 2P가 고르면 `selection.pickedLabels[1] === WEAPON_ARCHETYPE_SPECS.revolver.nameKo`.
 
 ## Acceptance Criteria
-- [ ] 2인 무기·카드 선택 화면이 시안 3·4·6과 같은 배치로 보인다(카드 6장이 화면 안에 겹치지 않음, 16:9).
-- [ ] 카드 안쪽 테두리는 카드 종류 색, 바깥 테두리는 주인 색이다(D23).
-- [ ] 1인 선택 화면은 그대로다.
+- [x] 2인 무기·카드 선택 화면이 시안 3·4·6과 같은 배치로 보인다(카드 6장이 화면 안에 겹치지 않음, 16:9).
+- [x] 카드 안쪽 테두리는 카드 종류 색, 바깥 테두리는 주인 색이다(D23).
+- [x] 1인 선택 화면은 그대로다.
 
 ## Validation
 - `npx vitest run tests/coop-select-overlay.test.tsx` — 통과
@@ -116,6 +116,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

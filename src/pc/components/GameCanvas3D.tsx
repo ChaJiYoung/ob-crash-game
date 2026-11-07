@@ -19,12 +19,14 @@ import {
   applyTargetHitFlash3D,
   updateProjectileAnimation3D,
   getTargetBaseY,
+  addCardOwnerOutline3D,
 } from '../three/TargetModels3D';
 import { DraftTapGun3D } from '../three/DraftTapGun3D';
 import { ParticleEffects3D, HIT_PARTICLE_COUNTS } from '../three/ParticleEffects3D';
 import { SoundSynthesizer } from '../audio/SoundSynthesizer';
 import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS, TARGET_SPECS } from '../../shared/constants';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
+import { PlayerIndex } from '../engine/PlayerCombatState';
 import { GAME_TUNING } from '../../shared/gameTuning';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
@@ -158,6 +160,10 @@ export interface GameCanvas3DProps {
   onPlayerHit?: () => void;
   /** 플레이어별 사격 트레이서 색(2인 시 1P #38bdf8 / 2P #ff6b3d, 1인은 null) */
   playerColors?: (string | null)[];
+  /** 카드 바깥 주인 테두리 색(2인 시 1P #38bdf8 / 2P #ff6b3d, 1인은 null) */
+  ownerOutlineColors?: (string | null)[];
+  /** 카드 상단 배지 배치를 위한 카드 표적의 화면 투영 좌표 */
+  onCardAnchorsUpdate?: (anchors: { ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[]) => void;
 }
 
 export const GameCanvas3D = React.memo(
@@ -173,6 +179,8 @@ export const GameCanvas3D = React.memo(
     onRenderMetrics,
     onPlayerHit,
     playerColors,
+    ownerOutlineColors,
+    onCardAnchorsUpdate,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
@@ -185,12 +193,16 @@ export const GameCanvas3D = React.memo(
     onMouseUpRef.current = onMouseUp;
     const onMonsterProjectionsUpdateRef = useRef(onMonsterProjectionsUpdate);
     onMonsterProjectionsUpdateRef.current = onMonsterProjectionsUpdate;
+    const onCardAnchorsUpdateRef = useRef(onCardAnchorsUpdate);
+    onCardAnchorsUpdateRef.current = onCardAnchorsUpdate;
     const onPlayerHitRef = useRef(onPlayerHit);
     onPlayerHitRef.current = onPlayerHit;
     const onRenderMetricsRef = useRef(onRenderMetrics);
     onRenderMetricsRef.current = onRenderMetrics;
     const playerColorsRef = useRef(playerColors);
     playerColorsRef.current = playerColors;
+    const ownerOutlineColorsRef = useRef(ownerOutlineColors);
+    ownerOutlineColorsRef.current = ownerOutlineColors;
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const tapGunRef = useRef<DraftTapGun3D | null>(null);
@@ -600,6 +612,13 @@ export const GameCanvas3D = React.memo(
                 ico = '🍺';
               }
               mesh = createCardTargetMesh3D(title, sub, col, ico);
+              const ownerColor = target.ownerIndex !== undefined ? ownerOutlineColorsRef.current?.[target.ownerIndex] : null;
+              if (ownerColor) {
+                addCardOwnerOutline3D(mesh, ownerColor);
+              }
+              if (target.modelScaleMult) {
+                mesh.scale.setScalar(target.modelScaleMult);
+              }
             } else if (target.rewardCardKind) {
               const cardSpec = REWARD_CARD_SPECS[target.rewardCardKind];
               const title = cardSpec.nameKo;
@@ -608,9 +627,16 @@ export const GameCanvas3D = React.memo(
               const ico = cardSpec.icon;
               if (target.rewardCardKind === 'lucky_drop') {
                 // Dynamic text; a different string produces a different cached texture key
-                sub = `아이템 드롭 빈도 ${engine.getNextLuckyDropMultiplier()}배 증가!\n처치 시 보급품 출현 대폭 상승`;
+                sub = `아이템 드롭 빈도 ${engine.getNextLuckyDropMultiplier(target.ownerIndex ?? 0)}배 증가!\n처치 시 보급품 출현 대폭 상승`;
               }
               mesh = createCardTargetMesh3D(title, sub, col, ico);
+              const ownerColor = target.ownerIndex !== undefined ? ownerOutlineColorsRef.current?.[target.ownerIndex] : null;
+              if (ownerColor) {
+                addCardOwnerOutline3D(mesh, ownerColor);
+              }
+              if (target.modelScaleMult) {
+                mesh.scale.setScalar(target.modelScaleMult);
+              }
             } else if (target.isItem && target.itemKind) {
               mesh = createItemMesh3D(target.itemKind);
             } else {
@@ -707,44 +733,71 @@ export const GameCanvas3D = React.memo(
 
         // Project monster 3D head positions to HUD screen percentage (~30fps throttled)
         if (
-          onMonsterProjectionsUpdateRef.current &&
           cameraRef.current &&
           time - lastProjUpdateTime >= 32
         ) {
           lastProjUpdateTime = time;
           const camera = cameraRef.current;
-          const projections: MonsterHudProjection[] = [];
 
-          engine.activeTargets.forEach((target) => {
-            if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile, target.hp)) return;
-            if (getMinionDropRemaining(target.dropLandAtMs, engine.getEffectiveNowMs(time), GAME_TUNING.boss.minionDrop.dropMs) > 0) return; // still falling in
-            const mesh = targetMeshMap.get(target.id);
-            if (!mesh) return;
+          if (onMonsterProjectionsUpdateRef.current) {
+            const projections: MonsterHudProjection[] = [];
 
-            const headY = mesh.position.y + (target.hitRadiusM || 0.8) * 0.9 + 0.35;
-            projVec.set(mesh.position.x, headY, mesh.position.z);
-            projVec.project(camera);
+            engine.activeTargets.forEach((target) => {
+              if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile, target.hp)) return;
+              if (getMinionDropRemaining(target.dropLandAtMs, engine.getEffectiveNowMs(time), GAME_TUNING.boss.minionDrop.dropMs) > 0) return; // still falling in
+              const mesh = targetMeshMap.get(target.id);
+              if (!mesh) return;
 
-            if (projVec.z > 1.0) return;
+              const headY = mesh.position.y + (target.hitRadiusM || 0.8) * 0.9 + 0.35;
+              projVec.set(mesh.position.x, headY, mesh.position.z);
+              projVec.project(camera);
 
-            const leftPercent = ((projVec.x + 1) / 2) * 100;
-            const topPercent = ((-projVec.y + 1) / 2) * 100;
+              if (projVec.z > 1.0) return;
 
-            projections.push({
-              id: target.id,
-              kind: target.kind,
-              hp: target.hp,
-              maxHp: target.maxHp,
-              leftPercent,
-              topPercent,
-              isStunned: Boolean(target.stunUntilMs && target.stunUntilMs > time),
-              isSlowed: Boolean(target.slowUntilMs && target.slowUntilMs > time),
-              isBoss: target.kind === 'boss',
-              isItem: target.isItem,
-              isProjectile: target.isProjectile,
+              const leftPercent = ((projVec.x + 1) / 2) * 100;
+              const topPercent = ((-projVec.y + 1) / 2) * 100;
+
+              projections.push({
+                id: target.id,
+                kind: target.kind,
+                hp: target.hp,
+                maxHp: target.maxHp,
+                leftPercent,
+                topPercent,
+                isStunned: Boolean(target.stunUntilMs && target.stunUntilMs > time),
+                isSlowed: Boolean(target.slowUntilMs && target.slowUntilMs > time),
+                isBoss: target.kind === 'boss',
+                isItem: target.isItem,
+                isProjectile: target.isProjectile,
+              });
             });
-          });
-          onMonsterProjectionsUpdateRef.current(projections);
+            onMonsterProjectionsUpdateRef.current(projections);
+          }
+
+          if (onCardAnchorsUpdateRef.current && engine.isSelectPending) {
+            const cardAnchors: { ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[] = [];
+            engine.activeTargets.forEach((target) => {
+              if (!target.weaponSelectKind && !target.rewardCardKind) return;
+              const mesh = targetMeshMap.get(target.id);
+              if (!mesh) return;
+
+              const cardTopY = mesh.position.y + 1.25;
+              projVec.set(mesh.position.x, cardTopY, mesh.position.z);
+              projVec.project(camera);
+
+              if (projVec.z > 1.0) return;
+
+              const leftPercent = ((projVec.x + 1) / 2) * 100;
+              const topPercent = ((-projVec.y + 1) / 2) * 100;
+
+              cardAnchors.push({
+                ownerIndex: (target.ownerIndex ?? 0) as PlayerIndex,
+                leftPercent,
+                topPercent,
+              });
+            });
+            onCardAnchorsUpdateRef.current(cardAnchors);
+          }
         }
 
         // Update particles and tracer beams

@@ -1439,3 +1439,33 @@ export function updateLandingMarker3D(marker: THREE.Mesh, remaining01: number, h
   marker.scale.set(s, 1, s);
   (marker.material as THREE.MeshBasicMaterial).opacity = 0.35 + 0.6 * (1 - r);
 }
+
+/**
+ * 카드 바깥에 플레이어 색 테두리 한 겹을 덧씌운다(D23).
+ * 기존 테두리(1.82×2.40)보다 바깥에 배치:
+ * 가로 막대 BoxGeometry(1.98, 0.07, 0.1) y ±1.235
+ * 세로 막대 BoxGeometry(0.07, 2.54, 0.1) x ±0.955
+ */
+export function addCardOwnerOutline3D(card: THREE.Group, ownerColorHex: string): void {
+  const outlineMat = getCachedMaterial(`card-owner-outline-mat-${ownerColorHex}`, () =>
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(ownerColorHex) })
+  );
+  const hGeo = getCachedGeometry('card-owner-outline-h-geo', () => new THREE.BoxGeometry(1.98, 0.07, 0.1));
+  const vGeo = getCachedGeometry('card-owner-outline-v-geo', () => new THREE.BoxGeometry(0.07, 2.54, 0.1));
+
+  const topBar = new THREE.Mesh(hGeo, outlineMat);
+  topBar.position.set(0, 1.235, 0);
+  const btmBar = new THREE.Mesh(hGeo, outlineMat);
+  btmBar.position.set(0, -1.235, 0);
+  const leftBar = new THREE.Mesh(vGeo, outlineMat);
+  leftBar.position.set(-0.955, 0, 0);
+  const rightBar = new THREE.Mesh(vGeo, outlineMat);
+  rightBar.position.set(0.955, 0, 0);
+
+  const outlineGroup = new THREE.Group();
+  outlineGroup.name = 'cardOwnerOutline';
+  outlineGroup.add(topBar, btmBar, leftBar, rightBar);
+
+  const targetGroup = (card.children[0] as THREE.Group) || card;
+  targetGroup.add(outlineGroup);
+}
