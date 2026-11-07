@@ -1,0 +1,12 @@
+{
+  "mouseDidNotFire": true,
+  "p1AmmoBeforeRapid": 30,
+  "p1AmmoAfterRapid": 29,
+  "p1AmmoSpent": 1,
+  "p2AmmoBeforeRapid": 10,
+  "p2AmmoAfterRapid": 9,
+  "p2AmmoSpent": 1,
+  "errorsCount": 0,
+  "pageErrorsCount": 0,
+  "errors": []
+}

@@ -1,0 +1,166 @@
+{
+  "r1440": {
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "results": [
+      {
+        "name": "PairingModal",
+        "count": 0,
+        "note": "Not found"
+      },
+      {
+        "name": "SlotCard1",
+        "box": {
+          "x": 198,
+          "y": 144.40625,
+          "width": 512,
+          "height": 340
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "name": "SlotCard2",
+        "box": {
+          "x": 730,
+          "y": 144.40625,
+          "width": 512,
+          "height": 340
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "name": "StartButton",
+        "count": 0,
+        "note": "Not found"
+      },
+      {
+        "name": "RankingTabSolo",
+        "box": {
+          "x": 217,
+          "y": 525.40625,
+          "width": 77.859375,
+          "height": 30
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "name": "RankingTabTeam",
+        "box": {
+          "x": 310.859375,
+          "y": 525.40625,
+          "width": 67.484375,
+          "height": 30
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  },
+  "r1024": {
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "results": [
+      {
+        "name": "PairingModal",
+        "count": 0,
+        "note": "Not found"
+      },
+      {
+        "name": "SlotCard1",
+        "box": {
+          "x": 63.609375,
+          "y": 143,
+          "width": 438.390625,
+          "height": 340
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "name": "SlotCard2",
+        "box": {
+          "x": 522,
+          "y": 143,
+          "width": 438.40625,
+          "height": 340
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "name": "StartButton",
+        "count": 0,
+        "note": "Not found"
+      },
+      {
+        "name": "RankingTabSolo",
+        "box": {
+          "x": 82.609375,
+          "y": 524,
+          "width": 77.859375,
+          "height": 30
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      },
+      {
+        "name": "RankingTabTeam",
+        "box": {
+          "x": 176.46875,
+          "y": 524,
+          "width": 67.484375,
+          "height": 30
+        },
+        "isWithinViewport": true,
+        "clipped": {
+          "left": false,
+          "right": false,
+          "top": false,
+          "bottom": false
+        }
+      }
+    ]
+  }
+}

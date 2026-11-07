@@ -1,0 +1,63 @@
+[
+  {
+    "weapon": "shotgun",
+    "totalDurationSec": 604.368,
+    "resultPhase": "",
+    "finalWave": 1,
+    "finalScore": 0,
+    "finalLives": 0,
+    "waveLogs": {
+      "1": {
+        "wave": 1,
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossKilled": false,
+        "cards": [],
+        "durSec": 217.168
+      },
+      "2": {
+        "wave": 2,
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossKilled": false,
+        "cards": [],
+        "durSec": 226.606
+      },
+      "3": {
+        "wave": 3,
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": true,
+        "bossKilled": false,
+        "cards": []
+      }
+    },
+    "rapidFireHoldTest": {
+      "ammoBefore": 14,
+      "ammoAfter": 13,
+      "ammoDiff": 1,
+      "pass": false
+    },
+    "feverTest": {
+      "scoreBefore": 285,
+      "scoreAfter": 305,
+      "scoreDiff": 20,
+      "pass": true
+    },
+    "skillUsedCount": 5,
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "weapon": "revolver",
+    "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('📱 모바일').first()\u001b[22m\n",
+    "stack": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('📱 모바일').first()\u001b[22m\n\n    at playOneGame (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/E-fullplay-phone/scripts/run-fullplay-phone.mjs:146:42)\n    at async run (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/E-fullplay-phone/scripts/run-fullplay-phone.mjs:540:22)"
+  },
+  {
+    "weapon": "gatling",
+    "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('📱 모바일').first()\u001b[22m\n",
+    "stack": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('📱 모바일').first()\u001b[22m\n\n    at playOneGame (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/E-fullplay-phone/scripts/run-fullplay-phone.mjs:146:42)\n    at async run (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/E-fullplay-phone/scripts/run-fullplay-phone.mjs:540:22)"
+  }
+]

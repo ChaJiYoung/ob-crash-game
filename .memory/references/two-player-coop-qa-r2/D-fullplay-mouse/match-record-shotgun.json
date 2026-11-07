@@ -1,0 +1,59 @@
+{
+  "weapon": "shotgun",
+  "startTime": 1794061139081,
+  "endTime": 0,
+  "durationSec": 0,
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startLives": 3,
+      "endLives": 5,
+      "durationSec": 262,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardsOffered": [
+        "lucky_drop",
+        "fever_extend",
+        "damage_up"
+      ],
+      "cardChosen": "lucky_drop"
+    },
+    "2": {
+      "wave": 2,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 0,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardsOffered": [],
+      "cardChosen": null
+    }
+  },
+  "bossEncounters": [],
+  "cardSelections": [
+    {
+      "wave": 1,
+      "cardChosen": "lucky_drop",
+      "available": [
+        "lucky_drop",
+        "fever_extend",
+        "damage_up"
+      ]
+    }
+  ],
+  "rapidFireTest": {
+    "beforeAmmo": 13,
+    "afterAmmo": 12,
+    "diff": 1,
+    "passed": true
+  },
+  "feverTest": {
+    "scoreBefore": 286,
+    "scoreAfter": 300,
+    "scoreGain": 14,
+    "passed": true
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "finalResult": null
+}
