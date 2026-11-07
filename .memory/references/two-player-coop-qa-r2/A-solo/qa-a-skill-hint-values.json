@@ -1,0 +1,78 @@
+{
+  "rows": [
+    {
+      "t": 23603,
+      "stock": 0,
+      "hint": [],
+      "cd": [
+        "쿨다운 16.3s"
+      ],
+      "phase": "PLAYING",
+      "paused": false
+    },
+    {
+      "t": 27620,
+      "stock": 0,
+      "hint": [],
+      "cd": [
+        "쿨다운 15.7s"
+      ],
+      "phase": "PLAYING",
+      "paused": false
+    },
+    {
+      "t": 31214,
+      "stock": 0,
+      "hint": [],
+      "cd": [
+        "쿨다운 15.1s"
+      ],
+      "phase": "PLAYING",
+      "paused": false
+    },
+    {
+      "t": 36007,
+      "stock": 0,
+      "hint": [],
+      "cd": [
+        "쿨다운 14.5s"
+      ],
+      "phase": "PLAYING",
+      "paused": false
+    },
+    {
+      "t": 40637,
+      "stock": 0,
+      "hint": [],
+      "cd": [
+        "쿨다운 13.9s"
+      ],
+      "phase": "PLAYING",
+      "paused": false
+    },
+    {
+      "t": 45463,
+      "stock": 1,
+      "hint": [
+        "우클릭]"
+      ],
+      "cd": [],
+      "phase": "PLAYING",
+      "paused": false
+    }
+  ],
+  "stockReadyRow": {
+    "t": 45463,
+    "stock": 1,
+    "hint": [
+      "우클릭]"
+    ],
+    "cd": [],
+    "phase": "PLAYING",
+    "paused": false
+  },
+  "errors": {
+    "pageErrors": [],
+    "consoleErrors": []
+  }
+}

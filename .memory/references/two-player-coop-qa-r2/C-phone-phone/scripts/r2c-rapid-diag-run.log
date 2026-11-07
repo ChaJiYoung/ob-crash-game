@@ -1,0 +1,9 @@
+14:51:56 room 64CU
+14:52:25 weapon select shown ZEROING {"kind":"weapon","done":[false,false]} guard 4
+14:52:25 weapon cards shotgun@(-0.89,0.12) owner=0 | revolver@(-0.54,0.12) owner=0 | gatling@(-0.20,0.12) owner=0 | shotgun@(0.20,0.12) owner=1 | revolver@(0.54,0.12) owner=1 | gatling@(0.89,0.12) owner=1
+14:52:29 combat state PLAYING {"kind":null,"done":[true,true]} paused false weapons shotgun/1 , gatling/1
+14:52:32 main thread (combat, idle 1s): {"timer5msPerSec":1,"rafPerSec":3}
+14:52:35 main thread (combat, phone frames 1s): {"timer5msPerSec":1,"rafPerSec":2}
+14:52:45 P1 trial 1: before=14 after=13 spent=1 samples=14,13,13
+14:52:57 P2 trial 1: before=30 after=29 spent=1 samples=30,29,29
+14:53:00 wrote /private/tmp/claude-501/-Users-bigtree-orca-workspaces-ob-crash-game-surgeonfish/781c0bfd-3833-4b02-8aac-414f3fa1a367/scratchpad/r2c-diag2.json

@@ -1,0 +1,231 @@
+{
+  "checks": [
+    {
+      "id": "A-2-01",
+      "status": "PASS",
+      "note": "QR/URL에 slot=1, 방 코드 포함",
+      "evidence": {
+        "roomId": "46VB",
+        "hasSlot1": true,
+        "hasSlot2": false,
+        "roomInUrl": true
+      }
+    },
+    {
+      "id": "A-2-02",
+      "status": "PASS",
+      "note": "가짜 폰 연결 → 닉네임 표시, 영점 안내",
+      "evidence": {
+        "connected": true,
+        "needZero": true
+      }
+    },
+    {
+      "id": "A-2-03",
+      "status": "PASS",
+      "note": "영점 후 \"준비 완료\", 영점 안내 사라짐",
+      "evidence": {
+        "ready": true,
+        "needZero": false
+      }
+    },
+    {
+      "id": "A-2-04",
+      "status": "BUG",
+      "note": "폰 가운데 사격으로 카운트다운 후 시작(전환 6647ms, 카운트다운 문구 true)",
+      "evidence": {
+        "phase": "ZEROING",
+        "sel": "weapon",
+        "tPlaying": 6647
+      }
+    },
+    {
+      "id": "A-2-06",
+      "status": "BUG",
+      "note": "전투 HUD: 스킬 안내 \"[위로 휙!]\" 1개, 우클릭 안내 없음, 배지 없음",
+      "evidence": {
+        "hud": {
+          "upFlick": 0,
+          "rightClick": 0,
+          "oneP": 1,
+          "bar": true
+        },
+        "phase": "PLAYING",
+        "weapon": "revolver"
+      }
+    },
+    {
+      "id": "A-2-07a-snap",
+      "status": "BUG",
+      "note": "폰 단발 탄약 10→10",
+      "evidence": {
+        "b1": 10,
+        "a1": 10
+      }
+    },
+    {
+      "id": "5-1-phone-hold",
+      "status": "BUG",
+      "note": "폰 rapidFireHold 1초 탄약 감소 1발(샘플 9,8,8,8,8,8,8,8,8,8)",
+      "evidence": {
+        "hb": 9,
+        "samples": [
+          9,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "ha": 8,
+        "drop": 1,
+        "consoleErrors": 0
+      }
+    },
+    {
+      "id": "A-2-08",
+      "status": "PASS",
+      "note": "폰 끊김 → 일시정지 + \"폰 재연결 중\", 35초 뒤에도 유지(1인 무기한)",
+      "evidence": {
+        "dc1": {
+          "text": true,
+          "paused": true
+        },
+        "dc2": {
+          "text": true,
+          "paused": true
+        }
+      }
+    },
+    {
+      "id": "A-2-10",
+      "status": "PASS",
+      "note": "재접속 → \"다시 연결됨\" true, 재개 28736ms",
+      "evidence": {
+        "reconnectMsg": true,
+        "resumedAt": 28736
+      }
+    },
+    {
+      "id": "A-2-07c-skill",
+      "status": "BUG",
+      "note": "폰 스킬(위로 휙) 재고 1→1",
+      "evidence": {
+        "st0": 1,
+        "st1": 1
+      }
+    },
+    {
+      "id": "A-2-07d-fever",
+      "status": "BUG",
+      "note": "폰 피버 제스처 → 피버 발동, 2초 동안 점수 증가",
+      "evidence": {
+        "activeAfterGesture": false,
+        "scoreStart": 274,
+        "scoreAfter2s": 292
+      }
+    },
+    {
+      "id": "A-2-11",
+      "status": "BUG",
+      "note": "18분 안에 결과 화면 미도달",
+      "evidence": {
+        "last": "PLAYING"
+      }
+    },
+    {
+      "id": "A-3-02",
+      "status": "BUG",
+      "note": "2P 슬롯 폰만 연결 → 1인 판 시작, 배지(1P/2P) 없음, 플레이어 1명",
+      "evidence": {
+        "lobbyReady": true,
+        "phase": "ZEROING",
+        "sel": "weapon",
+        "hud": {
+          "oneP": 0,
+          "twoP": 1,
+          "bar": true,
+          "team": false
+        },
+        "playersLen": 1,
+        "ammoDropPerPlayer": [
+          0
+        ],
+        "q2": {
+          "hasSlot2": false,
+          "hasSlot1": false
+        }
+      }
+    }
+  ],
+  "weaponCards": [
+    {
+      "k": "shotgun",
+      "x": -0.44,
+      "y": 0.14
+    },
+    {
+      "k": "revolver",
+      "x": 0,
+      "y": 0.14
+    },
+    {
+      "k": "gatling",
+      "x": 0.44,
+      "y": 0.14
+    }
+  ],
+  "phone1p": {
+    "weaponCards": [
+      {
+        "k": "shotgun",
+        "x": -0.44,
+        "y": 0.14
+      },
+      {
+        "k": "revolver",
+        "x": 0,
+        "y": 0.14
+      },
+      {
+        "k": "gatling",
+        "x": 0.44,
+        "y": 0.14
+      }
+    ],
+    "feverV": [
+      {
+        "activeAfterGesture": false,
+        "scoreStart": 274,
+        "scoreAfter2s": 292
+      }
+    ],
+    "skillV": [
+      {
+        "st0": 1,
+        "st1": 1
+      }
+    ],
+    "phone1Errors": []
+  },
+  "phone2only": {
+    "hud": {
+      "oneP": 0,
+      "twoP": 1,
+      "bar": true,
+      "team": false
+    },
+    "playersLen": 1,
+    "who": [
+      0
+    ]
+  },
+  "errors": {
+    "pageErrors": [],
+    "consoleErrors": []
+  }
+}

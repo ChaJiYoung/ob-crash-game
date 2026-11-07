@@ -1,0 +1,658 @@
+{
+  "checks": [
+    {
+      "id": "A-4-tutorial",
+      "status": "PASS",
+      "note": "튜토리얼 STEP 1→4 진행 후 수료, 마우스로 끝까지 가능",
+      "evidence": {
+        "panel": {
+          "step1": true,
+          "guideBtn": false,
+          "exitBtn": true
+        },
+        "seq": [
+          {
+            "step": "1",
+            "tMs": 748
+          },
+          {
+            "step": "2",
+            "tMs": 14737
+          },
+          {
+            "step": "3",
+            "tMs": 25849
+          },
+          {
+            "step": "4",
+            "tMs": 33813
+          },
+          {
+            "step": "COMPLETED",
+            "tMs": 86049
+          }
+        ],
+        "fin": {
+          "completed": true
+        }
+      }
+    },
+    {
+      "id": "A-4-lab-buttons",
+      "status": "BUG",
+      "note": "센서 랩 버튼 존재: 테스트 사격(true), 실전 시작(false)",
+      "evidence": {
+        "btnTexts": [
+          "🎯 5점 영점 과녁 재배치",
+          "🚀 실전 배틀 시작!",
+          "🔙 로비 복귀",
+          "🎯 정면 영점 리셋",
+          "📌 정지 표적 (영점/조준)",
+          "🏃 이동 표적 (접근/처치)",
+          "필굿1HP",
+          "카스1HP",
+          "오비2HP",
+          "한맥3HP",
+          "카스4HP",
+          "업소용60HP",
+          "🧹 모든 몬스터/과녁 제거",
+          "🪠 샷건",
+          "🍾 리볼버",
+          "🍺 개틀링",
+          "⬆️ 레벨업 (Lv.1)",
+          "🃏 보상 카드 스폰",
+          "👑 보스 미니웨이브 소환 시험",
+          "🔥 피버 100% 즉시 발동",
+          "탄창 제한 ON",
+          "🔫 현재 조준점 시험 사격 (반동/궤적 확인)",
+          "표적 스폰",
+          "즉시 발동",
+          "표적 스폰",
+          "즉시 발동",
+          "표적 스폰",
+          "즉시 발동",
+          "표적 스폰",
+          "즉시 발동"
+        ],
+        "realResult": null,
+        "testAfterPhase": "SANDBOX"
+      }
+    },
+    {
+      "id": "A-3-P04-zero-reset",
+      "status": "SKIP",
+      "note": "영점 리셋 버튼(🎯 5점 영점 과녁 재배치) 클릭 후 폰 수신 메시지 [\"SKILL_STATE_SYNC\",\"SKILL_STATE_SYNC\",\"SKILL_STATE_SYNC\",\"SKILL_STATE_SYNC\",\"SKILL_STATE_SYNC\",\"SKILL_STATE_SYNC\"] — 영점 적용 여부는 값만으로 확정 불가",
+      "evidence": {
+        "btnTexts": [
+          "🎯 5점 영점 과녁 재배치",
+          "🚀 실전 배틀 시작!",
+          "🔙 로비 복귀",
+          "🎯 정면 영점 리셋",
+          "📌 정지 표적 (영점/조준)",
+          "🏃 이동 표적 (접근/처치)",
+          "필굿1HP",
+          "카스1HP",
+          "오비2HP",
+          "한맥3HP",
+          "카스4HP",
+          "업소용60HP",
+          "🧹 모든 몬스터/과녁 제거",
+          "🪠 샷건",
+          "🍾 리볼버",
+          "🍺 개틀링",
+          "⬆️ 레벨업 (Lv.1)",
+          "🃏 보상 카드 스폰",
+          "👑 보스 미니웨이브 소환 시험",
+          "🔥 피버 100% 즉시 발동",
+          "탄창 제한 ON",
+          "🔫 현재 조준점 시험 사격 (반동/궤적 확인)",
+          "표적 스폰",
+          "즉시 발동",
+          "표적 스폰",
+          "즉시 발동",
+          "표적 스폰",
+          "즉시 발동",
+          "표적 스폰",
+          "즉시 발동"
+        ],
+        "newMsgs": [
+          "SKILL_STATE_SYNC",
+          "SKILL_STATE_SYNC",
+          "SKILL_STATE_SYNC",
+          "SKILL_STATE_SYNC",
+          "SKILL_STATE_SYNC",
+          "SKILL_STATE_SYNC"
+        ],
+        "phoneErrors": []
+      }
+    },
+    {
+      "id": "A-5-3-1440x900",
+      "status": "PASS",
+      "note": "1440x900: 로비·선택·전투·일시정지 화면 밖 요소(스크롤 불가) 없음",
+      "evidence": {
+        "lobbyEmpty": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1440,
+          "docScrollH": 900,
+          "outside": []
+        },
+        "lobbyModalReady": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1440,
+          "docScrollH": 900,
+          "outside": []
+        },
+        "weaponSelect": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1440,
+          "docScrollH": 900,
+          "outside": []
+        },
+        "combat": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1440,
+          "docScrollH": 900,
+          "outside": []
+        },
+        "pause": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1440,
+          "docScrollH": 900,
+          "outside": []
+        }
+      }
+    },
+    {
+      "id": "A-5-3-1024x768",
+      "status": "PASS",
+      "note": "1024x768: 로비·선택·전투·일시정지 화면 밖 요소(스크롤 불가) 없음",
+      "evidence": {
+        "lobbyEmpty": {
+          "outsideCount": 3,
+          "unscrollable": 0,
+          "docScrollW": 1024,
+          "docScrollH": 768,
+          "outside": [
+            {
+              "t": "🏆\n개인 랭킹\n👥\n팀 랭킹\n아직 등록된 기록이 ",
+              "rect": [
+                64,
+                507,
+                384,
+                847
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+              "rect": [
+                408,
+                779,
+                960,
+                819
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마",
+              "rect": [
+                408,
+                829,
+                960,
+                847
+              ],
+              "scrollAccessible": true
+            }
+          ]
+        },
+        "lobbyModalReady": {
+          "outsideCount": 9,
+          "unscrollable": 0,
+          "docScrollW": 1024,
+          "docScrollH": 768,
+          "outside": [
+            {
+              "t": "5\n테스터A\n🍾 리볼버\n1,234\nW3",
+              "rect": [
+                83,
+                757,
+                365,
+                800
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "5",
+              "rect": [
+                92,
+                771,
+                108,
+                787
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "테스터A",
+              "rect": [
+                116,
+                771,
+                153,
+                787
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "🍾 리볼버",
+              "rect": [
+                161,
+                770,
+                208,
+                788
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "1,234\nW3",
+              "rect": [
+                326,
+                763,
+                356,
+                794
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "1,234",
+              "rect": [
+                326,
+                763,
+                356,
+                779
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "W3",
+              "rect": [
+                326,
+                779,
+                356,
+                794
+              ],
+              "scrollAccessible": true
+            },
+            {
+              "t": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+              "rect": [
+                408,
+                783,
+                960,
+                823
+              ],
+              "scrollAccessible": true
+            }
+          ]
+        },
+        "weaponSelect": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1024,
+          "docScrollH": 768,
+          "outside": []
+        },
+        "combat": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1024,
+          "docScrollH": 768,
+          "outside": []
+        },
+        "pause": {
+          "outsideCount": 0,
+          "unscrollable": 0,
+          "docScrollW": 1024,
+          "docScrollH": 768,
+          "outside": []
+        }
+      }
+    }
+  ],
+  "tutorial": {
+    "seq": [
+      {
+        "step": "1",
+        "tMs": 748
+      },
+      {
+        "step": "2",
+        "tMs": 14737
+      },
+      {
+        "step": "3",
+        "tMs": 25849
+      },
+      {
+        "step": "4",
+        "tMs": 33813
+      },
+      {
+        "step": "COMPLETED",
+        "tMs": 86049
+      }
+    ],
+    "panel": {
+      "step1": true,
+      "guideBtn": false,
+      "exitBtn": true
+    },
+    "fin": {
+      "completed": true
+    }
+  },
+  "lab": {
+    "btnTexts": [
+      "🎯 5점 영점 과녁 재배치",
+      "🚀 실전 배틀 시작!",
+      "🔙 로비 복귀",
+      "🎯 정면 영점 리셋",
+      "📌 정지 표적 (영점/조준)",
+      "🏃 이동 표적 (접근/처치)",
+      "필굿1HP",
+      "카스1HP",
+      "오비2HP",
+      "한맥3HP",
+      "카스4HP",
+      "업소용60HP",
+      "🧹 모든 몬스터/과녁 제거",
+      "🪠 샷건",
+      "🍾 리볼버",
+      "🍺 개틀링",
+      "⬆️ 레벨업 (Lv.1)",
+      "🃏 보상 카드 스폰",
+      "👑 보스 미니웨이브 소환 시험",
+      "🔥 피버 100% 즉시 발동",
+      "탄창 제한 ON",
+      "🔫 현재 조준점 시험 사격 (반동/궤적 확인)",
+      "표적 스폰",
+      "즉시 발동",
+      "표적 스폰",
+      "즉시 발동",
+      "표적 스폰",
+      "즉시 발동",
+      "표적 스폰",
+      "즉시 발동"
+    ],
+    "realResult": null,
+    "testPhase": "SANDBOX",
+    "zeroBtn": "🎯 정면 영점 리셋"
+  },
+  "labPhone": {
+    "zeroBtn": "🎯 5점 영점 과녁 재배치",
+    "newMsgs": [
+      "SKILL_STATE_SYNC",
+      "SKILL_STATE_SYNC",
+      "SKILL_STATE_SYNC",
+      "SKILL_STATE_SYNC",
+      "SKILL_STATE_SYNC",
+      "SKILL_STATE_SYNC"
+    ],
+    "btnTexts": [
+      "🎯 5점 영점 과녁 재배치",
+      "🚀 실전 배틀 시작!",
+      "🔙 로비 복귀",
+      "🎯 정면 영점 리셋",
+      "📌 정지 표적 (영점/조준)",
+      "🏃 이동 표적 (접근/처치)",
+      "필굿1HP",
+      "카스1HP",
+      "오비2HP",
+      "한맥3HP",
+      "카스4HP",
+      "업소용60HP",
+      "🧹 모든 몬스터/과녁 제거",
+      "🪠 샷건",
+      "🍾 리볼버",
+      "🍺 개틀링",
+      "⬆️ 레벨업 (Lv.1)",
+      "🃏 보상 카드 스폰",
+      "👑 보스 미니웨이브 소환 시험",
+      "🔥 피버 100% 즉시 발동",
+      "탄창 제한 ON",
+      "🔫 현재 조준점 시험 사격 (반동/궤적 확인)",
+      "표적 스폰",
+      "즉시 발동",
+      "표적 스폰",
+      "즉시 발동",
+      "표적 스폰",
+      "즉시 발동",
+      "표적 스폰",
+      "즉시 발동"
+    ]
+  },
+  "layout_1440x900": {
+    "lobbyEmpty": {
+      "vw": 1440,
+      "vh": 900,
+      "docScrollW": 1440,
+      "docScrollH": 900,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    },
+    "lobbyModalReady": {
+      "vw": 1440,
+      "vh": 900,
+      "docScrollW": 1440,
+      "docScrollH": 900,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    },
+    "weaponSelect": {
+      "vw": 1440,
+      "vh": 900,
+      "docScrollW": 1440,
+      "docScrollH": 900,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    },
+    "combat": {
+      "vw": 1440,
+      "vh": 900,
+      "docScrollW": 1440,
+      "docScrollH": 900,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    },
+    "pause": {
+      "vw": 1440,
+      "vh": 900,
+      "docScrollW": 1440,
+      "docScrollH": 900,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    }
+  },
+  "layout_1024x768": {
+    "lobbyEmpty": {
+      "vw": 1024,
+      "vh": 768,
+      "docScrollW": 1024,
+      "docScrollH": 768,
+      "outside": [
+        {
+          "t": "🏆\n개인 랭킹\n👥\n팀 랭킹\n아직 등록된 기록이 ",
+          "rect": [
+            64,
+            507,
+            384,
+            847
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+          "rect": [
+            408,
+            779,
+            960,
+            819
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마",
+          "rect": [
+            408,
+            829,
+            960,
+            847
+          ],
+          "scrollAccessible": true
+        }
+      ],
+      "outsideCount": 3,
+      "unscrollable": 0
+    },
+    "lobbyModalReady": {
+      "vw": 1024,
+      "vh": 768,
+      "docScrollW": 1024,
+      "docScrollH": 768,
+      "outside": [
+        {
+          "t": "5\n테스터A\n🍾 리볼버\n1,234\nW3",
+          "rect": [
+            83,
+            757,
+            365,
+            800
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "5",
+          "rect": [
+            92,
+            771,
+            108,
+            787
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "테스터A",
+          "rect": [
+            116,
+            771,
+            153,
+            787
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "🍾 리볼버",
+          "rect": [
+            161,
+            770,
+            208,
+            788
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "1,234\nW3",
+          "rect": [
+            326,
+            763,
+            356,
+            794
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "1,234",
+          "rect": [
+            326,
+            763,
+            356,
+            779
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "W3",
+          "rect": [
+            326,
+            779,
+            356,
+            794
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+          "rect": [
+            408,
+            783,
+            960,
+            823
+          ],
+          "scrollAccessible": true
+        },
+        {
+          "t": "🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마",
+          "rect": [
+            408,
+            833,
+            960,
+            851
+          ],
+          "scrollAccessible": true
+        }
+      ],
+      "outsideCount": 9,
+      "unscrollable": 0
+    },
+    "weaponSelect": {
+      "vw": 1024,
+      "vh": 768,
+      "docScrollW": 1024,
+      "docScrollH": 768,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    },
+    "combat": {
+      "vw": 1024,
+      "vh": 768,
+      "docScrollW": 1024,
+      "docScrollH": 768,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    },
+    "pause": {
+      "vw": 1024,
+      "vh": 768,
+      "docScrollW": 1024,
+      "docScrollH": 768,
+      "outside": [],
+      "outsideCount": 0,
+      "unscrollable": 0
+    }
+  },
+  "errors": {
+    "pageErrors": [],
+    "consoleErrors": []
+  }
+}

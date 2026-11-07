@@ -1,0 +1,47 @@
+14:49:11 [mp] room 9NCD
+14:49:19 [mp] shot V-mp-00-lobby-empty
+14:49:24 [mp] CHECK 00 PASS | lobby initial: both slots empty, phase PAIRING | expected={"phase":"PAIRING","both":"비어 있음"} actual={"phase":"PAIRING"}
+14:49:26 [mp] CHECK 01a BUG | phone registers on its slot (nickname on PC) | expected="모바일P shown" actual=false
+14:49:28 [mp] CHECK 01b BUG | same device on other slot QR -> slot moves (old slot emptied) | expected="nickname moved to slot 1" actual={"phoneSlot":"2P\n2P 슬롯\n● 영점 조절 필요\n📱 모바일\n🖱 마우스\n🔫 모바일P님 접속 완료\n폰에서 영점을 맞춰 주세요","otherSlot":"1P\n1P 슬롯\n비어 있음\n📱 모바일\n🖱 마우스\n입력 방식을 선택하세요\n📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용"}
+14:49:30 [mp] CHECK 01c PASS | other device on occupied slot is rejected (ERROR to phone) and slot keeps original | expected="ERROR msg + 모바일P kept" actual={"errors":["SLOT_OCCUPIED"],"occupiedAfter":true}
+FATAL locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-testid="slot-card-1"]').getByRole('button', { name: '🖱 마우스' })[22m
+[2m    - locator resolved to <button disabled type="button">🖱 마우스</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    6 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 500ms[22m
+[2m    - waiting for element to be visible, enabled and stable[22m
+
+    at main (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/B-mouse-phone/scripts/qa-b-r2-verify.mjs:211:70) {
+  log: [
+    `  - waiting for locator('[data-testid="slot-card-1"]').getByRole('button', { name: '🖱 마우스' })`,
+    '    - locator resolved to <button disabled type="button">🖱 마우스</button>',
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '      - waiting 100ms',
+    '    6 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '      - waiting 500ms',
+    '    - waiting for element to be visible, enabled and stable'
+  ],
+  name: 'TimeoutError'
+}
+EXIT_MP=1

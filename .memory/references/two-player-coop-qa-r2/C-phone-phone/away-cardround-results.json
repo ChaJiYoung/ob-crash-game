@@ -1,0 +1,322 @@
+{
+  "timeline": [
+    {
+      "tSec": 3.4,
+      "isPaused": true,
+      "p2Away": true,
+      "phase": "PLAYING",
+      "resumeMsg": true,
+      "graceText": false,
+      "countdownNumber": "1"
+    },
+    {
+      "tSec": 6.8,
+      "isPaused": false,
+      "p2Away": true,
+      "phase": "PLAYING",
+      "resumeMsg": false,
+      "graceText": false,
+      "countdownNumber": "1"
+    },
+    {
+      "tSec": 10.1,
+      "isPaused": false,
+      "p2Away": true,
+      "phase": "PLAYING",
+      "resumeMsg": false,
+      "graceText": false,
+      "countdownNumber": "1"
+    },
+    {
+      "tSec": 13.8,
+      "isPaused": false,
+      "p2Away": true,
+      "phase": "PLAYING",
+      "resumeMsg": false,
+      "graceText": false,
+      "countdownNumber": "1"
+    },
+    {
+      "tSec": 17.1,
+      "isPaused": false,
+      "p2Away": true,
+      "phase": "PLAYING",
+      "resumeMsg": false,
+      "graceText": false,
+      "countdownNumber": "1"
+    },
+    {
+      "tSec": 20.3,
+      "isPaused": false,
+      "p2Away": true,
+      "phase": "PLAYING",
+      "resumeMsg": false,
+      "graceText": false,
+      "countdownNumber": "1"
+    }
+  ],
+  "steps": {
+    "combatEntered": {
+      "phase": "PLAYING",
+      "selection": {
+        "kind": null,
+        "done": [
+          true,
+          true
+        ]
+      },
+      "isPaused": false,
+      "weapons": [
+        "shotgun/1",
+        "gatling/1"
+      ]
+    },
+    "C07": {
+      "isPausedBeforeClick": true,
+      "p2AwayBeforeClick": false,
+      "timeline": [],
+      "unpausedAtSec": 20.3
+    },
+    "C08": {
+      "progress": [
+        {
+          "tSec": 3,
+          "wave": 1,
+          "progress": "0/26",
+          "p1Score": 0,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 24,
+          "wave": 1,
+          "progress": "0/26",
+          "p1Score": 0,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 44,
+          "wave": 1,
+          "progress": "0/26",
+          "p1Score": 0,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 65,
+          "wave": 1,
+          "progress": "0/26",
+          "p1Score": 5,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 85,
+          "wave": 1,
+          "progress": "2/26",
+          "p1Score": 56,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 107,
+          "wave": 1,
+          "progress": "5/26",
+          "p1Score": 94,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 127,
+          "wave": 1,
+          "progress": "5/26",
+          "p1Score": 94,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 147,
+          "wave": 1,
+          "progress": "5/26",
+          "p1Score": 94,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 169,
+          "wave": 1,
+          "progress": "5/26",
+          "p1Score": 94,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 190,
+          "wave": 1,
+          "progress": "7/26",
+          "p1Score": 141,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 211,
+          "wave": 1,
+          "progress": "9/26",
+          "p1Score": 172,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 232,
+          "wave": 1,
+          "progress": "10/26",
+          "p1Score": 251,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 252,
+          "wave": 1,
+          "progress": "10/26",
+          "p1Score": 251,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 273,
+          "wave": 1,
+          "progress": "10/26",
+          "p1Score": 251,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 294,
+          "wave": 1,
+          "progress": "10/26",
+          "p1Score": 261,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 316,
+          "wave": 1,
+          "progress": "12/26",
+          "p1Score": 297,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 336,
+          "wave": 1,
+          "progress": "14/26",
+          "p1Score": 329,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 357,
+          "wave": 1,
+          "progress": "15/26",
+          "p1Score": 343,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 378,
+          "wave": 1,
+          "progress": "15/26",
+          "p1Score": 343,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 399,
+          "wave": 1,
+          "progress": "16/26",
+          "p1Score": 361,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 420,
+          "wave": 1,
+          "progress": "17/26",
+          "p1Score": 399,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 439,
+          "wave": 1,
+          "progress": "19/26",
+          "p1Score": 422,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 460,
+          "wave": 1,
+          "progress": "20/26",
+          "p1Score": 436,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 481,
+          "wave": 1,
+          "progress": "20/26",
+          "p1Score": 436,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 502,
+          "wave": 1,
+          "progress": "22/26",
+          "p1Score": 477,
+          "p2Away": true,
+          "isPaused": false
+        },
+        {
+          "tSec": 522,
+          "wave": 1,
+          "progress": "23/26",
+          "p1Score": 500,
+          "p2Away": true,
+          "isPaused": false
+        }
+      ],
+      "cardRoundSeen": false,
+      "elapsedSec": 541,
+      "selectionAtStop": {
+        "kind": null,
+        "done": [
+          true,
+          true
+        ]
+      }
+    },
+    "C09": {
+      "awayBefore": true,
+      "awayAfterReconnectNoZero": false,
+      "final": {
+        "isAway": false,
+        "phase": "PLAYING",
+        "isPaused": false
+      }
+    },
+    "final": {
+      "phase": "PLAYING",
+      "isPaused": false,
+      "p1": 514,
+      "wave": 1,
+      "lives": 5,
+      "pausedMenuText": false
+    }
+  },
+  "pageErrorsCount": 0,
+  "errorsCount": 0,
+  "errors": []
+}

@@ -1,0 +1,94 @@
+[12.9s] [shotgun] picked weapon: shotgun
+[21.4s] [shotgun] fever activated wave 1
+[23.3s] [shotgun] fever +2s: score gain 72, still active true
+[27.2s] [shotgun] card round wave 1: offered damage_up, skill_cooldown, weapon_level_up
+[27.2s] [shotgun] picked card weapon_level_up
+[27.7s] [shotgun] wave 1 -> 2 (lives 5, score 1144)
+[35.6s] [shotgun] fever activated wave 2
+[37.5s] [shotgun] fever +2s: score gain 95, still active true
+[44.7s] [shotgun] card round wave 2: offered damage_up, skill_cooldown, lucky_drop
+[44.7s] [shotgun] picked card damage_up
+[45.2s] [shotgun] wave 2 -> 3 (lives 5, score 2415)
+[49.7s] [shotgun] boss spawned wave 3, maxHp 100
+[51.2s] [shotgun] fever activated wave 3
+[53.0s] [shotgun] fever +2s: score gain 202, still active true
+[63.2s] [shotgun] fever activated wave 3
+[65.1s] [shotgun] fever +2s: score gain 181, still active true
+[74.8s] [shotgun] fever activated wave 3
+[75.8s] [shotgun] boss gone wave 3 after 26s
+[76.6s] [shotgun] fever +2s: score gain 3010, still active true
+[77.7s] [shotgun] card round wave 3: offered lucky_drop, hit_zone_up, weapon_level_up
+[77.8s] [shotgun] picked card weapon_level_up
+[78.3s] [shotgun] wave 3 -> 4 (lives 5, score 7617)
+[83.7s] [shotgun] fever activated wave 4
+[85.5s] [shotgun] fever +2s: score gain 84, still active true
+[87.3s] [shotgun] card round wave 4: offered damage_up, lucky_drop, fever_extend
+[87.4s] [shotgun] picked card damage_up
+[90.4s] [shotgun] fever activated wave 4
+[92.2s] [shotgun] fever +2s: score gain 155, still active true
+[93.3s] [shotgun] card round wave 4: offered skill_cooldown, lucky_drop, fever_extend
+[93.4s] [shotgun] picked card skill_cooldown
+[99.3s] [shotgun] card round wave 4: offered fever_boost, hit_zone_up, damage_up
+[99.4s] [shotgun] picked card fever_boost
+[100.0s] [shotgun] fever activated wave 4
+[102.6s] [shotgun] card round wave 4: offered fever_extend, skill_cooldown, damage_up
+[102.7s] [shotgun] picked card fever_extend
+[103.2s] [shotgun] wave 4 -> 5 (lives 5, score 10159)
+[104.3s] [shotgun] fever +2s: score gain 847, still active true
+[108.2s] [shotgun] boss spawned wave 5, maxHp 120
+[109.5s] [shotgun] fever activated wave 5
+[111.3s] [shotgun] fever +2s: score gain 269, still active true
+[118.3s] [shotgun] fever activated wave 5
+[120.2s] [shotgun] fever +2s: score gain 215, still active true
+[127.1s] [shotgun] fever activated wave 5
+[129.0s] [shotgun] fever +2s: score gain 204, still active true
+[135.6s] [shotgun] fever activated wave 5
+[137.5s] [shotgun] fever +2s: score gain 181, still active true
+[144.6s] [shotgun] fever activated wave 5
+[146.5s] [shotgun] fever +2s: score gain 123, still active true
+[153.5s] [shotgun] fever activated wave 5
+[155.4s] [shotgun] fever +2s: score gain 197, still active true
+[160.5s] [shotgun] fever activated wave 5
+[162.3s] [shotgun] fever +2s: score gain 187, still active true
+[170.5s] [shotgun] fever activated wave 5
+[172.6s] [shotgun] fever +2s: score gain 204, still active true
+[179.3s] [shotgun] fever activated wave 5
+[181.1s] [shotgun] fever +2s: score gain 191, still active true
+[187.9s] [shotgun] fever activated wave 5
+[189.7s] [shotgun] fever +2s: score gain 230, still active true
+[193.8s] [shotgun] boss gone wave 5 after 86s
+[196.0s] [shotgun] card round wave 5: offered rapid_reload, weapon_level_up, lucky_drop
+[196.2s] [shotgun] picked card weapon_level_up
+[196.7s] [shotgun] wave 5 -> 6 (lives 5, score 19776)
+[199.7s] [shotgun] fever activated wave 6
+[201.6s] [shotgun] fever +2s: score gain 115, still active true
+[206.4s] [shotgun] card round wave 6: offered fever_boost, skill_cooldown, rapid_reload
+[206.5s] [shotgun] picked card fever_boost
+[207.8s] [shotgun] fever activated wave 6
+[209.7s] [shotgun] fever +2s: score gain 88, still active true
+[219.6s] [shotgun] card round wave 6: offered hit_zone_up, rapid_reload, skill_cooldown
+[219.6s] [shotgun] picked card hit_zone_up
+[220.2s] [shotgun] wave 6 -> 7 (lives 5, score 21679)
+[221.0s] [shotgun] fever activated wave 7
+[222.2s] [shotgun] fever +2s: score gain 24, still active true
+[227.1s] [shotgun] boss spawned wave 7, maxHp 150
+[230.2s] [shotgun] fever activated wave 7
+[232.0s] [shotgun] fever +2s: score gain 392, still active true
+[239.8s] [shotgun] fever activated wave 7
+[241.8s] [shotgun] fever +2s: score gain 278, still active true
+[248.1s] [shotgun] fever activated wave 7
+[250.1s] [shotgun] fever +2s: score gain 351, still active true
+[257.8s] [shotgun] fever activated wave 7
+[259.5s] [shotgun] fever +2s: score gain 217, still active true
+[266.2s] [shotgun] fever activated wave 7
+[268.0s] [shotgun] fever +2s: score gain 254, still active true
+[274.5s] [shotgun] fever activated wave 7
+[276.3s] [shotgun] fever +2s: score gain 183, still active true
+[284.0s] [shotgun] fever activated wave 7
+[285.8s] [shotgun] fever +2s: score gain 203, still active true
+[292.9s] [shotgun] fever activated wave 7
+[294.8s] [shotgun] fever +2s: score gain 225, still active true
+[301.8s] [shotgun] fever activated wave 7
+[303.6s] [shotgun] fever +2s: score gain 182, still active true
+[307.7s] [shotgun] boss gone wave 7 after 81s
+[311.2s] [shotgun] DONE phase=VICTORY wave=7 lives=5 score=37576 pageErr=0 consoleErr=0

@@ -1,0 +1,48 @@
+
+  VITE v5.4.21  ready in 186 ms
+
+  ➜  Local:   https://127.0.0.1:5202/
+11:50:55 PM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+11:54:28 PM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+12:02:08 AM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+12:02:08 AM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)

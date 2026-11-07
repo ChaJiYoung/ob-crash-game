@@ -1,0 +1,76 @@
+{
+  "mode": "coop",
+  "steps": {
+    "lobbyBoundary1440": {
+      "vw": 1440,
+      "vh": 900,
+      "offscreenCount": 0,
+      "offscreen": []
+    },
+    "lobbyBoundary1024": {
+      "vw": 1024,
+      "vh": 768,
+      "offscreenCount": 3,
+      "offscreen": [
+        {
+          "text": "🏆\n개인 랭킹\n👥\n팀 랭킹\n아직 팀 기록이 없습니다.",
+          "rect": [
+            64,
+            507,
+            384,
+            851
+          ]
+        },
+        {
+          "text": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+          "rect": [
+            408,
+            783,
+            960,
+            823
+          ]
+        },
+        {
+          "text": "🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주",
+          "rect": [
+            408,
+            833,
+            960,
+            851
+          ]
+        }
+      ]
+    },
+    "combat": {
+      "phase": "PLAYING",
+      "selection": {
+        "kind": null,
+        "done": [
+          true,
+          true
+        ]
+      },
+      "weapons": [
+        "shotgun/1",
+        "gatling/1"
+      ]
+    },
+    "maxHpByKind": {
+      "caslight": [
+        1.6
+      ],
+      "pilgood": [
+        1.6
+      ]
+    },
+    "targetCountSample": 5,
+    "aimCombos": "captured: opposite (1P -0.7,0.4 / 2P 0.7,-0.3), cross (1P 0.6,0 / 2P -0.6,0), center (0,0 / 0,0)",
+    "afterAim": {
+      "phase": "PLAYING",
+      "isPaused": false
+    }
+  },
+  "pageErrorsCount": 0,
+  "errorsCount": 0,
+  "errors": []
+}

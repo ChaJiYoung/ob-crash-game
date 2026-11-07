@@ -1,0 +1,1004 @@
+{
+  "weapon": "shotgun",
+  "renderer": "chromium headless, --use-angle=metal (see report: swiftshader was 0.3fps)",
+  "startedAt": "2026-11-07T14:52:21.177Z",
+  "pick": "shotgun",
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startT": 14,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 14,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "2": {
+      "wave": 2,
+      "startT": 28,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 17,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "3": {
+      "wave": 3,
+      "startT": 45,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 33,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "4": {
+      "wave": 4,
+      "startT": 78,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 25,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 4
+    },
+    "5": {
+      "wave": 5,
+      "startT": 103,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 93,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "6": {
+      "wave": 6,
+      "startT": 197,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 23,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 2
+    },
+    "7": {
+      "wave": 7,
+      "startT": 220,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 89,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 0
+    }
+  },
+  "events": [
+    {
+      "t": 13,
+      "msg": "picked weapon: shotgun"
+    },
+    {
+      "t": 21,
+      "msg": "fever activated wave 1"
+    },
+    {
+      "t": 23,
+      "msg": "fever +2s: score gain 72, still active true"
+    },
+    {
+      "t": 27,
+      "msg": "card round wave 1: offered damage_up, skill_cooldown, weapon_level_up"
+    },
+    {
+      "t": 27,
+      "msg": "picked card weapon_level_up"
+    },
+    {
+      "t": 28,
+      "msg": "wave 1 -> 2 (lives 5, score 1144)"
+    },
+    {
+      "t": 36,
+      "msg": "fever activated wave 2"
+    },
+    {
+      "t": 38,
+      "msg": "fever +2s: score gain 95, still active true"
+    },
+    {
+      "t": 45,
+      "msg": "card round wave 2: offered damage_up, skill_cooldown, lucky_drop"
+    },
+    {
+      "t": 45,
+      "msg": "picked card damage_up"
+    },
+    {
+      "t": 45,
+      "msg": "wave 2 -> 3 (lives 5, score 2415)"
+    },
+    {
+      "t": 50,
+      "msg": "boss spawned wave 3, maxHp 100"
+    },
+    {
+      "t": 51,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 53,
+      "msg": "fever +2s: score gain 202, still active true"
+    },
+    {
+      "t": 63,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 65,
+      "msg": "fever +2s: score gain 181, still active true"
+    },
+    {
+      "t": 75,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 76,
+      "msg": "boss gone wave 3 after 26s"
+    },
+    {
+      "t": 77,
+      "msg": "fever +2s: score gain 3010, still active true"
+    },
+    {
+      "t": 78,
+      "msg": "card round wave 3: offered lucky_drop, hit_zone_up, weapon_level_up"
+    },
+    {
+      "t": 78,
+      "msg": "picked card weapon_level_up"
+    },
+    {
+      "t": 78,
+      "msg": "wave 3 -> 4 (lives 5, score 7617)"
+    },
+    {
+      "t": 84,
+      "msg": "fever activated wave 4"
+    },
+    {
+      "t": 86,
+      "msg": "fever +2s: score gain 84, still active true"
+    },
+    {
+      "t": 87,
+      "msg": "card round wave 4: offered damage_up, lucky_drop, fever_extend"
+    },
+    {
+      "t": 87,
+      "msg": "picked card damage_up"
+    },
+    {
+      "t": 90,
+      "msg": "fever activated wave 4"
+    },
+    {
+      "t": 92,
+      "msg": "fever +2s: score gain 155, still active true"
+    },
+    {
+      "t": 93,
+      "msg": "card round wave 4: offered skill_cooldown, lucky_drop, fever_extend"
+    },
+    {
+      "t": 93,
+      "msg": "picked card skill_cooldown"
+    },
+    {
+      "t": 99,
+      "msg": "card round wave 4: offered fever_boost, hit_zone_up, damage_up"
+    },
+    {
+      "t": 99,
+      "msg": "picked card fever_boost"
+    },
+    {
+      "t": 100,
+      "msg": "fever activated wave 4"
+    },
+    {
+      "t": 103,
+      "msg": "card round wave 4: offered fever_extend, skill_cooldown, damage_up"
+    },
+    {
+      "t": 103,
+      "msg": "picked card fever_extend"
+    },
+    {
+      "t": 103,
+      "msg": "wave 4 -> 5 (lives 5, score 10159)"
+    },
+    {
+      "t": 104,
+      "msg": "fever +2s: score gain 847, still active true"
+    },
+    {
+      "t": 108,
+      "msg": "boss spawned wave 5, maxHp 120"
+    },
+    {
+      "t": 110,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 111,
+      "msg": "fever +2s: score gain 269, still active true"
+    },
+    {
+      "t": 118,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 120,
+      "msg": "fever +2s: score gain 215, still active true"
+    },
+    {
+      "t": 127,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 129,
+      "msg": "fever +2s: score gain 204, still active true"
+    },
+    {
+      "t": 136,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 138,
+      "msg": "fever +2s: score gain 181, still active true"
+    },
+    {
+      "t": 145,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 146,
+      "msg": "fever +2s: score gain 123, still active true"
+    },
+    {
+      "t": 154,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 155,
+      "msg": "fever +2s: score gain 197, still active true"
+    },
+    {
+      "t": 160,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 162,
+      "msg": "fever +2s: score gain 187, still active true"
+    },
+    {
+      "t": 171,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 173,
+      "msg": "fever +2s: score gain 204, still active true"
+    },
+    {
+      "t": 179,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 181,
+      "msg": "fever +2s: score gain 191, still active true"
+    },
+    {
+      "t": 188,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 190,
+      "msg": "fever +2s: score gain 230, still active true"
+    },
+    {
+      "t": 194,
+      "msg": "boss gone wave 5 after 86s"
+    },
+    {
+      "t": 196,
+      "msg": "card round wave 5: offered rapid_reload, weapon_level_up, lucky_drop"
+    },
+    {
+      "t": 196,
+      "msg": "picked card weapon_level_up"
+    },
+    {
+      "t": 197,
+      "msg": "wave 5 -> 6 (lives 5, score 19776)"
+    },
+    {
+      "t": 200,
+      "msg": "fever activated wave 6"
+    },
+    {
+      "t": 202,
+      "msg": "fever +2s: score gain 115, still active true"
+    },
+    {
+      "t": 206,
+      "msg": "card round wave 6: offered fever_boost, skill_cooldown, rapid_reload"
+    },
+    {
+      "t": 206,
+      "msg": "picked card fever_boost"
+    },
+    {
+      "t": 208,
+      "msg": "fever activated wave 6"
+    },
+    {
+      "t": 210,
+      "msg": "fever +2s: score gain 88, still active true"
+    },
+    {
+      "t": 220,
+      "msg": "card round wave 6: offered hit_zone_up, rapid_reload, skill_cooldown"
+    },
+    {
+      "t": 220,
+      "msg": "picked card hit_zone_up"
+    },
+    {
+      "t": 220,
+      "msg": "wave 6 -> 7 (lives 5, score 21679)"
+    },
+    {
+      "t": 221,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 222,
+      "msg": "fever +2s: score gain 24, still active true"
+    },
+    {
+      "t": 227,
+      "msg": "boss spawned wave 7, maxHp 150"
+    },
+    {
+      "t": 230,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 232,
+      "msg": "fever +2s: score gain 392, still active true"
+    },
+    {
+      "t": 240,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 242,
+      "msg": "fever +2s: score gain 278, still active true"
+    },
+    {
+      "t": 248,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 250,
+      "msg": "fever +2s: score gain 351, still active true"
+    },
+    {
+      "t": 258,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 260,
+      "msg": "fever +2s: score gain 217, still active true"
+    },
+    {
+      "t": 266,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 268,
+      "msg": "fever +2s: score gain 254, still active true"
+    },
+    {
+      "t": 274,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 276,
+      "msg": "fever +2s: score gain 183, still active true"
+    },
+    {
+      "t": 284,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 286,
+      "msg": "fever +2s: score gain 203, still active true"
+    },
+    {
+      "t": 293,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 295,
+      "msg": "fever +2s: score gain 225, still active true"
+    },
+    {
+      "t": 302,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 304,
+      "msg": "fever +2s: score gain 182, still active true"
+    },
+    {
+      "t": 308,
+      "msg": "boss gone wave 7 after 81s"
+    }
+  ],
+  "cardRounds": [
+    {
+      "wave": 1,
+      "offered": [
+        "damage_up",
+        "skill_cooldown",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "fullplay-shotgun-wave1-cards.png",
+      "t": 26
+    },
+    {
+      "wave": 2,
+      "offered": [
+        "damage_up",
+        "skill_cooldown",
+        "lucky_drop"
+      ],
+      "chosen": "damage_up",
+      "screenshot": "fullplay-shotgun-wave2-cards.png",
+      "t": 44
+    },
+    {
+      "wave": 3,
+      "offered": [
+        "lucky_drop",
+        "hit_zone_up",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "fullplay-shotgun-wave3-cards.png",
+      "t": 77
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "damage_up",
+        "lucky_drop",
+        "fever_extend"
+      ],
+      "chosen": "damage_up",
+      "screenshot": "fullplay-shotgun-wave4-cards.png",
+      "t": 86
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "skill_cooldown",
+        "lucky_drop",
+        "fever_extend"
+      ],
+      "chosen": "skill_cooldown",
+      "screenshot": "fullplay-shotgun-wave4-cards.png",
+      "t": 92
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "fever_boost",
+        "hit_zone_up",
+        "damage_up"
+      ],
+      "chosen": "fever_boost",
+      "screenshot": "fullplay-shotgun-wave4-cards.png",
+      "t": 98
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "fever_extend",
+        "skill_cooldown",
+        "damage_up"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "fullplay-shotgun-wave4-cards.png",
+      "t": 102
+    },
+    {
+      "wave": 5,
+      "offered": [
+        "rapid_reload",
+        "weapon_level_up",
+        "lucky_drop"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "fullplay-shotgun-wave5-cards.png",
+      "t": 195
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "fever_boost",
+        "skill_cooldown",
+        "rapid_reload"
+      ],
+      "chosen": "fever_boost",
+      "screenshot": "fullplay-shotgun-wave6-cards.png",
+      "t": 206
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "hit_zone_up",
+        "rapid_reload",
+        "skill_cooldown"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "fullplay-shotgun-wave6-cards.png",
+      "t": 219
+    }
+  ],
+  "bossEncounters": [
+    {
+      "wave": 3,
+      "durationSec": 26,
+      "outcome": "boss gone (killed or wave ended)"
+    },
+    {
+      "wave": 5,
+      "durationSec": 86,
+      "outcome": "boss gone (killed or wave ended)"
+    },
+    {
+      "wave": 7,
+      "durationSec": 81,
+      "outcome": "boss gone (killed or wave ended)"
+    }
+  ],
+  "fever": [
+    {
+      "wave": 1,
+      "activatedAtSec": 21,
+      "scoreBefore": 281,
+      "scoreAfter2s": 353,
+      "scoreGainIn2s": 72,
+      "feverStillActive": true
+    },
+    {
+      "wave": 2,
+      "activatedAtSec": 35,
+      "scoreBefore": 1427,
+      "scoreAfter2s": 1522,
+      "scoreGainIn2s": 95,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 51,
+      "scoreBefore": 2647,
+      "scoreAfter2s": 2849,
+      "scoreGainIn2s": 202,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 63,
+      "scoreBefore": 3670,
+      "scoreAfter2s": 3851,
+      "scoreGainIn2s": 181,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 75,
+      "scoreBefore": 4607,
+      "scoreAfter2s": 7617,
+      "scoreGainIn2s": 3010,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 84,
+      "scoreBefore": 8028,
+      "scoreAfter2s": 8112,
+      "scoreGainIn2s": 84,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 90,
+      "scoreBefore": 8631,
+      "scoreAfter2s": 8786,
+      "scoreGainIn2s": 155,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 100,
+      "scoreBefore": 9334,
+      "scoreAfter2s": 10181,
+      "scoreGainIn2s": 847,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 109,
+      "scoreBefore": 10614,
+      "scoreAfter2s": 10883,
+      "scoreGainIn2s": 269,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 118,
+      "scoreBefore": 11547,
+      "scoreAfter2s": 11762,
+      "scoreGainIn2s": 215,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 127,
+      "scoreBefore": 12460,
+      "scoreAfter2s": 12664,
+      "scoreGainIn2s": 204,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 135,
+      "scoreBefore": 13346,
+      "scoreAfter2s": 13527,
+      "scoreGainIn2s": 181,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 144,
+      "scoreBefore": 14228,
+      "scoreAfter2s": 14351,
+      "scoreGainIn2s": 123,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 153,
+      "scoreBefore": 15035,
+      "scoreAfter2s": 15232,
+      "scoreGainIn2s": 197,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 160,
+      "scoreBefore": 15970,
+      "scoreAfter2s": 16157,
+      "scoreGainIn2s": 187,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 170,
+      "scoreBefore": 17157,
+      "scoreAfter2s": 17361,
+      "scoreGainIn2s": 204,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 179,
+      "scoreBefore": 18038,
+      "scoreAfter2s": 18229,
+      "scoreGainIn2s": 191,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 188,
+      "scoreBefore": 18918,
+      "scoreAfter2s": 19148,
+      "scoreGainIn2s": 230,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 200,
+      "scoreBefore": 19967,
+      "scoreAfter2s": 20082,
+      "scoreGainIn2s": 115,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 208,
+      "scoreBefore": 20453,
+      "scoreAfter2s": 20541,
+      "scoreGainIn2s": 88,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 220,
+      "scoreBefore": 21679,
+      "scoreAfter2s": 21703,
+      "scoreGainIn2s": 24,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 230,
+      "scoreBefore": 22342,
+      "scoreAfter2s": 22734,
+      "scoreGainIn2s": 392,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 240,
+      "scoreBefore": 23578,
+      "scoreAfter2s": 23856,
+      "scoreGainIn2s": 278,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 248,
+      "scoreBefore": 24553,
+      "scoreAfter2s": 24904,
+      "scoreGainIn2s": 351,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 257,
+      "scoreBefore": 25680,
+      "scoreAfter2s": 25897,
+      "scoreGainIn2s": 217,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 266,
+      "scoreBefore": 26616,
+      "scoreAfter2s": 26870,
+      "scoreGainIn2s": 254,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 274,
+      "scoreBefore": 27555,
+      "scoreAfter2s": 27738,
+      "scoreGainIn2s": 183,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 284,
+      "scoreBefore": 28722,
+      "scoreAfter2s": 28925,
+      "scoreGainIn2s": 203,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 293,
+      "scoreBefore": 29683,
+      "scoreAfter2s": 29908,
+      "scoreGainIn2s": 225,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 302,
+      "scoreBefore": 30679,
+      "scoreAfter2s": 30861,
+      "scoreGainIn2s": 182,
+      "feverStillActive": true
+    }
+  ],
+  "skill": [
+    {
+      "wave": 1,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    }
+  ],
+  "stalls": [],
+  "hudBlocks": {
+    "checks": 397,
+    "blocked": 0,
+    "samples": []
+  },
+  "shots": {
+    "ammoDrops": 586
+  },
+  "kills": 933,
+  "result": {
+    "phase": "VICTORY",
+    "finalWave": 7,
+    "finalLives": 5,
+    "finalScore": 37576,
+    "durationSec": 311,
+    "loops": 5234,
+    "screenshot": "fullplay-shotgun-result-VICTORY.png",
+    "bodyTextSnippet": "🎉 VICTORY! 브루어리 수호 성공!\n생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!\n최종 득점\n37576점\n기본 25970점\n시간 보너스 +5600점\nWAVE 7 CLEAR · 88.0초 · +0점\n정밀도 보너스 +6006점\nNEW RECORD!\n누적 격파 (KILL)\n827 KILL\n최대 콤보\n1164 COMBO\n도달 웨이브\nWAVE 7\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\nQA-D-SHOTG\n🪠 샷건\n37576점\nW7\n🔄 다시 도전하기\n🏠 로비로 이동\nSHOTGUN Lv.MAX"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "finishedAt": "2026-11-07T14:57:31.906Z"
+}

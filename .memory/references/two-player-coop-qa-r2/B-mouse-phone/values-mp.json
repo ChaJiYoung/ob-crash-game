@@ -1,0 +1,1248 @@
+{
+  "combo": "mp",
+  "mouseSlot": 1,
+  "phoneSlot": 2,
+  "startedAt": "2026-11-07T15:44:05.928Z",
+  "checks": [
+    {
+      "id": "00",
+      "item": "lobby initial: both slots empty, phase PAIRING",
+      "verdict": "PASS",
+      "expected": {
+        "phase": "PAIRING",
+        "both": "비어 있음"
+      },
+      "actual": {
+        "phase": "PAIRING"
+      },
+      "note": ""
+    },
+    {
+      "id": "01a",
+      "item": "phone registers on its slot (nickname on PC)",
+      "verdict": "PASS",
+      "expected": "모바일P shown",
+      "actual": true,
+      "note": ""
+    },
+    {
+      "id": "01c",
+      "item": "other device on occupied slot is rejected (ERROR to phone) and slot keeps original",
+      "verdict": "PASS",
+      "expected": "ERROR msg + 모바일P kept",
+      "actual": {
+        "errors": [
+          "SLOT_OCCUPIED"
+        ],
+        "occupiedAfter": true
+      },
+      "note": ""
+    },
+    {
+      "id": "02",
+      "item": "start with one side not ready shows \"2P 준비 중\" and does not start",
+      "verdict": "PASS",
+      "expected": {
+        "notice": "2P 준비 중",
+        "phase": "PAIRING"
+      },
+      "actual": {
+        "notice": true,
+        "phase": "PAIRING"
+      },
+      "note": ""
+    },
+    {
+      "id": "03",
+      "item": "both slots ready (준비 완료) after phone zero",
+      "verdict": "BUG",
+      "expected": "no 준비 중 notice",
+      "actual": {
+        "hasReady": true,
+        "hasNotice": true
+      },
+      "note": ""
+    },
+    {
+      "id": "04a",
+      "item": "game starts after both ready",
+      "verdict": "PASS",
+      "expected": "phase PLAYING",
+      "actual": "PLAYING",
+      "note": ""
+    },
+    {
+      "id": "04b",
+      "item": "weapon selection appears after countdown",
+      "verdict": "PASS",
+      "expected": "selection.kind=weapon",
+      "actual": {
+        "kind": "weapon",
+        "done": [
+          false,
+          false
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "04c",
+      "item": "weapon selection shows 6 cards, 3 per player, 1P left (aimX<0) / 2P right (aimX>0)",
+      "verdict": "PASS",
+      "expected": {
+        "total": 6,
+        "per": 3,
+        "side": "p1<0,p2>0"
+      },
+      "actual": {
+        "total": 6,
+        "byOwner": [
+          [
+            {
+              "w": "shotgun",
+              "ax": -0.89,
+              "ay": 0.12
+            },
+            {
+              "w": "revolver",
+              "ax": -0.54,
+              "ay": 0.12
+            },
+            {
+              "w": "gatling",
+              "ax": -0.2,
+              "ay": 0.12
+            }
+          ],
+          [
+            {
+              "w": "shotgun",
+              "ax": 0.2,
+              "ay": 0.12
+            },
+            {
+              "w": "revolver",
+              "ax": 0.54,
+              "ay": 0.12
+            },
+            {
+              "w": "gatling",
+              "ax": 0.89,
+              "ay": 0.12
+            }
+          ]
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "04d",
+      "item": "player shooting the other player's card does not select it",
+      "verdict": "BUG",
+      "expected": {
+        "doneUnchanged": true,
+        "shooterDone": false
+      },
+      "actual": {
+        "before": [
+          false,
+          false
+        ],
+        "after": [
+          true,
+          false
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "04e",
+      "item": "after one player picks: only that card is gone, banner says waiting for partner",
+      "verdict": "PASS",
+      "expected": {
+        "done": [
+          true,
+          false
+        ]
+      },
+      "actual": {
+        "done": [
+          true,
+          false
+        ],
+        "banner": {
+          "done": true,
+          "wait": true
+        }
+      },
+      "note": ""
+    },
+    {
+      "id": "04f",
+      "item": "waiting selection has no time limit (still waiting after 12 s)",
+      "verdict": "PASS",
+      "expected": {
+        "kind": "weapon",
+        "partnerDone": false
+      },
+      "actual": {
+        "kind": "weapon",
+        "done": [
+          true,
+          false
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "04g",
+      "item": "both picked -> game starts (selection cleared, phase PLAYING)",
+      "verdict": "PASS",
+      "expected": {
+        "kind": null,
+        "phase": "PLAYING"
+      },
+      "actual": {
+        "kind": null,
+        "phase": "PLAYING"
+      },
+      "note": ""
+    },
+    {
+      "id": "05a",
+      "item": "team HUD text \"BAR DEFENSE\" and skill hints for both input kinds",
+      "verdict": "BUG",
+      "expected": {
+        "bar": true,
+        "mouseHint": "[우클릭]",
+        "phoneHint": "[위로 휙!]"
+      },
+      "actual": {
+        "bar": true,
+        "mouse": false,
+        "phone": false
+      },
+      "note": ""
+    },
+    {
+      "id": "05b",
+      "item": "crosshair nametags \"1P · ...\" and \"2P · ...\"",
+      "verdict": "PASS",
+      "expected": [
+        "1P · ..",
+        "2P · .."
+      ],
+      "actual": [
+        "1P · GATLING Lv.1",
+        "2P · SHOTGUN Lv.1"
+      ],
+      "note": ""
+    },
+    {
+      "id": "05c",
+      "item": "engine player index matches slot (weapon kind of player[0] equals 1P nametag)",
+      "verdict": "PASS",
+      "expected": {
+        "p0Weapon": "gatling"
+      },
+      "actual": {
+        "names": [
+          "1P · GATLING Lv.1",
+          "2P · SHOTGUN Lv.1"
+        ],
+        "p0": "gatling"
+      },
+      "note": ""
+    },
+    {
+      "id": "06",
+      "item": "5-2 nametag (crosshair) tracks each aim: consistent offset from aim centre across 3 aim cases (x-offset<=40px, y-offset spread<=20px)",
+      "verdict": "BUG",
+      "expected": {
+        "maxAbsDx": "<=40",
+        "ySpread": "<=20"
+      },
+      "actual": {
+        "maxAbsDx": 906,
+        "ySpread": 292,
+        "offsets": [
+          [
+            0,
+            -67
+          ],
+          [
+            -372,
+            -262
+          ],
+          [
+            0,
+            -67
+          ],
+          [
+            906,
+            30
+          ],
+          [
+            0,
+            -67
+          ],
+          [
+            -406,
+            -83
+          ]
+        ]
+      },
+      "note": "nametag is drawn above crosshair; the offset is taken as the baseline"
+    },
+    {
+      "id": "10a",
+      "item": "5-4 mouse movement moves only the mouse player crosshair; phone crosshair stays",
+      "verdict": "PASS",
+      "expected": {
+        "phoneStill": true,
+        "mouseMoved": true
+      },
+      "actual": {
+        "phoneA": [
+          382,
+          291
+        ],
+        "phoneB": [
+          382,
+          291
+        ],
+        "mouseA": [
+          864,
+          293
+        ],
+        "mouseB": [
+          1224,
+          608
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "12a",
+      "item": "input separation: mouse hit adds score only to mouse player (no leak to partner)",
+      "verdict": "PASS",
+      "expected": {
+        "shooterGain": ">0",
+        "partnerGain": 0
+      },
+      "actual": {
+        "deltas": [
+          5,
+          0
+        ],
+        "shooterIdx": 0
+      },
+      "note": ""
+    },
+    {
+      "id": "12b",
+      "item": "input separation: phone hit",
+      "verdict": "BUG",
+      "expected": "shooter score > 0 within 4 tries",
+      "actual": [
+        {
+          "who": "phone",
+          "try": 0,
+          "deltas": [
+            0,
+            0
+          ],
+          "shooterIdx": 1,
+          "otherIdx": 0,
+          "target": "target_7_caslight"
+        },
+        {
+          "who": "phone",
+          "try": 1,
+          "deltas": [
+            0,
+            0
+          ],
+          "shooterIdx": 1,
+          "otherIdx": 0,
+          "target": "target_7_caslight"
+        },
+        {
+          "who": "phone",
+          "try": 2,
+          "deltas": [
+            0,
+            0
+          ],
+          "shooterIdx": 1,
+          "otherIdx": 0,
+          "target": "target_11_caslight"
+        },
+        {
+          "who": "phone",
+          "try": 3,
+          "deltas": [
+            0,
+            0
+          ],
+          "shooterIdx": 1,
+          "otherIdx": 0,
+          "target": "target_11_caslight"
+        }
+      ],
+      "note": ""
+    },
+    {
+      "id": "51a",
+      "item": "5-1 mouse held 1 s: ammo drops by more than one shot (continuous fire)",
+      "verdict": "PASS",
+      "expected": "drop>=2",
+      "actual": {
+        "weapon": "gatling",
+        "before": 29,
+        "drop": 9,
+        "samples": [
+          28,
+          27,
+          26,
+          25,
+          24,
+          23,
+          23,
+          22,
+          20,
+          20
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "51b",
+      "item": "5-1 phone rapidFireHold 1 s: ammo drops by more than one shot",
+      "verdict": "PASS",
+      "expected": "drop>=2",
+      "actual": {
+        "weapon": "shotgun",
+        "before": 10,
+        "drop": 7,
+        "samples": [
+          10,
+          9,
+          9,
+          8,
+          7,
+          7,
+          5,
+          4,
+          3,
+          3
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "07a",
+      "item": "HUD 가이드 click does not fire the mouse player (ammo/score unchanged)",
+      "verdict": "PASS",
+      "expected": {
+        "ammoBefore": 19,
+        "scoreBefore": 25
+      },
+      "actual": {
+        "ammoAfter": 19,
+        "scoreAfter": 25,
+        "guideOpen": true
+      },
+      "note": ""
+    },
+    {
+      "id": "07b",
+      "item": "HUD 일시정지 click pauses and does not fire",
+      "verdict": "PASS",
+      "expected": {
+        "isPaused": true,
+        "ammo": 19
+      },
+      "actual": {
+        "isPaused": true,
+        "ammo": 19
+      },
+      "note": ""
+    },
+    {
+      "id": "07c",
+      "item": "pause 이어하기 resumes (within 4 s)",
+      "verdict": "PASS",
+      "expected": {
+        "isPaused": false,
+        "withinMs": 4000
+      },
+      "actual": {
+        "resumedAt": 1000,
+        "last": {
+          "t": 1000,
+          "isPaused": false,
+          "phase": "PLAYING"
+        }
+      },
+      "note": ""
+    },
+    {
+      "id": "08a",
+      "item": "Esc opens pause menu (isPaused, 이어하기/다시시작/로비로 나가기)",
+      "verdict": "PASS",
+      "expected": {
+        "isPaused": true
+      },
+      "actual": {
+        "isPaused": true,
+        "texts": [
+          true,
+          true,
+          true
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "08b",
+      "item": "다시시작(무기 선택부터) returns to weapon selection with same 2 players",
+      "verdict": "BUG",
+      "expected": "selection weapon",
+      "actual": {
+        "ok": true,
+        "kinds": [
+          "shotgun",
+          "shotgun"
+        ],
+        "before": [
+          "gatling",
+          "shotgun"
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "08c",
+      "item": "after 다시시작 both re-pick -> game resumes (PLAYING)",
+      "verdict": "PASS",
+      "expected": "PLAYING",
+      "actual": "PLAYING",
+      "note": ""
+    },
+    {
+      "id": "09c",
+      "item": "skill (right click) consumes stock for P1",
+      "verdict": "PASS",
+      "expected": {
+        "stockDown": true
+      },
+      "actual": {
+        "before": 1,
+        "after": 0
+      },
+      "note": ""
+    },
+    {
+      "id": "09a",
+      "item": "5-1 fever (mouse, P1): active for 2 s, score rises, shots happen, partner unaffected",
+      "verdict": "BUG",
+      "expected": {
+        "active": true,
+        "scoreUp": true,
+        "shotsDuringFever": true,
+        "partnerUnchanged": true
+      },
+      "actual": {
+        "player": 1,
+        "device": "mouse",
+        "ammoBefore": 10,
+        "scoreDelta": 18,
+        "partnerScoreDelta": 0,
+        "feverActiveSeen": false,
+        "ammoDuring": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "09d",
+      "item": "skill (phone 휙) consumes stock for P2",
+      "verdict": "BUG",
+      "expected": {
+        "stockDown": true
+      },
+      "actual": {
+        "before": 1,
+        "after": 1
+      },
+      "note": ""
+    },
+    {
+      "id": "09e",
+      "item": "game 1 reaches GAMEOVER/VICTORY within 7 min (no stall)",
+      "verdict": "PASS",
+      "expected": "GAMEOVER|VICTORY",
+      "actual": {
+        "phase": "GAMEOVER",
+        "ms": 359941,
+        "wave": 2
+      },
+      "note": ""
+    },
+    {
+      "id": "11a",
+      "item": "result: 2인팟 note \"2인팟 점수는 솔로 랭킹에 오르지 않습니다\" shown",
+      "verdict": "BUG",
+      "expected": "present",
+      "actual": {
+        "partnerNote": false,
+        "teamBest": true,
+        "teamTabName": true
+      },
+      "note": ""
+    },
+    {
+      "id": "11b",
+      "item": "result: 이 팀 최고 label present",
+      "verdict": "PASS",
+      "expected": "present",
+      "actual": true,
+      "note": ""
+    },
+    {
+      "id": "11c",
+      "item": "mouse click on 다시 시작 starts a new game with the same 2 players",
+      "verdict": "PASS",
+      "expected": "weapon select or playing",
+      "actual": {
+        "phase": "PLAYING",
+        "sel": "weapon",
+        "lives": 5
+      },
+      "note": ""
+    },
+    {
+      "id": "11d",
+      "item": "game 2 (passive) reaches GAMEOVER",
+      "verdict": "PASS",
+      "expected": "GAMEOVER",
+      "actual": {
+        "phase": "GAMEOVER",
+        "ms": 130247
+      },
+      "note": ""
+    },
+    {
+      "id": "11e",
+      "item": "phone shot on 다시 시작 button restarts the game",
+      "verdict": "PASS",
+      "expected": "weapon select or playing",
+      "actual": {
+        "phase": "PLAYING",
+        "sel": "weapon",
+        "aim": [
+          -0.11,
+          -0.47
+        ]
+      },
+      "note": ""
+    },
+    {
+      "id": "11f",
+      "item": "simultaneous mouse+phone press counts once",
+      "verdict": "SKIP",
+      "expected": "one restart",
+      "actual": "not observable: no per-press log in UI/records; not tested",
+      "note": "SKIP"
+    },
+    {
+      "id": "12a",
+      "item": "lobby after returning: mouse slot emptied, phone slot kept (readiness)",
+      "verdict": "PASS",
+      "expected": {
+        "mouse": "비어 있음",
+        "phone": "모바일P kept"
+      },
+      "actual": {
+        "mouse": "1P\n1P 슬롯\n비어 있음\n📱 모바일\n🖱 마우스\n입력 방식을 선택하세요\n📱 모바일은 QR 스캔, 🖱 ",
+        "phone": "2P\n2P 슬롯\n● 준비 완료\n📱 모바일\n🖱 마우스\n🔫 모바일P님 접속 완료\n🎯 영점 완료"
+      },
+      "note": ""
+    },
+    {
+      "id": "13a",
+      "item": "play-records.jsonl: new \"mode\":\"coop\" lines written for the finished game (2 per finished game, one per player)",
+      "verdict": "PASS",
+      "expected": ">=2 coop lines with coop meta",
+      "actual": {
+        "newLines": 8,
+        "coop": 8
+      },
+      "note": ""
+    }
+  ],
+  "samples": {
+    "recordsAtStart": 12,
+    "weaponSelectMs": 1415,
+    "weaponCards": [
+      [
+        {
+          "w": "shotgun",
+          "ax": -0.89,
+          "ay": 0.12
+        },
+        {
+          "w": "revolver",
+          "ax": -0.54,
+          "ay": 0.12
+        },
+        {
+          "w": "gatling",
+          "ax": -0.2,
+          "ay": 0.12
+        }
+      ],
+      [
+        {
+          "w": "shotgun",
+          "ax": 0.2,
+          "ay": 0.12
+        },
+        {
+          "w": "revolver",
+          "ax": 0.54,
+          "ay": 0.12
+        },
+        {
+          "w": "gatling",
+          "ax": 0.89,
+          "ay": 0.12
+        }
+      ]
+    ],
+    "weaponKindsAfterPick": [
+      "gatling",
+      "shotgun"
+    ],
+    "nametags": [
+      "1P · GATLING Lv.1",
+      "2P · SHOTGUN Lv.1"
+    ],
+    "aimGeometry": [
+      {
+        "case": "6a-aim-corners",
+        "p1Aim": [
+          -0.7,
+          0.4
+        ],
+        "p2Aim": [
+          0.7,
+          -0.3
+        ],
+        "expectedCentre1": [
+          216,
+          270
+        ],
+        "expectedCentre2": [
+          1224,
+          585
+        ],
+        "nametag1": [
+          216,
+          203
+        ],
+        "nametag2": [
+          852,
+          323
+        ]
+      },
+      {
+        "case": "6b-aim-cross",
+        "p1Aim": [
+          0.6,
+          0
+        ],
+        "p2Aim": [
+          -0.6,
+          0
+        ],
+        "expectedCentre1": [
+          1152,
+          450
+        ],
+        "expectedCentre2": [
+          288,
+          450
+        ],
+        "nametag1": [
+          1152,
+          383
+        ],
+        "nametag2": [
+          1194,
+          480
+        ]
+      },
+      {
+        "case": "6c-aim-centre",
+        "p1Aim": [
+          0,
+          0
+        ],
+        "p2Aim": [
+          0,
+          0
+        ],
+        "expectedCentre1": [
+          720,
+          450
+        ],
+        "expectedCentre2": [
+          720,
+          450
+        ],
+        "nametag1": [
+          720,
+          383
+        ],
+        "nametag2": [
+          314,
+          367
+        ]
+      }
+    ],
+    "separationTrials": [
+      {
+        "who": "mouse",
+        "try": 0,
+        "deltas": [
+          5,
+          0
+        ],
+        "shooterIdx": 0,
+        "otherIdx": 1,
+        "target": "target_9_pilgood"
+      },
+      {
+        "who": "phone",
+        "try": 0,
+        "deltas": [
+          0,
+          0
+        ],
+        "shooterIdx": 1,
+        "otherIdx": 0,
+        "target": "target_7_caslight"
+      },
+      {
+        "who": "phone",
+        "try": 1,
+        "deltas": [
+          0,
+          0
+        ],
+        "shooterIdx": 1,
+        "otherIdx": 0,
+        "target": "target_7_caslight"
+      },
+      {
+        "who": "phone",
+        "try": 2,
+        "deltas": [
+          0,
+          0
+        ],
+        "shooterIdx": 1,
+        "otherIdx": 0,
+        "target": "target_11_caslight"
+      },
+      {
+        "who": "phone",
+        "try": 3,
+        "deltas": [
+          0,
+          0
+        ],
+        "shooterIdx": 1,
+        "otherIdx": 0,
+        "target": "target_11_caslight"
+      }
+    ],
+    "mouseHold": {
+      "weapon": "gatling",
+      "before": 29,
+      "samples": [
+        28,
+        27,
+        26,
+        25,
+        24,
+        23,
+        23,
+        22,
+        20,
+        20
+      ],
+      "drop": 9
+    },
+    "phoneHold": {
+      "weapon": "shotgun",
+      "before": 10,
+      "samples": [
+        10,
+        9,
+        9,
+        8,
+        7,
+        7,
+        5,
+        4,
+        3,
+        3
+      ],
+      "drop": 7
+    },
+    "resumeSequence": [
+      {
+        "t": 250,
+        "isPaused": true,
+        "phase": "PLAYING"
+      },
+      {
+        "t": 500,
+        "isPaused": true,
+        "phase": "PLAYING"
+      },
+      {
+        "t": 750,
+        "isPaused": true,
+        "phase": "PLAYING"
+      },
+      {
+        "t": 1000,
+        "isPaused": false,
+        "phase": "PLAYING"
+      }
+    ],
+    "game1": {
+      "ms": 359941,
+      "phase": "GAMEOVER",
+      "wave": 2,
+      "lives": 0,
+      "scores": [
+        420,
+        228
+      ],
+      "weapons": [
+        "shotgun",
+        "shotgun"
+      ]
+    },
+    "recordsAfterGame1": 16,
+    "resultText1": "💥 GAME OVER! 바 방어선 함락!\n맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다.\n1P\n마우스1P\n420 PTS\n최대 콤보: 25 COMBO\n처치 수: 19 KILL\n명중률: 61%\n선택 무기: 🪠 샷건\n2P\n모바일P\n228 PTS\n최대 콤보: 19 COMBO\n처치 수: 9 KILL\n명중률: 37%\n선택 무기: 🪠 샷건\n팀 합계\n648 PTS\n이 팀 최고: 648 PTS\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\n마우스1P & 모바일P\n704점\nW2\n2\n마우스1P & 모바일P\n648점\nW2\n3\n모바일1P & 마우스2P\n15점\nW1\n4\n승리마우스 & 승리모바일\n0점\nW1\n🔄 다시 도전하기\n🏠 로비로 이동\n1P · SHOTGUN Lv.1\n2P · SHOTGUN Lv.1",
+    "game2": {
+      "ms": 130247,
+      "phase": "GAMEOVER",
+      "wave": 1
+    },
+    "newRecords": [
+      {
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "slot": 1,
+        "teamScore": 648,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "모바일P",
+        "mode": "coop",
+        "slot": 2,
+        "teamScore": 648,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "slot": 1,
+        "teamScore": 648,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "모바일P",
+        "mode": "coop",
+        "slot": 2,
+        "teamScore": 648,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "slot": 1,
+        "teamScore": 0,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "모바일P",
+        "mode": "coop",
+        "slot": 2,
+        "teamScore": 0,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "마우스1P",
+        "mode": "coop",
+        "slot": 1,
+        "teamScore": 0,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      },
+      {
+        "nickname": "모바일P",
+        "mode": "coop",
+        "slot": 2,
+        "teamScore": 0,
+        "outcome": "GAMEOVER",
+        "weapon": "shotgun"
+      }
+    ],
+    "playersRecord": 24
+  },
+  "boundaries": {
+    "03-lobby-both-ready": {
+      "1440x900": {
+        "W": 1440,
+        "H": 900,
+        "docScrollW": 1440,
+        "docScrollH": 900,
+        "outside": []
+      },
+      "1024x768": {
+        "W": 1024,
+        "H": 768,
+        "docScrollW": 1024,
+        "docScrollH": 768,
+        "outside": [
+          {
+            "label": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+            "scrollable": true,
+            "rect": {
+              "x": 407.6,
+              "y": 783.2,
+              "w": 552.8,
+              "h": 40,
+              "right": 960.4,
+              "bottom": 823.2
+            }
+          }
+        ]
+      }
+    },
+    "04-weapon-select": {
+      "1440x900": {
+        "W": 1440,
+        "H": 900,
+        "docScrollW": 1440,
+        "docScrollH": 900,
+        "outside": []
+      },
+      "1024x768": {
+        "W": 1024,
+        "H": 768,
+        "docScrollW": 1024,
+        "docScrollH": 768,
+        "outside": [
+          {
+            "label": "card-owner-badge-1P",
+            "scrollable": false,
+            "rect": {
+              "x": -24.4,
+              "y": 204.9,
+              "w": 37.9,
+              "h": 23,
+              "right": 13.4,
+              "bottom": 227.9
+            }
+          },
+          {
+            "label": "card-owner-badge-2P",
+            "scrollable": false,
+            "rect": {
+              "x": 1010.6,
+              "y": 204.9,
+              "w": 37.9,
+              "h": 23,
+              "right": 1048.4,
+              "bottom": 227.9
+            }
+          }
+        ]
+      }
+    },
+    "04e-partial-done": {
+      "1440x900": {
+        "W": 1440,
+        "H": 900,
+        "docScrollW": 1440,
+        "docScrollH": 900,
+        "outside": []
+      },
+      "1024x768": {
+        "W": 1024,
+        "H": 768,
+        "docScrollW": 1024,
+        "docScrollH": 768,
+        "outside": [
+          {
+            "label": "card-owner-badge-2P",
+            "scrollable": false,
+            "rect": {
+              "x": 1010.6,
+              "y": 205.4,
+              "w": 37.9,
+              "h": 23,
+              "right": 1048.4,
+              "bottom": 228.4
+            }
+          },
+          {
+            "label": "crosshair-nametag",
+            "scrollable": false,
+            "rect": {
+              "x": -6.9,
+              "y": 261.6,
+              "w": 121.9,
+              "h": 21,
+              "right": 115,
+              "bottom": 282.6
+            }
+          }
+        ]
+      }
+    },
+    "05-combat-hud": {
+      "1440x900": {
+        "W": 1440,
+        "H": 900,
+        "docScrollW": 1440,
+        "docScrollH": 900,
+        "outside": []
+      },
+      "1024x768": {
+        "W": 1024,
+        "H": 768,
+        "docScrollW": 1024,
+        "docScrollH": 768,
+        "outside": [
+          {
+            "label": "crosshair-nametag",
+            "scrollable": false,
+            "rect": {
+              "x": -6.9,
+              "y": 261.6,
+              "w": 121.9,
+              "h": 21,
+              "right": 115,
+              "bottom": 282.6
+            }
+          }
+        ]
+      }
+    },
+    "11-result-game1": {
+      "1440x900": {
+        "W": 1440,
+        "H": 900,
+        "docScrollW": 1440,
+        "docScrollH": 900,
+        "outside": []
+      },
+      "1024x768": {
+        "W": 1024,
+        "H": 768,
+        "docScrollW": 1024,
+        "docScrollH": 768,
+        "outside": []
+      }
+    },
+    "12-lobby-after-return": {
+      "1440x900": {
+        "W": 1440,
+        "H": 900,
+        "docScrollW": 1440,
+        "docScrollH": 900,
+        "outside": []
+      },
+      "1024x768": {
+        "W": 1024,
+        "H": 768,
+        "docScrollW": 1024,
+        "docScrollH": 768,
+        "outside": [
+          {
+            "label": "🔄 새 방 만들기 (모든 슬롯 초기화)",
+            "scrollable": true,
+            "rect": {
+              "x": 407.6,
+              "y": 783.2,
+              "w": 552.8,
+              "h": 40,
+              "right": 960.4,
+              "bottom": 823.2
+            }
+          }
+        ]
+      }
+    }
+  },
+  "errors": [],
+  "consoleWarnings": [
+    {
+      "msg": "WebSocket connection to 'wss://127.0.0.1:5202/ws' failed: WebSocket is closed before the connection is established.",
+      "at": "15:44:07"
+    },
+    {
+      "msg": "[.WebGL-0x10c00ad3200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "at": "15:44:10"
+    },
+    {
+      "msg": "[.WebGL-0x10c00ad3200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "at": "15:44:11"
+    },
+    {
+      "msg": "[.WebGL-0x10c00ad3200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "at": "15:44:20"
+    },
+    {
+      "msg": "[.WebGL-0x10c00ad3200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+      "at": "15:44:20"
+    }
+  ],
+  "notes": [
+    "game1: no score/wave progress for 30 s at wave 2",
+    "game1: no score/wave progress for 30 s at wave 2",
+    "game1: no score/wave progress for 30 s at wave 2",
+    "game2: no score/wave progress for 30 s at wave 1",
+    "game2: no score/wave progress for 30 s at wave 1",
+    "game2: no score/wave progress for 30 s at wave 1",
+    "game2: no score/wave progress for 30 s at wave 1"
+  ],
+  "roomId": "E8HT",
+  "finishedAt": "2026-11-07T16:01:26.369Z"
+}

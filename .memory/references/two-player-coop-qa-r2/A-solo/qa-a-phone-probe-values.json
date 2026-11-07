@@ -1,0 +1,170 @@
+{
+  "qr2p": {
+    "slot2": true,
+    "slot1": false
+  },
+  "weapon": {
+    "phase": "PLAYING",
+    "sel": null,
+    "weapon": "revolver"
+  },
+  "snaps": [
+    {
+      "k": 0,
+      "ammoBefore": 10,
+      "ammoAfter": 10,
+      "scoreBefore": 0,
+      "scoreAfter": 0,
+      "reloading": false,
+      "phase": "PLAYING"
+    },
+    {
+      "k": 1,
+      "ammoBefore": 9,
+      "ammoAfter": 9,
+      "scoreBefore": 18,
+      "scoreAfter": 18,
+      "reloading": false,
+      "phase": "PLAYING"
+    },
+    {
+      "k": 2,
+      "ammoBefore": 8,
+      "ammoAfter": 7,
+      "scoreBefore": 36,
+      "scoreAfter": 54,
+      "reloading": false,
+      "phase": "PLAYING"
+    },
+    {
+      "k": 3,
+      "ammoBefore": 7,
+      "ammoAfter": 6,
+      "scoreBefore": 54,
+      "scoreAfter": 86,
+      "reloading": false,
+      "phase": "PLAYING"
+    },
+    {
+      "k": 4,
+      "ammoBefore": 6,
+      "ammoAfter": 5,
+      "scoreBefore": 86,
+      "scoreAfter": 151,
+      "reloading": false,
+      "phase": "PLAYING"
+    }
+  ],
+  "holds": [
+    {
+      "k": 0,
+      "before": 5,
+      "samples": [
+        4,
+        4,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "after": 3
+    },
+    {
+      "k": 1,
+      "before": 3,
+      "samples": [
+        3,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "after": 2
+    },
+    {
+      "k": 2,
+      "before": 2,
+      "samples": [
+        2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "after": 1
+    }
+  ],
+  "skill": [
+    {
+      "stock": 1,
+      "cooldownTexts": [
+        "위로 휙!]"
+      ]
+    },
+    {
+      "after": 0
+    }
+  ],
+  "fever": [],
+  "serverMsgs": [
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC",
+    "SKILL_STATE_SYNC"
+  ],
+  "errors": {
+    "phone": [],
+    "pageErrors": [],
+    "consoleErrors": []
+  }
+}

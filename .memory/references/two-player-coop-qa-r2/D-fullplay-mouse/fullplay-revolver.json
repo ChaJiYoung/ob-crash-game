@@ -1,0 +1,2098 @@
+{
+  "weapon": "revolver",
+  "renderer": "chromium headless, --use-angle=metal (see report: swiftshader was 0.3fps)",
+  "startedAt": "2026-11-07T14:57:52.362Z",
+  "pick": "revolver",
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startT": 13,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 14,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "2": {
+      "wave": 2,
+      "startT": 26,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 19,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "3": {
+      "wave": 3,
+      "startT": 45,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 93,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "4": {
+      "wave": 4,
+      "startT": 138,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 25,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "5": {
+      "wave": 5,
+      "startT": 163,
+      "startLives": 5,
+      "endLives": 3,
+      "durationSec": 282,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "6": {
+      "wave": 6,
+      "startT": 445,
+      "startLives": 3,
+      "endLives": 3,
+      "durationSec": 29,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "7": {
+      "wave": 7,
+      "startT": 474,
+      "startLives": 3,
+      "endLives": 3,
+      "durationSec": 374,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 0
+    }
+  },
+  "events": [
+    {
+      "t": 12,
+      "msg": "picked weapon: revolver"
+    },
+    {
+      "t": 20,
+      "msg": "fever activated wave 1"
+    },
+    {
+      "t": 22,
+      "msg": "fever +2s: score gain 79, still active true"
+    },
+    {
+      "t": 26,
+      "msg": "card round wave 1: offered fever_extend, lucky_drop, skill_cooldown"
+    },
+    {
+      "t": 26,
+      "msg": "picked card fever_extend"
+    },
+    {
+      "t": 26,
+      "msg": "wave 1 -> 2 (lives 5, score 1156)"
+    },
+    {
+      "t": 36,
+      "msg": "fever activated wave 2"
+    },
+    {
+      "t": 38,
+      "msg": "fever +2s: score gain 62, still active true"
+    },
+    {
+      "t": 45,
+      "msg": "card round wave 2: offered skill_cooldown, fever_boost, hit_zone_up"
+    },
+    {
+      "t": 45,
+      "msg": "picked card skill_cooldown"
+    },
+    {
+      "t": 45,
+      "msg": "wave 2 -> 3 (lives 5, score 2433)"
+    },
+    {
+      "t": 50,
+      "msg": "boss spawned wave 3, maxHp 100"
+    },
+    {
+      "t": 51,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 53,
+      "msg": "fever +2s: score gain 209, still active true"
+    },
+    {
+      "t": 65,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 67,
+      "msg": "fever +2s: score gain 194, still active true"
+    },
+    {
+      "t": 77,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 79,
+      "msg": "fever +2s: score gain 116, still active true"
+    },
+    {
+      "t": 89,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 91,
+      "msg": "fever +2s: score gain 201, still active true"
+    },
+    {
+      "t": 101,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 102,
+      "msg": "fever +2s: score gain 129, still active true"
+    },
+    {
+      "t": 112,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 114,
+      "msg": "fever +2s: score gain 186, still active true"
+    },
+    {
+      "t": 123,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 125,
+      "msg": "fever +2s: score gain 189, still active true"
+    },
+    {
+      "t": 135,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 136,
+      "msg": "boss gone wave 3 after 86s"
+    },
+    {
+      "t": 138,
+      "msg": "card round wave 3: offered hit_zone_up, skill_cooldown, lucky_drop"
+    },
+    {
+      "t": 138,
+      "msg": "picked card hit_zone_up"
+    },
+    {
+      "t": 138,
+      "msg": "wave 3 -> 4 (lives 5, score 9435)"
+    },
+    {
+      "t": 139,
+      "msg": "fever +2s: score gain 180, still active true"
+    },
+    {
+      "t": 148,
+      "msg": "fever activated wave 4"
+    },
+    {
+      "t": 151,
+      "msg": "card round wave 4: offered rapid_reload, damage_up, fever_extend"
+    },
+    {
+      "t": 151,
+      "msg": "picked card rapid_reload"
+    },
+    {
+      "t": 151,
+      "msg": "fever +2s: score gain 176, still active true"
+    },
+    {
+      "t": 159,
+      "msg": "card round wave 4: offered rapid_reload, fever_extend, hit_zone_up"
+    },
+    {
+      "t": 159,
+      "msg": "picked card rapid_reload"
+    },
+    {
+      "t": 160,
+      "msg": "fever activated wave 4"
+    },
+    {
+      "t": 162,
+      "msg": "card round wave 4: offered damage_up, hit_zone_up, rapid_reload"
+    },
+    {
+      "t": 162,
+      "msg": "picked card damage_up"
+    },
+    {
+      "t": 163,
+      "msg": "wave 4 -> 5 (lives 5, score 11509)"
+    },
+    {
+      "t": 164,
+      "msg": "fever +2s: score gain 751, still active true"
+    },
+    {
+      "t": 168,
+      "msg": "boss spawned wave 5, maxHp 120"
+    },
+    {
+      "t": 169,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 171,
+      "msg": "fever +2s: score gain 165, still active true"
+    },
+    {
+      "t": 178,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 180,
+      "msg": "fever +2s: score gain 196, still active true"
+    },
+    {
+      "t": 187,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 189,
+      "msg": "fever +2s: score gain 155, still active true"
+    },
+    {
+      "t": 196,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 198,
+      "msg": "fever +2s: score gain 163, still active true"
+    },
+    {
+      "t": 205,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 207,
+      "msg": "fever +2s: score gain 207, still active true"
+    },
+    {
+      "t": 213,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 215,
+      "msg": "fever +2s: score gain 249, still active true"
+    },
+    {
+      "t": 222,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 224,
+      "msg": "fever +2s: score gain 171, still active true"
+    },
+    {
+      "t": 231,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 233,
+      "msg": "fever +2s: score gain 183, still active true"
+    },
+    {
+      "t": 239,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 241,
+      "msg": "fever +2s: score gain 190, still active true"
+    },
+    {
+      "t": 248,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 250,
+      "msg": "fever +2s: score gain 175, still active true"
+    },
+    {
+      "t": 257,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 259,
+      "msg": "fever +2s: score gain 236, still active true"
+    },
+    {
+      "t": 265,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 266,
+      "msg": "fever +2s: score gain 175, still active true"
+    },
+    {
+      "t": 273,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 275,
+      "msg": "fever +2s: score gain 175, still active true"
+    },
+    {
+      "t": 282,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 284,
+      "msg": "fever +2s: score gain 166, still active true"
+    },
+    {
+      "t": 290,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 292,
+      "msg": "fever +2s: score gain 175, still active true"
+    },
+    {
+      "t": 299,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 301,
+      "msg": "fever +2s: score gain 190, still active true"
+    },
+    {
+      "t": 308,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 310,
+      "msg": "fever +2s: score gain 315, still active true"
+    },
+    {
+      "t": 317,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 319,
+      "msg": "fever +2s: score gain 171, still active true"
+    },
+    {
+      "t": 325,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 327,
+      "msg": "fever +2s: score gain 222, still active true"
+    },
+    {
+      "t": 333,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 335,
+      "msg": "fever +2s: score gain 135, still active true"
+    },
+    {
+      "t": 342,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 344,
+      "msg": "fever +2s: score gain 151, still active true"
+    },
+    {
+      "t": 351,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 353,
+      "msg": "fever +2s: score gain 199, still active true"
+    },
+    {
+      "t": 359,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 361,
+      "msg": "fever +2s: score gain 152, still active true"
+    },
+    {
+      "t": 368,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 370,
+      "msg": "fever +2s: score gain 182, still active true"
+    },
+    {
+      "t": 377,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 379,
+      "msg": "fever +2s: score gain 212, still active true"
+    },
+    {
+      "t": 385,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 387,
+      "msg": "fever +2s: score gain 224, still active true"
+    },
+    {
+      "t": 393,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 395,
+      "msg": "fever +2s: score gain 176, still active true"
+    },
+    {
+      "t": 402,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 404,
+      "msg": "fever +2s: score gain 228, still active true"
+    },
+    {
+      "t": 411,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 413,
+      "msg": "fever +2s: score gain 174, still active true"
+    },
+    {
+      "t": 420,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 422,
+      "msg": "fever +2s: score gain 210, still active true"
+    },
+    {
+      "t": 428,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 430,
+      "msg": "fever +2s: score gain 206, still active true"
+    },
+    {
+      "t": 437,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 439,
+      "msg": "fever +2s: score gain 160, still active true"
+    },
+    {
+      "t": 442,
+      "msg": "boss gone wave 5 after 274s"
+    },
+    {
+      "t": 445,
+      "msg": "card round wave 5: offered hit_zone_up, lucky_drop, fever_extend"
+    },
+    {
+      "t": 445,
+      "msg": "picked card hit_zone_up"
+    },
+    {
+      "t": 445,
+      "msg": "wave 5 -> 6 (lives 3, score 41404)"
+    },
+    {
+      "t": 451,
+      "msg": "fever activated wave 6"
+    },
+    {
+      "t": 453,
+      "msg": "fever +2s: score gain 114, still active true"
+    },
+    {
+      "t": 457,
+      "msg": "card round wave 6: offered fever_extend, damage_up, bar_repair"
+    },
+    {
+      "t": 457,
+      "msg": "picked card fever_extend"
+    },
+    {
+      "t": 461,
+      "msg": "fever activated wave 6"
+    },
+    {
+      "t": 463,
+      "msg": "fever +2s: score gain 100, still active true"
+    },
+    {
+      "t": 467,
+      "msg": "card round wave 6: offered rapid_reload, fever_boost, bar_repair"
+    },
+    {
+      "t": 467,
+      "msg": "picked card rapid_reload"
+    },
+    {
+      "t": 473,
+      "msg": "card round wave 6: offered weapon_level_up, bar_repair, lucky_drop"
+    },
+    {
+      "t": 473,
+      "msg": "picked card weapon_level_up"
+    },
+    {
+      "t": 474,
+      "msg": "wave 6 -> 7 (lives 3, score 44142)"
+    },
+    {
+      "t": 476,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 478,
+      "msg": "fever +2s: score gain 159, still active true"
+    },
+    {
+      "t": 481,
+      "msg": "boss spawned wave 7, maxHp 150"
+    },
+    {
+      "t": 484,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 486,
+      "msg": "fever +2s: score gain 173, still active true"
+    },
+    {
+      "t": 493,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 495,
+      "msg": "fever +2s: score gain 165, still active true"
+    },
+    {
+      "t": 501,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 503,
+      "msg": "fever +2s: score gain 210, still active true"
+    },
+    {
+      "t": 511,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 513,
+      "msg": "fever +2s: score gain 170, still active true"
+    },
+    {
+      "t": 520,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 522,
+      "msg": "fever +2s: score gain 230, still active true"
+    },
+    {
+      "t": 528,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 530,
+      "msg": "fever +2s: score gain 235, still active true"
+    },
+    {
+      "t": 538,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 540,
+      "msg": "fever +2s: score gain 207, still active true"
+    },
+    {
+      "t": 546,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 548,
+      "msg": "fever +2s: score gain 182, still active true"
+    },
+    {
+      "t": 555,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 556,
+      "msg": "fever +2s: score gain 238, still active true"
+    },
+    {
+      "t": 563,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 565,
+      "msg": "fever +2s: score gain 233, still active true"
+    },
+    {
+      "t": 572,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 574,
+      "msg": "fever +2s: score gain 243, still active true"
+    },
+    {
+      "t": 579,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 581,
+      "msg": "fever +2s: score gain 193, still active true"
+    },
+    {
+      "t": 588,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 590,
+      "msg": "fever +2s: score gain 239, still active true"
+    },
+    {
+      "t": 597,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 599,
+      "msg": "fever +2s: score gain 194, still active true"
+    },
+    {
+      "t": 606,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 608,
+      "msg": "fever +2s: score gain 189, still active true"
+    },
+    {
+      "t": 615,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 617,
+      "msg": "fever +2s: score gain 198, still active true"
+    },
+    {
+      "t": 623,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 625,
+      "msg": "fever +2s: score gain 373, still active true"
+    },
+    {
+      "t": 632,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 634,
+      "msg": "fever +2s: score gain 246, still active true"
+    },
+    {
+      "t": 641,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 643,
+      "msg": "fever +2s: score gain 247, still active true"
+    },
+    {
+      "t": 650,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 652,
+      "msg": "fever +2s: score gain 206, still active true"
+    },
+    {
+      "t": 658,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 660,
+      "msg": "fever +2s: score gain 231, still active true"
+    },
+    {
+      "t": 668,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 669,
+      "msg": "fever +2s: score gain 178, still active true"
+    },
+    {
+      "t": 677,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 678,
+      "msg": "fever +2s: score gain 382, still active true"
+    },
+    {
+      "t": 685,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 687,
+      "msg": "fever +2s: score gain 175, still active true"
+    },
+    {
+      "t": 694,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 696,
+      "msg": "fever +2s: score gain 204, still active true"
+    },
+    {
+      "t": 703,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 705,
+      "msg": "fever +2s: score gain 202, still active true"
+    },
+    {
+      "t": 712,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 713,
+      "msg": "fever +2s: score gain 149, still active true"
+    },
+    {
+      "t": 720,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 722,
+      "msg": "fever +2s: score gain 246, still active true"
+    },
+    {
+      "t": 729,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 731,
+      "msg": "fever +2s: score gain 203, still active true"
+    },
+    {
+      "t": 738,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 740,
+      "msg": "fever +2s: score gain 179, still active true"
+    },
+    {
+      "t": 747,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 749,
+      "msg": "fever +2s: score gain 209, still active true"
+    },
+    {
+      "t": 756,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 757,
+      "msg": "fever +2s: score gain 174, still active true"
+    },
+    {
+      "t": 764,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 766,
+      "msg": "fever +2s: score gain 190, still active true"
+    },
+    {
+      "t": 773,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 775,
+      "msg": "fever +2s: score gain 206, still active true"
+    },
+    {
+      "t": 782,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 783,
+      "msg": "fever +2s: score gain 232, still active true"
+    },
+    {
+      "t": 790,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 792,
+      "msg": "fever +2s: score gain 200, still active true"
+    },
+    {
+      "t": 799,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 801,
+      "msg": "fever +2s: score gain 318, still active true"
+    },
+    {
+      "t": 808,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 810,
+      "msg": "fever +2s: score gain 212, still active true"
+    },
+    {
+      "t": 817,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 819,
+      "msg": "fever +2s: score gain 197, still active true"
+    },
+    {
+      "t": 826,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 828,
+      "msg": "fever +2s: score gain 242, still active true"
+    },
+    {
+      "t": 837,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 839,
+      "msg": "fever +2s: score gain 192, still active true"
+    },
+    {
+      "t": 846,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 847,
+      "msg": "boss gone wave 7 after 366s"
+    },
+    {
+      "t": 848,
+      "msg": "fever +2s: score gain 210, still active true"
+    }
+  ],
+  "cardRounds": [
+    {
+      "wave": 1,
+      "offered": [
+        "fever_extend",
+        "lucky_drop",
+        "skill_cooldown"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "fullplay-revolver-wave1-cards.png",
+      "t": 25
+    },
+    {
+      "wave": 2,
+      "offered": [
+        "skill_cooldown",
+        "fever_boost",
+        "hit_zone_up"
+      ],
+      "chosen": "skill_cooldown",
+      "screenshot": "fullplay-revolver-wave2-cards.png",
+      "t": 44
+    },
+    {
+      "wave": 3,
+      "offered": [
+        "hit_zone_up",
+        "skill_cooldown",
+        "lucky_drop"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "fullplay-revolver-wave3-cards.png",
+      "t": 137
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "rapid_reload",
+        "damage_up",
+        "fever_extend"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "fullplay-revolver-wave4-cards.png",
+      "t": 150
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "rapid_reload",
+        "fever_extend",
+        "hit_zone_up"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "fullplay-revolver-wave4-cards.png",
+      "t": 158
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "damage_up",
+        "hit_zone_up",
+        "rapid_reload"
+      ],
+      "chosen": "damage_up",
+      "screenshot": "fullplay-revolver-wave4-cards.png",
+      "t": 162
+    },
+    {
+      "wave": 5,
+      "offered": [
+        "hit_zone_up",
+        "lucky_drop",
+        "fever_extend"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "fullplay-revolver-wave5-cards.png",
+      "t": 443
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "fever_extend",
+        "damage_up",
+        "bar_repair"
+      ],
+      "chosen": "fever_extend",
+      "screenshot": "fullplay-revolver-wave6-cards.png",
+      "t": 456
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "rapid_reload",
+        "fever_boost",
+        "bar_repair"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "fullplay-revolver-wave6-cards.png",
+      "t": 466
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "weapon_level_up",
+        "bar_repair",
+        "lucky_drop"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "fullplay-revolver-wave6-cards.png",
+      "t": 470
+    }
+  ],
+  "bossEncounters": [
+    {
+      "wave": 3,
+      "durationSec": 86,
+      "outcome": "boss gone (killed or wave ended)"
+    },
+    {
+      "wave": 5,
+      "durationSec": 274,
+      "outcome": "boss gone (killed or wave ended)"
+    },
+    {
+      "wave": 7,
+      "durationSec": 366,
+      "outcome": "boss gone (killed or wave ended)"
+    }
+  ],
+  "fever": [
+    {
+      "wave": 1,
+      "activatedAtSec": 20,
+      "scoreBefore": 285,
+      "scoreAfter2s": 364,
+      "scoreGainIn2s": 79,
+      "feverStillActive": true
+    },
+    {
+      "wave": 2,
+      "activatedAtSec": 35,
+      "scoreBefore": 1458,
+      "scoreAfter2s": 1520,
+      "scoreGainIn2s": 62,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 51,
+      "scoreBefore": 2684,
+      "scoreAfter2s": 2893,
+      "scoreGainIn2s": 209,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 65,
+      "scoreBefore": 3715,
+      "scoreAfter2s": 3909,
+      "scoreGainIn2s": 194,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 77,
+      "scoreBefore": 4666,
+      "scoreAfter2s": 4782,
+      "scoreGainIn2s": 116,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 89,
+      "scoreBefore": 5582,
+      "scoreAfter2s": 5783,
+      "scoreGainIn2s": 201,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 100,
+      "scoreBefore": 6514,
+      "scoreAfter2s": 6643,
+      "scoreGainIn2s": 129,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 112,
+      "scoreBefore": 7375,
+      "scoreAfter2s": 7561,
+      "scoreGainIn2s": 186,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 123,
+      "scoreBefore": 8274,
+      "scoreAfter2s": 8463,
+      "scoreGainIn2s": 189,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 135,
+      "scoreBefore": 9255,
+      "scoreAfter2s": 9435,
+      "scoreGainIn2s": 180,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 148,
+      "scoreBefore": 9950,
+      "scoreAfter2s": 10126,
+      "scoreGainIn2s": 176,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 160,
+      "scoreBefore": 10773,
+      "scoreAfter2s": 11524,
+      "scoreGainIn2s": 751,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 169,
+      "scoreBefore": 12033,
+      "scoreAfter2s": 12198,
+      "scoreGainIn2s": 165,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 178,
+      "scoreBefore": 12932,
+      "scoreAfter2s": 13128,
+      "scoreGainIn2s": 196,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 187,
+      "scoreBefore": 14009,
+      "scoreAfter2s": 14164,
+      "scoreGainIn2s": 155,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 196,
+      "scoreBefore": 14867,
+      "scoreAfter2s": 15030,
+      "scoreGainIn2s": 163,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 204,
+      "scoreBefore": 15756,
+      "scoreAfter2s": 15963,
+      "scoreGainIn2s": 207,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 213,
+      "scoreBefore": 16671,
+      "scoreAfter2s": 16920,
+      "scoreGainIn2s": 249,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 222,
+      "scoreBefore": 17663,
+      "scoreAfter2s": 17834,
+      "scoreGainIn2s": 171,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 230,
+      "scoreBefore": 18553,
+      "scoreAfter2s": 18736,
+      "scoreGainIn2s": 183,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 239,
+      "scoreBefore": 19471,
+      "scoreAfter2s": 19661,
+      "scoreGainIn2s": 190,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 248,
+      "scoreBefore": 20320,
+      "scoreAfter2s": 20495,
+      "scoreGainIn2s": 175,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 256,
+      "scoreBefore": 21280,
+      "scoreAfter2s": 21516,
+      "scoreGainIn2s": 236,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 264,
+      "scoreBefore": 22186,
+      "scoreAfter2s": 22361,
+      "scoreGainIn2s": 175,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 273,
+      "scoreBefore": 23064,
+      "scoreAfter2s": 23239,
+      "scoreGainIn2s": 175,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 282,
+      "scoreBefore": 24054,
+      "scoreAfter2s": 24220,
+      "scoreGainIn2s": 166,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 290,
+      "scoreBefore": 24936,
+      "scoreAfter2s": 25111,
+      "scoreGainIn2s": 175,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 299,
+      "scoreBefore": 25833,
+      "scoreAfter2s": 26023,
+      "scoreGainIn2s": 190,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 308,
+      "scoreBefore": 26725,
+      "scoreAfter2s": 27040,
+      "scoreGainIn2s": 315,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 317,
+      "scoreBefore": 27784,
+      "scoreAfter2s": 27955,
+      "scoreGainIn2s": 171,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 325,
+      "scoreBefore": 28632,
+      "scoreAfter2s": 28854,
+      "scoreGainIn2s": 222,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 333,
+      "scoreBefore": 29537,
+      "scoreAfter2s": 29672,
+      "scoreGainIn2s": 135,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 342,
+      "scoreBefore": 30359,
+      "scoreAfter2s": 30510,
+      "scoreGainIn2s": 151,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 351,
+      "scoreBefore": 31248,
+      "scoreAfter2s": 31447,
+      "scoreGainIn2s": 199,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 359,
+      "scoreBefore": 32131,
+      "scoreAfter2s": 32283,
+      "scoreGainIn2s": 152,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 368,
+      "scoreBefore": 33010,
+      "scoreAfter2s": 33192,
+      "scoreGainIn2s": 182,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 376,
+      "scoreBefore": 33868,
+      "scoreAfter2s": 34080,
+      "scoreGainIn2s": 212,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 385,
+      "scoreBefore": 34875,
+      "scoreAfter2s": 35099,
+      "scoreGainIn2s": 224,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 393,
+      "scoreBefore": 35982,
+      "scoreAfter2s": 36158,
+      "scoreGainIn2s": 176,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 402,
+      "scoreBefore": 36976,
+      "scoreAfter2s": 37204,
+      "scoreGainIn2s": 228,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 411,
+      "scoreBefore": 37906,
+      "scoreAfter2s": 38080,
+      "scoreGainIn2s": 174,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 419,
+      "scoreBefore": 38900,
+      "scoreAfter2s": 39110,
+      "scoreGainIn2s": 210,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 428,
+      "scoreBefore": 39838,
+      "scoreAfter2s": 40044,
+      "scoreGainIn2s": 206,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 437,
+      "scoreBefore": 40840,
+      "scoreAfter2s": 41000,
+      "scoreGainIn2s": 160,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 451,
+      "scoreBefore": 41860,
+      "scoreAfter2s": 41974,
+      "scoreGainIn2s": 114,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 461,
+      "scoreBefore": 42726,
+      "scoreAfter2s": 42826,
+      "scoreGainIn2s": 100,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 476,
+      "scoreBefore": 44297,
+      "scoreAfter2s": 44456,
+      "scoreGainIn2s": 159,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 484,
+      "scoreBefore": 45421,
+      "scoreAfter2s": 45594,
+      "scoreGainIn2s": 173,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 493,
+      "scoreBefore": 46409,
+      "scoreAfter2s": 46574,
+      "scoreGainIn2s": 165,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 501,
+      "scoreBefore": 47308,
+      "scoreAfter2s": 47518,
+      "scoreGainIn2s": 210,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 511,
+      "scoreBefore": 48349,
+      "scoreAfter2s": 48519,
+      "scoreGainIn2s": 170,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 520,
+      "scoreBefore": 49401,
+      "scoreAfter2s": 49631,
+      "scoreGainIn2s": 230,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 528,
+      "scoreBefore": 50414,
+      "scoreAfter2s": 50649,
+      "scoreGainIn2s": 235,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 538,
+      "scoreBefore": 51522,
+      "scoreAfter2s": 51729,
+      "scoreGainIn2s": 207,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 546,
+      "scoreBefore": 52535,
+      "scoreAfter2s": 52717,
+      "scoreGainIn2s": 182,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 554,
+      "scoreBefore": 53485,
+      "scoreAfter2s": 53723,
+      "scoreGainIn2s": 238,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 563,
+      "scoreBefore": 54515,
+      "scoreAfter2s": 54748,
+      "scoreGainIn2s": 233,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 572,
+      "scoreBefore": 55529,
+      "scoreAfter2s": 55772,
+      "scoreGainIn2s": 243,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 579,
+      "scoreBefore": 56470,
+      "scoreAfter2s": 56663,
+      "scoreGainIn2s": 193,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 588,
+      "scoreBefore": 57479,
+      "scoreAfter2s": 57718,
+      "scoreGainIn2s": 239,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 597,
+      "scoreBefore": 58538,
+      "scoreAfter2s": 58732,
+      "scoreGainIn2s": 194,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 606,
+      "scoreBefore": 59523,
+      "scoreAfter2s": 59712,
+      "scoreGainIn2s": 189,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 615,
+      "scoreBefore": 60558,
+      "scoreAfter2s": 60756,
+      "scoreGainIn2s": 198,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 623,
+      "scoreBefore": 61527,
+      "scoreAfter2s": 61900,
+      "scoreGainIn2s": 373,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 632,
+      "scoreBefore": 62820,
+      "scoreAfter2s": 63066,
+      "scoreGainIn2s": 246,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 641,
+      "scoreBefore": 63898,
+      "scoreAfter2s": 64145,
+      "scoreGainIn2s": 247,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 650,
+      "scoreBefore": 64967,
+      "scoreAfter2s": 65173,
+      "scoreGainIn2s": 206,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 658,
+      "scoreBefore": 65944,
+      "scoreAfter2s": 66175,
+      "scoreGainIn2s": 231,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 667,
+      "scoreBefore": 66902,
+      "scoreAfter2s": 67080,
+      "scoreGainIn2s": 178,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 676,
+      "scoreBefore": 67907,
+      "scoreAfter2s": 68289,
+      "scoreGainIn2s": 382,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 685,
+      "scoreBefore": 69120,
+      "scoreAfter2s": 69295,
+      "scoreGainIn2s": 175,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 694,
+      "scoreBefore": 70085,
+      "scoreAfter2s": 70289,
+      "scoreGainIn2s": 204,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 703,
+      "scoreBefore": 71078,
+      "scoreAfter2s": 71280,
+      "scoreGainIn2s": 202,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 711,
+      "scoreBefore": 72075,
+      "scoreAfter2s": 72224,
+      "scoreGainIn2s": 149,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 720,
+      "scoreBefore": 73033,
+      "scoreAfter2s": 73279,
+      "scoreGainIn2s": 246,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 729,
+      "scoreBefore": 74208,
+      "scoreAfter2s": 74411,
+      "scoreGainIn2s": 203,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 738,
+      "scoreBefore": 75265,
+      "scoreAfter2s": 75444,
+      "scoreGainIn2s": 179,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 747,
+      "scoreBefore": 76200,
+      "scoreAfter2s": 76409,
+      "scoreGainIn2s": 209,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 755,
+      "scoreBefore": 77191,
+      "scoreAfter2s": 77365,
+      "scoreGainIn2s": 174,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 764,
+      "scoreBefore": 78170,
+      "scoreAfter2s": 78360,
+      "scoreGainIn2s": 190,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 773,
+      "scoreBefore": 79210,
+      "scoreAfter2s": 79416,
+      "scoreGainIn2s": 206,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 781,
+      "scoreBefore": 80236,
+      "scoreAfter2s": 80468,
+      "scoreGainIn2s": 232,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 790,
+      "scoreBefore": 81212,
+      "scoreAfter2s": 81412,
+      "scoreGainIn2s": 200,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 799,
+      "scoreBefore": 82180,
+      "scoreAfter2s": 82498,
+      "scoreGainIn2s": 318,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 808,
+      "scoreBefore": 83468,
+      "scoreAfter2s": 83680,
+      "scoreGainIn2s": 212,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 817,
+      "scoreBefore": 84443,
+      "scoreAfter2s": 84640,
+      "scoreGainIn2s": 197,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 826,
+      "scoreBefore": 85531,
+      "scoreAfter2s": 85773,
+      "scoreGainIn2s": 242,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 837,
+      "scoreBefore": 86707,
+      "scoreAfter2s": 86899,
+      "scoreGainIn2s": 192,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 846,
+      "scoreBefore": 87682,
+      "scoreAfter2s": 87892,
+      "scoreGainIn2s": 210,
+      "feverStillActive": true
+    }
+  ],
+  "skill": [
+    {
+      "wave": 1,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    }
+  ],
+  "stalls": [],
+  "hudBlocks": {
+    "checks": 1358,
+    "blocked": 0,
+    "samples": []
+  },
+  "shots": {
+    "ammoDrops": 1965
+  },
+  "kills": 2520,
+  "result": {
+    "phase": "VICTORY",
+    "finalWave": 7,
+    "finalLives": 3,
+    "finalScore": 103104,
+    "durationSec": 850,
+    "loops": 14438,
+    "screenshot": "fullplay-revolver-result-VICTORY.png",
+    "bodyTextSnippet": "🎉 VICTORY! 브루어리 수호 성공!\n생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!\n최종 득점\n103104점\n기본 85111점\n시간 보너스 +2781점\nWAVE 7 CLEAR · 373.1초 · +0점\n정밀도 보너스 +6701점\n저레벨 클리어 보너스 +8511점\nNEW RECORD!\n누적 격파 (KILL)\n2039 KILL\n최대 콤보\n4208 COMBO\n도달 웨이브\nWAVE 7\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\nQA-D-REVOL\n🍾 리볼버\n103104점\nW7\n2\nQA-D-SHOTG\n🪠 샷건\n37576점\nW7\n🔄 다시 도전하기\n🏠 로비로 이동\nREVOLVER Lv.2"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "finishedAt": "2026-11-07T15:12:01.814Z"
+}

@@ -1,0 +1,167 @@
+{
+  "mainThread": {
+    "idle": {
+      "timer5msPerSec": 1,
+      "rafPerSec": 3
+    },
+    "withPhoneFrames30ms": {
+      "timer5msPerSec": 1,
+      "rafPerSec": 2
+    }
+  },
+  "phaseAtTest": "PLAYING",
+  "selectionAtTest": {
+    "kind": null,
+    "done": [
+      true,
+      true
+    ]
+  },
+  "weapons": [
+    {
+      "weaponKind": "shotgun",
+      "weaponLevel": 1,
+      "maxAmmo": 14
+    },
+    {
+      "weaponKind": "gatling",
+      "weaponLevel": 1,
+      "maxAmmo": 30
+    }
+  ],
+  "trials": [
+    {
+      "which": 1,
+      "trial": 1,
+      "before": 14,
+      "after": 13,
+      "spent": 1,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 14
+        },
+        {
+          "t": 2005,
+          "ammo": 13
+        },
+        {
+          "t": 3972,
+          "ammo": 13,
+          "note": "after fireUp+150ms"
+        }
+      ],
+      "diag": {
+        "before": {
+          "set5": 4,
+          "clear5": 4,
+          "tick5": 2
+        },
+        "after": {
+          "set5": 5,
+          "clear5": 5,
+          "tick5": 3
+        }
+      }
+    },
+    {
+      "which": 2,
+      "trial": 1,
+      "before": 30,
+      "after": 29,
+      "spent": 1,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 30
+        },
+        {
+          "t": 1795,
+          "ammo": 29
+        },
+        {
+          "t": 3764,
+          "ammo": 29,
+          "note": "after fireUp+150ms"
+        }
+      ],
+      "diag": {
+        "before": {
+          "set5": 5,
+          "clear5": 5,
+          "tick5": 3
+        },
+        "after": {
+          "set5": 6,
+          "clear5": 6,
+          "tick5": 4
+        }
+      }
+    }
+  ],
+  "finalPhase": "PLAYING",
+  "errorsCount": 0,
+  "errors": [],
+  "diagEvents": [
+    [
+      "set5",
+      44105,
+      17
+    ],
+    [
+      "clear5",
+      44105,
+      17
+    ],
+    [
+      "set5",
+      44107,
+      20
+    ],
+    [
+      "clear5",
+      44107,
+      20
+    ],
+    [
+      "set5",
+      46398,
+      21
+    ],
+    [
+      "clear5",
+      48701,
+      21
+    ],
+    [
+      "set5",
+      49585,
+      22
+    ],
+    [
+      "clear5",
+      50811,
+      22
+    ],
+    [
+      "set5",
+      56977,
+      24
+    ],
+    [
+      "clear5",
+      58947,
+      24
+    ],
+    [
+      "set5",
+      69148,
+      27
+    ],
+    [
+      "clear5",
+      72791,
+      27
+    ]
+  ]
+}

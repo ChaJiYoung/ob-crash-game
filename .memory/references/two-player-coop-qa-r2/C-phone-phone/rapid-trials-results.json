@@ -1,0 +1,159 @@
+{
+  "phaseAtTest": "PLAYING",
+  "selectionAtTest": {
+    "kind": null,
+    "done": [
+      true,
+      true
+    ]
+  },
+  "weapons": [
+    {
+      "weaponKind": "shotgun",
+      "weaponLevel": 1,
+      "maxAmmo": 14
+    },
+    {
+      "weaponKind": "gatling",
+      "weaponLevel": 1,
+      "maxAmmo": 30
+    }
+  ],
+  "trials": [
+    {
+      "which": 1,
+      "trial": 1,
+      "before": 14,
+      "after": 13,
+      "spent": 1,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 14
+        },
+        {
+          "t": 1888,
+          "ammo": 13
+        },
+        {
+          "t": 3703,
+          "ammo": 13,
+          "note": "after fireUp+150ms"
+        }
+      ]
+    },
+    {
+      "which": 1,
+      "trial": 2,
+      "before": 12,
+      "after": 11,
+      "spent": 1,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 12
+        },
+        {
+          "t": 2196,
+          "ammo": 11
+        },
+        {
+          "t": 3962,
+          "ammo": 11,
+          "note": "after fireUp+150ms"
+        }
+      ]
+    },
+    {
+      "which": 1,
+      "trial": 3,
+      "before": 10,
+      "after": 9,
+      "spent": 1,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 10
+        },
+        {
+          "t": 1291,
+          "ammo": 9
+        },
+        {
+          "t": 2757,
+          "ammo": 9,
+          "note": "after fireUp+150ms"
+        }
+      ]
+    },
+    {
+      "which": 2,
+      "trial": 1,
+      "before": 30,
+      "after": 29,
+      "spent": 1,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 30
+        },
+        {
+          "t": 1625,
+          "ammo": 29
+        },
+        {
+          "t": 3321,
+          "ammo": 29,
+          "note": "after fireUp+150ms"
+        }
+      ]
+    },
+    {
+      "which": 2,
+      "trial": 2,
+      "before": 28,
+      "after": 26,
+      "spent": 2,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 28
+        },
+        {
+          "t": 2376,
+          "ammo": 27
+        },
+        {
+          "t": 3784,
+          "ammo": 26,
+          "note": "after fireUp+150ms"
+        }
+      ]
+    },
+    {
+      "which": 2,
+      "trial": 3,
+      "before": 26,
+      "after": 24,
+      "spent": 2,
+      "samples": [
+        {
+          "t": 0,
+          "ammo": 26
+        },
+        {
+          "t": 1922,
+          "ammo": 25
+        },
+        {
+          "t": 5284,
+          "ammo": 24,
+          "note": "after fireUp+150ms"
+        }
+      ]
+    }
+  ],
+  "finalPhase": "PLAYING",
+  "errorsCount": 0,
+  "errors": []
+}

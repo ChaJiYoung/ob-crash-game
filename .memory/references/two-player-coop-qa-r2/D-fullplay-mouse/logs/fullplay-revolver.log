@@ -1,0 +1,212 @@
+[12.0s] [revolver] picked weapon: revolver
+[19.7s] [revolver] fever activated wave 1
+[21.5s] [revolver] fever +2s: score gain 79, still active true
+[25.6s] [revolver] card round wave 1: offered fever_extend, lucky_drop, skill_cooldown
+[25.7s] [revolver] picked card fever_extend
+[26.2s] [revolver] wave 1 -> 2 (lives 5, score 1156)
+[35.7s] [revolver] fever activated wave 2
+[37.5s] [revolver] fever +2s: score gain 62, still active true
+[44.8s] [revolver] card round wave 2: offered skill_cooldown, fever_boost, hit_zone_up
+[44.9s] [revolver] picked card skill_cooldown
+[45.4s] [revolver] wave 2 -> 3 (lives 5, score 2433)
+[49.9s] [revolver] boss spawned wave 3, maxHp 100
+[51.0s] [revolver] fever activated wave 3
+[52.9s] [revolver] fever +2s: score gain 209, still active true
+[64.8s] [revolver] fever activated wave 3
+[66.6s] [revolver] fever +2s: score gain 194, still active true
+[77.0s] [revolver] fever activated wave 3
+[79.0s] [revolver] fever +2s: score gain 116, still active true
+[88.8s] [revolver] fever activated wave 3
+[90.7s] [revolver] fever +2s: score gain 201, still active true
+[100.6s] [revolver] fever activated wave 3
+[102.4s] [revolver] fever +2s: score gain 129, still active true
+[112.1s] [revolver] fever activated wave 3
+[114.0s] [revolver] fever +2s: score gain 186, still active true
+[123.2s] [revolver] fever activated wave 3
+[125.0s] [revolver] fever +2s: score gain 189, still active true
+[134.9s] [revolver] fever activated wave 3
+[135.8s] [revolver] boss gone wave 3 after 86s
+[137.7s] [revolver] card round wave 3: offered hit_zone_up, skill_cooldown, lucky_drop
+[137.8s] [revolver] picked card hit_zone_up
+[138.3s] [revolver] wave 3 -> 4 (lives 5, score 9435)
+[139.2s] [revolver] fever +2s: score gain 180, still active true
+[148.4s] [revolver] fever activated wave 4
+[150.9s] [revolver] card round wave 4: offered rapid_reload, damage_up, fever_extend
+[151.0s] [revolver] picked card rapid_reload
+[151.5s] [revolver] fever +2s: score gain 176, still active true
+[158.7s] [revolver] card round wave 4: offered rapid_reload, fever_extend, hit_zone_up
+[158.8s] [revolver] picked card rapid_reload
+[160.3s] [revolver] fever activated wave 4
+[162.4s] [revolver] card round wave 4: offered damage_up, hit_zone_up, rapid_reload
+[162.5s] [revolver] picked card damage_up
+[163.0s] [revolver] wave 4 -> 5 (lives 5, score 11509)
+[163.9s] [revolver] fever +2s: score gain 751, still active true
+[168.0s] [revolver] boss spawned wave 5, maxHp 120
+[169.5s] [revolver] fever activated wave 5
+[171.3s] [revolver] fever +2s: score gain 165, still active true
+[177.8s] [revolver] fever activated wave 5
+[179.7s] [revolver] fever +2s: score gain 196, still active true
+[186.9s] [revolver] fever activated wave 5
+[188.8s] [revolver] fever +2s: score gain 155, still active true
+[195.9s] [revolver] fever activated wave 5
+[197.7s] [revolver] fever +2s: score gain 163, still active true
+[204.6s] [revolver] fever activated wave 5
+[206.6s] [revolver] fever +2s: score gain 207, still active true
+[213.3s] [revolver] fever activated wave 5
+[215.2s] [revolver] fever +2s: score gain 249, still active true
+[222.1s] [revolver] fever activated wave 5
+[223.9s] [revolver] fever +2s: score gain 171, still active true
+[230.6s] [revolver] fever activated wave 5
+[232.6s] [revolver] fever +2s: score gain 183, still active true
+[239.4s] [revolver] fever activated wave 5
+[241.3s] [revolver] fever +2s: score gain 190, still active true
+[247.9s] [revolver] fever activated wave 5
+[249.8s] [revolver] fever +2s: score gain 175, still active true
+[256.7s] [revolver] fever activated wave 5
+[258.5s] [revolver] fever +2s: score gain 236, still active true
+[264.6s] [revolver] fever activated wave 5
+[266.5s] [revolver] fever +2s: score gain 175, still active true
+[273.4s] [revolver] fever activated wave 5
+[275.2s] [revolver] fever +2s: score gain 175, still active true
+[282.0s] [revolver] fever activated wave 5
+[283.9s] [revolver] fever +2s: score gain 166, still active true
+[290.1s] [revolver] fever activated wave 5
+[291.9s] [revolver] fever +2s: score gain 175, still active true
+[299.2s] [revolver] fever activated wave 5
+[301.1s] [revolver] fever +2s: score gain 190, still active true
+[307.8s] [revolver] fever activated wave 5
+[309.6s] [revolver] fever +2s: score gain 315, still active true
+[316.8s] [revolver] fever activated wave 5
+[318.6s] [revolver] fever +2s: score gain 171, still active true
+[325.0s] [revolver] fever activated wave 5
+[326.8s] [revolver] fever +2s: score gain 222, still active true
+[333.5s] [revolver] fever activated wave 5
+[335.5s] [revolver] fever +2s: score gain 135, still active true
+[342.2s] [revolver] fever activated wave 5
+[344.1s] [revolver] fever +2s: score gain 151, still active true
+[350.8s] [revolver] fever activated wave 5
+[352.6s] [revolver] fever +2s: score gain 199, still active true
+[359.4s] [revolver] fever activated wave 5
+[361.2s] [revolver] fever +2s: score gain 152, still active true
+[367.9s] [revolver] fever activated wave 5
+[369.8s] [revolver] fever +2s: score gain 182, still active true
+[376.7s] [revolver] fever activated wave 5
+[378.6s] [revolver] fever +2s: score gain 212, still active true
+[385.0s] [revolver] fever activated wave 5
+[386.9s] [revolver] fever +2s: score gain 224, still active true
+[393.4s] [revolver] fever activated wave 5
+[395.3s] [revolver] fever +2s: score gain 176, still active true
+[402.3s] [revolver] fever activated wave 5
+[404.1s] [revolver] fever +2s: score gain 228, still active true
+[411.0s] [revolver] fever activated wave 5
+[412.8s] [revolver] fever +2s: score gain 174, still active true
+[419.7s] [revolver] fever activated wave 5
+[421.5s] [revolver] fever +2s: score gain 210, still active true
+[428.3s] [revolver] fever activated wave 5
+[430.2s] [revolver] fever +2s: score gain 206, still active true
+[437.2s] [revolver] fever activated wave 5
+[439.1s] [revolver] fever +2s: score gain 160, still active true
+[442.0s] [revolver] boss gone wave 5 after 274s
+[444.6s] [revolver] card round wave 5: offered hit_zone_up, lucky_drop, fever_extend
+[444.7s] [revolver] picked card hit_zone_up
+[445.2s] [revolver] wave 5 -> 6 (lives 3, score 41404)
+[451.3s] [revolver] fever activated wave 6
+[453.2s] [revolver] fever +2s: score gain 114, still active true
+[457.0s] [revolver] card round wave 6: offered fever_extend, damage_up, bar_repair
+[457.1s] [revolver] picked card fever_extend
+[461.1s] [revolver] fever activated wave 6
+[463.0s] [revolver] fever +2s: score gain 100, still active true
+[467.4s] [revolver] card round wave 6: offered rapid_reload, fever_boost, bar_repair
+[467.4s] [revolver] picked card rapid_reload
+[473.3s] [revolver] card round wave 6: offered weapon_level_up, bar_repair, lucky_drop
+[473.3s] [revolver] picked card weapon_level_up
+[473.9s] [revolver] wave 6 -> 7 (lives 3, score 44142)
+[476.1s] [revolver] fever activated wave 7
+[478.0s] [revolver] fever +2s: score gain 159, still active true
+[480.7s] [revolver] boss spawned wave 7, maxHp 150
+[483.9s] [revolver] fever activated wave 7
+[485.8s] [revolver] fever +2s: score gain 173, still active true
+[492.9s] [revolver] fever activated wave 7
+[494.7s] [revolver] fever +2s: score gain 165, still active true
+[501.4s] [revolver] fever activated wave 7
+[503.3s] [revolver] fever +2s: score gain 210, still active true
+[510.8s] [revolver] fever activated wave 7
+[512.7s] [revolver] fever +2s: score gain 170, still active true
+[519.9s] [revolver] fever activated wave 7
+[521.8s] [revolver] fever +2s: score gain 230, still active true
+[528.4s] [revolver] fever activated wave 7
+[530.2s] [revolver] fever +2s: score gain 235, still active true
+[537.7s] [revolver] fever activated wave 7
+[539.6s] [revolver] fever +2s: score gain 207, still active true
+[546.3s] [revolver] fever activated wave 7
+[548.1s] [revolver] fever +2s: score gain 182, still active true
+[554.6s] [revolver] fever activated wave 7
+[556.4s] [revolver] fever +2s: score gain 238, still active true
+[563.0s] [revolver] fever activated wave 7
+[564.9s] [revolver] fever +2s: score gain 233, still active true
+[571.9s] [revolver] fever activated wave 7
+[573.8s] [revolver] fever +2s: score gain 243, still active true
+[579.3s] [revolver] fever activated wave 7
+[581.1s] [revolver] fever +2s: score gain 193, still active true
+[587.8s] [revolver] fever activated wave 7
+[589.6s] [revolver] fever +2s: score gain 239, still active true
+[597.0s] [revolver] fever activated wave 7
+[598.8s] [revolver] fever +2s: score gain 194, still active true
+[605.8s] [revolver] fever activated wave 7
+[607.6s] [revolver] fever +2s: score gain 189, still active true
+[614.8s] [revolver] fever activated wave 7
+[616.6s] [revolver] fever +2s: score gain 198, still active true
+[623.4s] [revolver] fever activated wave 7
+[625.2s] [revolver] fever +2s: score gain 373, still active true
+[632.1s] [revolver] fever activated wave 7
+[633.9s] [revolver] fever +2s: score gain 246, still active true
+[640.9s] [revolver] fever activated wave 7
+[642.7s] [revolver] fever +2s: score gain 247, still active true
+[649.9s] [revolver] fever activated wave 7
+[651.6s] [revolver] fever +2s: score gain 206, still active true
+[658.4s] [revolver] fever activated wave 7
+[660.4s] [revolver] fever +2s: score gain 231, still active true
+[667.6s] [revolver] fever activated wave 7
+[669.4s] [revolver] fever +2s: score gain 178, still active true
+[676.5s] [revolver] fever activated wave 7
+[678.4s] [revolver] fever +2s: score gain 382, still active true
+[685.1s] [revolver] fever activated wave 7
+[686.9s] [revolver] fever +2s: score gain 175, still active true
+[693.9s] [revolver] fever activated wave 7
+[695.8s] [revolver] fever +2s: score gain 204, still active true
+[703.4s] [revolver] fever activated wave 7
+[705.2s] [revolver] fever +2s: score gain 202, still active true
+[711.6s] [revolver] fever activated wave 7
+[713.4s] [revolver] fever +2s: score gain 149, still active true
+[720.4s] [revolver] fever activated wave 7
+[722.3s] [revolver] fever +2s: score gain 246, still active true
+[728.8s] [revolver] fever activated wave 7
+[730.6s] [revolver] fever +2s: score gain 203, still active true
+[738.1s] [revolver] fever activated wave 7
+[739.9s] [revolver] fever +2s: score gain 179, still active true
+[746.8s] [revolver] fever activated wave 7
+[748.7s] [revolver] fever +2s: score gain 209, still active true
+[755.6s] [revolver] fever activated wave 7
+[757.5s] [revolver] fever +2s: score gain 174, still active true
+[764.2s] [revolver] fever activated wave 7
+[766.1s] [revolver] fever +2s: score gain 190, still active true
+[773.2s] [revolver] fever activated wave 7
+[775.0s] [revolver] fever +2s: score gain 206, still active true
+[781.6s] [revolver] fever activated wave 7
+[783.5s] [revolver] fever +2s: score gain 232, still active true
+[789.9s] [revolver] fever activated wave 7
+[791.8s] [revolver] fever +2s: score gain 200, still active true
+[798.9s] [revolver] fever activated wave 7
+[800.7s] [revolver] fever +2s: score gain 318, still active true
+[808.4s] [revolver] fever activated wave 7
+[810.2s] [revolver] fever +2s: score gain 212, still active true
+[816.8s] [revolver] fever activated wave 7
+[818.7s] [revolver] fever +2s: score gain 197, still active true
+[826.2s] [revolver] fever activated wave 7
+[828.1s] [revolver] fever +2s: score gain 242, still active true
+[837.2s] [revolver] fever activated wave 7
+[839.0s] [revolver] fever +2s: score gain 192, still active true
+[845.9s] [revolver] fever activated wave 7
+[847.0s] [revolver] boss gone wave 7 after 366s
+[847.8s] [revolver] fever +2s: score gain 210, still active true
+[850.0s] [revolver] DONE phase=VICTORY wave=7 lives=3 score=103104 pageErr=0 consoleErr=0

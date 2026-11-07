@@ -1,0 +1,112 @@
+[13.1s] [gatling] picked weapon: gatling
+[27.1s] [gatling] card round wave 1: offered lucky_drop, rapid_reload, fever_extend
+[27.1s] [gatling] picked card lucky_drop
+[27.7s] [gatling] wave 1 -> 2 (lives 5, score 1166)
+[29.6s] [gatling] fever activated wave 2
+[31.5s] [gatling] fever +2s: score gain 108, still active true
+[45.2s] [gatling] card round wave 2: offered hit_zone_up, fever_extend, damage_up
+[45.3s] [gatling] picked card hit_zone_up
+[45.8s] [gatling] wave 2 -> 3 (lives 5, score 2585)
+[48.4s] [gatling] fever activated wave 3
+[50.2s] [gatling] fever +2s: score gain 95, still active true
+[50.6s] [gatling] boss spawned wave 3, maxHp 100
+[63.8s] [gatling] fever activated wave 3
+[65.7s] [gatling] fever +2s: score gain 161, still active true
+[79.4s] [gatling] fever activated wave 3
+[81.3s] [gatling] fever +2s: score gain 155, still active true
+[93.1s] [gatling] fever activated wave 3
+[95.0s] [gatling] fever +2s: score gain 163, still active true
+[107.8s] [gatling] fever activated wave 3
+[109.7s] [gatling] fever +2s: score gain 147, still active true
+[119.5s] [gatling] fever activated wave 3
+[121.3s] [gatling] fever +2s: score gain 208, still active true
+[133.4s] [gatling] fever activated wave 3
+[134.5s] [gatling] boss gone wave 3 after 84s
+[136.0s] [gatling] card round wave 3: offered hit_zone_up, lucky_drop, damage_up
+[136.1s] [gatling] picked card hit_zone_up
+[136.6s] [gatling] wave 3 -> 4 (lives 5, score 9080)
+[137.5s] [gatling] fever +2s: score gain 190, still active true
+[147.9s] [gatling] fever activated wave 4
+[150.6s] [gatling] card round wave 4: offered rapid_reload, lucky_drop, skill_cooldown
+[150.7s] [gatling] picked card rapid_reload
+[151.2s] [gatling] fever +2s: score gain 176, still active true
+[161.1s] [gatling] card round wave 4: offered rapid_reload, weapon_level_up, fever_extend
+[161.2s] [gatling] picked card weapon_level_up
+[165.3s] [gatling] card round wave 4: offered rapid_reload, damage_up, lucky_drop
+[165.4s] [gatling] picked card rapid_reload
+[165.9s] [gatling] wave 4 -> 5 (lives 5, score 11441)
+[167.2s] [gatling] fever activated wave 5
+[168.5s] [gatling] fever +2s: score gain 144, still active true
+[172.6s] [gatling] boss spawned wave 5, maxHp 120
+[179.3s] [gatling] fever activated wave 5
+[181.1s] [gatling] fever +2s: score gain 207, still active true
+[191.1s] [gatling] fever activated wave 5
+[193.0s] [gatling] fever +2s: score gain 140, still active true
+[202.9s] [gatling] fever activated wave 5
+[204.6s] [gatling] fever +2s: score gain 258, still active true
+[214.6s] [gatling] fever activated wave 5
+[216.5s] [gatling] fever +2s: score gain 242, still active true
+[225.7s] [gatling] fever activated wave 5
+[227.6s] [gatling] fever +2s: score gain 204, still active true
+[236.6s] [gatling] fever activated wave 5
+[238.4s] [gatling] fever +2s: score gain 207, still active true
+[247.2s] [gatling] fever activated wave 5
+[249.1s] [gatling] fever +2s: score gain 179, still active true
+[257.8s] [gatling] fever activated wave 5
+[259.7s] [gatling] fever +2s: score gain 191, still active true
+[268.3s] [gatling] fever activated wave 5
+[270.1s] [gatling] fever +2s: score gain 217, still active true
+[277.9s] [gatling] fever activated wave 5
+[279.7s] [gatling] fever +2s: score gain 187, still active true
+[288.5s] [gatling] fever activated wave 5
+[290.4s] [gatling] fever +2s: score gain 349, still active true
+[299.1s] [gatling] fever activated wave 5
+[300.9s] [gatling] fever +2s: score gain 214, still active true
+[308.8s] [gatling] fever activated wave 5
+[310.8s] [gatling] fever +2s: score gain 220, still active true
+[318.9s] [gatling] fever activated wave 5
+[320.7s] [gatling] fever +2s: score gain 279, still active true
+[329.5s] [gatling] fever activated wave 5
+[331.4s] [gatling] fever +2s: score gain 222, still active true
+[339.6s] [gatling] fever activated wave 5
+[341.4s] [gatling] fever +2s: score gain 217, still active true
+[349.2s] [gatling] fever activated wave 5
+[351.1s] [gatling] fever +2s: score gain 223, still active true
+[359.5s] [gatling] fever activated wave 5
+[361.5s] [gatling] fever +2s: score gain 215, still active true
+[370.0s] [gatling] fever activated wave 5
+[371.8s] [gatling] fever +2s: score gain 239, still active true
+[380.1s] [gatling] fever activated wave 5
+[382.0s] [gatling] fever +2s: score gain 166, still active true
+[389.9s] [gatling] fever activated wave 5
+[391.8s] [gatling] fever +2s: score gain 199, still active true
+[398.0s] [gatling] boss gone wave 5 after 225s
+[400.5s] [gatling] card round wave 5: offered lucky_drop, fever_extend, damage_up
+[400.6s] [gatling] picked card lucky_drop
+[401.1s] [gatling] wave 5 -> 6 (lives 5, score 36564)
+[403.9s] [gatling] fever activated wave 6
+[405.8s] [gatling] fever +2s: score gain 144, still active true
+[412.5s] [gatling] card round wave 6: offered rapid_reload, damage_up, skill_cooldown
+[412.6s] [gatling] picked card rapid_reload
+[415.5s] [gatling] fever activated wave 6
+[417.3s] [gatling] fever +2s: score gain 110, still active true
+[424.5s] [gatling] card round wave 6: offered damage_up, fever_boost, weapon_level_up
+[424.6s] [gatling] picked card weapon_level_up
+[425.1s] [gatling] wave 6 -> 7 (lives 5, score 38922)
+[431.9s] [gatling] boss spawned wave 7, maxHp 150
+[433.0s] [gatling] fever activated wave 7
+[434.8s] [gatling] fever +2s: score gain 219, still active true
+[442.4s] [gatling] fever activated wave 7
+[444.2s] [gatling] fever +2s: score gain 263, still active true
+[452.3s] [gatling] fever activated wave 7
+[454.2s] [gatling] fever +2s: score gain 229, still active true
+[463.2s] [gatling] fever activated wave 7
+[465.1s] [gatling] fever +2s: score gain 251, still active true
+[473.9s] [gatling] fever activated wave 7
+[475.7s] [gatling] fever +2s: score gain 219, still active true
+[483.4s] [gatling] fever activated wave 7
+[485.3s] [gatling] fever +2s: score gain 217, still active true
+[495.5s] [gatling] fever activated wave 7
+[497.3s] [gatling] fever +2s: score gain 294, still active true
+[500.2s] [gatling] boss gone wave 7 after 68s
+[503.4s] [gatling] DONE phase=VICTORY wave=7 lives=5 score=58366 pageErr=0 consoleErr=168

@@ -1,0 +1,229 @@
+{
+  "checks": [
+    {
+      "id": "A-1-01",
+      "status": "PASS",
+      "note": "로비 슬롯 2개 모두 \"비어 있음\"",
+      "evidence": {
+        "slotCount": 2,
+        "emptyCount": 2
+      }
+    },
+    {
+      "id": "A-1-02",
+      "status": "PASS",
+      "note": "1P 마우스 준비 문구 표시, 2P 마우스 버튼 disabled",
+      "evidence": {
+        "ready": true,
+        "p2": {
+          "disabled": true,
+          "opacity": "0.35",
+          "cursor": "not-allowed"
+        }
+      }
+    },
+    {
+      "id": "A-1-03",
+      "status": "PASS",
+      "note": "새로고침 후 닉네임 자동 채움",
+      "evidence": {
+        "autofill": "테스터A"
+      }
+    },
+    {
+      "id": "A-1-04",
+      "status": "PASS",
+      "note": "카운트다운 없이 무기 선택 진입, 카드 3장 가운데 배치",
+      "evidence": {
+        "phase": "PLAYING",
+        "selection": {
+          "kind": "weapon",
+          "done": [
+            false
+          ]
+        },
+        "weaponCards": [
+          {
+            "kind": "shotgun",
+            "aimX": -0.44,
+            "aimY": 0.14
+          },
+          {
+            "kind": "revolver",
+            "aimX": 0,
+            "aimY": 0.14
+          },
+          {
+            "kind": "gatling",
+            "aimX": 0.44,
+            "aimY": 0.14
+          }
+        ],
+        "elapsedMs": 19431
+      }
+    },
+    {
+      "id": "A-1-05",
+      "status": "BUG",
+      "note": "HUD: BAR DEFENSE 1인 표기, 우클릭 안내 1개, 위로 휙 없음, 1P 배지 없음 (값으로 판정, 피버 패널은 캡처로 추가 확인)",
+      "evidence": {
+        "barDefense": true,
+        "teamDefense": false,
+        "rightClickHints": 0,
+        "upFlickHints": 0,
+        "oneP": 0,
+        "twoP": 0,
+        "feverPanelText": 0,
+        "crosshairLabels": [
+          "REVOLVER Lv.1"
+        ]
+      }
+    },
+    {
+      "id": "5-1-mouse-hold",
+      "status": "PASS",
+      "note": "마우스 1초 누르기 탄약 감소 9발(샘플 9,8,8,7,7,5,5,3,2,2)",
+      "evidence": {
+        "before": 10,
+        "holdSamples": [
+          9,
+          8,
+          8,
+          7,
+          7,
+          5,
+          5,
+          3,
+          2,
+          2
+        ],
+        "holdAfter": 1,
+        "holdDrop": 9,
+        "weapon": "revolver",
+        "consoleErrorsSoFar": 0
+      }
+    },
+    {
+      "id": "A-1-06a-single",
+      "status": "PASS",
+      "note": "좌클릭 단발 탄약 1→0",
+      "evidence": {
+        "b1": 1,
+        "a1": 0
+      }
+    },
+    {
+      "id": "A-1-07",
+      "status": "PASS",
+      "note": "Esc 일시정지 → 재개",
+      "evidence": {
+        "paused": true,
+        "resumed": true,
+        "resumeLabel": "▶ 이어하기 (Esc)",
+        "pauseButtons": [
+          "📖 가이드",
+          "🧪 센서 연구소",
+          "⏸ 일시정지 (Esc)",
+          "▶ 이어하기 (Esc)",
+          "🔁 다시시작 (무기 선택부터)",
+          "🏠 로비로 나가기"
+        ]
+      }
+    },
+    {
+      "id": "A-1-06c-skill",
+      "status": "PASS",
+      "note": "우클릭 스킬 재고 1→0",
+      "evidence": {
+        "st0": 1,
+        "st1": 0
+      }
+    },
+    {
+      "id": "A-1-06d-fever",
+      "status": "PASS",
+      "note": "피버 게이지 찬 뒤 더블클릭 → 피버 발동, 2초 동안 점수 증가",
+      "evidence": {
+        "isFeverActiveAfterDbl": true,
+        "scoreStart": 270,
+        "scoreAfter2s": 288,
+        "fevAfter": true
+      }
+    },
+    {
+      "id": "A-1-09",
+      "status": "PASS",
+      "note": "결과 화면 도달(GAMEOVER), 다시 시작·로비로 버튼 존재",
+      "evidence": {
+        "result": "GAMEOVER",
+        "restart": true,
+        "lobby": true,
+        "tabs": [
+          "🏆개인 랭킹",
+          "👥팀 랭킹"
+        ]
+      }
+    },
+    {
+      "id": "A-1-10",
+      "status": "PASS",
+      "note": "로비 복귀 후 마우스 슬롯 비워짐",
+      "evidence": {
+        "emptyCount": 2,
+        "has테스터A": false
+      }
+    }
+  ],
+  "rightClickDuringSelect": {
+    "selection": "weapon",
+    "skillStock": 0
+  },
+  "hud": {
+    "hud": {
+      "barDefense": true,
+      "teamDefense": false,
+      "rightClickHints": 0,
+      "upFlickHints": 0,
+      "oneP": 0,
+      "twoP": 0,
+      "feverPanelText": 0,
+      "crosshairLabels": [
+        "REVOLVER Lv.1"
+      ]
+    },
+    "phase": "PLAYING",
+    "weapon": "revolver",
+    "skillStock": 0
+  },
+  "reward": {
+    "done": true,
+    "timerText": false,
+    "cards": 3
+  },
+  "fever": [
+    {
+      "isFeverActiveAfterDbl": true,
+      "scoreStart": 270,
+      "scoreAfter2s": 288,
+      "fevAfter": true
+    }
+  ],
+  "skill": [],
+  "holdSamples": [
+    9,
+    8,
+    8,
+    7,
+    7,
+    5,
+    5,
+    3,
+    2,
+    2
+  ],
+  "errors": {
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  "earlyStockAt1_5s": 0
+}

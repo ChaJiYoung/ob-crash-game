@@ -1,0 +1,14 @@
+14:52:40 [mp] room HCQQ
+14:52:53 [mp] shot V-mp-00-lobby-empty
+14:52:59 [mp] CHECK 00 PASS | lobby initial: both slots empty, phase PAIRING | expected={"phase":"PAIRING","both":"비어 있음"} actual={"phase":"PAIRING"}
+14:53:02 [mp] CHECK 01a PASS | phone registers on its slot (nickname on PC) | expected="모바일P shown" actual=true
+14:53:03 [mp] CHECK 01c PASS | other device on occupied slot is rejected (ERROR to phone) and slot keeps original | expected="ERROR msg + 모바일P kept" actual={"errors":["SLOT_OCCUPIED"],"occupiedAfter":true}
+FATAL locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-shootable="start"]')[22m
+
+    at main (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/B-mouse-phone/scripts/qa-b-r2-verify.mjs:209:50) {
+  log: [ `  - waiting for locator('[data-shootable="start"]')` ],
+  name: 'TimeoutError'
+}
+EXIT_MP=1

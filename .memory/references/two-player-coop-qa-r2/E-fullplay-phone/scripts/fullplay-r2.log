@@ -1,0 +1,287 @@
+14:42:31 
+===== GAME 1: SHOTGUN =====
+14:43:18 [shotgun] roomId=QV5N
+14:43:29 [shotgun] shot 01-lobby-paired
+14:43:59 [shotgun] shot 02-weapon-select
+14:44:07 [shotgun] combat started=true at 94.7s
+14:44:17 [shotgun] shot 03-combat-start
+14:44:20 [shotgun] wave 1 at 108.3s lives=5
+14:44:31 [shotgun] shot w1-start
+14:44:34 [shotgun] RAPID HOLD 1s: fired=0 pass=false
+14:44:44 [shotgun] shot rapidfire-test
+14:45:16 [shotgun] shot skill-first
+14:45:40 [shotgun] FEVER triggered
+14:45:46 [shotgun] shot fever-trigger
+14:45:49 [shotgun] fever 2s diff=56
+14:45:52 [shotgun] shot fever-after-2s
+14:46:00 [shotgun] card round wave 1 offered=rapid_reload,damage_up,hit_zone_up
+14:46:04 [shotgun] shot w1-cards
+14:46:05 [shotgun] wave 2 at 213.0s lives=5
+14:46:08 [shotgun] shot w2-start
+14:47:54 [shotgun] card round wave 2 offered=skill_cooldown,weapon_level_up,lucky_drop
+14:48:18 [shotgun] shot w2-cards
+14:48:25 [shotgun] wave 3 at 352.9s lives=5
+14:48:30 [shotgun] shot w3-start
+14:48:42 [shotgun] boss seen in wave 3
+14:48:49 [shotgun] shot w3-boss
+14:51:44 [shotgun] END=RESULT_SCREEN phase=GAMEOVER wave=3 total=444.7s
+14:51:59 [shotgun] shot result
+14:52:29 [shotgun] shot result-aim-restart
+14:52:48 [shotgun] shot after-restart-shot
+14:52:49 
+===== GAME 2: REVOLVER =====
+14:53:39 [revolver] roomId=HVKV
+14:53:48 [revolver] shot 01-lobby-paired
+14:54:14 [revolver] shot 02-weapon-select
+14:54:19 [revolver] combat started=true at 89.5s
+14:54:26 [revolver] shot 03-combat-start
+14:54:28 [revolver] wave 1 at 98.4s lives=5
+14:54:35 [revolver] shot w1-start
+14:54:38 [revolver] RAPID HOLD 1s: fired=0 pass=false
+14:54:46 [revolver] shot rapidfire-test
+14:55:04 [revolver] shot skill-first
+14:55:21 [revolver] FEVER triggered
+14:55:25 [revolver] shot fever-trigger
+14:55:29 [revolver] fever 2s diff=18
+14:55:33 [revolver] shot fever-after-2s
+14:56:19 [revolver] card round wave 1 offered=skill_cooldown,fever_extend,rapid_reload
+14:56:24 [revolver] shot w1-cards
+14:56:27 [revolver] picked card skill_cooldown
+14:56:32 [revolver] wave 2 at 222.3s lives=5
+14:56:39 [revolver] shot w2-start
+14:57:44 [revolver] card round wave 2 offered=fever_extend,hit_zone_up,lucky_drop
+14:57:47 [revolver] shot w2-cards
+14:57:50 [revolver] picked card fever_extend
+14:57:53 [revolver] wave 3 at 303.3s lives=5
+14:57:57 [revolver] shot w3-start
+14:58:10 [revolver] boss seen in wave 3
+14:58:14 [revolver] shot w3-boss
+15:02:28 [revolver] END=RESULT_SCREEN phase=GAMEOVER wave=3 total=480.3s
+15:02:46 [revolver] shot result
+15:03:39 [revolver] shot result-aim-restart
+15:03:56 [revolver] shot after-restart-shot
+15:03:58 
+===== GAME 3: GATLING =====
+15:04:35 [gatling] roomId=9MXM
+15:04:45 [gatling] shot 01-lobby-paired
+15:05:15 [gatling] shot 02-weapon-select
+15:05:21 [gatling] combat started=true at 83.2s
+15:05:31 [gatling] shot 03-combat-start
+15:05:33 [gatling] wave 1 at 95.2s lives=5
+15:05:42 [gatling] shot w1-start
+15:05:45 [gatling] RAPID HOLD 1s: fired=0 pass=false
+15:05:53 [gatling] shot rapidfire-test
+15:07:25 [gatling] shot skill-first
+15:09:35 [gatling] card round wave 1 offered=lucky_drop,fever_extend,weapon_level_up
+15:09:46 [gatling] shot w1-cards
+15:09:49 [gatling] picked card weapon_level_up
+15:09:56 [gatling] wave 2 at 357.4s lives=5
+15:10:05 [gatling] shot w2-start
+15:10:50 [gatling] FEVER triggered
+15:10:54 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:10:54 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:11:00 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:11:00 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:11:02 [gatling] shot fever-trigger
+15:11:07 [gatling] fever 2s diff=49
+15:11:17 [gatling] shot fever-after-2s
+15:14:24 [gatling] card round wave 2 offered=fever_boost,skill_cooldown,hit_zone_up
+15:14:35 [gatling] shot w2-cards
+15:14:39 [gatling] picked card fever_boost
+15:14:45 [gatling] wave 3 at 647.0s lives=5
+15:14:55 [gatling] shot w3-start
+15:14:58 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:14:58 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:15:04 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:15:04 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:15:57 [gatling] boss seen in wave 3
+15:16:05 [gatling] shot w3-boss
+15:17:14 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:17:14 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:17:22 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:17:22 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:18:33 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:18:33 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:18:45 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:18:45 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:19:39 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:19:39 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:19:48 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:19:48 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:20:23 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:20:23 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:20:36 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:20:36 [gatling] CONSOLE ERROR: Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor 
+    at div
+    at div
+    at div
+    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7
+    at div
+    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)
+    at App
+15:20:44 [gatling] END=RESULT_SCREEN phase=GAMEOVER wave=3 total=911.4s
+15:21:00 [gatling] shot result
+15:21:32 [gatling] shot result-aim-restart
+15:21:42 [gatling] shot after-restart-shot
+15:21:44 done -> /Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/E-fullplay-phone/fullplay-r2-summary.json

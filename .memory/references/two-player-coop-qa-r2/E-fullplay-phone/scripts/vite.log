@@ -1,0 +1,40 @@
+
+  VITE v5.4.21  ready in 406 ms
+
+  ➜  Local:   https://127.0.0.1:5205/
+11:40:58 PM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+12:03:56 AM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+12:21:42 AM [vite] ws proxy socket error:
+Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20)
+1:53:36 AM [vite] ws proxy socket error:
+Error: This socket has been ended by the other party
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at TLSSocket.writeAfterFIN [as write] (node:net:581:14)
+    at Socket.ondata (node:internal/streams/readable:1012:24)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)

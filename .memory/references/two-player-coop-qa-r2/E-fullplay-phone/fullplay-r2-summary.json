@@ -1,0 +1,474 @@
+[
+  {
+    "weapon": "shotgun",
+    "end": "RESULT_SCREEN",
+    "waves": {
+      "1": {
+        "wave": 1,
+        "startSec": "3.1",
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossFirstSec": null,
+        "bossGone": false,
+        "cards": [
+          {
+            "wave": 1,
+            "startMs": 1794062759624,
+            "offered": [
+              "rapid_reload",
+              "damage_up",
+              "hit_zone_up"
+            ],
+            "chosen": null,
+            "done": true,
+            "endSec": "110.8"
+          }
+        ],
+        "shotsFiredProxy": 24,
+        "scoreGain": 389,
+        "scoreGainSamples": 20,
+        "lastScore": null,
+        "durSec": 104.7
+      },
+      "2": {
+        "wave": 2,
+        "startSec": "107.8",
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossFirstSec": null,
+        "bossGone": false,
+        "cards": [
+          {
+            "wave": 2,
+            "startMs": 1794062870508,
+            "offered": [
+              "skill_cooldown",
+              "weapon_level_up",
+              "lucky_drop"
+            ],
+            "chosen": null,
+            "done": true,
+            "endSec": "253.3"
+          }
+        ],
+        "shotsFiredProxy": 36,
+        "scoreGain": 572,
+        "scoreGainSamples": 27,
+        "lastScore": null,
+        "durSec": 139.8
+      },
+      "3": {
+        "wave": 3,
+        "startSec": "247.6",
+        "startLives": 5,
+        "endLives": 0,
+        "bossSeen": true,
+        "bossFirstSec": "264.5",
+        "bossGone": false,
+        "cards": [],
+        "shotsFiredProxy": 34,
+        "scoreGain": 905,
+        "scoreGainSamples": 37,
+        "lastScore": null,
+        "durSec": 198.9
+      }
+    },
+    "cardRounds": [
+      {
+        "wave": 1,
+        "startMs": 1794062759624,
+        "offered": [
+          "rapid_reload",
+          "damage_up",
+          "hit_zone_up"
+        ],
+        "chosen": null,
+        "done": true,
+        "endSec": "110.8"
+      },
+      {
+        "wave": 2,
+        "startMs": 1794062870508,
+        "offered": [
+          "skill_cooldown",
+          "weapon_level_up",
+          "lucky_drop"
+        ],
+        "chosen": null,
+        "done": true,
+        "endSec": "253.3"
+      }
+    ],
+    "rapidFireHoldTest": {
+      "ammoBefore": 14,
+      "ammoAfter": 14,
+      "firedByAmmoDrop": 0,
+      "samples": [
+        {
+          "ms": 0,
+          "ammo": 14,
+          "reloading": false
+        },
+        {
+          "ms": 1638,
+          "ammo": 14,
+          "reloading": false
+        }
+      ],
+      "pass": false,
+      "rule": "PASS if 1초 홀드 동안 탄약이 2발 이상 감소"
+    },
+    "feverTest": {
+      "scoreBefore": 263,
+      "scoreAfter": 319,
+      "feverActiveAfter2s": false,
+      "scoreDiff": 56,
+      "pass": true,
+      "rule": "PASS if 피버 발동 후 2초 동안 점수 증가"
+    },
+    "skillUsed": 6,
+    "shotsSent": 104,
+    "stall": null,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "phoneErrors": [],
+    "combatStartSec": "94.7",
+    "totalSec": 444.7,
+    "finalPhase": "GAMEOVER",
+    "finalWave": 3,
+    "finalLives": 0,
+    "finalScore": 1866,
+    "resultText": "💥 GAME OVER! 바 방어선 함락! 맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다. 최종 득점 1866점 누적 격파 (KILL) 57 KILL 최대 콤보 89 COMBO 도달 웨이브 WAVE 3 🏆 개인 랭킹 👥 팀 랭킹 1 폰_shotgun 🪠 샷건 1866점 W3 2 폰_shotgun 🪠 샷건 1866점 W3 🔄 다시 도전하기 🏠 로비로 이동 SHOTGUN Lv.1",
+    "restartOutsideShotStillOnResult": true,
+    "restartAim": {
+      "nx": -0.108,
+      "ny": -0.361
+    },
+    "restartTriggered": false
+  },
+  {
+    "weapon": "revolver",
+    "end": "RESULT_SCREEN",
+    "waves": {
+      "1": {
+        "wave": 1,
+        "startSec": "2.3",
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossFirstSec": null,
+        "bossGone": false,
+        "cards": [
+          {
+            "wave": 1,
+            "startMs": 1794063378095,
+            "offered": [
+              "skill_cooldown",
+              "fever_extend",
+              "rapid_reload"
+            ],
+            "chosen": "skill_cooldown",
+            "done": true,
+            "endSec": "133.1"
+          }
+        ],
+        "shotsFiredProxy": 33,
+        "scoreGain": 440,
+        "scoreGainSamples": 22,
+        "lastScore": null,
+        "durSec": 123.9
+      },
+      "2": {
+        "wave": 2,
+        "startSec": "126.2",
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossFirstSec": null,
+        "bossGone": false,
+        "cards": [
+          {
+            "wave": 2,
+            "startMs": 1794063463756,
+            "offered": [
+              "fever_extend",
+              "hit_zone_up",
+              "lucky_drop"
+            ],
+            "chosen": "fever_extend",
+            "done": true,
+            "endSec": "211.7"
+          }
+        ],
+        "shotsFiredProxy": 28,
+        "scoreGain": 613,
+        "scoreGainSamples": 26,
+        "lastScore": null,
+        "durSec": 81
+      },
+      "3": {
+        "wave": 3,
+        "startSec": "207.2",
+        "startLives": 5,
+        "endLives": 0,
+        "bossSeen": true,
+        "bossFirstSec": "224.6",
+        "bossGone": false,
+        "cards": [],
+        "shotsFiredProxy": 45,
+        "scoreGain": 1326,
+        "scoreGainSamples": 42,
+        "lastScore": null,
+        "durSec": 275.5
+      }
+    },
+    "cardRounds": [
+      {
+        "wave": 1,
+        "startMs": 1794063378095,
+        "offered": [
+          "skill_cooldown",
+          "fever_extend",
+          "rapid_reload"
+        ],
+        "chosen": "skill_cooldown",
+        "done": true,
+        "endSec": "133.1"
+      },
+      {
+        "wave": 2,
+        "startMs": 1794063463756,
+        "offered": [
+          "fever_extend",
+          "hit_zone_up",
+          "lucky_drop"
+        ],
+        "chosen": "fever_extend",
+        "done": true,
+        "endSec": "211.7"
+      }
+    ],
+    "rapidFireHoldTest": {
+      "ammoBefore": 10,
+      "ammoAfter": 10,
+      "firedByAmmoDrop": 0,
+      "samples": [
+        {
+          "ms": 0,
+          "ammo": 10,
+          "reloading": false
+        },
+        {
+          "ms": 1495,
+          "ammo": 10,
+          "reloading": false
+        }
+      ],
+      "pass": false,
+      "rule": "PASS if 1초 홀드 동안 탄약이 2발 이상 감소"
+    },
+    "feverTest": {
+      "scoreBefore": 288,
+      "scoreAfter": 306,
+      "feverActiveAfter2s": false,
+      "scoreDiff": 18,
+      "pass": true,
+      "rule": "PASS if 피버 발동 후 2초 동안 점수 증가"
+    },
+    "skillUsed": 5,
+    "shotsSent": 122,
+    "stall": null,
+    "pageErrors": [],
+    "consoleErrors": [],
+    "phoneErrors": [],
+    "combatStartSec": "89.5",
+    "totalSec": 480.3,
+    "finalPhase": "GAMEOVER",
+    "finalWave": 3,
+    "finalLives": 0,
+    "finalScore": 2402,
+    "resultText": "💥 GAME OVER! 바 방어선 함락! 맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다. 최종 득점 2402점 NEW RECORD! 누적 격파 (KILL) 58 KILL 최대 콤보 115 COMBO 도달 웨이브 WAVE 3 🏆 개인 랭킹 👥 팀 랭킹 1 폰_revolver 🍾 리볼버 2402점 W3 2 폰_shotgun 🪠 샷건 1866점 W3 3 폰_shotgun 🪠 샷건 1866점 W3 🔄 다시 도전하기 🏠 로비로 이동 REVOLVER Lv.1",
+    "restartOutsideShotStillOnResult": true,
+    "restartAim": {
+      "nx": -0.108,
+      "ny": -0.406
+    },
+    "restartTriggered": false
+  },
+  {
+    "weapon": "gatling",
+    "end": "RESULT_SCREEN",
+    "waves": {
+      "1": {
+        "wave": 1,
+        "startSec": "2.6",
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossFirstSec": null,
+        "bossGone": false,
+        "cards": [
+          {
+            "wave": 1,
+            "startMs": 1794064171447,
+            "offered": [
+              "lucky_drop",
+              "fever_extend",
+              "weapon_level_up"
+            ],
+            "chosen": "weapon_level_up",
+            "done": true,
+            "endSec": "274.7"
+          }
+        ],
+        "shotsFiredProxy": 109,
+        "scoreGain": 512,
+        "scoreGainSamples": 57,
+        "lastScore": null,
+        "durSec": 262.3
+      },
+      "2": {
+        "wave": 2,
+        "startSec": "264.9",
+        "startLives": 5,
+        "endLives": 5,
+        "bossSeen": false,
+        "bossFirstSec": null,
+        "bossGone": false,
+        "cards": [
+          {
+            "wave": 2,
+            "startMs": 1794064461358,
+            "offered": [
+              "fever_boost",
+              "skill_cooldown",
+              "hit_zone_up"
+            ],
+            "chosen": "fever_boost",
+            "done": true,
+            "endSec": "564.0"
+          }
+        ],
+        "shotsFiredProxy": 107,
+        "scoreGain": 616,
+        "scoreGainSamples": 52,
+        "lastScore": null,
+        "durSec": 289.5
+      },
+      "3": {
+        "wave": 3,
+        "startSec": "554.4",
+        "startLives": 5,
+        "endLives": 0,
+        "bossSeen": true,
+        "bossFirstSec": "626.8",
+        "bossGone": false,
+        "cards": [],
+        "shotsFiredProxy": 97,
+        "scoreGain": 1694,
+        "scoreGainSamples": 59,
+        "lastScore": null,
+        "durSec": 358.8
+      }
+    },
+    "cardRounds": [
+      {
+        "wave": 1,
+        "startMs": 1794064171447,
+        "offered": [
+          "lucky_drop",
+          "fever_extend",
+          "weapon_level_up"
+        ],
+        "chosen": "weapon_level_up",
+        "done": true,
+        "endSec": "274.7"
+      },
+      {
+        "wave": 2,
+        "startMs": 1794064461358,
+        "offered": [
+          "fever_boost",
+          "skill_cooldown",
+          "hit_zone_up"
+        ],
+        "chosen": "fever_boost",
+        "done": true,
+        "endSec": "564.0"
+      }
+    ],
+    "rapidFireHoldTest": {
+      "ammoBefore": 30,
+      "ammoAfter": 30,
+      "firedByAmmoDrop": 0,
+      "samples": [
+        {
+          "ms": 0,
+          "ammo": 30,
+          "reloading": false
+        },
+        {
+          "ms": 1537,
+          "ammo": 30,
+          "reloading": false
+        }
+      ],
+      "pass": false,
+      "rule": "PASS if 1초 홀드 동안 탄약이 2발 이상 감소"
+    },
+    "feverTest": {
+      "scoreBefore": 631,
+      "scoreAfter": 680,
+      "feverActiveAfter2s": false,
+      "scoreDiff": 49,
+      "pass": true,
+      "rule": "PASS if 피버 발동 후 2초 동안 점수 증가"
+    },
+    "skillUsed": 8,
+    "shotsSent": 0,
+    "stall": null,
+    "pageErrors": [],
+    "consoleErrors": [
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App",
+      "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5205/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5205/src/pc/PCGamePage.tsx:66:30)\n    at App"
+    ],
+    "phoneErrors": [],
+    "combatStartSec": "83.2",
+    "totalSec": 911.4,
+    "finalPhase": "GAMEOVER",
+    "finalWave": 3,
+    "finalLives": 0,
+    "finalScore": 2822,
+    "resultText": "💥 GAME OVER! 바 방어선 함락! 맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다. 최종 득점 2822점 NEW RECORD! 누적 격파 (KILL) 56 KILL 최대 콤보 234 COMBO 도달 웨이브 WAVE 3 🏆 개인 랭킹 👥 팀 랭킹 1 폰_gatling 🍺 개틀링 2822점 W3 2 폰_revolver 🍾 리볼버 2402점 W3 3 폰_shotgun 🪠 샷건 1866점 W3 4 폰_shotgun 🪠 샷건 1866점 W3 🔄 다시 도전하기 🏠 로비로 이동 GATLING Lv.2",
+    "restartOutsideShotStillOnResult": true,
+    "restartAim": {
+      "nx": -0.108,
+      "ny": -0.466
+    },
+    "restartTriggered": false
+  }
+]

@@ -1,0 +1,1344 @@
+{
+  "weapon": "gatling",
+  "renderer": "chromium headless, --use-angle=metal (see report: swiftshader was 0.3fps)",
+  "startedAt": "2026-11-07T15:12:06.985Z",
+  "pick": "gatling",
+  "waves": {
+    "1": {
+      "wave": 1,
+      "startT": 14,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 14,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "2": {
+      "wave": 2,
+      "startT": 28,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 18,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 1
+    },
+    "3": {
+      "wave": 3,
+      "startT": 46,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 91,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "4": {
+      "wave": 4,
+      "startT": 137,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 29,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 3
+    },
+    "5": {
+      "wave": 5,
+      "startT": 166,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 235,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 1
+    },
+    "6": {
+      "wave": 6,
+      "startT": 401,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 24,
+      "bossSpawned": false,
+      "bossKilled": false,
+      "cardRounds": 2
+    },
+    "7": {
+      "wave": 7,
+      "startT": 425,
+      "startLives": 5,
+      "endLives": 5,
+      "durationSec": 77,
+      "bossSpawned": true,
+      "bossKilled": true,
+      "cardRounds": 0
+    }
+  },
+  "events": [
+    {
+      "t": 13,
+      "msg": "picked weapon: gatling"
+    },
+    {
+      "t": 27,
+      "msg": "card round wave 1: offered lucky_drop, rapid_reload, fever_extend"
+    },
+    {
+      "t": 27,
+      "msg": "picked card lucky_drop"
+    },
+    {
+      "t": 28,
+      "msg": "wave 1 -> 2 (lives 5, score 1166)"
+    },
+    {
+      "t": 30,
+      "msg": "fever activated wave 2"
+    },
+    {
+      "t": 31,
+      "msg": "fever +2s: score gain 108, still active true"
+    },
+    {
+      "t": 45,
+      "msg": "card round wave 2: offered hit_zone_up, fever_extend, damage_up"
+    },
+    {
+      "t": 45,
+      "msg": "picked card hit_zone_up"
+    },
+    {
+      "t": 46,
+      "msg": "wave 2 -> 3 (lives 5, score 2585)"
+    },
+    {
+      "t": 48,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 50,
+      "msg": "fever +2s: score gain 95, still active true"
+    },
+    {
+      "t": 51,
+      "msg": "boss spawned wave 3, maxHp 100"
+    },
+    {
+      "t": 64,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 66,
+      "msg": "fever +2s: score gain 161, still active true"
+    },
+    {
+      "t": 79,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 81,
+      "msg": "fever +2s: score gain 155, still active true"
+    },
+    {
+      "t": 93,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 95,
+      "msg": "fever +2s: score gain 163, still active true"
+    },
+    {
+      "t": 108,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 110,
+      "msg": "fever +2s: score gain 147, still active true"
+    },
+    {
+      "t": 119,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 121,
+      "msg": "fever +2s: score gain 208, still active true"
+    },
+    {
+      "t": 133,
+      "msg": "fever activated wave 3"
+    },
+    {
+      "t": 134,
+      "msg": "boss gone wave 3 after 84s"
+    },
+    {
+      "t": 136,
+      "msg": "card round wave 3: offered hit_zone_up, lucky_drop, damage_up"
+    },
+    {
+      "t": 136,
+      "msg": "picked card hit_zone_up"
+    },
+    {
+      "t": 137,
+      "msg": "wave 3 -> 4 (lives 5, score 9080)"
+    },
+    {
+      "t": 138,
+      "msg": "fever +2s: score gain 190, still active true"
+    },
+    {
+      "t": 148,
+      "msg": "fever activated wave 4"
+    },
+    {
+      "t": 151,
+      "msg": "card round wave 4: offered rapid_reload, lucky_drop, skill_cooldown"
+    },
+    {
+      "t": 151,
+      "msg": "picked card rapid_reload"
+    },
+    {
+      "t": 151,
+      "msg": "fever +2s: score gain 176, still active true"
+    },
+    {
+      "t": 161,
+      "msg": "card round wave 4: offered rapid_reload, weapon_level_up, fever_extend"
+    },
+    {
+      "t": 161,
+      "msg": "picked card weapon_level_up"
+    },
+    {
+      "t": 165,
+      "msg": "card round wave 4: offered rapid_reload, damage_up, lucky_drop"
+    },
+    {
+      "t": 165,
+      "msg": "picked card rapid_reload"
+    },
+    {
+      "t": 166,
+      "msg": "wave 4 -> 5 (lives 5, score 11441)"
+    },
+    {
+      "t": 167,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 168,
+      "msg": "fever +2s: score gain 144, still active true"
+    },
+    {
+      "t": 173,
+      "msg": "boss spawned wave 5, maxHp 120"
+    },
+    {
+      "t": 179,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 181,
+      "msg": "fever +2s: score gain 207, still active true"
+    },
+    {
+      "t": 191,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 193,
+      "msg": "fever +2s: score gain 140, still active true"
+    },
+    {
+      "t": 203,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 205,
+      "msg": "fever +2s: score gain 258, still active true"
+    },
+    {
+      "t": 215,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 216,
+      "msg": "fever +2s: score gain 242, still active true"
+    },
+    {
+      "t": 226,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 228,
+      "msg": "fever +2s: score gain 204, still active true"
+    },
+    {
+      "t": 237,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 238,
+      "msg": "fever +2s: score gain 207, still active true"
+    },
+    {
+      "t": 247,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 249,
+      "msg": "fever +2s: score gain 179, still active true"
+    },
+    {
+      "t": 258,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 260,
+      "msg": "fever +2s: score gain 191, still active true"
+    },
+    {
+      "t": 268,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 270,
+      "msg": "fever +2s: score gain 217, still active true"
+    },
+    {
+      "t": 278,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 280,
+      "msg": "fever +2s: score gain 187, still active true"
+    },
+    {
+      "t": 289,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 290,
+      "msg": "fever +2s: score gain 349, still active true"
+    },
+    {
+      "t": 299,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 301,
+      "msg": "fever +2s: score gain 214, still active true"
+    },
+    {
+      "t": 309,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 311,
+      "msg": "fever +2s: score gain 220, still active true"
+    },
+    {
+      "t": 319,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 321,
+      "msg": "fever +2s: score gain 279, still active true"
+    },
+    {
+      "t": 330,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 331,
+      "msg": "fever +2s: score gain 222, still active true"
+    },
+    {
+      "t": 340,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 341,
+      "msg": "fever +2s: score gain 217, still active true"
+    },
+    {
+      "t": 349,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 351,
+      "msg": "fever +2s: score gain 223, still active true"
+    },
+    {
+      "t": 360,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 361,
+      "msg": "fever +2s: score gain 215, still active true"
+    },
+    {
+      "t": 370,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 372,
+      "msg": "fever +2s: score gain 239, still active true"
+    },
+    {
+      "t": 380,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 382,
+      "msg": "fever +2s: score gain 166, still active true"
+    },
+    {
+      "t": 390,
+      "msg": "fever activated wave 5"
+    },
+    {
+      "t": 392,
+      "msg": "fever +2s: score gain 199, still active true"
+    },
+    {
+      "t": 398,
+      "msg": "boss gone wave 5 after 225s"
+    },
+    {
+      "t": 401,
+      "msg": "card round wave 5: offered lucky_drop, fever_extend, damage_up"
+    },
+    {
+      "t": 401,
+      "msg": "picked card lucky_drop"
+    },
+    {
+      "t": 401,
+      "msg": "wave 5 -> 6 (lives 5, score 36564)"
+    },
+    {
+      "t": 404,
+      "msg": "fever activated wave 6"
+    },
+    {
+      "t": 406,
+      "msg": "fever +2s: score gain 144, still active true"
+    },
+    {
+      "t": 413,
+      "msg": "card round wave 6: offered rapid_reload, damage_up, skill_cooldown"
+    },
+    {
+      "t": 413,
+      "msg": "picked card rapid_reload"
+    },
+    {
+      "t": 416,
+      "msg": "fever activated wave 6"
+    },
+    {
+      "t": 417,
+      "msg": "fever +2s: score gain 110, still active true"
+    },
+    {
+      "t": 425,
+      "msg": "card round wave 6: offered damage_up, fever_boost, weapon_level_up"
+    },
+    {
+      "t": 425,
+      "msg": "picked card weapon_level_up"
+    },
+    {
+      "t": 425,
+      "msg": "wave 6 -> 7 (lives 5, score 38922)"
+    },
+    {
+      "t": 432,
+      "msg": "boss spawned wave 7, maxHp 150"
+    },
+    {
+      "t": 433,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 435,
+      "msg": "fever +2s: score gain 219, still active true"
+    },
+    {
+      "t": 442,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 444,
+      "msg": "fever +2s: score gain 263, still active true"
+    },
+    {
+      "t": 452,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 454,
+      "msg": "fever +2s: score gain 229, still active true"
+    },
+    {
+      "t": 463,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 465,
+      "msg": "fever +2s: score gain 251, still active true"
+    },
+    {
+      "t": 474,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 476,
+      "msg": "fever +2s: score gain 219, still active true"
+    },
+    {
+      "t": 483,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 485,
+      "msg": "fever +2s: score gain 217, still active true"
+    },
+    {
+      "t": 495,
+      "msg": "fever activated wave 7"
+    },
+    {
+      "t": 497,
+      "msg": "fever +2s: score gain 294, still active true"
+    },
+    {
+      "t": 500,
+      "msg": "boss gone wave 7 after 68s"
+    }
+  ],
+  "cardRounds": [
+    {
+      "wave": 1,
+      "offered": [
+        "lucky_drop",
+        "rapid_reload",
+        "fever_extend"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "fullplay-gatling-wave1-cards.png",
+      "t": 26
+    },
+    {
+      "wave": 2,
+      "offered": [
+        "hit_zone_up",
+        "fever_extend",
+        "damage_up"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "fullplay-gatling-wave2-cards.png",
+      "t": 44
+    },
+    {
+      "wave": 3,
+      "offered": [
+        "hit_zone_up",
+        "lucky_drop",
+        "damage_up"
+      ],
+      "chosen": "hit_zone_up",
+      "screenshot": "fullplay-gatling-wave3-cards.png",
+      "t": 135
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "rapid_reload",
+        "lucky_drop",
+        "skill_cooldown"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "fullplay-gatling-wave4-cards.png",
+      "t": 149
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "rapid_reload",
+        "weapon_level_up",
+        "fever_extend"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "fullplay-gatling-wave4-cards.png",
+      "t": 160
+    },
+    {
+      "wave": 4,
+      "offered": [
+        "rapid_reload",
+        "damage_up",
+        "lucky_drop"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "fullplay-gatling-wave4-cards.png",
+      "t": 164
+    },
+    {
+      "wave": 5,
+      "offered": [
+        "lucky_drop",
+        "fever_extend",
+        "damage_up"
+      ],
+      "chosen": "lucky_drop",
+      "screenshot": "fullplay-gatling-wave5-cards.png",
+      "t": 400
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "rapid_reload",
+        "damage_up",
+        "skill_cooldown"
+      ],
+      "chosen": "rapid_reload",
+      "screenshot": "fullplay-gatling-wave6-cards.png",
+      "t": 412
+    },
+    {
+      "wave": 6,
+      "offered": [
+        "damage_up",
+        "fever_boost",
+        "weapon_level_up"
+      ],
+      "chosen": "weapon_level_up",
+      "screenshot": "fullplay-gatling-wave6-cards.png",
+      "t": 424
+    }
+  ],
+  "bossEncounters": [
+    {
+      "wave": 3,
+      "durationSec": 84,
+      "outcome": "boss gone (killed or wave ended)"
+    },
+    {
+      "wave": 5,
+      "durationSec": 225,
+      "outcome": "boss gone (killed or wave ended)"
+    },
+    {
+      "wave": 7,
+      "durationSec": 68,
+      "outcome": "boss gone (killed or wave ended)"
+    }
+  ],
+  "fever": [
+    {
+      "wave": 2,
+      "activatedAtSec": 29,
+      "scoreBefore": 1230,
+      "scoreAfter2s": 1338,
+      "scoreGainIn2s": 108,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 48,
+      "scoreBefore": 2694,
+      "scoreAfter2s": 2789,
+      "scoreGainIn2s": 95,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 64,
+      "scoreBefore": 3704,
+      "scoreAfter2s": 3865,
+      "scoreGainIn2s": 161,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 79,
+      "scoreBefore": 4786,
+      "scoreAfter2s": 4941,
+      "scoreGainIn2s": 155,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 93,
+      "scoreBefore": 5780,
+      "scoreAfter2s": 5943,
+      "scoreGainIn2s": 163,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 108,
+      "scoreBefore": 6878,
+      "scoreAfter2s": 7025,
+      "scoreGainIn2s": 147,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 119,
+      "scoreBefore": 7835,
+      "scoreAfter2s": 8043,
+      "scoreGainIn2s": 208,
+      "feverStillActive": true
+    },
+    {
+      "wave": 3,
+      "activatedAtSec": 133,
+      "scoreBefore": 8906,
+      "scoreAfter2s": 9096,
+      "scoreGainIn2s": 190,
+      "feverStillActive": true
+    },
+    {
+      "wave": 4,
+      "activatedAtSec": 148,
+      "scoreBefore": 9781,
+      "scoreAfter2s": 9957,
+      "scoreGainIn2s": 176,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 166,
+      "scoreBefore": 11441,
+      "scoreAfter2s": 11585,
+      "scoreGainIn2s": 144,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 179,
+      "scoreBefore": 12430,
+      "scoreAfter2s": 12637,
+      "scoreGainIn2s": 207,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 191,
+      "scoreBefore": 13596,
+      "scoreAfter2s": 13736,
+      "scoreGainIn2s": 140,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 203,
+      "scoreBefore": 14645,
+      "scoreAfter2s": 14903,
+      "scoreGainIn2s": 258,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 214,
+      "scoreBefore": 15883,
+      "scoreAfter2s": 16125,
+      "scoreGainIn2s": 242,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 226,
+      "scoreBefore": 17051,
+      "scoreAfter2s": 17255,
+      "scoreGainIn2s": 204,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 236,
+      "scoreBefore": 18212,
+      "scoreAfter2s": 18419,
+      "scoreGainIn2s": 207,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 247,
+      "scoreBefore": 19322,
+      "scoreAfter2s": 19501,
+      "scoreGainIn2s": 179,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 258,
+      "scoreBefore": 20460,
+      "scoreAfter2s": 20651,
+      "scoreGainIn2s": 191,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 268,
+      "scoreBefore": 21668,
+      "scoreAfter2s": 21885,
+      "scoreGainIn2s": 217,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 278,
+      "scoreBefore": 22846,
+      "scoreAfter2s": 23033,
+      "scoreGainIn2s": 187,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 288,
+      "scoreBefore": 23985,
+      "scoreAfter2s": 24334,
+      "scoreGainIn2s": 349,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 299,
+      "scoreBefore": 25284,
+      "scoreAfter2s": 25498,
+      "scoreGainIn2s": 214,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 309,
+      "scoreBefore": 26436,
+      "scoreAfter2s": 26656,
+      "scoreGainIn2s": 220,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 319,
+      "scoreBefore": 27557,
+      "scoreAfter2s": 27836,
+      "scoreGainIn2s": 279,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 329,
+      "scoreBefore": 28795,
+      "scoreAfter2s": 29017,
+      "scoreGainIn2s": 222,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 339,
+      "scoreBefore": 29947,
+      "scoreAfter2s": 30164,
+      "scoreGainIn2s": 217,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 349,
+      "scoreBefore": 31011,
+      "scoreAfter2s": 31234,
+      "scoreGainIn2s": 223,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 359,
+      "scoreBefore": 32166,
+      "scoreAfter2s": 32381,
+      "scoreGainIn2s": 215,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 370,
+      "scoreBefore": 33314,
+      "scoreAfter2s": 33553,
+      "scoreGainIn2s": 239,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 380,
+      "scoreBefore": 34415,
+      "scoreAfter2s": 34581,
+      "scoreGainIn2s": 166,
+      "feverStillActive": true
+    },
+    {
+      "wave": 5,
+      "activatedAtSec": 390,
+      "scoreBefore": 35504,
+      "scoreAfter2s": 35703,
+      "scoreGainIn2s": 199,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 404,
+      "scoreBefore": 36759,
+      "scoreAfter2s": 36903,
+      "scoreGainIn2s": 144,
+      "feverStillActive": true
+    },
+    {
+      "wave": 6,
+      "activatedAtSec": 415,
+      "scoreBefore": 37668,
+      "scoreAfter2s": 37778,
+      "scoreGainIn2s": 110,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 433,
+      "scoreBefore": 39444,
+      "scoreAfter2s": 39663,
+      "scoreGainIn2s": 219,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 442,
+      "scoreBefore": 40650,
+      "scoreAfter2s": 40913,
+      "scoreGainIn2s": 263,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 452,
+      "scoreBefore": 41951,
+      "scoreAfter2s": 42180,
+      "scoreGainIn2s": 229,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 463,
+      "scoreBefore": 43294,
+      "scoreAfter2s": 43545,
+      "scoreGainIn2s": 251,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 474,
+      "scoreBefore": 44808,
+      "scoreAfter2s": 45027,
+      "scoreGainIn2s": 219,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 483,
+      "scoreBefore": 46079,
+      "scoreAfter2s": 46296,
+      "scoreGainIn2s": 217,
+      "feverStillActive": true
+    },
+    {
+      "wave": 7,
+      "activatedAtSec": 495,
+      "scoreBefore": 47817,
+      "scoreAfter2s": 48111,
+      "scoreGainIn2s": 294,
+      "feverStillActive": true
+    }
+  ],
+  "skill": [
+    {
+      "wave": 1,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 2,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 3,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 4,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 5,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 6,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    },
+    {
+      "wave": 7,
+      "stockBefore": 1,
+      "stockAfter": 0,
+      "used": true
+    }
+  ],
+  "stalls": [],
+  "hudBlocks": {
+    "checks": 728,
+    "blocked": 0,
+    "samples": []
+  },
+  "shots": {
+    "ammoDrops": 2546
+  },
+  "kills": 1425,
+  "result": {
+    "phase": "VICTORY",
+    "finalWave": 7,
+    "finalLives": 5,
+    "finalScore": 58366,
+    "durationSec": 503,
+    "loops": 8092,
+    "screenshot": "fullplay-gatling-result-VICTORY.png",
+    "bodyTextSnippet": "🎉 VICTORY! 브루어리 수호 성공!\n생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!\n최종 득점\n58366점\n기본 46067점\n시간 보너스 +2665점\nWAVE 7 CLEAR · 75.6초 · +0점\n정밀도 보너스 +7331점\n저레벨 클리어 보너스 +2303점\nNEW RECORD!\n누적 격파 (KILL)\n1144 KILL\n최대 콤보\n4081 COMBO\n도달 웨이브\nWAVE 7\n🏆\n개인 랭킹\n👥\n팀 랭킹\n1\nQA-D-REVOL\n🍾 리볼버\n103104점\nW7\n2\nQA-D-GATLI\n🍺 개틀링\n58366점\nW7\n3\nQA-D-SHOTG\n🪠 샷건\n37576점\nW7\n🔄 다시 도전하기\n🏠 로비로 이동\nGATLING Lv.3"
+  },
+  "pageErrors": [],
+  "consoleErrors": [
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderBottomColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App",
+    "Warning: %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.%s Updating border borderTopColor \n    at div\n    at div\n    at div\n    at https://127.0.0.1:5204/src/pc/components/CrosshairOverlay.tsx:176:7\n    at div\n    at PCGamePage (https://127.0.0.1:5204/src/pc/PCGamePage.tsx:66:30)\n    at App"
+  ],
+  "finishedAt": "2026-11-07T15:20:29.662Z"
+}

@@ -1,0 +1,167 @@
+{
+  "steps": {
+    "weaponCards": [
+      {
+        "kind": "shotgun",
+        "aimX": -0.89,
+        "aimY": 0.12,
+        "owner": 0
+      },
+      {
+        "kind": "revolver",
+        "aimX": -0.54,
+        "aimY": 0.12,
+        "owner": 0
+      },
+      {
+        "kind": "gatling",
+        "aimX": -0.2,
+        "aimY": 0.12,
+        "owner": 0
+      },
+      {
+        "kind": "shotgun",
+        "aimX": 0.2,
+        "aimY": 0.12,
+        "owner": 1
+      },
+      {
+        "kind": "revolver",
+        "aimX": 0.54,
+        "aimY": 0.12,
+        "owner": 1
+      },
+      {
+        "kind": "gatling",
+        "aimX": 0.89,
+        "aimY": 0.12,
+        "owner": 1
+      }
+    ],
+    "combatEntered": {
+      "phase": "PLAYING",
+      "selection": {
+        "kind": null,
+        "done": [
+          true,
+          true
+        ]
+      },
+      "isPaused": false,
+      "weapons": [
+        "shotgun/1",
+        "gatling/1"
+      ]
+    },
+    "C04": {
+      "has위로휙Count": 0,
+      "hasBadge1P": true,
+      "hasBadge2P": true
+    },
+    "C05": {
+      "grace1": {
+        "countdownSec": 30,
+        "resumeText": "▶ 이어하기 (Esc)",
+        "resumeDisabled": true,
+        "hasAloneBtn": true,
+        "snippet": "TEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 26\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n블루폰\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 20.0s\nFEVER GAUGE 0%\n0%\n2P\n오렌지폰\n0\nLv.1\n탄산 탭 개틀링\n30 / 30\n쿨다운 20.0s\nFEVER GAUGE 0%\n0%\n1P · SH"
+      },
+      "grace2": {
+        "countdownSec": 23,
+        "resumeText": "▶ 이어하기 (Esc)",
+        "resumeDisabled": true,
+        "hasAloneBtn": true,
+        "snippet": "TEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 26\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n블루폰\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 20.0s\nFEVER GAUGE 0%\n0%\n2P\n오렌지폰\n0\nLv.1\n탄산 탭 개틀링\n30 / 30\n쿨다운 20.0s\nFEVER GAUGE 0%\n0%\n1P · SH"
+      },
+      "phase": "PLAYING",
+      "isPaused": true,
+      "p2Away": false
+    },
+    "C06": {
+      "sawResumeMsg": true,
+      "phase": "PLAYING",
+      "isPaused": false,
+      "p2Away": false
+    },
+    "C07pre": {
+      "countdownSec": 29,
+      "resumeText": "▶ 이어하기 (Esc)",
+      "resumeDisabled": true,
+      "hasAloneBtn": true,
+      "snippet": "TEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n0 / 26\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n블루폰\n0\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 18.5s\nFEVER GAUGE 0%\n0%\n2P\n오렌지폰\n0\nLv.1\n탄산 탭 개틀링\n30 / 30\n쿨다운 18.5s\nFEVER GAUGE 0%\n0%\n1P · SH"
+    },
+    "C07": {
+      "p2Away": true,
+      "p1Away": false,
+      "phase": "PLAYING",
+      "isPaused": true,
+      "sawNaGan": true,
+      "resumeStillDisabled": null
+    },
+    "C08": {
+      "cardRoundSeen": false,
+      "selection": {
+        "kind": null,
+        "done": [
+          true,
+          true
+        ]
+      },
+      "phase": "PLAYING",
+      "elapsedSec": 150
+    },
+    "C09": {
+      "zeroNeededAfterReconnect": false,
+      "p2Away": false,
+      "phase": "PLAYING",
+      "isPaused": false
+    },
+    "C10": {
+      "countdownText": null,
+      "phase": "PLAYING",
+      "isPaused": true,
+      "snippet": "TEAM · BAR DEFENSE:\n🍺\n🍺\n🍺\n🍺\n🍺\nWAVE 1 / 7\nWAVE 진행도\n7 / 26\n📖\n가이드\n🧪\n센서 연구소\n⏸\n일시정지 (Esc)\n1P\n블루폰\n139\n22 COMBO (x1.0)\nLv.1\n맥주관 뚫어뻥 샷건\n14 / 14\n쿨다운 5.8s\nFEVER GAUGE 28%\n28%\n2P\n오렌지폰\n0\nLv.1\n탄산 탭 개틀링\n30 /",
+      "hasAlone": false,
+      "hasResumeDisabled": null
+    },
+    "P01mouse": {
+      "note": "phones held at (-0.4,0.2)/(0.4,-0.2); mouse moved corner to corner; compare screenshots C-02-mouse-before/after",
+      "phaseBefore": "PLAYING",
+      "errorsSoFar": 0
+    },
+    "boundary": {
+      "1440x900_combat": {
+        "vw": 1440,
+        "vh": 900,
+        "offscreenCount": 0,
+        "offscreen": []
+      },
+      "1024x768_combat": {
+        "vw": 1024,
+        "vh": 768,
+        "offscreenCount": 0,
+        "offscreen": []
+      }
+    },
+    "final": {
+      "phase": "PLAYING",
+      "isPaused": true,
+      "players": [
+        {
+          "ammo": 14,
+          "isAway": false,
+          "score": 139
+        },
+        {
+          "ammo": 30,
+          "isAway": false,
+          "score": 0
+        }
+      ]
+    }
+  },
+  "pageErrorsCount": 0,
+  "errorsCount": 0,
+  "pageErrors": [],
+  "errors": []
+}

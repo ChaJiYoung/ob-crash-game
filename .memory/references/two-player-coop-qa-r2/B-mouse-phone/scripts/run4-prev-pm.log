@@ -1,0 +1,68 @@
+15:10:50 [pm] room 82AV
+15:11:01 [pm] shot V-pm-00-lobby-empty
+15:11:07 [pm] CHECK 00 PASS | lobby initial: both slots empty, phase PAIRING | expected={"phase":"PAIRING","both":"비어 있음"} actual={"phase":"PAIRING"}
+15:11:09 [pm] CHECK 01a BUG | phone registers on its slot (nickname on PC) | expected="모바일P shown" actual=false
+15:11:11 [pm] CHECK 01c PASS | other device on occupied slot is rejected (ERROR to phone) and slot keeps original | expected="ERROR msg + 모바일P kept" actual={"errors":["SLOT_OCCUPIED"],"occupiedAfter":true}
+15:11:45 [pm] CHECK 02 PASS | start with one side not ready shows "1P 준비 중" and does not start | expected={"notice":"1P 준비 중","phase":"PAIRING"} actual={"notice":true,"phase":"PAIRING"}
+15:11:54 [pm] shot V-pm-02-gate-waiting
+15:11:58 [pm] CHECK 03 BUG | both slots ready (준비 완료) after phone zero | expected="no 준비 중 notice" actual={"hasReady":true,"hasNotice":true}
+15:12:06 [pm] shot V-pm-03-lobby-both-ready
+15:12:13 [pm] shot V-pm-03-lobby-both-ready-1024
+15:12:15 [pm] boundary 03-lobby-both-ready: 1440 outside=0 docW=1440; 1024 outside=0 docW=1024
+15:12:27 [pm] CHECK 04a PASS | game starts after both ready | expected="phase PLAYING" actual="PLAYING"
+15:12:29 [pm] CHECK 04b PASS | weapon selection appears after countdown | expected="selection.kind=weapon" actual={"kind":"weapon","done":[false,false]}
+15:12:31 [pm] CHECK 04c PASS | weapon selection shows 6 cards, 3 per player, 1P left (aimX<0) / 2P right (aimX>0) | expected={"total":6,"per":3,"side":"p1<0,p2>0"} actual={"total":6,"byOwner":[[{"w":"shotgun","ax":-0.89,"ay":0.12},{"w":"revolver","ax":-0.54,"ay":0.12},{"w":"gatling","ax":-0.2,"ay":0.12}],[{"w":"shotgun","ax":0.2,"ay":0.12},{"w":"revolver","ax":0.54,"ay":0.12},{"w":"gatling","ax":0.89,"ay":0.12}]]}
+15:12:46 [pm] shot V-pm-04-weapon-select
+15:12:59 [pm] shot V-pm-04-weapon-select-1024
+15:13:02 [pm] boundary 04-weapon-select: 1440 outside=0 docW=1440; 1024 outside=2 docW=1024
+15:13:15 [pm] CHECK 04d PASS | player shooting the other player's card does not select it | expected={"doneUnchanged":true,"shooterDone":false} actual={"before":[false,false],"after":[false,false]}
+15:13:29 [pm] CHECK 04e PASS | after one player picks: only that card is gone, banner says waiting for partner | expected={"done":[false,true]} actual={"done":[false,true],"banner":{"done":true,"wait":true}}
+15:13:40 [pm] shot V-pm-04e-partial-done
+15:13:51 [pm] shot V-pm-04e-partial-done-1024
+15:13:54 [pm] boundary 04e-partial-done: 1440 outside=0 docW=1440; 1024 outside=1 docW=1024
+15:14:06 [pm] CHECK 04f PASS | waiting selection has no time limit (still waiting after 12 s) | expected={"kind":"weapon","partnerDone":false} actual={"kind":"weapon","done":[false,true]}
+15:14:09 [pm] CHECK 04g PASS | both picked -> game starts (selection cleared, phase PLAYING) | expected={"kind":null,"phase":"PLAYING"} actual={"kind":null,"phase":"PLAYING"}
+15:14:14 [pm] CHECK 05a BUG | team HUD text "BAR DEFENSE" and skill hints for both input kinds | expected={"bar":true,"mouseHint":"[우클릭]","phoneHint":"[위로 휙!]"} actual={"bar":true,"mouse":false,"phone":false}
+15:14:14 [pm] CHECK 05b PASS | crosshair nametags "1P · ..." and "2P · ..." | expected=["1P · ..","2P · .."] actual=["1P · SHOTGUN Lv.1","2P · SHOTGUN Lv.1"]
+15:14:14 [pm] CHECK 05c PASS | engine player index matches slot (weapon kind of player[0] equals 1P nametag) | expected={"p0Weapon":"shotgun"} actual={"names":["1P · SHOTGUN Lv.1","2P · SHOTGUN Lv.1"],"p0":"shotgun"}
+15:14:24 [pm] shot V-pm-05-combat-hud
+15:14:35 [pm] shot V-pm-05-combat-hud-1024
+15:14:38 [pm] boundary 05-combat-hud: 1440 outside=0 docW=1440; 1024 outside=0 docW=1024
+15:14:58 [pm] shot V-pm-6a-aim-corners
+15:15:19 [pm] shot V-pm-6b-aim-cross
+15:15:37 [pm] shot V-pm-6c-aim-centre
+15:15:37 [pm] CHECK 06 BUG | 5-2 nametag (crosshair) tracks each aim: consistent offset from aim centre across 3 aim cases (x-offset<=40px, y-offset spread<=20px) | expected={"maxAbsDx":"<=40","ySpread":"<=20"} actual={"maxAbsDx":906,"ySpread":288,"offsets":[[-101,53],[0,-83],[-906,-235],[0,-83],[406,-83],[0,-83]]} | nametag is drawn above crosshair; the offset is taken as the baseline
+15:16:07 [pm] shot V-pm-10-mouse-isolation
+15:16:07 [pm] CHECK 10a PASS | 5-4 mouse movement moves only the mouse player crosshair; phone crosshair stays | expected={"phoneStill":true,"mouseMoved":true} actual={"phoneA":[382,291],"phoneB":[382,291],"mouseA":[864,277],"mouseB":[1224,592]}
+15:16:19 [pm] CHECK 12a PASS | input separation: mouse hit adds score only to mouse player (no leak to partner) | expected={"shooterGain":">0","partnerGain":0} actual={"deltas":[0,18],"shooterIdx":1}
+15:16:31 [pm] CHECK 12b BUG | input separation: phone hit | expected="shooter score > 0 within 4 tries" actual=[{"who":"phone","try":0,"deltas":[0,0],"shooterIdx":0,"otherIdx":1,"target":"target_10_pilgood"},{"who":"phone","try":1,"deltas":[0,0],"shooterIdx":0,"otherIdx":1,"target":"target_12_caslight"},{"who":"phone","try":2,"deltas":[0,0],"shooterIdx":0,"otherIdx":1,"target":"target_12_caslight"},{"who":"phone","try":3,"deltas":[0,0],"shooterIdx":0,"otherIdx":1,"target":"target_12_caslight"}]
+15:16:56 [pm] CHECK 51a PASS | 5-1 mouse held 1 s: ammo drops by more than one shot (continuous fire) | expected="drop>=2" actual={"weapon":"shotgun","before":13,"drop":8,"samples":[12,11,10,10,9,8,7,7,6,5]}
+15:17:13 [pm] CHECK 51b PASS | 5-1 phone rapidFireHold 1 s: ammo drops by more than one shot | expected="drop>=2" actual={"weapon":"shotgun","before":10,"drop":7,"samples":[10,9,8,8,7,6,6,5,4,3]}
+15:17:35 [pm] shot V-pm-07-guide-click
+15:17:37 [pm] CHECK 07a PASS | HUD 가이드 click does not fire the mouse player (ammo/score unchanged) | expected={"ammoBefore":5,"scoreBefore":37} actual={"ammoAfter":5,"scoreAfter":37,"guideOpen":true}
+15:18:19 [pm] shot V-pm-07b-pause-by-hud
+15:18:19 [pm] CHECK 07b PASS | HUD 일시정지 click pauses and does not fire | expected={"isPaused":true,"ammo":5} actual={"isPaused":true,"ammo":5}
+15:18:47 [pm] shot V-pm-07c-after-resume
+15:18:47 [pm] CHECK 07c PASS | pause 이어하기 resumes (within 4 s) | expected={"isPaused":false,"withinMs":4000} actual={"resumedAt":1000,"last":{"t":1000,"isPaused":false,"phase":"PLAYING"}}
+15:19:00 [pm] shot V-pm-08-esc-pause
+15:19:02 [pm] CHECK 08a PASS | Esc opens pause menu (isPaused, 이어하기/다시시작/로비로 나가기) | expected={"isPaused":true} actual={"isPaused":true,"texts":[true,true,true]}
+15:19:20 [pm] CHECK 08b BUG | 다시시작(무기 선택부터) returns to weapon selection with same 2 players | expected="selection weapon" actual={"ok":true,"kinds":["shotgun","shotgun"],"before":["shotgun","shotgun"]}
+15:19:29 [pm] CHECK 08c PASS | after 다시시작 both re-pick -> game resumes (PLAYING) | expected="PLAYING" actual="PLAYING"
+15:20:53 [pm] CHECK 09d BUG | skill (phone 휙) consumes stock for P1 | expected={"stockDown":true} actual={"before":1,"after":1}
+15:21:34 [pm] CHECK 09b BUG | 5-1 fever (phone, P1): active for 2 s, score rises, shots happen, partner unaffected | expected={"active":true,"scoreUp":true,"shotsDuringFever":true,"partnerUnchanged":true} actual={"player":1,"device":"phone","ammoBefore":11,"scoreDelta":24,"partnerScoreDelta":0,"feverActiveSeen":true,"ammoDuring":[11,14,14,14,14,14,14,14,13,13]}
+15:23:02 [pm] CHECK 09c PASS | skill (right click) consumes stock for P2 | expected={"stockDown":true} actual={"before":1,"after":0}
+15:26:36 [pm] CHECK 09e BUG | game 1 reaches GAMEOVER/VICTORY within 7 min (no stall) | expected="GAMEOVER|VICTORY" actual={"phase":"PLAYING","ms":426857,"wave":2}
+15:26:46 [pm] shot V-pm-11-result-game1
+15:26:53 [pm] shot V-pm-11-result-game1-1024
+15:26:56 [pm] boundary 11-result-game1: 1440 outside=0 docW=1440; 1024 outside=0 docW=1024
+15:26:56 [pm] CHECK 11a BUG | result: 2인팟 note "2인팟 점수는 솔로 랭킹에 오르지 않습니다" shown | expected="present" actual={"partnerNote":false,"teamBest":false,"teamTabName":false}
+15:26:56 [pm] CHECK 11b BUG | result: 이 팀 최고 label present | expected="present" actual=false
+FATAL locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-shootable="restart"]')[22m
+
+    at main (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/B-mouse-phone/scripts/qa-b-r2-verify.mjs:540:52) {
+  log: [ `  - waiting for locator('[data-shootable="restart"]')` ],
+  name: 'TimeoutError'
+}
+EXIT_PM=1

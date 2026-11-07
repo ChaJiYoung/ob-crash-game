@@ -1,0 +1,25 @@
+{
+  "weaponKind": "revolver",
+  "before": 10,
+  "samples": [
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0
+  ],
+  "after": 0,
+  "singleBefore": 10,
+  "singleAfter": 9,
+  "errors": {
+    "pageErrors": [],
+    "consoleErrors": [],
+    "checks": [],
+    "values": {}
+  }
+}

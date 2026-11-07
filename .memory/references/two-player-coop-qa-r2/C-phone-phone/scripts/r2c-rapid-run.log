@@ -1,0 +1,10 @@
+14:42:26 room RSZP
+14:43:05 phase before weapon select ZEROING selection {"kind":null,"done":[false]}
+14:43:14 phase at combat PLAYING weapons shotgun/1 , shotgun/1
+14:43:22 P1 trial 1: before=14 after=14 spent=0 samples=14,14,14
+14:43:31 P1 trial 2: before=14 after=14 spent=0 samples=14,14,14
+14:43:39 P1 trial 3: before=14 after=14 spent=0 samples=14,14,14
+14:43:48 P2 trial 1: before=14 after=14 spent=0 samples=14,14,14
+14:44:00 P2 trial 2: before=14 after=14 spent=0 samples=14,14,14
+14:44:10 P2 trial 3: before=14 after=14 spent=0 samples=14,14,14
+14:44:12 wrote /Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/C-phone-phone/rapid-trials-results.json

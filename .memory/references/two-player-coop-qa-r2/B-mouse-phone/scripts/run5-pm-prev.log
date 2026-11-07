@@ -1,0 +1,7 @@
+15:43:53 [pm] room 4TJ6
+15:44:01 [pm] shot V-pm-00-lobby-empty
+FATAL page.evaluate: Target page, context or browser has been closed
+    at S (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/B-mouse-phone/scripts/qa-b-r2-verify.mjs:99:24)
+    at main (/Users/bigtree/orca/workspaces/ob-crash-game/surgeonfish/.memory/references/two-player-coop-qa-r2/B-mouse-phone/scripts/qa-b-r2-verify.mjs:181:20) {
+  log: []
+}
