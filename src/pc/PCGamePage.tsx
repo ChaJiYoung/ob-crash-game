@@ -226,7 +226,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const pressScreenButton = useCallback((button: ShootableButton) => {
     if (button === 'start') {
-      startCountdownAndGameRef.current();
+      if (pairedPlayerRef.current) {
+        startCountdownAndGameRef.current();
+      } else {
+        handleStartGameRef.current();
+      }
     } else if (button === 'restart') {
       handleStartGameRef.current();
     } else if (button === 'lobby') {
@@ -252,8 +256,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         getSkillGraceUntilMs: () => skillGraceUntilRef.current,
         hitTestButton,
         onButton: (btn) => {
-          soundSynth.playHit('PERFECT');
           pressScreenButton(btn);
+        },
+        onMenuShot: (hit) => {
+          soundSynth.playShoot(false);
+          soundSynth.playHit(hit ? 'PERFECT' : 'MISS');
         },
         onShot: handleShootEvent,
         onSkill: (res) => {
@@ -1186,8 +1193,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             pairedPlayer={pairedPlayer}
             topRankings={topRankings}
             isZeroCalibrated={isZeroCalibrated}
-            onStartAsPc={handleStartGame}
-            onStartWithController={startCountdownAndGame}
+            onStart={() => pressScreenButton('start')}
+            onStartAsPc={() => pressScreenButton('start')}
+            onStartWithController={() => pressScreenButton('start')}
             onOpenGuide={handleOpenGuide}
             onStartTutorial={handleStartTutorial}
             onStartSandbox={handleStartSandbox}
@@ -1270,8 +1278,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             currentPlayer={pairedPlayer}
             isNewRecord={isNewRecord}
             rankings={topRankings}
-            onRestart={handleStartGame}
-            onReturnToLobby={handleReturnToLobby}
+            onRestart={() => pressScreenButton('restart')}
+            onReturnToLobby={() => pressScreenButton('lobby')}
             hoveredAction={hoveredResultAction}
           />
           {/* Result Crosshair Overlay on top of result modal */}

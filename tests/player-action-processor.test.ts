@@ -14,6 +14,7 @@ describe('PlayerActionProcessor (P01-T05)', () => {
   let skillsFired: number;
   let feversFired: number;
   let aimHistory: { x: number; y: number }[];
+  let menuShots: boolean[];
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -32,6 +33,7 @@ describe('PlayerActionProcessor (P01-T05)', () => {
     skillsFired = 0;
     feversFired = 0;
     aimHistory = [];
+    menuShots = [];
   });
 
   afterEach(() => {
@@ -46,6 +48,7 @@ describe('PlayerActionProcessor (P01-T05)', () => {
     getSkillGraceUntilMs: () => skillGraceUntilMs,
     hitTestButton: () => mockButton,
     onButton: (b) => buttonsCalled.push(b),
+    onMenuShot: (hit) => menuShots.push(hit),
     onShot: (r) => {
       if (r.fired) shotsFired++;
     },
@@ -82,27 +85,71 @@ describe('PlayerActionProcessor (P01-T05)', () => {
     phase = 'PAIRING';
     const processor = new PlayerActionProcessor(createContext());
 
-    // 1. hitTestButton이 start 버튼을 감지한 경우
+    // 1. hitTestButton이 start 버튼을 감지한 경우 (버튼 맞힘 -> onMenuShot(true))
     mockButton = 'start';
     processor.send({ type: 'aim', aimX: 0.8, aimY: 0.8 });
     processor.send({ type: 'fireDown' });
     expect(buttonsCalled).toEqual(['start']);
+    expect(menuShots).toEqual([true]);
     expect(shotsFired).toBe(0);
 
-    // 2. hitTestButton이 없고 화면 중심(|x|<0.65, |y|<0.65)을 조준한 경우
+    // 2. hitTestButton이 없고 화면 중심(|x|<0.65, |y|<0.65)을 조준한 경우 (버튼 맞힘 -> onMenuShot(true))
     mockButton = null;
     buttonsCalled = [];
+    menuShots = [];
     processor.send({ type: 'aim', aimX: 0.3, aimY: -0.2 });
     processor.send({ type: 'fireDown' });
     expect(buttonsCalled).toEqual(['start']);
+    expect(menuShots).toEqual([true]);
     expect(shotsFired).toBe(0);
 
-    // 3. 화면 바깥(|x| >= 0.65) 조준 시 버튼 미호출
+    // 3. 화면 바깥(|x| >= 0.65) 조준 시 버튼 미호출 (빗나감 -> onMenuShot(false))
     buttonsCalled = [];
+    menuShots = [];
     processor.send({ type: 'aim', aimX: 0.8, aimY: 0 });
     processor.send({ type: 'fireDown' });
     expect(buttonsCalled).toEqual([]);
+    expect(menuShots).toEqual([false]);
     expect(shotsFired).toBe(0);
+
+    processor.stopAll();
+  });
+
+  it('notifies onMenuShot(true) on hit and onMenuShot(false) on miss in result phases (GAMEOVER / VICTORY)', () => {
+    phase = 'GAMEOVER';
+    const processor = new PlayerActionProcessor(createContext());
+
+    // 버튼 맞힘 -> onMenuShot(true)
+    mockButton = 'restart';
+    processor.send({ type: 'aim', aimX: 0.1, aimY: 0.2 });
+    processor.send({ type: 'fireDown' });
+    expect(buttonsCalled).toEqual(['restart']);
+    expect(menuShots).toEqual([true]);
+
+    // 빗나감 -> onMenuShot(false)
+    mockButton = null;
+    buttonsCalled = [];
+    menuShots = [];
+    processor.send({ type: 'aim', aimX: 0.1, aimY: 0.2 });
+    processor.send({ type: 'fireDown' });
+    expect(buttonsCalled).toEqual([]);
+    expect(menuShots).toEqual([false]);
+
+    // VICTORY 화면에서도 동일
+    phase = 'VICTORY';
+    mockButton = 'lobby';
+    buttonsCalled = [];
+    menuShots = [];
+    processor.send({ type: 'fireDown' });
+    expect(buttonsCalled).toEqual(['lobby']);
+    expect(menuShots).toEqual([true]);
+
+    mockButton = null;
+    buttonsCalled = [];
+    menuShots = [];
+    processor.send({ type: 'fireDown' });
+    expect(buttonsCalled).toEqual([]);
+    expect(menuShots).toEqual([false]);
 
     processor.stopAll();
   });

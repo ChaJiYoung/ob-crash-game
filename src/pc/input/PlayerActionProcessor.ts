@@ -16,6 +16,8 @@ export interface ProcessorContext {
   hitTestButton: (aimX: number, aimY: number) => ShootableButton | null;
   /** = pressScreenButton. HTML onClick도 같은 함수를 부른다. */
   onButton: (button: ShootableButton) => void;
+  /** 게임 밖(PAIRING, ZEROING, GAMEOVER, VICTORY) 화면 사격 시 호출 (사격음 및 버튼 적중/빗나감 판정음). */
+  onMenuShot?: (hit: boolean) => void;
   onShot: (result: EngineShootResult) => void;     // 소리·연출·판정 배너
   onSkill: (result: SkillExecuteResult) => void;
   onFeverStarted: (playerIndex: PlayerIndex) => void;
@@ -73,6 +75,7 @@ export class PlayerActionProcessor implements InputSink {
           const button = this.ctx.hitTestButton(this.aim.aimX, this.aim.aimY);
           if (button) {
             this.ctx.onButton(button);
+            this.ctx.onMenuShot?.(true);
             return;
           }
           if (
@@ -81,9 +84,11 @@ export class PlayerActionProcessor implements InputSink {
             Math.abs(this.aim.aimY) < LOBBY_START_ZONE
           ) {
             this.ctx.onButton('start');
+            this.ctx.onMenuShot?.(true);
             return;
           }
           // 맞춘 버튼이 없으면 아무 동작도 하지 않음 (결과 화면 등에서 빗나감)
+          this.ctx.onMenuShot?.(false);
           return;
         }
 

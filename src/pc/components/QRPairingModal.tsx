@@ -17,6 +17,7 @@ export interface QRPairingModalProps {
   pairedPlayer?: PlayerProfile;
   topRankings: RunRankingEntry[];
   isZeroCalibrated?: boolean;
+  onStart?: () => void;
   onStartAsPc: () => void;
   onStartWithController: () => void;
   onOpenGuide?: () => void;
@@ -31,6 +32,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   pairedPlayer,
   topRankings,
   isZeroCalibrated = false,
+  onStart,
   onStartAsPc,
   onStartWithController,
   onOpenGuide,
@@ -40,6 +42,8 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [pairingUrl, setPairingUrl] = useState<string>('');
+
+  const handleStart = onStart ?? (pairedPlayer ? onStartWithController : onStartAsPc);
 
   useEffect(() => {
     if (!roomId) return;
@@ -284,7 +288,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               <button
                 id="shoot-to-start-target"
                 data-shootable="start"
-                onClick={onStartWithController}
+                onClick={handleStart}
                 style={{
                   flex: 1,
                   padding: '18px 24px',
@@ -311,7 +315,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
             ) : (
               <button
                 data-shootable="start"
-                onClick={onStartAsPc}
+                onClick={handleStart}
                 style={{
                   flex: 1,
                   padding: '16px',
