@@ -23,9 +23,9 @@
 | T02 | `done` | 선택 표적은 카드 몸체를 맞혀야 선택(무기 허용 배율 제외) | [T02](./T02-card-body-hit.md) |
 | T03 | `done` | 결과 화면에서 십자선 이름표 숨기고 십자선을 결과 카드 아래로 | [T03](./T03-result-overlay.md) |
 | T04 | `done` | 1024×768에서 배지·이름표가 화면 안에 들어오게 | [T04](./T04-small-screen-badges.md) |
-| T05 | `pending` | 개틀링 링 border 스타일 경고 제거 | [T05](./T05-gatling-ring-style.md) |
+| T05 | `done` | 개틀링 링 border 스타일 경고 제거 | [T05](./T05-gatling-ring-style.md) |
 | T06 | `pending` | 판 시작 순서: 화면 단계를 PLAYING으로 바꾼 뒤 처리부 재구성(폰 시작 경로 포함) | [T06](./T06-start-order.md) |
 | T07 | `pending` | 2인 난이도 배율 D41(보스 체력·소환·몬스터 수·카드 목표 2배, 몬스터 체력 1배) | [T07](./T07-coop-difficulty-v2.md) |
 
 ## Progress
-- done: 4/7 (active: T05)
+- done: 5/7 (active: T06)

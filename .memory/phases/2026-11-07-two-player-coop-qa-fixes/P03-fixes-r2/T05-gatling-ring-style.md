@@ -1,6 +1,6 @@
 # Task: T05 개틀링 링 스타일 경고 제거
 
-## Status: pending
+## Status: done
 
 ## Goal
 개틀링 판에서 리렌더마다 나는 React 경고(`Updating border borderTopColor/borderBottomColor`, 판당 168건, D BUG-2)를 없앤다.
@@ -36,6 +36,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T05-gatling-ring-style)
