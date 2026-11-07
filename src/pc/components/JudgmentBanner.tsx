@@ -5,12 +5,21 @@ import { GAME_TUNING } from '../../shared/gameTuning';
 
 const pts = (grade: 'PERFECT' | 'GREAT' | 'GOOD') => Math.round(JUDGMENT_SPECS[grade].baseScore * GAME_TUNING.score.scale);
 
-export function getJudgmentBannerSpec(grade: JudgmentGrade): {
+export function getJudgmentBannerSpec(grade: JudgmentGrade, isFever = false): {
   title: string;
   subtitle: string;
   colorHex: string;
   scale: number;
 } {
+  // 피버 중 명중은 판정이 GREAT로 고정되지만 대미지는 feverDamage를 쓴다. 실제 배율을 보여 준다.
+  if (isFever && grade !== 'MISS') {
+    return {
+      title: 'FEVER!',
+      subtitle: `${GAME_TUNING.judgment.feverDamage.toFixed(1)}x 데미지 (피버)`,
+      colorHex: '#f97316',
+      scale: 1.3,
+    };
+  }
   switch (grade) {
     case 'PERFECT':
       return {
@@ -44,7 +53,7 @@ export function getJudgmentBannerSpec(grade: JudgmentGrade): {
 }
 
 export interface JudgmentBannerHandle {
-  show(grade: JudgmentGrade): void;
+  show(grade: JudgmentGrade, isFever?: boolean): void;
 }
 
 const BANNER_VISIBLE_MS = 600;
@@ -61,13 +70,13 @@ export const JudgmentBanner = forwardRef<JudgmentBannerHandle>((_props, ref) => 
   useImperativeHandle(
     ref,
     () => ({
-      show(grade: JudgmentGrade) {
+      show(grade: JudgmentGrade, isFever = false) {
         const root = rootRef.current;
         const title = titleRef.current;
         const subtitle = subtitleRef.current;
         if (!root || !title || !subtitle) return;
 
-        const spec = getJudgmentBannerSpec(grade);
+        const spec = getJudgmentBannerSpec(grade, isFever);
         title.textContent = spec.title;
         title.style.color = spec.colorHex;
         subtitle.textContent = spec.subtitle;

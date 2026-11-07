@@ -87,6 +87,10 @@ describe('PC Fullscreen HUD & Judgment Banner', () => {
   });
 
   it('should return correct specs for all judgment grades', () => {
+    const fever = getJudgmentBannerSpec('GREAT', true);
+    expect(fever.title).toBe('FEVER!');
+    expect(fever.subtitle).toContain('2.0x');
+    expect(getJudgmentBannerSpec('MISS', true).title).toBe('MISS...');
     const perfect = getJudgmentBannerSpec('PERFECT');
     expect(perfect.title).toBe('PERFECT!');
     expect(perfect.subtitle).toContain('2.0x 데미지');

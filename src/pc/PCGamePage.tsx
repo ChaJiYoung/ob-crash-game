@@ -222,7 +222,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       soundSynth.playShieldBlockSound();
     } else if (result.grade !== 'MISS') {
       soundSynth.playHit(result.grade);
-      judgmentRef.current?.show(result.grade);
+      judgmentRef.current?.show(result.grade, isFever);
       if (gamePhaseRef.current === 'SANDBOX') {
         setSandboxJudgment({ grade: result.grade, key: Date.now() });
       }

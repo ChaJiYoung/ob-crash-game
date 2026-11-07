@@ -1,6 +1,6 @@
 # Task: T03 Fever Damage Display
 
-## Status: pending
+## Status: done
 
 ## Goal
 피버 중 명중하면 배너가 `FEVER!` / `2.0x 데미지`를 보여 주고, 튜토리얼 피버 문구에 대미지 배율이 나온다. 지금은 GREAT 고정이라 1.0x로 보인다.
@@ -47,6 +47,6 @@ Task: T03-fever-damage-display
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과 (vitest 515 passed, tsc OK)
+- commit: see git log

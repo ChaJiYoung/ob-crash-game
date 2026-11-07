@@ -6,4 +6,4 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 스킬 연속 발동 차단, 충전 시간 표시, 피버 배율 표시 | [P01](../phases/2026-11-07-skill-charge-and-fever-display/P01-skill-and-fever-ux/phase.md) |
+| P01 | `done` | 스킬 연속 발동 차단, 충전 시간 표시, 피버 배율 표시 | [P01](../phases/2026-11-07-skill-charge-and-fever-display/P01-skill-and-fever-ux/phase.md) |
