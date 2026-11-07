@@ -7,16 +7,16 @@
 [P03 서버·프로토콜](./phases/2026-11-07-two-player-coop/P03-server-protocol/phase.md)
 
 ## Active Task
-[T04 팀 랭킹 Top5(teamRankings, D22)](./phases/2026-11-07-two-player-coop/P03-server-protocol/T04-team-rankings.md)
+P03 완료 (T01~T04 완료)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
-- P03 서버·프로토콜 진행 중 (3/4 Tasks 완료, f13f3d2)
-- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 진행 중)
+- P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
+- 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료)
 
 ## Next Step (IMPORTANT)
-P03-T04 청사진을 읽고 팀 랭킹 Top5(teamRankings, D22) 구현 및 검증.
+P03 완료 대기 (P04는 시작하지 않음). 사용자 지시에 따라 P04 진행 여부 결정.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).
