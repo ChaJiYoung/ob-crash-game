@@ -134,7 +134,7 @@ export interface GameCanvas3DHandle {
   setAim: (aimX: number, aimY: number, immediate?: boolean) => void;
   triggerSkillEffect?: (kind: WeaponKind, level?: WeaponLevel) => void;
   /** 사격 직후 동기로 호출한다. 렌더 루프가 죽은 대상의 메시를 지우기 전에 폭발을 보장하기 위해서다. */
-  playShotFx: (result: EngineShootResult) => void;
+  playShotFx: (result: EngineShootResult, aim?: { aimX: number; aimY: number }) => void;
 }
 
 export interface RenderPerformanceMetrics {
@@ -196,7 +196,7 @@ export const GameCanvas3D = React.memo(
     // Trigger 3D visual FX (tracer beam, recoil, hit flash, particles) for ANY shot.
     // Shoot sound is played once by the page (PCGamePage.handleShootEvent), not here.
     const playShotFx = useCallback(
-      (result: EngineShootResult) => {
+      (result: EngineShootResult, aim?: { aimX: number; aimY: number }) => {
         if (!result.fired) return;
 
         // Trigger defense line heal shockwave pulse if bar repair item was activated
@@ -204,8 +204,9 @@ export const GameCanvas3D = React.memo(
           stageRigRef.current.triggerHealPulse();
         }
 
-        const isFever = engine.getPlayer(0).scoreManager.getState().isFeverActive;
-        const isPower = engine.isBuffActive('power_shot');
+        const player = engine.getPlayer(result.playerIndex);
+        const isFever = player.scoreManager.getState().isFeverActive;
+        const isPower = engine.isBuffActive('power_shot', undefined, result.playerIndex);
         const isFeverOrPower = isFever || isPower;
 
         if (tapGunRef.current) {
@@ -214,14 +215,14 @@ export const GameCanvas3D = React.memo(
 
         if (particlesRef.current && tapGunRef.current && cameraRef.current) {
           const muzzlePos = tapGunRef.current.getMuzzleWorldPosition(cameraRef.current);
-          const curAim = targetAimRef.current;
+          const curAim = aim ?? targetAimRef.current;
 
           let targetPos: THREE.Vector3;
           let beamColor = isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8';
           const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
           const projectedAimPoint = computeAimWorldPoint(cameraRef.current, curAim.aimX, curAim.aimY, aimDist);
 
-          const weaponState = engine.getPlayer(0).weaponSystem.getState();
+          const weaponState = player.weaponSystem.getState();
 
           if (result.grade !== 'MISS' && result.target) {
             const mesh = targetMeshMapRef.current.get(result.target.id);

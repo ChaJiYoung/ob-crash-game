@@ -39,6 +39,9 @@ import {
   updateSlot,
   getJoinedSlots,
   getStartGate,
+  buildSlotIndexMap,
+  indexToSlot,
+  getMouseBinding,
   SlotPair,
   SlotInput,
 } from './coopSlots';
@@ -155,7 +158,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [initialPhase, engine]);
 
   const canvasRef = useRef<GameCanvas3DHandle>(null);
-  const crosshairRef = useRef<CrosshairOverlayHandle>(null);
+  const crosshairRefs = useRef<[React.RefObject<CrosshairOverlayHandle>, React.RefObject<CrosshairOverlayHandle>]>([
+    React.createRef(),
+    React.createRef(),
+  ]);
   // Read once by the reload ring when it mounts, so it can skip the part of the reload already elapsed.
   const getReloadRemainingMs = useCallback(
     () => Math.max(0, engine.getPlayer(0).weaponSystem.getState().reloadEndTimeMs - performance.now()),
@@ -217,7 +223,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const updateAimDirect = useCallback((x: number, y: number, immediate = false) => {
     latestAimRef.current = { aimX: x, aimY: y };
     canvasRef.current?.setAim(x, y, immediate);
-    crosshairRef.current?.updatePosition(x, y, immediate);
+    crosshairRefs.current[0]?.current?.updatePosition(x, y, immediate);
     const action = hitTestButton(x, y);
     const resultAction = action === 'restart' || action === 'lobby' ? action : null;
     if (hoveredResultActionRef.current !== resultAction) {
@@ -228,8 +234,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleShootEvent = useCallback((result: EngineShootResult) => {
     if (!result.fired) return;
-    const isFever = engine.getPlayer(0).scoreManager.getState().isFeverActive;
-    const currentWeapon = result.weaponKind || engine.getPlayer(0).weaponSystem.getState().weaponKind;
+    const player = engine.getPlayer(result.playerIndex);
+    const isFever = player.scoreManager.getState().isFeverActive;
+    const currentWeapon = result.weaponKind || player.weaponSystem.getState().weaponKind;
     soundSynth.playWeaponShoot(currentWeapon, isFever);
 
     if (result.shieldBlocked) {
@@ -248,8 +255,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
 
     // Must run synchronously right after shootAt, before the render loop removes dead target meshes.
-    canvasRef.current?.playShotFx(result);
-    crosshairRef.current?.kick();
+    const aim = processorsRef.current[result.playerIndex]?.aim;
+    canvasRef.current?.playShotFx(result, aim);
+    crosshairRefs.current[result.playerIndex]?.current?.kick();
   }, [engine, soundSynth]);
 
   const handleStartGameRef = useRef<() => void>(() => {});
@@ -272,18 +280,59 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, []);
 
   const processorsRef = useRef<PlayerActionProcessor[]>([]);
-  const phoneAdapterRef = useRef<PhoneAdapter | null>(null);
+  const slotIndexMapRef = useRef<Partial<Record<PlayerSlot, PlayerIndex>>>({});
+  const processorFor = (index: PlayerIndex | undefined) => (index === undefined ? null : processorsRef.current[index] ?? null);
+
+  const phoneAdaptersRef = useRef<Record<PlayerSlot, PhoneAdapter>>({
+    1: new PhoneAdapter({
+      slot: 1,
+      sink: () => processorFor(slotIndexMapRef.current[1]),
+      send: (msg) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify(msg));
+        }
+      },
+      roomId: () => roomIdRef.current,
+      getTuning: () => tuningConfigRef.current,
+    }),
+    2: new PhoneAdapter({
+      slot: 2,
+      sink: () => processorFor(slotIndexMapRef.current[2]),
+      send: (msg) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify(msg));
+        }
+      },
+      roomId: () => roomIdRef.current,
+      getTuning: () => tuningConfigRef.current,
+    }),
+  });
+
   const mouseAdapterRef = useRef<MouseAdapter | null>(null);
+  if (!mouseAdapterRef.current) {
+    mouseAdapterRef.current = new MouseAdapter(
+      () => processorFor(getMouseBinding(slotsRef.current, slotIndexMapRef.current, engine.players.length) ?? undefined),
+      WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS
+    );
+  }
 
   const syncProcessors = useCallback(() => {
-    const targetCount = engine.players.length;
+    const isLobby = gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING';
+    if (isLobby) {
+      slotIndexMapRef.current = buildSlotIndexMap(slotsRef.current);
+    }
+    const targetCount = isLobby
+      ? Math.max(1, getJoinedSlots(slotsRef.current).length)
+      : engine.players.length;
+
     processorsRef.current.forEach((p) => p.stopAll());
     processorsRef.current = [];
 
     for (let p = 0; p < targetCount; p++) {
+      const pIdx = p as PlayerIndex;
       const processor = new PlayerActionProcessor({
         engine,
-        playerIndex: p as PlayerIndex,
+        playerIndex: pIdx,
         getPhase: () => gamePhaseRef.current,
         isPauseMenuOpen: () => pauseMenuOpenRef.current,
         getSkillGraceUntilMs: () => skillGraceUntilRef.current,
@@ -295,7 +344,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           soundSynth.playShoot(false);
           soundSynth.playHit(hit ? 'PERFECT' : 'MISS');
         },
-        onShot: handleShootEvent,
+        onShot: (res) => {
+          handleShootEvent(res);
+        },
         onSkill: (res) => {
           soundSynth.playSkillActivation(res.weaponKind);
           canvasRef.current?.triggerSkillEffect?.(res.weaponKind);
@@ -303,37 +354,27 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         onFeverStarted: (_idx) => {
           soundSynth.playFeverStart();
         },
-        onAim: (x, y, _idx) => {
-          updateAimDirect(x, y, false);
+        onAim: (x, y, idx) => {
+          crosshairRefs.current[idx]?.current?.updatePosition(x, y, false);
+          if (idx === 0) {
+            latestAimRef.current = { aimX: x, aimY: y };
+            canvasRef.current?.setAim(x, y, false);
+            const action = hitTestButton(x, y);
+            const resultAction = action === 'restart' || action === 'lobby' ? action : null;
+            if (hoveredResultActionRef.current !== resultAction) {
+              hoveredResultActionRef.current = resultAction;
+              setHoveredResultAction(resultAction);
+            }
+          }
         },
       });
       processorsRef.current.push(processor);
     }
-  }, [engine, hitTestButton, pressScreenButton, handleShootEvent, soundSynth, updateAimDirect]);
-
-  if (!phoneAdapterRef.current) {
-    phoneAdapterRef.current = new PhoneAdapter({
-      sink: () => processorsRef.current[0] ?? null,
-      send: (msg) => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify(msg));
-        }
-      },
-      roomId: () => roomIdRef.current,
-      getTuning: () => tuningConfigRef.current,
-    });
-  }
-
-  if (!mouseAdapterRef.current) {
-    mouseAdapterRef.current = new MouseAdapter(
-      () => processorsRef.current[0] ?? null,
-      WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS
-    );
-  }
+  }, [engine, hitTestButton, pressScreenButton, handleShootEvent, soundSynth]);
 
   useEffect(() => {
     syncProcessors();
-  }, [syncProcessors]);
+  }, [syncProcessors, slots]);
 
   // Mouse right-click skill trigger
   useEffect(() => {
@@ -387,15 +428,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             soundSynth.unlockAudio();
             break;
 
-          case 'ZERO_CALIBRATED':
-            setSlots((prev) => updateSlot(prev, msg.slot, { isZeroCalibrated: true }));
+          case 'ZERO_CALIBRATED': {
+            const slot = msg.slot ?? 1;
+            setSlots((prev) => updateSlot(prev, slot, { isZeroCalibrated: true }));
             if (!msg.resume) {
-              phoneAdapterRef.current?.resetZero();
+              phoneAdaptersRef.current[slot]?.resetZero();
             }
             if (gamePhaseRef.current === 'PAIRING') {
               setGamePhase('ZEROING');
             }
             break;
+          }
 
           case 'LOCAL_PLAYER_REGISTERED':
             setSlots((prev) => updateSlot(prev, msg.slot, { player: msg.player }));
@@ -427,77 +470,92 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             break;
 
           case 'SENSOR_RELAY': {
+            const slot = msg.slot ?? 1;
             const p = msg.payload;
-            packetCountRef.current += 1;
-            const now = performance.now();
-            const isDiagnosticsNeeded = isSensorLabOpenRef.current || gamePhaseRef.current === 'SANDBOX';
+            const adapter = phoneAdaptersRef.current[slot];
+            if (!adapter) break;
 
-            if (isDiagnosticsNeeded && now - lastPacketTimeRef.current >= 1000) {
-              setDiagnostics((prev) => ({
-                ...prev,
-                packetHz: packetCountRef.current,
-              }));
-              packetCountRef.current = 0;
-              lastPacketTimeRef.current = now;
-            } else if (!isDiagnosticsNeeded && now - lastPacketTimeRef.current >= 1000) {
-              packetCountRef.current = 0;
-              lastPacketTimeRef.current = now;
-            }
+            const map = slotIndexMapRef.current;
+            const soloSlot = indexToSlot(map, 0) ?? 1;
+            const isPlayerZeroSlot = slot === soloSlot;
 
-            let currentJitterRms = 0;
-            if (isDiagnosticsNeeded) {
-              const rawFromPayloadX = p.rawAimX ?? p.aimX;
-              const rawFromPayloadY = p.rawAimY ?? p.aimY;
-              recentRawSamplesRef.current.push({ x: rawFromPayloadX, y: rawFromPayloadY });
-              if (recentRawSamplesRef.current.length > 30) {
-                recentRawSamplesRef.current.shift();
-              }
+            if (isPlayerZeroSlot) {
+              packetCountRef.current += 1;
+              const now = performance.now();
+              const isDiagnosticsNeeded = isSensorLabOpenRef.current || gamePhaseRef.current === 'SANDBOX';
 
-              const samples = recentRawSamplesRef.current;
-              if (samples.length >= 2) {
-                let sumSq = 0;
-                for (let i = 1; i < samples.length; i++) {
-                  const dx = samples[i].x - samples[i - 1].x;
-                  const dy = samples[i].y - samples[i - 1].y;
-                  sumSq += dx * dx + dy * dy;
-                }
-                currentJitterRms = Math.sqrt(sumSq / (samples.length - 1));
-              }
-            }
-
-            const frameResult = phoneAdapterRef.current?.onSensorFrame(p);
-            if (frameResult) {
-              setIsAimLocked(frameResult.isAimLocked);
-              if (frameResult.cockedJustNow) {
-                soundSynth.playCocking();
-              }
-
-              if (isDiagnosticsNeeded && now - lastDiagUpdateTimeRef.current >= 60) {
-                lastDiagUpdateTimeRef.current = now;
+              if (isDiagnosticsNeeded && now - lastPacketTimeRef.current >= 1000) {
                 setDiagnostics((prev) => ({
                   ...prev,
-                  aimX: frameResult.aimX,
-                  aimY: frameResult.aimY,
-                  yawDeg: p.yawDeg,
-                  pitchDeg: p.pitchDeg,
-                  rollDeg: p.rollDeg,
-                  rapidFireHold: p.rapidFireHold,
-                  lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
+                  packetHz: packetCountRef.current,
                 }));
+                packetCountRef.current = 0;
+                lastPacketTimeRef.current = now;
+              } else if (!isDiagnosticsNeeded && now - lastPacketTimeRef.current >= 1000) {
+                packetCountRef.current = 0;
+                lastPacketTimeRef.current = now;
+              }
 
-                setSensorLiveMetrics({
-                  rawAimX: frameResult.rawAimX,
-                  rawAimY: frameResult.rawAimY,
-                  aimX: frameResult.aimX,
-                  aimY: frameResult.aimY,
-                  yawDeg: p.yawDeg,
-                  pitchDeg: p.pitchDeg,
-                  rollDeg: p.rollDeg,
-                  packetHz: packetCountRef.current * 4 || 60,
-                  jitterRms: currentJitterRms,
-                  isCocked: p.isCocked,
-                  lastSnapAt: p.snapFire ? Date.now() : undefined,
-                });
+              let currentJitterRms = 0;
+              if (isDiagnosticsNeeded) {
+                const rawFromPayloadX = p.rawAimX ?? p.aimX;
+                const rawFromPayloadY = p.rawAimY ?? p.aimY;
+                recentRawSamplesRef.current.push({ x: rawFromPayloadX, y: rawFromPayloadY });
+                if (recentRawSamplesRef.current.length > 30) {
+                  recentRawSamplesRef.current.shift();
+                }
+
+                const samples = recentRawSamplesRef.current;
+                if (samples.length >= 2) {
+                  let sumSq = 0;
+                  for (let i = 1; i < samples.length; i++) {
+                    const dx = samples[i].x - samples[i - 1].x;
+                    const dy = samples[i].y - samples[i - 1].y;
+                    sumSq += dx * dx + dy * dy;
+                  }
+                  currentJitterRms = Math.sqrt(sumSq / (samples.length - 1));
+                }
+              }
+
+              const frameResult = adapter.onSensorFrame(p);
+              if (frameResult) {
+                setIsAimLocked(frameResult.isAimLocked);
+                if (frameResult.cockedJustNow) {
+                  soundSynth.playCocking();
+                }
+
+                if (isDiagnosticsNeeded && now - lastDiagUpdateTimeRef.current >= 60) {
+                  lastDiagUpdateTimeRef.current = now;
+                  setDiagnostics((prev) => ({
+                    ...prev,
+                    aimX: frameResult.aimX,
+                    aimY: frameResult.aimY,
+                    yawDeg: p.yawDeg,
+                    pitchDeg: p.pitchDeg,
+                    rollDeg: p.rollDeg,
+                    rapidFireHold: p.rapidFireHold,
+                    lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
+                  }));
+
+                  setSensorLiveMetrics({
+                    rawAimX: frameResult.rawAimX,
+                    rawAimY: frameResult.rawAimY,
+                    aimX: frameResult.aimX,
+                    aimY: frameResult.aimY,
+                    yawDeg: p.yawDeg,
+                    pitchDeg: p.pitchDeg,
+                    rollDeg: p.rollDeg,
+                    packetHz: packetCountRef.current * 4 || 60,
+                    jitterRms: currentJitterRms,
+                    isCocked: p.isCocked,
+                    lastSnapAt: p.snapFire ? Date.now() : undefined,
+                  });
+                }
+              }
+            } else {
+              const frameResult = adapter.onSensorFrame(p);
+              if (frameResult?.cockedJustNow) {
+                soundSynth.playCocking();
               }
             }
             break;
@@ -575,9 +633,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
       // Player action processor tick & phone feedback sync
       processorsRef.current.forEach((proc) => proc.tick());
-      if (processorsRef.current[0]) {
-        phoneAdapterRef.current?.syncFeedback(processorsRef.current[0].getState());
-      }
+      const map = slotIndexMapRef.current;
+      ([1, 2] as PlayerSlot[]).forEach((s) => {
+        const pIdx = map[s];
+        if (pIdx !== undefined && processorsRef.current[pIdx]) {
+          phoneAdaptersRef.current[s]?.syncFeedback(processorsRef.current[pIdx].getState());
+        }
+      });
 
       // Synchronize game over / victory
       if (engine.gamePhase === 'GAMEOVER' && gamePhase === 'PLAYING') {
@@ -617,6 +679,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const handleStartGame = useCallback(() => {
     processorsRef.current.forEach((p) => p.stopAll());
     skillGraceUntilRef.current = performance.now() + 1500;
+    slotIndexMapRef.current = buildSlotIndexMap(slotsRef.current);
     engine.startGame({ withWeaponSelect: true });
     syncProcessors();
     setGamePhase('PLAYING');
@@ -653,7 +716,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         }
         setCountdownSec(null);
         // Automatically calibrate zero to current aim angle when countdown reaches 0
-        phoneAdapterRef.current?.autoZeroFromLatest();
+        const map = slotIndexMapRef.current;
+        ([1, 2] as PlayerSlot[]).forEach((s) => {
+          if (map[s] !== undefined && slotsRef.current.find((slot) => slot.slot === s)?.input === 'mobile') {
+            phoneAdaptersRef.current[s]?.autoZeroFromLatest();
+          }
+        });
         handleStartGame();
       }
     }, 1000);
@@ -690,7 +758,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         }
         setCountdownSec(null);
         // Automatically calibrate zero to current aim angle when countdown reaches 0
-        phoneAdapterRef.current?.autoZeroFromLatest();
+        const map = slotIndexMapRef.current;
+        ([1, 2] as PlayerSlot[]).forEach((s) => {
+          if (map[s] !== undefined && slotsRef.current.find((slot) => slot.slot === s)?.input === 'mobile') {
+            phoneAdaptersRef.current[s]?.autoZeroFromLatest();
+          }
+        });
         engine.setPaused(false, performance.now());
       }
     }, 1000);
@@ -812,7 +885,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   );
 
   const handleResetSensorZero = useCallback(() => {
-    phoneAdapterRef.current?.autoZeroFromLatest();
+    phoneAdaptersRef.current[1]?.autoZeroFromLatest();
   }, []);
 
   const handleStartSandbox = useCallback(() => {
@@ -1138,21 +1211,29 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onOpenSensorLab={handleOpenSensorLab}
             onPause={gamePhase === 'PLAYING' ? () => handleOpenPause('USER') : undefined}
           />
-          <CrosshairOverlay
-            ref={crosshairRef}
-            aimX={latestAimRef.current.aimX}
-            aimY={latestAimRef.current.aimY}
-            isFeverActive={hudState.isFeverActive}
-            isWideScopeActive={hudState.isWideScopeActive}
-            isPowerShotActive={hudState.isPowerShotActive}
-            isAimLocked={isAimLocked}
-            weaponKind={hudState.weaponKind}
-            weaponLevel={hudState.weaponLevel}
-            isReloading={hudState.isReloading}
-            reloadDurationMs={hudState.reloadDurationMs}
-            isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
-            getReloadRemainingMs={getReloadRemainingMs}
-          />
+          {engine.players.map((p, i) => {
+            const pScoreState = p.scoreManager.getState();
+            const pProc = processorsRef.current[i];
+            const pAim = pProc?.aim ?? { aimX: 0, aimY: 0 };
+            return (
+              <CrosshairOverlay
+                key={i}
+                ref={crosshairRefs.current[i]}
+                aimX={pAim.aimX}
+                aimY={pAim.aimY}
+                isFeverActive={pScoreState.isFeverActive}
+                isWideScopeActive={engine.isBuffActive('wide_scope', undefined, i as PlayerIndex)}
+                isPowerShotActive={engine.isBuffActive('power_shot', undefined, i as PlayerIndex)}
+                isAimLocked={i === 0 ? isAimLocked : false}
+                weaponKind={hudState.weaponKind}
+                weaponLevel={hudState.weaponLevel}
+                isReloading={hudState.isReloading}
+                reloadDurationMs={hudState.reloadDurationMs}
+                isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
+                getReloadRemainingMs={getReloadRemainingMs}
+              />
+            );
+          })}
           <JudgmentBanner ref={judgmentRef} />
         </>
       )}
@@ -1172,7 +1253,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onExitToLobby={handleExitTutorial}
           />
           <CrosshairOverlay
-            ref={crosshairRef}
+            ref={crosshairRefs.current[0]}
             aimX={latestAimRef.current.aimX}
             aimY={latestAimRef.current.aimY}
             isFeverActive={hudState.isFeverActive}
@@ -1242,7 +1323,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               }));
             }}
             onResetZeroCenter={() => {
-              phoneAdapterRef.current?.autoZeroFromLatest();
+              phoneAdaptersRef.current[1]?.autoZeroFromLatest();
             }}
             onStartRealGame={startCountdownAndGame}
             onExitToLobby={() => {
@@ -1251,7 +1332,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }}
           />
           <CrosshairOverlay
-            ref={crosshairRef}
+            ref={crosshairRefs.current[0]}
             aimX={latestAimRef.current.aimX}
             aimY={latestAimRef.current.aimY}
             isFeverActive={hudState.isFeverActive}
@@ -1290,15 +1371,18 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           {slots.some((s) => s.input === 'mobile' && s.isZeroCalibrated) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 120 }}>
-              <CrosshairOverlay
-                ref={crosshairRef}
-                aimX={latestAimRef.current.aimX}
-                aimY={latestAimRef.current.aimY}
-                isFeverActive={false}
-                isWideScopeActive={false}
-                isPowerShotActive={false}
-                isAimLocked={isAimLocked}
-              />
+              {processorsRef.current.map((proc, i) => (
+                <CrosshairOverlay
+                  key={i}
+                  ref={crosshairRefs.current[i]}
+                  aimX={proc.aim.aimX}
+                  aimY={proc.aim.aimY}
+                  isFeverActive={false}
+                  isWideScopeActive={false}
+                  isPowerShotActive={false}
+                  isAimLocked={i === 0 ? isAimLocked : false}
+                />
+              ))}
             </div>
           )}
         </>
@@ -1371,15 +1455,22 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           {/* Result Crosshair Overlay on top of result modal */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 160 }}>
-            <CrosshairOverlay
-              ref={crosshairRef}
-              aimX={latestAimRef.current.aimX}
-              aimY={latestAimRef.current.aimY}
-              isFeverActive={false}
-              isWideScopeActive={false}
-              isPowerShotActive={false}
-              isAimLocked={isAimLocked}
-              />
+            {engine.players.map((_, i) => {
+              const proc = processorsRef.current[i];
+              const pAim = proc?.aim ?? { aimX: 0, aimY: 0 };
+              return (
+                <CrosshairOverlay
+                  key={i}
+                  ref={crosshairRefs.current[i]}
+                  aimX={pAim.aimX}
+                  aimY={pAim.aimY}
+                  isFeverActive={false}
+                  isWideScopeActive={false}
+                  isPowerShotActive={false}
+                  isAimLocked={i === 0 ? isAimLocked : false}
+                />
+              );
+            })}
           </div>
         </>
       )}

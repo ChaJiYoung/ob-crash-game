@@ -1,6 +1,6 @@
 import type { InputSink } from './inputSignals';
 import type { PlayerActionState } from './PlayerActionProcessor';
-import type { SensorFramePayload, ClientToServerMessage } from '../../shared/types';
+import type { SensorFramePayload, ClientToServerMessage, PlayerSlot } from '../../shared/types';
 import type { SensorTuningConfig } from '../components/MobileSensorLabModal';
 
 export interface ZeroOffset {
@@ -34,6 +34,7 @@ export function applyZeroAndTuning(
 }
 
 export interface PhoneAdapterOptions {
+  slot?: PlayerSlot;
   sink: () => InputSink | null;
   send: (msg: ClientToServerMessage) => void;
   roomId: () => string;
@@ -51,6 +52,7 @@ export interface SensorFrameResult {
 }
 
 export class PhoneAdapter {
+  public readonly slot: PlayerSlot;
   public zeroOffset: ZeroOffset = { offsetX: 0, offsetY: 0 };
   public latestAim = { aimX: 0, aimY: 0 };
 
@@ -60,7 +62,9 @@ export class PhoneAdapter {
   private lastSentSkillStock: number | null = null;
   private lastSkillSyncTimeMs = 0;
 
-  constructor(private readonly opts: PhoneAdapterOptions) {}
+  constructor(private readonly opts: PhoneAdapterOptions) {
+    this.slot = opts.slot ?? 1;
+  }
 
   private getNow(): number {
     return this.opts.now ? this.opts.now() : (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -152,6 +156,7 @@ export class PhoneAdapter {
       this.opts.send({
         type: 'FEVER_STATUS_SYNC',
         roomId,
+        slot: this.slot,
         isFeverReady: state.isFeverReady,
       });
     }
@@ -165,6 +170,7 @@ export class PhoneAdapter {
       this.opts.send({
         type: 'SKILL_STATE_SYNC',
         roomId,
+        slot: this.slot,
         weaponKind: state.weaponKind,
         weaponLevel: state.weaponLevel,
         skillStock: state.skillStock,

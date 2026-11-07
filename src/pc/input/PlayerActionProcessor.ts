@@ -11,17 +11,17 @@ export interface ProcessorContext {
   getPhase: () => GamePhase;
   isPauseMenuOpen: () => boolean;
   /** 판 시작 직후 스킬 금지 끝 시각. */
-  getSkillGraceUntilMs: () => number;
+  getSkillGraceUntilMs?: () => number;
   /** 조준점(−1~1) 아래 쏠 수 있는 버튼. 화면이 DOM 사각형으로 판정해 돌려준다(없으면 null). */
   hitTestButton: (aimX: number, aimY: number) => ShootableButton | null;
   /** = pressScreenButton. HTML onClick도 같은 함수를 부른다. */
-  onButton: (button: ShootableButton) => void;
+  onButton?: (button: ShootableButton) => void;
   /** 게임 밖(PAIRING, ZEROING, GAMEOVER, VICTORY) 화면 사격 시 호출 (사격음 및 버튼 적중/빗나감 판정음). */
   onMenuShot?: (hit: boolean) => void;
-  onShot: (result: EngineShootResult) => void;     // 소리·연출·판정 배너
-  onSkill: (result: SkillExecuteResult) => void;
-  onFeverStarted: (playerIndex: PlayerIndex) => void;
-  onAim: (aimX: number, aimY: number, playerIndex: PlayerIndex) => void; // 십자선·총 조준 표시
+  onShot?: (result: EngineShootResult) => void;     // 소리·연출·판정 배너
+  onSkill?: (result: SkillExecuteResult) => void;
+  onFeverStarted?: (playerIndex: PlayerIndex) => void;
+  onAim?: (aimX: number, aimY: number, playerIndex: PlayerIndex) => void; // 십자선·총 조준 표시
   now?: () => number;
   timers?: { setInterval: typeof setInterval; clearInterval: typeof clearInterval };
 }
@@ -64,7 +64,7 @@ export class PlayerActionProcessor implements InputSink {
       case 'aim': {
         this.aim.aimX = signal.aimX;
         this.aim.aimY = signal.aimY;
-        this.ctx.onAim(signal.aimX, signal.aimY, this.ctx.playerIndex);
+        this.ctx.onAim?.(signal.aimX, signal.aimY, this.ctx.playerIndex);
         break;
       }
       case 'fireDown': {
@@ -74,7 +74,7 @@ export class PlayerActionProcessor implements InputSink {
         if (phase === 'PAIRING' || phase === 'ZEROING' || phase === 'GAMEOVER' || phase === 'VICTORY') {
           const button = this.ctx.hitTestButton(this.aim.aimX, this.aim.aimY);
           if (button) {
-            this.ctx.onButton(button);
+            this.ctx.onButton?.(button);
             this.ctx.onMenuShot?.(true);
             return;
           }
@@ -83,7 +83,7 @@ export class PlayerActionProcessor implements InputSink {
             Math.abs(this.aim.aimX) < LOBBY_START_ZONE &&
             Math.abs(this.aim.aimY) < LOBBY_START_ZONE
           ) {
-            this.ctx.onButton('start');
+            this.ctx.onButton?.('start');
             this.ctx.onMenuShot?.(true);
             return;
           }
@@ -95,7 +95,7 @@ export class PlayerActionProcessor implements InputSink {
         if ((phase === 'PLAYING' || phase === 'TUTORIAL' || phase === 'SANDBOX') && !this.ctx.isPauseMenuOpen()) {
           // 새로 누른 한 발 (press)
           const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'press', this.ctx.playerIndex);
-          this.ctx.onShot(res);
+          this.ctx.onShot?.(res);
           if (res.selectedWeapon || res.selectedCard) {
             this.skillLockUntilMs = now + 300;
           }
@@ -106,7 +106,7 @@ export class PlayerActionProcessor implements InputSink {
             const t = this.getNow();
             const holdRes = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, t, 'hold', this.ctx.playerIndex);
             if (holdRes.fired) {
-              this.ctx.onShot(holdRes);
+              this.ctx.onShot?.(holdRes);
             }
           }, 5);
         }
@@ -123,12 +123,13 @@ export class PlayerActionProcessor implements InputSink {
         if (this.ctx.engine.isSelectPending) return;
 
         const now = this.getNow();
-        if (now < this.ctx.getSkillGraceUntilMs()) return;
+        const graceUntil = this.ctx.getSkillGraceUntilMs ? this.ctx.getSkillGraceUntilMs() : 0;
+        if (now < graceUntil) return;
         if (now < this.skillLockUntilMs) return;
 
         const res = this.ctx.engine.triggerWeaponSkill(now, this.ctx.playerIndex);
         if (res.activated) {
-          this.ctx.onSkill(res);
+          this.ctx.onSkill?.(res);
         }
         break;
       }
@@ -137,7 +138,7 @@ export class PlayerActionProcessor implements InputSink {
         const now = this.getNow();
         const activated = this.ctx.engine.activateFever(now, this.ctx.playerIndex);
         if (activated) {
-          this.ctx.onFeverStarted(this.ctx.playerIndex);
+          this.ctx.onFeverStarted?.(this.ctx.playerIndex);
         }
         break;
       }
@@ -159,7 +160,7 @@ export class PlayerActionProcessor implements InputSink {
           const now = this.getNow();
           const res = this.ctx.engine.shootAt(this.aim.aimX, this.aim.aimY, now, 'fever', this.ctx.playerIndex);
           if (res.fired) {
-            this.ctx.onShot(res);
+            this.ctx.onShot?.(res);
           }
         }, 16);
       }

@@ -7,17 +7,17 @@
 [P04 PC 로비·연결](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md)
 
 ## Active Task
-[T04 슬롯별 폰 어댑터·마우스 어댑터를 플레이어 처리부에 묶기, 플레이어 수만큼 십자선](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/T04-per-slot-input.md)
+[T05 시작 게이트·같은 구성 재시작·로비 복귀·점수 제출(같은 반복문)·튜토리얼 1P 고정](./phases/2026-11-07-two-player-coop/P04-pc-input-lobby/T05-start-and-result-flow.md)
 
 ## Status
 - P01-solo-foundation (T01~T06) 완료 (6/6 Tasks) + 리뷰 피드백 수정 커밋 완료
 - P02-engine-players (T01~T05) 완료 (5/5 Tasks) + 리뷰 피드백 수정 커밋 완료 (2a834ae)
 - P03 서버·프로토콜 완료 (4/4 Tasks 완료, 4a54580)
-- P04 PC 로비·연결 진행 중 (3/6 Tasks 완료)
+- P04 PC 로비·연결 진행 중 (4/6 Tasks 완료)
 - 계획: 5 Phase / 29 Task (P01 6 완료, P02 5 완료, P03 4 완료, P04 6 진행 중)
 
 ## Next Step (IMPORTANT)
-P04-T04 청사진을 읽고 슬롯별 폰/마우스 어댑터와 십자선 구현 및 검증.
+P04-T05 청사진을 읽고 시작 게이트·재시작·점수 제출·튜토리얼 1P 고정 흐름 구현 및 검증.
 
 ## Paused Plan (이전 current에서 이어짐)
 - `2026-11-07-weapon-balance`: 완료, 사람 플레이 대기(샷건 68%, 리볼버 64%, 개틀링 70%).

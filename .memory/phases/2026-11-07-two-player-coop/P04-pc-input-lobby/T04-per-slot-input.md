@@ -1,6 +1,6 @@
 # Task: T04 슬롯을 플레이어 처리부에 묶기
 
-## Status: pending
+## Status: done
 
 ## Goal
 P01-T05의 어댑터·처리부 구조에서 2인을 켠다. 처리부(`PlayerActionProcessor`)를 엔진 플레이어 수만큼 두고, 폰 어댑터를 슬롯마다 하나씩 만들어 슬롯→플레이어 매핑대로 묶고, 마우스 어댑터를 마우스 플레이어에 묶는다. 게임 동작 코드는 새로 쓰지 않는다 — 1인과 같은 처리부가 둘일 뿐이다(D24, D25). 플레이어 수만큼 십자선을 그린다(색·이름표는 P05-T02).
@@ -70,8 +70,8 @@ P01-T05의 어댑터·처리부 구조에서 2인을 켠다. 처리부(`PlayerAc
 - 매핑에 없는 슬롯의 snapFire → 사격 없음.
 
 ## Acceptance Criteria
-- [ ] 이 Task에서 새로 쓴 사격·연사·피버·스킬 코드가 없다(처리부 재사용만).
-- [ ] 1인 판 조작이 이전과 같다.
+- [x] 이 Task에서 새로 쓴 사격·연사·피버·스킬 코드가 없다(처리부 재사용만).
+- [x] 1인 판 조작이 이전과 같다.
 
 ## Validation
 - `npx vitest run tests/slot-binding.test.ts tests/player-action-processor.test.ts tests/input-adapters.test.ts` — 통과
@@ -94,6 +94,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: completed

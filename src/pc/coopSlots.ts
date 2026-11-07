@@ -152,3 +152,20 @@ export function getMouseIndex(
   const idx = map[mouseSlot.slot];
   return idx !== undefined ? idx : null;
 }
+
+/**
+ * 마우스 어댑터가 어느 플레이어 처리부를 조종할지 결정.
+ * - 마우스 슬롯이 있으면 그 플레이어.
+ * - 없으면 플레이어가 1명일 때 보조 입력으로 플레이어 0 (기존 1인 폰 판에서 마우스도 쓸 수 있던 동작 유지).
+ * - 그 외(폰 2대 등)는 null (게임 중 마우스 사격 비활성, HTML 버튼 클릭은 영향 없음).
+ */
+export function getMouseBinding(
+  slots: SlotPair,
+  map: Partial<Record<PlayerSlot, PlayerIndex>>,
+  playerCount: number
+): PlayerIndex | null {
+  const mouseIndex = getMouseIndex(slots, map);
+  if (mouseIndex !== null) return mouseIndex;
+  if (playerCount === 1) return 0;
+  return null;
+}
