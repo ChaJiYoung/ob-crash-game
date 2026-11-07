@@ -152,6 +152,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
   it('does not refill skill charges when reaching Lv.4, and reset() empties them', () => {
     const ws = new WeaponSystem('revolver', 1);
+    ws.refillSkillInstant();
     ws.consumeSkill(1000);
     ws.consumeSkill(1050);
     expect(ws.getState().skillStock).toBe(0);
@@ -173,11 +174,18 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(initial.weaponLevel).toBe(1);
     expect(initial.maxAmmo).toBe(14);
     expect(initial.ammo).toBe(14);
-    expect(initial.skillStock).toBe(2); // selecting a weapon fills the charges
+    expect(initial.skillStock).toBe(0); // selecting a weapon starts with no charges
     expect(initial.maxSkillStock).toBe(2);
     expect(initial.skillCooldownRemainingMs).toBe(0);
 
-    // 1. Consume active skill: choosing a weapon fills both charges, so two casts are available at the start
+    // The first charge only arrives after a full cooldown (21s at Lv.1)
+    expect(ws.consumeSkill(500)).toBe(false);
+    ws.update(21500, false, 21000);
+    expect(ws.getState().skillStock).toBe(1);
+    expect(ws.getState().skillCooldownRemainingMs).toBe(21000); // the second charge starts charging
+    ws.refillSkillInstant();
+
+    // 1. Consume active skill with both charges available
     expect(ws.consumeSkill(1000)).toBe(true);
     expect(ws.getState().skillStock).toBe(1);
     expect(ws.getState().skillCooldownRemainingMs).toBe(21000); // Lv.1 cooldown starts with the first cast
@@ -215,7 +223,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(ws.getState().weaponLevel).toBe(4);
     expect(ws.getState().maxAmmo).toBe(16);
     expect(ws.getState().maxSkillStock).toBe(2);
-    expect(ws.getState().skillStock).toBe(2); // selectWeapon filled; Lv.4 grants no extra refill
+    expect(ws.getState().skillStock).toBe(2); // already full before the upgrade; Lv.4 adds nothing
 
     // 4. Test Rapid Reload Card Buff
     ws.applyRapidReloadBuff();
@@ -227,6 +235,6 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     ws.selectWeapon('gatling', 1);
     expect(ws.getState().weaponKind).toBe('gatling');
     expect(ws.getState().maxAmmo).toBe(GAME_TUNING.maxAmmoByWeapon.gatling[1] + 2); // Lv.1 magazine + 2 (rapid reload buff active)
-    expect(ws.getState().skillStock).toBe(2); // choosing a weapon fills both charges at any level
+    expect(ws.getState().skillStock).toBe(0); // choosing a weapon starts with no charges at any level
   });
 });

@@ -20,6 +20,7 @@ describe('the damage card applies to skill damage', () => {
     const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[1];
     const e = setup();
     e.weaponSystem.selectWeapon('shotgun', 1);
+    e.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const m = mk('hanmac', 10, 'm');
     const b = mk('boss', 100, 'b');
     e.activeTargets = [m, b];
@@ -29,6 +30,7 @@ describe('the damage card applies to skill damage', () => {
 
     const e2 = setup();
     e2.weaponSystem.selectWeapon('shotgun', 1);
+    e2.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     e2.weaponSystem.addDamageBonus(0.3);
     const m2 = mk('hanmac', 10, 'm');
     const b2 = mk('boss', 100, 'b');
@@ -41,6 +43,7 @@ describe('the damage card applies to skill damage', () => {
   it('a skill kill is counted and removes the monster', () => {
     const e = setup();
     e.weaponSystem.selectWeapon('shotgun', 4);
+    e.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const m = mk('pilgood', 0.1, 'p');
     e.activeTargets = [m];
     const before = (e as any).killedInWave;

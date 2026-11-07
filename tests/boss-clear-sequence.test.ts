@@ -29,6 +29,7 @@ describe('boss clear sequence', () => {
   const killBoss = (boss: ActiveTargetEntity) => {
     boss.hp = 0.1;
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(boss);
     const res = engine.shootAt(p.targetNormX, p.targetNormY, now);
     expect(res.killed).toBe(true);
@@ -113,6 +114,7 @@ describe('boss clear sequence', () => {
     for (const b of all) {
       b.hp = 0.1;
       e2.weaponSystem.selectWeapon('revolver', 1);
+      e2.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const p = e2.computeTargetAimCoords(b);
       t2 += 600;
       e2.shootAt(p.targetNormX, p.targetNormY, t2);
@@ -196,6 +198,7 @@ describe('boss clear sequence', () => {
     const front: ActiveTargetEntity = { ...mkMonster('front', 8), kind: 'bottle', hp: 0.1, maxHp: 4 };
     engine.activeTargets.push(front);
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(front);
     engine.shootAt(p.targetNormX, p.targetNormY, now);
     expect(engine.isBossClearSequence()).toBe(true);

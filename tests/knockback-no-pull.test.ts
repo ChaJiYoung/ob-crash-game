@@ -14,6 +14,7 @@ function setup(weapon: 'shotgun' | 'gatling', level: 1 | 2 | 3 | 4) {
   e.startWave(6);
   (e as any).spawnedInWave = 999;
   e.weaponSystem.selectWeapon(weapon, level);
+  e.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
   return e;
 }
 

@@ -90,7 +90,8 @@ export class WeaponSystem {
     this.ammo = this.getMaxAmmo();
     this.isReloading = false;
     this.reloadEndTimeMs = 0;
-    this.skillStock = this.getMaxSkillStock();
+    // Start with no charges: the first one arrives after a full cooldown
+    this.skillStock = 0;
     this.skillCooldownRemainingMs = 0;
   }
 

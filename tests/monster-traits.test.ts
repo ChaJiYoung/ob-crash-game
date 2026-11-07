@@ -133,6 +133,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
     engine.activeTargets = [h];
     engine.update(1000, 0.0001);
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(h);
     engine.shootAt(p.targetNormX, p.targetNormY, 1100);
     expect(h.hp).toBeLessThan(3);
@@ -190,6 +191,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       const e2 = new BeerCrusherEngine();
       e2.startGame({ withWeaponSelect: false });
       e2.weaponSystem.selectWeapon('shotgun', 1);
+      e2.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const t2 = guarded(0);
       e2.activeTargets = [t2];
       (e2 as any).updateGuards(UP);
@@ -230,6 +232,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
 
     it('revolver pierce skips a guarding obi behind the target', () => {
       engine.weaponSystem.selectWeapon('revolver', 3);
+      engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const front = mk('bottle', 6, { hp: 10, maxHp: 10 });
       const rear = guarded(0);
       rear.radiusM = 9;
@@ -248,6 +251,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
 
     const shootKill = (e: BeerCrusherEngine, t: ActiveTargetEntity, now: number) => {
       e.weaponSystem.selectWeapon('revolver', 1);
+      e.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       const p = e.computeTargetAimCoords(t);
       return e.shootAt(p.targetNormX, p.targetNormY, now);
     };
@@ -287,6 +291,7 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       b.thetaRad = 0;
       engine.activeTargets = [b];
       engine.weaponSystem.selectWeapon('shotgun', 4);
+      engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       expect(engine.triggerWeaponSkill(1000).activated).toBe(true);
       expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(2);
     });

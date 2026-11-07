@@ -14,6 +14,7 @@ let now = 1000;
 const tick = (n: number) => { for (let i = 0; i < n; i++) { now += 16; engine.update(now, 0.016); } };
 const cast = (level: 1 | 2 | 3 | 4 = 1) => {
   engine.weaponSystem.selectWeapon('gatling', level);
+  engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
   return engine.triggerWeaponSkill(now);
 };
 

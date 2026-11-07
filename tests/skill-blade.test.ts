@@ -14,6 +14,7 @@ let now = 1000;
 const tick = (n: number) => { for (let i = 0; i < n; i++) { now += 16; engine.update(now, 0.016); } };
 const cast = (level: 1 | 2 | 3 | 4 = 1) => {
   engine.weaponSystem.selectWeapon('revolver', level);
+  engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
   return engine.triggerWeaponSkill(now);
 };
 
@@ -73,6 +74,7 @@ describe('revolver fan blades', () => {
       const ts = [8, 10, 12].map((r) => mk('hanmac', r));
       e.activeTargets = [...ts];
       e.weaponSystem.selectWeapon('revolver', lv);
+      e.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
       let t = 1000;
       e.triggerWeaponSkill(t);
       // use only the middle blade: drop the others
@@ -188,6 +190,7 @@ describe('revolver fan blades', () => {
     const e2 = new BeerCrusherEngine();
     e2.startSandboxMode();
     e2.weaponSystem.selectWeapon('revolver', 4);
+    e2.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     e2.triggerWeaponSkill(1000);
     expect(e2.activeSkillBlades.length).toBe(7);
     e2.exitSandboxMode();

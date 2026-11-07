@@ -492,6 +492,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 base DMG. With PERFECT (1.5x) -> 2.40 DMG + 0.3m knockback
     engine.weaponSystem.selectWeapon('shotgun', 2);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const sgTarget = {
       id: 'sg_dummy',
       kind: 'bottle' as const,
@@ -517,6 +518,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const revFront = {
       id: 'rev_front',
       kind: 'bottle' as const,
@@ -557,6 +559,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 3. Gatling Lv.1: 0.25 base DMG x1.5 tuning. With PERFECT (2.0x) -> 0.75 DMG rapid fire
     engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const gatTarget = {
       id: 'gat_dummy',
       kind: 'obi' as const,
@@ -616,6 +619,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 1. Shotgun skill: 사방 뚫어뻥 폭풍 (AoE 0.5 DMG + 1000ms Stun)
     engine.weaponSystem.selectWeapon('shotgun', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const sgSkill = engine.triggerWeaponSkill(1000);
     expect(sgSkill.activated).toBe(true);
     expect(sgSkill.weaponKind).toBe('shotgun');
@@ -629,6 +633,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 2. Revolver skill: 오프너 참격 (fan blades, damage on contact)
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const revSkill = engine.triggerWeaponSkill(3000);
     expect(revSkill.activated).toBe(true);
     expect(revSkill.bladeCount).toBe(3);
@@ -638,6 +643,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 3. Gatling skill: 거품 해일 (foam wave, push on contact)
     engine.weaponSystem.selectWeapon('gatling', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const initialRadius = m1.radiusM;
     const gatSkill = engine.triggerWeaponSkill(5000);
     expect(gatSkill.activated).toBe(true);
@@ -725,6 +731,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 1. Revolver Lv.1 vs 1HP Can (pilgood)
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
 
     // PERFECT shot (1.5x) -> 1.0 * 1.5 = 1.5 -> one-shot kill!
     const canPerfect = {
@@ -800,6 +807,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // 2. Shotgun Lv.1: GREAT (1.0x) -> 1.05 DMG (one-shot kill), GOOD (0.5x) -> 0.63 DMG (0.37 HP remains)
     engine.weaponSystem.selectWeapon('shotgun', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const canSgGreat = {
       id: 'can_sg_great',
       kind: 'caslight' as const,
@@ -868,6 +876,7 @@ describe('revolver pierce feedback', () => {
     const rear = mkT(10);
     engine.activeTargets = [front, rear];
     engine.weaponSystem.selectWeapon('revolver', 1);
+    engine.weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const p = engine.computeTargetAimCoords(front);
     const res = engine.shootAt(p.targetNormX, p.targetNormY, 2000, 'press');
     expect(getPiercedTargets(res)).toEqual([rear]);
