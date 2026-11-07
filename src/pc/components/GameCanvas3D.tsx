@@ -31,6 +31,10 @@ import { GAME_TUNING } from '../../shared/gameTuning';
 import { MonsterHudProjection, shouldRenderMonsterHpBar } from './ArcadeOverlayHUD';
 import { aimToNdc, viewportRatioToAim } from './CrosshairOverlay';
 import { computeHorizontalHalfFovRad } from '../engine/FanSpawner';
+import { computeAimWorldPoint, AIM_TARGET_DISTANCE_M } from '../three/aimProjection';
+import { computeGunAimAngles } from '../three/gunAim';
+
+export { computeAimWorldPoint, AIM_TARGET_DISTANCE_M };
 
 export function resolveHitFxColor(target: ActiveTargetEntity): string {
   if (target.isProjectile) return '#7a4a21';
@@ -83,18 +87,6 @@ const SKILL_HIT_SOUND_GAP_MS = 70;
 /** 관통으로 맞은 몬스터(주 대상 제외). */
 export function getPiercedTargets(result: Partial<EngineShootResult>): ActiveTargetEntity[] {
   return (result.hitTargets ?? []).filter((t) => t !== result.target);
-}
-
-export function computeAimWorldPoint(
-  camera: THREE.PerspectiveCamera,
-  aimX: number,
-  aimY: number,
-  distanceM = 14
-): THREE.Vector3 {
-  const { ndcX, ndcY } = aimToNdc(aimX, aimY);
-  const targetNDC = new THREE.Vector3(ndcX, ndcY, 0.5).unproject(camera);
-  const dir = targetNDC.sub(camera.position).normalize();
-  return camera.position.clone().addScaledVector(dir, distanceM);
 }
 
 export function disposeSceneGroup(group: THREE.Group): void {
@@ -769,6 +761,10 @@ export const GameCanvas3D = React.memo(
 
         // Sync and update 3D guns for all players
         syncGuns();
+        const camera = cameraRef.current;
+        if (camera) {
+          camera.updateMatrixWorld();
+        }
         for (let i = 0; i < tapGunsRef.current.length; i++) {
           const gun = tapGunsRef.current[i];
           const pIdx = i as PlayerIndex;
@@ -795,7 +791,13 @@ export const GameCanvas3D = React.memo(
 
           gun.setPowerMode(engine.isBuffActive('power_shot', time, pIdx));
           gun.setScopeMode(engine.isBuffActive('wide_scope', time, pIdx));
-          gun.updateAimAndRecoil(aimState.current.aimX, aimState.current.aimY, dtSec, pScore.isFeverActive);
+
+          if (camera) {
+            const world = computeAimWorldPoint(camera, aimState.current.aimX, aimState.current.aimY);
+            const local = camera.worldToLocal(world.clone());
+            const angles = computeGunAimAngles(gun.getAimPivot(), local);
+            gun.updateAim(angles, aimState.current, dtSec, pScore.isFeverActive);
+          }
           gun.setVisible(!player.isAway);
         }
 
@@ -880,7 +882,7 @@ export const GameCanvas3D = React.memo(
         );
         particles.update(dtSec);
 
-        if (renderer) renderer.render(scene, camera);
+        if (renderer && camera) renderer.render(scene, camera);
 
         // Periodic render performance reporting (~250ms throttled)
         fpsFrameCount++;

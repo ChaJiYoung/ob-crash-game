@@ -283,12 +283,12 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     gun.triggerRecoil(false);
 
     // Immediately after kick, position should move back
-    gun.updateAimAndRecoil(0, 0, 0.016, false);
+    gun.updateAim({ yaw: 0, pitch: 0 }, { aimX: 0, aimY: 0 }, 0.016, false);
     expect(gun.group.position.z).toBeGreaterThan(initialZ);
 
     // Over time, should decay back near initial position
     for (let i = 0; i < 60; i++) {
-      gun.updateAimAndRecoil(0, 0, 0.05, false);
+      gun.updateAim({ yaw: 0, pitch: 0 }, { aimX: 0, aimY: 0 }, 0.05, false);
     }
     expect(Math.abs(gun.group.position.z - initialZ)).toBeLessThan(0.05);
 
@@ -340,10 +340,10 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     // 4. Offset 0 aim rotation matches solo baseline
     const soloGun = new DraftTapGun3D();
     soloGun.setSlotOffset(0);
-    soloGun.updateAimAndRecoil(0.5, 0.2, 0.016, false);
+    soloGun.updateAim({ yaw: 0.1, pitch: 0.2 }, { aimX: 0.5, aimY: 0.2 }, 0.016, false);
 
     const normalGun = new DraftTapGun3D();
-    normalGun.updateAimAndRecoil(0.5, 0.2, 0.016, false);
+    normalGun.updateAim({ yaw: 0.1, pitch: 0.2 }, { aimX: 0.5, aimY: 0.2 }, 0.016, false);
 
     expect(soloGun.group.rotation.x).toBeCloseTo(normalGun.group.rotation.x, 5);
     expect(soloGun.group.rotation.y).toBeCloseTo(normalGun.group.rotation.y, 5);
@@ -497,7 +497,7 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
 
     // Test recoil kick & gatling spin
     gun.triggerRecoil(false);
-    gun.updateAimAndRecoil(0, 0, 0.05, false);
+    gun.updateAim({ yaw: 0, pitch: 0 }, { aimX: 0, aimY: 0 }, 0.05, false);
   });
 
   it('should create procedural 3D Golden Can, Monster Projectile, and Shoot-to-Select Card targets', () => {

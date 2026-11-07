@@ -100,8 +100,6 @@ export function createRealisticPlungerMesh(scale = 1.0): THREE.Group {
   return plungerGroup;
 }
 
-export const GUN_YAW_COMP = 0.35;
-
 export class DraftTapGun3D {
   public readonly group: THREE.Group;
   private readonly basePosition = new THREE.Vector3(0.0, -0.46, -0.92);
@@ -138,6 +136,7 @@ export class DraftTapGun3D {
   constructor() {
     this.group = new THREE.Group();
     this.group.name = 'DraftTapGun3D';
+    this.group.rotation.order = 'YXZ';
     this.group.position.copy(this.basePosition);
 
     this.chromeMat = new THREE.MeshStandardMaterial({
@@ -468,14 +467,25 @@ export class DraftTapGun3D {
     });
   }
 
-  public updateAimAndRecoil(aimX: number, aimY: number, dtSec: number, isFeverActive: boolean): void {
-    const targetRotX = aimY * 0.36 + this.currentRecoilPitch;
-    const targetRotY = -aimX * 0.58 + this.slotOffsetX * GUN_YAW_COMP;
+  /** 카메라 로컬 좌표에서 총의 회전 중심(기본 위치). GameCanvas3D가 gunAim 계산에 쓴다. */
+  public getAimPivot(): THREE.Vector3 {
+    return this.basePosition.clone();
+  }
+
+  /** 겨눌 각도(computeGunAimAngles 결과)와 화면 흔들림용 조준값을 받아 반동과 함께 적용한다. */
+  public updateAim(
+    angles: { yaw: number; pitch: number },
+    swayAim: { aimX: number; aimY: number },
+    dtSec: number,
+    isFeverActive: boolean
+  ): void {
+    const targetRotX = angles.pitch + this.currentRecoilPitch;
+    const targetRotY = angles.yaw;
     this.group.rotation.x += (targetRotX - this.group.rotation.x) * Math.min(1, dtSec * 18);
     this.group.rotation.y += (targetRotY - this.group.rotation.y) * Math.min(1, dtSec * 18);
 
-    const targetPosX = this.basePosition.x + aimX * 0.04;
-    const targetPosY = this.basePosition.y + aimY * 0.03;
+    const targetPosX = this.basePosition.x + swayAim.aimX * 0.04;
+    const targetPosY = this.basePosition.y + swayAim.aimY * 0.03;
     const targetPosZ = this.basePosition.z + this.currentRecoilZ;
 
     this.group.position.x += (targetPosX - this.group.position.x) * Math.min(1, dtSec * 18);

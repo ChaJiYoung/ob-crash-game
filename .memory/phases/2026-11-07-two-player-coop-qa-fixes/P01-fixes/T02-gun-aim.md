@@ -1,6 +1,6 @@
 # Task: T02 총구가 십자선 지점을 겨누게
 
-## Status: pending
+## Status: done
 
 ## Goal
 3D 총이 자기 위치에서 자기 플레이어 십자선 아래의 3D 지점을 실제로 겨누게 한다. 1인(가운데 총)과 2인(좌우 총)이 같은 계산을 쓴다(D24). 지금은 총이 "조준값 × 고정 비율"(좌우 −0.58, 상하 0.36)로만 돌고, 좌우로 옮긴 총에는 고정 안쪽 보정(`GUN_YAW_COMP = 0.35`)이 더해져 늘 화면 가운데 쪽을 본다(`B-10-guns-3d.png`).
@@ -94,9 +94,9 @@
 - 2인 배치 재현: 카메라를 게임과 같은 위치·FOV로 만들고, 왼쪽 총(오프셋 −0.32)·오른쪽 총(+0.32)이 각각 조준(−0.6, 0.3)·(0.5, −0.2)의 월드 지점을 겨눌 때, 총 앞 방향 직선이 그 월드 지점을 0.05m 이내로 지난다.
 
 ## Acceptance Criteria
-- [ ] three 계층 파일이 `src/pc/components/**`를 import하지 않는다(`grep -rn "from '../components" src/pc/three` → 0).
-- [ ] `GUN_YAW_COMP`가 소스에 없다.
-- [ ] 1인·2인 모두 같은 각도 계산을 쓴다.
+- [x] three 계층 파일이 `src/pc/components/**`를 import하지 않는다(`grep -rn "from '../components" src/pc/three` → 0).
+- [x] `GUN_YAW_COMP`가 소스에 없다.
+- [x] 1인·2인 모두 같은 각도 계산을 쓴다.
 
 ## Validation
 - `npx vitest run tests/gun-aim.test.ts tests/three-stage-and-models.test.ts` — 통과
@@ -119,6 +119,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
