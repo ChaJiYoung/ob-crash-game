@@ -158,6 +158,14 @@ export interface RunRankingEntry {
   playedAt: string;
 }
 
+export interface TeamRankingEntry {
+  teamKey: string; // 정렬한 deviceId 두 개를 '|'로
+  members: [{ deviceId: string; nickname: string }, { deviceId: string; nickname: string }]; // 그 최고 판의 1P, 2P 순서
+  teamScore: number;
+  waveReached: number;
+  playedAt: string;
+}
+
 export interface CoopBestEntry {
   partnerDeviceId: string;
   partnerNickname: string;
@@ -224,8 +232,8 @@ export type ClientToServerMessage =
     };
 
 export type ServerToClientMessage =
-  | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; lanIp?: string }
-  | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[] }
+  | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[]; lanIp?: string }
+  | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile; slot: PlayerSlot }
   | { type: 'LOCAL_PLAYER_REGISTERED'; roomId: string; slot: PlayerSlot; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean; slot: PlayerSlot }
@@ -249,5 +257,5 @@ export type ServerToClientMessage =
       roomId: string;
       config: Record<string, any>;
     }
-  | { type: 'RANKING_UPDATED'; rankings: RunRankingEntry[]; updatedPlayer?: PlayerProfile }
+  | { type: 'RANKING_UPDATED'; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[]; updatedPlayer?: PlayerProfile }
   | { type: 'ERROR'; code: string; message: string; slot?: PlayerSlot };

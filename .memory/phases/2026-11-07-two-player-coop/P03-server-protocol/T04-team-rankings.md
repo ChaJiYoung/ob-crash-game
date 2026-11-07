@@ -1,6 +1,6 @@
 # Task: T04 팀 랭킹 Top5
 
-## Status: pending
+## Status: done
 
 ## Goal
 서버가 `data/play-records.jsonl`의 2인팟 기록으로 팀 랭킹 Top5를 만들고, 로비(`ROOM_CREATED`)와 점수 제출 응답(`RANKING_UPDATED`), 폰 인증 응답(`AUTH_RESULT`)에 `teamRankings`로 함께 보낸다(D22). 같은 두 사람 조합은 최고 팀 합계 한 줄만 올린다. 솔로 Top5(`rankings`)는 그대로다.
@@ -71,8 +71,8 @@
 - 소켓: `ROOM_CREATED.teamRankings` 존재.
 
 ## Acceptance Criteria
-- [ ] 같은 조합은 한 줄, 최고 팀 합계로 Top5가 만들어진다.
-- [ ] 서버 재시작 후에도 팀 랭킹이 복원된다.
+- [x] 같은 조합은 한 줄, 최고 팀 합계로 Top5가 만들어진다.
+- [x] 서버 재시작 후에도 팀 랭킹이 복원된다.
 
 ## Validation
 - `npx vitest run tests/team-rankings.test.ts tests/coop-records.test.ts tests/play-records.test.ts` — 통과
@@ -93,6 +93,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

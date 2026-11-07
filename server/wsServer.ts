@@ -88,6 +88,7 @@ export async function createBeerCrusherServer(options?: {
               type: 'ROOM_CREATED',
               roomId: session.roomId,
               rankings: playRecordStore.getTopRuns(5),
+              teamRankings: playRecordStore.getTopTeams(5),
               lanIp: getLanIpAddress(),
             });
             break;
@@ -139,6 +140,7 @@ export async function createBeerCrusherServer(options?: {
 
             const player = playerStore.findByDeviceId(deviceId);
             const rankings = playRecordStore.getTopRuns(5);
+            const teamRankings = playRecordStore.getTopTeams(5);
 
             if (player) {
               sendJson(ws, {
@@ -147,6 +149,7 @@ export async function createBeerCrusherServer(options?: {
                 isNewUser: false,
                 player,
                 rankings,
+                teamRankings,
               });
               sendJson(session.pcSocket, {
                 type: 'CONTROLLER_PAIRED',
@@ -160,6 +163,7 @@ export async function createBeerCrusherServer(options?: {
                 roomId,
                 isNewUser: true,
                 rankings,
+                teamRankings,
               });
             }
             break;
@@ -212,6 +216,7 @@ export async function createBeerCrusherServer(options?: {
             try {
               const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
               const rankings = playRecordStore.getTopRuns(5);
+              const teamRankings = playRecordStore.getTopTeams(5);
 
               sendJson(ws, {
                 type: 'AUTH_RESULT',
@@ -219,6 +224,7 @@ export async function createBeerCrusherServer(options?: {
                 isNewUser: false,
                 player,
                 rankings,
+                teamRankings,
               });
 
               sendJson(session.pcSocket, {
@@ -482,6 +488,7 @@ export async function createBeerCrusherServer(options?: {
             const response: ServerToClientMessage = {
               type: 'RANKING_UPDATED',
               rankings: playRecordStore.getTopRuns(5),
+              teamRankings: playRecordStore.getTopTeams(5),
               updatedPlayer: profile,
             };
 

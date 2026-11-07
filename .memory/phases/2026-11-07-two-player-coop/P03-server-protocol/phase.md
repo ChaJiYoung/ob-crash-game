@@ -7,8 +7,8 @@
 | :--- | :--- | :--- | :--- |
 | T01 | `done ✅` | 메시지에 `slot`, `RoomManager` 컨트롤러 슬롯 2개, 슬롯별 중계·끊김 알림 | [T01](./T01-slot-protocol.md) |
 | T02 | `done ✅` | 마우스 플레이어 등록 `REGISTER_LOCAL_PLAYER`(D15) | [T02](./T02-local-player-identity.md) |
-| T03 | `in_progress 🔵` | 2인팟 기록 `mode:"coop"`, 솔로 Top5 제외, `totalGames`+1, `coopBests` | [T03](./T03-coop-records.md) |
-| T04 | `pending` | 팀 랭킹 Top5(`teamRankings`, D22) | [T04](./T04-team-rankings.md) |
+| T03 | `done ✅` | 2인팟 기록 `mode:"coop"`, 솔로 Top5 제외, `totalGames`+1, `coopBests` | [T03](./T03-coop-records.md) |
+| T04 | `in_progress 🔵` | 팀 랭킹 Top5(`teamRankings`, D22) | [T04](./T04-team-rankings.md) |
 
 ## Progress
-- done: 2/4 (active: T03)
+- done: 3/4 (active: T04)

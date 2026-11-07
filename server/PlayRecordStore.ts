@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { PlayRunStats, RunRankingEntry, WeaponKind } from '../src/shared/types';
+import { PlayRunStats, RunRankingEntry, TeamRankingEntry, WeaponKind } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface PlayRecordInput {
@@ -95,6 +95,7 @@ export class PlayRecordStore {
   private filePath: string;
   private rulesetVersion: number;
   private topRuns: RunRankingEntry[] = [];
+  private teamBests: Map<string, TeamRankingEntry> = new Map();
 
   constructor(filePath?: string, rulesetVersion: number = RANKING_RULESET_VERSION) {
     this.filePath = filePath || path.resolve(process.cwd(), 'data', 'play-records.jsonl');
@@ -117,9 +118,12 @@ export class PlayRecordStore {
       try {
         const r = JSON.parse(line);
         if (r?.rulesetVersion !== this.rulesetVersion || !isValidPlayRunStats(r)) continue;
-        if (r.mode === 'coop') continue;
         const meta = r as unknown as { deviceId: unknown; nickname: unknown; playedAt: unknown };
         if (typeof meta.deviceId !== 'string' || typeof meta.nickname !== 'string' || typeof meta.playedAt !== 'string') continue;
+        if (r.mode === 'coop') {
+          this.addToTeamTop({ deviceId: meta.deviceId, nickname: meta.nickname, playedAt: meta.playedAt, stats: r });
+          continue;
+        }
         this.addToTop({ deviceId: meta.deviceId, nickname: meta.nickname, score: r.totalScore, waveReached: r.waveReached, weaponKind: r.weaponKind, playedAt: meta.playedAt });
       } catch {
         // 깨진 줄
@@ -134,8 +138,44 @@ export class PlayRecordStore {
     this.topRuns.length = Math.min(this.topRuns.length, 5);
   }
 
+  private addToTeamTop(record: { deviceId: string; nickname: string; playedAt: string; stats: PlayRunStats }): void {
+    const { deviceId, nickname, playedAt, stats } = record;
+    if (stats.mode !== 'coop' || !stats.coop?.partnerDeviceId || stats.coop.partnerDeviceId.trim().length === 0) {
+      return;
+    }
+    const coop = stats.coop;
+    const me = { deviceId, nickname };
+    const partner = { deviceId: coop.partnerDeviceId, nickname: coop.partnerNickname };
+    const members: [{ deviceId: string; nickname: string }, { deviceId: string; nickname: string }] =
+      coop.slot === 1 ? [me, partner] : [partner, me];
+    const teamKey = [me.deviceId, partner.deviceId].sort().join('|');
+
+    const existing = this.teamBests.get(teamKey);
+    if (!existing || coop.teamScore > existing.teamScore) {
+      this.teamBests.set(teamKey, {
+        teamKey,
+        members,
+        teamScore: coop.teamScore,
+        waveReached: stats.waveReached,
+        playedAt,
+      });
+    }
+  }
+
   public getTopRuns(limit = 5): RunRankingEntry[] {
     return this.topRuns.slice(0, limit).map((r) => ({ ...r }));
+  }
+
+  public getTopTeams(limit = 5): TeamRankingEntry[] {
+    const list = Array.from(this.teamBests.values());
+    list.sort((a, b) => b.teamScore - a.teamScore || a.playedAt.localeCompare(b.playedAt));
+    return list.slice(0, limit).map((t) => ({
+      teamKey: t.teamKey,
+      members: [{ ...t.members[0] }, { ...t.members[1] }],
+      teamScore: t.teamScore,
+      waveReached: t.waveReached,
+      playedAt: t.playedAt,
+    }));
   }
 
   public append(record: PlayRecordInput): boolean {
@@ -150,15 +190,24 @@ export class PlayRecordStore {
       });
       fs.appendFileSync(this.filePath, `${line}\n`, 'utf-8');
       // 파일에 남은 기록만 보드에 올린다. 재시작 뒤 사라질 기록이 보이면 안 된다.
-      if (record.rulesetVersion === this.rulesetVersion && record.stats.mode !== 'coop') {
-        this.addToTop({
-          deviceId: record.deviceId,
-          nickname: record.nickname,
-          score: record.stats.totalScore,
-          waveReached: record.stats.waveReached,
-          weaponKind: record.stats.weaponKind,
-          playedAt: record.playedAt,
-        });
+      if (record.rulesetVersion === this.rulesetVersion) {
+        if (record.stats.mode === 'coop') {
+          this.addToTeamTop({
+            deviceId: record.deviceId,
+            nickname: record.nickname,
+            playedAt: record.playedAt,
+            stats: record.stats,
+          });
+        } else {
+          this.addToTop({
+            deviceId: record.deviceId,
+            nickname: record.nickname,
+            score: record.stats.totalScore,
+            waveReached: record.stats.waveReached,
+            weaponKind: record.stats.weaponKind,
+            playedAt: record.playedAt,
+          });
+        }
       }
       return true;
     } catch (err) {
