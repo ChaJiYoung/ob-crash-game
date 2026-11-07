@@ -18,7 +18,7 @@ UI 시안: [references/two-player-coop-mockups.md](../references/two-player-coop
 | P02 | `done` | 엔진 2인: 플레이어별 라우팅, 인원수 규칙 표, 모두 기다리는 선택 라운드, 이탈 상태, 개인 통계 | [P02](../phases/2026-11-07-two-player-coop/P02-engine-players/phase.md) |
 | P03 | `done` | 서버: 슬롯 2개, 마우스 플레이어 식별, 2인팟 기록·`coopBests`, 팀 랭킹 | [P03](../phases/2026-11-07-two-player-coop/P03-server-protocol/phase.md) |
 | P04 | `done` | PC 로비·연결: 슬롯 카드, 어댑터→처리부 바인딩, 시작·결과 흐름, 끊김 유예 | [P04](../phases/2026-11-07-two-player-coop/P04-pc-input-lobby/phase.md) |
-| P05 | `in_progress` | 화면: 개인 패널 HUD, 플레이어 색, 선택 화면, 결과 화면, 튜토리얼 패널, 총 두 자루, 랭킹 탭, 문서 갱신 | [P05](../phases/2026-11-07-two-player-coop/P05-hud-screens/phase.md) |
+| P05 | `done` | 화면: 개인 패널 HUD, 플레이어 색, 선택 화면, 결과 화면, 튜토리얼 패널, 총 두 자루, 랭킹 탭, 문서 갱신 | [P05](../phases/2026-11-07-two-player-coop/P05-hud-screens/phase.md) |
 
 ## 설계 원칙 (D24, 모든 Task가 지킨다)
 - 인원수에 따라 달라지는 것은 `GAME_TUNING.playerCountRules[n]`의 값과 화면 표시값(`getPlayerPresentation`)뿐이다. 엔진·입력·선택 라운드·점수·이탈 로직에 `isCoop`/`players.length === 2` 분기를 쓰지 않는다. 1인은 플레이어 배열 길이가 1인 같은 코드다.
