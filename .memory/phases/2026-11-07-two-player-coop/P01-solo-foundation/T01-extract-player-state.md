@@ -1,6 +1,6 @@
 # Task: T01 개인 상태를 PlayerCombatState로 분리
 
-## Status: pending
+## Status: done
 
 ## Goal
 `BeerCrusherEngine`이 직접 들고 있던 "한 플레이어의 것"(점수·피버, 무기, 카드 스택, 행운 스택, 사격 통계, 처치 수, 아이템 수, 보너스, 버프)을 새 클래스 `PlayerCombatState`로 옮기고, 엔진은 `players: PlayerCombatState[]`(길이 1)를 가진다. 동작은 1비트도 바뀌지 않는다. 다음 Task들이 `players[i]`만 바꿔 끼우면 2인이 되도록 하는 토대다.
@@ -89,8 +89,8 @@
 - 엔진 위임: `new BeerCrusherEngine()`의 `engine.scoreManager === engine.players[0].scoreManager`, `(engine as any).shotStats = {…}` 대입이 `players[0].shotStats`에 반영.
 
 ## Acceptance Criteria
-- [ ] `BeerCrusherEngine.ts`에 `new ScoreAndFeverManager()` / `new WeaponSystem()`가 더 이상 없다(`PlayerCombatState`에만 있다).
-- [ ] 기존 테스트 파일은 한 줄도 고치지 않고 전부 통과한다.
+- [x] `BeerCrusherEngine.ts`에 `new ScoreAndFeverManager()` / `new WeaponSystem()`가 더 이상 없다(`PlayerCombatState`에만 있다).
+- [x] 기존 테스트 파일은 한 줄도 고치지 않고 전부 통과한다.
 
 ## Validation
 - `npx vitest run tests/coop-player-state.test.ts` — 새 테스트 통과
@@ -112,6 +112,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

@@ -25,6 +25,7 @@ import { GAME_TUNING } from '../../shared/gameTuning';
 import type { ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
+import { PlayerCombatState, PlayerIndex, CardStackKind, ShotGradeCounts } from './PlayerCombatState';
 import { getTargetBaseY } from '../three/TargetModels3D';
 
 export interface ActiveTargetEntity {
@@ -233,20 +234,39 @@ export class BeerCrusherEngine {
   private skillEntityCounter = 0;
   private pausedAtMs: number | null = null;
 
-  public readonly scoreManager = new ScoreAndFeverManager();
+  public players: PlayerCombatState[] = [new PlayerCombatState(0)];
+  public getPlayer(index: PlayerIndex = 0): PlayerCombatState {
+    return this.players[index] ?? this.players[0];
+  }
+
+  public get scoreManager(): ScoreAndFeverManager { return this.players[0].scoreManager; }
+  public get weaponSystem(): WeaponSystem { return this.players[0].weaponSystem; }
+  public get luckyDropStacks(): number { return this.players[0].luckyDropStacks; }
+  public set luckyDropStacks(v: number) { this.players[0].luckyDropStacks = v; }
+  public get waveTimeBonusTotal(): number { return this.players[0].waveTimeBonusTotal; }
+  public set waveTimeBonusTotal(v: number) { this.players[0].waveTimeBonusTotal = v; }
+  private get shotStats(): ShotGradeCounts { return this.players[0].shotStats; }
+  private set shotStats(v: ShotGradeCounts) { this.players[0].shotStats = v; }
+  private get precisionBonusApplied(): number { return this.players[0].precisionBonusApplied; }
+  private set precisionBonusApplied(v: number) { this.players[0].precisionBonusApplied = v; }
+  private get levelBonusApplied(): number { return this.players[0].levelBonusApplied; }
+  private set levelBonusApplied(v: number) { this.players[0].levelBonusApplied = v; }
+  private get activeBuffUntilMs(): Map<ItemBuffKind, number> { return this.players[0].buffUntilMs; }
+  private set activeBuffUntilMs(v: Map<ItemBuffKind, number>) { this.players[0].buffUntilMs = v; }
+  private get totalKills(): number { return this.players[0].totalKills; }
+  private set totalKills(v: number) { this.players[0].totalKills = v; }
+  private get itemsCollected(): number { return this.players[0].itemsCollected; }
+  private set itemsCollected(v: number) { this.players[0].itemsCollected = v; }
+  private get waveClears(): { wave: number; seconds: number; bonus: number }[] { return this.players[0].waveClears; }
+  private set waveClears(v: { wave: number; seconds: number; bonus: number }[]) { this.players[0].waveClears = v; }
+  private get cardStacks(): Record<CardStackKind, number> { return this.players[0].cardStacks; }
+  private set cardStacks(v: Record<CardStackKind, number>) { this.players[0].cardStacks = v; }
+
   /** Game-clock start of the current wave; null until the wave's first running tick (shifted by freezeTimers). */
   private waveStartMs: number | null = null;
-  public waveTimeBonusTotal = 0;
   public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
-  private shotStats: Record<'PERFECT' | 'GREAT' | 'GOOD' | 'MISS', number> = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
-  private precisionBonusApplied = 0;
-  private levelBonusApplied = 0;
-  public readonly weaponSystem = new WeaponSystem();
-
-  private activeBuffUntilMs: Map<ItemBuffKind, number> = new Map();
 
   // Roguelike card & item drop state
-  public luckyDropStacks = 0;
   public cardKillCount = 0;
   public pendingWaveAdvance = false;
   private waveCardKillTargets: Record<number, number | null> = Object.fromEntries(
@@ -289,21 +309,11 @@ export class BeerCrusherEngine {
   private spawnedInWave = 0;
   private itemsSpawnedInWave = 0;
   private killedInWave = 0;
-  /** 판 전체 처치 수. killedInWave와 달리 웨이브가 바뀌어도 유지된다. */
-  private totalKills = 0;
   /** 판 전체 게임 시계. 일시정지와 카드 정지는 빠진다. */
   private playTimeSec = 0;
   private damageTaken = 0;
   private healedLives = 0;
-  private itemsCollected = 0;
-  private waveClears: { wave: number; seconds: number; bonus: number }[] = [];
   private bossSpawned = false;
-  private cardStacks: Record<'damage_up' | 'skill_cooldown' | 'fever_extend' | 'hit_zone_up', number> = {
-    damage_up: 0,
-    skill_cooldown: 0,
-    fever_extend: 0,
-    hit_zone_up: 0,
-  };
   private lastSpawnTimeMs = 0;
   private lastUpdateNowMs = 0;
   private targetCounter = 0;
@@ -413,31 +423,19 @@ export class BeerCrusherEngine {
     this.bossWarningUntilMs = 0;
     this.isTutorialMode = false;
     this.isSandboxMode = false;
-    this.luckyDropStacks = 0;
     this.cardKillCount = 0;
     this.pendingWaveAdvance = false;
     this.bossSummonActionUntilMs = 0;
     this.bossSummonCrossed.clear();
-    this.scoreManager.reset();
-    this.shotStats = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
-    this.totalKills = 0;
+    for (const p of this.players) p.reset();
     this.playTimeSec = 0;
     this.damageTaken = 0;
     this.healedLives = 0;
-    this.itemsCollected = 0;
-    this.waveClears = [];
-    this.precisionBonusApplied = 0;
-    this.levelBonusApplied = 0;
     this.waveStartMs = null;
-    this.waveTimeBonusTotal = 0;
     this.lastWaveClear = null;
-    this.weaponSystem.reset();
-    this.resetCardStacks();
-    this.activeBuffUntilMs.clear();
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
-    this.resetCardStacks();
 
     if (options?.withWeaponSelect) {
       this.spawnWeaponSelectTargets();
@@ -497,12 +495,6 @@ export class BeerCrusherEngine {
         weaponSelectKind: kind,
       });
     });
-  }
-
-  private resetCardStacks(): void {
-    this.cardStacks = { damage_up: 0, skill_cooldown: 0, fever_extend: 0, hit_zone_up: 0 };
-    this.weaponSystem.setSkillCooldownScale(1.0);
-    this.scoreManager.setFeverDurationBonusMs(0);
   }
 
   /** 지금 상태에서 나올 수 있는 카드 풀. 최대치에 도달했거나 의미 없는 카드는 제외한다. */
@@ -712,7 +704,7 @@ export class BeerCrusherEngine {
     this.activeTargets = [];
     this.scoreManager.reset();
     this.weaponSystem.reset();
-    this.resetCardStacks();
+    for (const p of this.players) p.resetCardStacks();
     this.activeBuffUntilMs.clear();
 
     const angles = [-0.22, 0.0, 0.22];
@@ -895,7 +887,7 @@ export class BeerCrusherEngine {
     this.activeTargets = [];
     this.scoreManager.reset();
     this.weaponSystem.reset();
-    this.resetCardStacks();
+    for (const p of this.players) p.resetCardStacks();
     this.activeBuffUntilMs.clear();
     this.infiniteAmmo = true;
     this.weaponSystem.setInfiniteAmmo(true);
@@ -1170,11 +1162,7 @@ export class BeerCrusherEngine {
 
   private freezeTimers(deltaMs: number): void {
     if (deltaMs <= 0) return;
-    for (const [kind, until] of this.activeBuffUntilMs.entries()) {
-      this.activeBuffUntilMs.set(kind, until + deltaMs);
-    }
-    this.scoreManager.shiftFeverTimer(deltaMs);
-    this.weaponSystem.shiftReloadTimer(deltaMs);
+    for (const p of this.players) p.freezeTimers(deltaMs);
     if (this.waveStartMs !== null) this.waveStartMs += deltaMs;
     if (this.lastSpawnTimeMs > 0) this.lastSpawnTimeMs += deltaMs;
     if (this.lastProjectileSpawnTimeMs > 0) this.lastProjectileSpawnTimeMs += deltaMs;
