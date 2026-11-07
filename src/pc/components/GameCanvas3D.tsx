@@ -132,9 +132,14 @@ export function disposeSceneGroup(group: THREE.Group): void {
   });
 }
 
+export interface GunPresentationSpec {
+  offsetX: number;
+  ringColor: string | null;
+}
+
 export interface GameCanvas3DHandle {
-  setAim: (aimX: number, aimY: number, immediate?: boolean) => void;
-  triggerSkillEffect?: (kind: WeaponKind, level?: WeaponLevel) => void;
+  setAim: (aimX: number, aimY: number, immediate?: boolean, playerIndex?: PlayerIndex) => void;
+  triggerSkillEffect?: (kind: WeaponKind, playerIndex?: PlayerIndex) => void;
   /** 사격 직후 동기로 호출한다. 렌더 루프가 죽은 대상의 메시를 지우기 전에 폭발을 보장하기 위해서다. */
   playShotFx: (result: EngineShootResult, aim?: { aimX: number; aimY: number }) => void;
 }
@@ -162,6 +167,8 @@ export interface GameCanvas3DProps {
   playerColors?: (string | null)[];
   /** 카드 바깥 주인 테두리 색(2인 시 1P #38bdf8 / 2P #ff6b3d, 1인은 null) */
   ownerOutlineColors?: (string | null)[];
+  /** 플레이어별 3D 총 좌우 오프셋 및 받침 링 색 */
+  gunPresentations?: GunPresentationSpec[];
   /** 카드 상단 배지 배치를 위한 카드 표적의 화면 투영 좌표 */
   onCardAnchorsUpdate?: (anchors: { ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[]) => void;
 }
@@ -180,11 +187,15 @@ export const GameCanvas3D = React.memo(
     onPlayerHit,
     playerColors,
     ownerOutlineColors,
+    gunPresentations,
     onCardAnchorsUpdate,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const targetAimRef = useRef({ aimX, aimY });
     const currentAimRef = useRef({ aimX, aimY });
+    const gunAimsRef = useRef<Array<{ target: { aimX: number; aimY: number }; current: { aimX: number; aimY: number } }>>([
+      { target: { aimX, aimY }, current: { aimX, aimY } },
+    ]);
     const onMouseAimRef = useRef(onMouseAim);
     onMouseAimRef.current = onMouseAim;
     const onMouseDownRef = useRef(onMouseDown);
@@ -203,9 +214,11 @@ export const GameCanvas3D = React.memo(
     playerColorsRef.current = playerColors;
     const ownerOutlineColorsRef = useRef(ownerOutlineColors);
     ownerOutlineColorsRef.current = ownerOutlineColors;
+    const gunPresentationsRef = useRef(gunPresentations);
+    gunPresentationsRef.current = gunPresentations;
 
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-    const tapGunRef = useRef<DraftTapGun3D | null>(null);
+    const tapGunsRef = useRef<DraftTapGun3D[]>([]);
     const particlesRef = useRef<ParticleEffects3D | null>(null);
     const stageRigRef = useRef<BreweryStageRig | null>(null);
     const targetMeshMapRef = useRef<Map<string, THREE.Group>>(new Map());
@@ -226,13 +239,14 @@ export const GameCanvas3D = React.memo(
         const isPower = engine.isBuffActive('power_shot', undefined, result.playerIndex);
         const isFeverOrPower = isFever || isPower;
 
-        if (tapGunRef.current) {
-          tapGunRef.current.triggerRecoil(isFeverOrPower);
+        const gun = tapGunsRef.current[result.playerIndex] ?? tapGunsRef.current[0];
+        if (gun) {
+          gun.triggerRecoil(isFeverOrPower);
         }
 
-        if (particlesRef.current && tapGunRef.current && cameraRef.current) {
-          const muzzlePos = tapGunRef.current.getMuzzleWorldPosition(cameraRef.current);
-          const curAim = aim ?? targetAimRef.current;
+        if (particlesRef.current && gun && cameraRef.current) {
+          const muzzlePos = gun.getMuzzleWorldPosition(cameraRef.current);
+          const curAim = aim ?? gunAimsRef.current[result.playerIndex]?.current ?? targetAimRef.current;
 
           let targetPos: THREE.Vector3;
           const overrideColor = playerColorsRef.current?.[result.playerIndex] ?? null;
@@ -285,20 +299,33 @@ export const GameCanvas3D = React.memo(
     useImperativeHandle(
       ref,
       () => ({
-        setAim(nextX: number, nextY: number, immediate = false) {
-          targetAimRef.current = { aimX: nextX, aimY: nextY };
+        setAim(nextX: number, nextY: number, immediate = false, playerIndex: PlayerIndex = 0) {
+          const pIdx = playerIndex ?? 0;
+          while (gunAimsRef.current.length <= pIdx) {
+            gunAimsRef.current.push({
+              target: { aimX: nextX, aimY: nextY },
+              current: { aimX: nextX, aimY: nextY },
+            });
+          }
+          gunAimsRef.current[pIdx].target = { aimX: nextX, aimY: nextY };
           if (immediate) {
-            currentAimRef.current = { aimX: nextX, aimY: nextY };
+            gunAimsRef.current[pIdx].current = { aimX: nextX, aimY: nextY };
+          }
+          if (pIdx === 0) {
+            targetAimRef.current = { aimX: nextX, aimY: nextY };
+            if (immediate) {
+              currentAimRef.current = { aimX: nextX, aimY: nextY };
+            }
           }
         },
-        triggerSkillEffect(kind: WeaponKind, level?: WeaponLevel) {
+        triggerSkillEffect(kind: WeaponKind, playerIndex: PlayerIndex = 0) {
           if (!particlesRef.current) return;
           const skillTargets = engine.activeTargets
             .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetLanded(t, performance.now()));
           const monsterPositions = skillTargets.map(
             (t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z)
           );
-          const actualLevel = level ?? engine.getPlayer(0).weaponSystem.getState().weaponLevel;
+          const actualLevel = engine.getPlayer(playerIndex).weaponSystem.getState().weaponLevel;
           particlesRef.current.spawnSkillEffect(
             kind,
             actualLevel,
@@ -410,11 +437,34 @@ export const GameCanvas3D = React.memo(
         if (sceneReady) runShaderWarmup();
       });
       stageRigRef.current = stageRig;
-      const tapGun = new DraftTapGun3D();
-      tapGunRef.current = tapGun;
-      camera.add(tapGun.group);
+      cameraRef.current = camera;
       scene.add(camera);
       scene.add(particles.group);
+
+      const syncGuns = () => {
+        const specs =
+          gunPresentationsRef.current && gunPresentationsRef.current.length > 0
+            ? gunPresentationsRef.current
+            : [{ offsetX: 0, ringColor: null }];
+
+        while (tapGunsRef.current.length < specs.length) {
+          const newGun = new DraftTapGun3D();
+          tapGunsRef.current.push(newGun);
+          camera.add(newGun.group);
+        }
+        while (tapGunsRef.current.length > specs.length) {
+          const removed = tapGunsRef.current.pop()!;
+          camera.remove(removed.group);
+          removed.dispose();
+        }
+        for (let i = 0; i < tapGunsRef.current.length; i++) {
+          const g = tapGunsRef.current[i];
+          const sp = specs[i];
+          g.setSlotOffset(sp.offsetX);
+          g.setPlayerColor(sp.ringColor);
+        }
+      };
+      syncGuns();
 
       sceneReady = true;
       if (environmentReady) runShaderWarmup();
@@ -454,6 +504,10 @@ export const GameCanvas3D = React.memo(
         const mapped = viewportRatioToAim(normX, normY);
         targetAimRef.current = mapped;
         currentAimRef.current = mapped;
+        if (gunAimsRef.current[0]) {
+          gunAimsRef.current[0].target = mapped;
+          gunAimsRef.current[0].current = mapped;
+        }
         if (onMouseAimRef.current) {
           onMouseAimRef.current(mapped.aimX, mapped.aimY);
         }
@@ -713,19 +767,37 @@ export const GameCanvas3D = React.memo(
           }
         });
 
-        // Sync weapon 3D model archetype and level
-        const currentWeaponState = engine.getPlayer(0).weaponSystem.getState();
-        if (
-          tapGun.currentWeaponKind !== currentWeaponState.weaponKind ||
-          tapGun.currentWeaponLevel !== currentWeaponState.weaponLevel
-        ) {
-          tapGun.setWeaponAppearance(currentWeaponState.weaponKind, currentWeaponState.weaponLevel);
-        }
+        // Sync and update 3D guns for all players
+        syncGuns();
+        for (let i = 0; i < tapGunsRef.current.length; i++) {
+          const gun = tapGunsRef.current[i];
+          const pIdx = i as PlayerIndex;
+          const player = engine.getPlayer(pIdx);
+          const pWeapon = player.weaponSystem.getState();
+          const pScore = player.scoreManager.getState();
 
-        // Update gun recoil, aim, and buff modes
-        tapGun.setPowerMode(engine.isBuffActive('power_shot', time));
-        tapGun.setScopeMode(engine.isBuffActive('wide_scope', time));
-        tapGun.updateAimAndRecoil(curAim.aimX, curAim.aimY, dtSec, feverState.isFeverActive);
+          while (gunAimsRef.current.length <= i) {
+            gunAimsRef.current.push({
+              target: { aimX: 0, aimY: 0 },
+              current: { aimX: 0, aimY: 0 },
+            });
+          }
+          const aimState = gunAimsRef.current[i];
+          aimState.current.aimX += (aimState.target.aimX - aimState.current.aimX) * lerpFactor;
+          aimState.current.aimY += (aimState.target.aimY - aimState.current.aimY) * lerpFactor;
+
+          if (
+            gun.currentWeaponKind !== pWeapon.weaponKind ||
+            gun.currentWeaponLevel !== pWeapon.weaponLevel
+          ) {
+            gun.setWeaponAppearance(pWeapon.weaponKind, pWeapon.weaponLevel);
+          }
+
+          gun.setPowerMode(engine.isBuffActive('power_shot', time, pIdx));
+          gun.setScopeMode(engine.isBuffActive('wide_scope', time, pIdx));
+          gun.updateAimAndRecoil(aimState.current.aimX, aimState.current.aimY, dtSec, pScore.isFeverActive);
+          gun.setVisible(!player.isAway);
+        }
 
         // Update stage lighting & alert
         const hasDanger = engine.activeTargets.some((t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && t.radiusM < 5.0);
@@ -844,6 +916,13 @@ export const GameCanvas3D = React.memo(
         window.removeEventListener('mouseup', handleMouseUp);
         container.removeEventListener('mouseleave', handleMouseLeave);
         window.removeEventListener('blur', handleBlur);
+
+        // Clean up 3D guns
+        tapGunsRef.current.forEach((gun) => {
+          camera.remove(gun.group);
+          gun.dispose();
+        });
+        tapGunsRef.current = [];
 
         // Clean up target meshes
         targetMeshMap.forEach((mesh) => {

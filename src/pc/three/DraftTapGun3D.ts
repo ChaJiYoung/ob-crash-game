@@ -100,9 +100,12 @@ export function createRealisticPlungerMesh(scale = 1.0): THREE.Group {
   return plungerGroup;
 }
 
+export const GUN_YAW_COMP = 0.35;
+
 export class DraftTapGun3D {
   public readonly group: THREE.Group;
   private readonly basePosition = new THREE.Vector3(0.0, -0.46, -0.92);
+  private slotOffsetX = 0;
   private currentRecoilZ = 0;
   private currentRecoilPitch = 0;
 
@@ -117,6 +120,11 @@ export class DraftTapGun3D {
   private goldMat: THREE.MeshStandardMaterial;
   private darkGripMat: THREE.MeshStandardMaterial;
   private nozzleMat: THREE.MeshStandardMaterial;
+
+  // Player Color Base Ring
+  private ringMesh: THREE.Mesh;
+  private ringMat: THREE.MeshBasicMaterial;
+  private ringGeo: THREE.TorusGeometry;
 
   // Buff Visuals (Backward Compatibility)
   private flameAuraMesh: THREE.Mesh;
@@ -169,6 +177,15 @@ export class DraftTapGun3D {
     grip.position.set(0, -0.14, 0.04);
     grip.rotation.x = 0.35;
     this.group.add(grip);
+
+    // Player Color Base Ring (grip base y - 0.2)
+    this.ringGeo = new THREE.TorusGeometry(0.11, 0.012, 8, 32);
+    this.ringGeo.rotateX(Math.PI / 2);
+    this.ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    this.ringMesh = new THREE.Mesh(this.ringGeo, this.ringMat);
+    this.ringMesh.position.set(0, -0.34, 0.04);
+    this.ringMesh.visible = false;
+    this.group.add(this.ringMesh);
 
     // Evolution Group for dynamic weapon models
     this.evolutionGroup = new THREE.Group();
@@ -405,9 +422,55 @@ export class DraftTapGun3D {
     this.evolutionGroup.add(cTube);
   }
 
+  /** 화면 좌우 배치. 0이면 가운데(1인). */
+  public setSlotOffset(offsetX: number): void {
+    this.slotOffsetX = offsetX;
+    this.basePosition.x = offsetX;
+    this.group.position.x = this.basePosition.x;
+  }
+
+  /** 플레이어 색 받침 링. null이면 숨김(1인). */
+  public setPlayerColor(hex: string | null): void {
+    if (hex) {
+      this.ringMat.color.set(hex);
+      this.ringMesh.visible = true;
+    } else {
+      this.ringMesh.visible = false;
+    }
+  }
+
+  public setVisible(visible: boolean): void {
+    this.group.visible = visible;
+  }
+
+  public dispose(): void {
+    this.ringGeo.dispose();
+    this.ringMat.dispose();
+    this.chromeMat.dispose();
+    this.brassMat.dispose();
+    this.goldMat.dispose();
+    this.darkGripMat.dispose();
+    this.nozzleMat.dispose();
+    (this.flameAuraMesh.geometry as THREE.BufferGeometry).dispose();
+    (this.flameAuraMesh.material as THREE.Material).dispose();
+    (this.scopeLaserBeam.geometry as THREE.BufferGeometry).dispose();
+    (this.scopeLaserBeam.material as THREE.Material).dispose();
+    this.evolutionGroup.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        const mesh = obj as THREE.Mesh;
+        if (!mesh.geometry.userData.isShared) {
+          mesh.geometry.dispose();
+        }
+        if (mesh.material && !Array.isArray(mesh.material) && !mesh.material.userData.isShared) {
+          mesh.material.dispose();
+        }
+      }
+    });
+  }
+
   public updateAimAndRecoil(aimX: number, aimY: number, dtSec: number, isFeverActive: boolean): void {
     const targetRotX = aimY * 0.36 + this.currentRecoilPitch;
-    const targetRotY = -aimX * 0.58;
+    const targetRotY = -aimX * 0.58 + this.slotOffsetX * GUN_YAW_COMP;
     this.group.rotation.x += (targetRotX - this.group.rotation.x) * Math.min(1, dtSec * 18);
     this.group.rotation.y += (targetRotY - this.group.rotation.y) * Math.min(1, dtSec * 18);
 

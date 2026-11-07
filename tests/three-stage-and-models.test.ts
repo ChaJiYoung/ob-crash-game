@@ -313,6 +313,45 @@ describe('3D Brewery Stage & 6 Target Models & 4 Item Meshes', () => {
     expect(gun.scopeBeamVisible).toBe(false);
   });
 
+  it('should support slot offset and player color ring for two-player coop in DraftTapGun3D (P05-T06)', () => {
+    const gun = new DraftTapGun3D();
+    const basePosX = gun.group.position.x;
+
+    // 1. setSlotOffset
+    gun.setSlotOffset(0.32);
+    expect(gun.group.position.x).toBeCloseTo(basePosX + 0.32, 3);
+
+    // 2. setPlayerColor
+    gun.setPlayerColor('#ff6b3d');
+    const ringMesh = gun.group.children.find((c) => (c as any).geometry?.type === 'TorusGeometry') as THREE.Mesh;
+    expect(ringMesh).toBeDefined();
+    expect(ringMesh.visible).toBe(true);
+    expect((ringMesh.material as THREE.MeshBasicMaterial).color.getHexString()).toBe('ff6b3d');
+
+    gun.setPlayerColor(null);
+    expect(ringMesh.visible).toBe(false);
+
+    // 3. setVisible
+    gun.setVisible(false);
+    expect(gun.group.visible).toBe(false);
+    gun.setVisible(true);
+    expect(gun.group.visible).toBe(true);
+
+    // 4. Offset 0 aim rotation matches solo baseline
+    const soloGun = new DraftTapGun3D();
+    soloGun.setSlotOffset(0);
+    soloGun.updateAimAndRecoil(0.5, 0.2, 0.016, false);
+
+    const normalGun = new DraftTapGun3D();
+    normalGun.updateAimAndRecoil(0.5, 0.2, 0.016, false);
+
+    expect(soloGun.group.rotation.x).toBeCloseTo(normalGun.group.rotation.x, 5);
+    expect(soloGun.group.rotation.y).toBeCloseTo(normalGun.group.rotation.y, 5);
+
+    // 5. dispose
+    gun.dispose();
+  });
+
   it('should project aimWorldPoint matching CrosshairOverlay NDC exactly', () => {
     const camera = new THREE.PerspectiveCamera(52, 16 / 9, 0.1, 100);
     camera.position.set(0, 1.65, 2.2);

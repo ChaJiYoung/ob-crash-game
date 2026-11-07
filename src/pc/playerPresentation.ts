@@ -8,6 +8,11 @@ export const PLAYER_COLORS: Record<PlayerSlot, string> = {
   2: '#ff6b3d',
 };
 
+export const GUN_OFFSETS_BY_COUNT: Record<number, number[]> = {
+  1: [0],
+  2: [-0.32, 0.32],
+};
+
 export type PanelInputKind = 'mobile' | 'mouse';
 
 export interface PlayerPresentation {
@@ -21,6 +26,10 @@ export interface PlayerPresentation {
   ringColorMode: 'state' | 'player';
   /** 카드 바깥 주인 테두리 색(D23). 1인은 null. */
   ownerOutlineColor: string | null;
+  /** 3D 총 화면 좌우 오프셋(D21). 1인은 0, 2인은 [-0.32, 0.32]. */
+  gunOffsetX: number;
+  /** 3D 총 받침 고리 색. 1인은 null(숨김), 2인은 플레이어 색. */
+  gunRingColor: string | null;
   panelSide: 'left' | 'right';
   /** 판정 팝업 위치. 1인 'center'(지금), 2인은 패널 쪽. */
   popupSide: 'left' | 'right' | 'center';
@@ -51,6 +60,9 @@ export function getPlayerPresentation(input: {
     const color = multi ? PLAYER_COLORS[slot] : SOLO_PLAYER_COLOR;
     const ringColorMode: 'state' | 'player' = multi ? 'player' : 'state';
     const ownerOutlineColor: string | null = multi ? PLAYER_COLORS[slot] : null;
+    const offsets = GUN_OFFSETS_BY_COUNT[input.playerCount] ?? [0];
+    const gunOffsetX = offsets[playerIdx] ?? 0;
+    const gunRingColor: string | null = multi ? color : null;
     const panelSide: 'left' | 'right' = playerIdx === 0 ? 'left' : 'right';
     const popupSide: 'left' | 'right' | 'center' = multi ? panelSide : 'center';
     const inputKind: PanelInputKind = slotState?.input === 'mouse' ? 'mouse' : 'mobile';
@@ -63,6 +75,8 @@ export function getPlayerPresentation(input: {
       color,
       ringColorMode,
       ownerOutlineColor,
+      gunOffsetX,
+      gunRingColor,
       panelSide,
       popupSide,
       inputKind,

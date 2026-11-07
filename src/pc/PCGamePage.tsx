@@ -241,6 +241,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     () => presentations.map((p) => p.ownerOutlineColor),
     [presentations]
   );
+  const gunPresentations = useMemo(
+    () =>
+      presentations.map((p) => ({
+        offsetX: p.gunOffsetX,
+        ringColor: p.gunRingColor,
+      })),
+    [presentations]
+  );
   const [cardAnchors, setCardAnchors] = useState<{ ownerIndex: PlayerIndex; leftPercent: number; topPercent: number }[]>([]);
   const [coopResult, setCoopResult] = useState<CoopResultInfo | null>(null);
   const submitTimeRef = useRef<number>(0);
@@ -427,7 +435,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         },
         onSkill: (res) => {
           soundSynth.playSkillActivation(res.weaponKind);
-          canvasRef.current?.triggerSkillEffect?.(res.weaponKind);
+          canvasRef.current?.triggerSkillEffect?.(res.weaponKind, pIdx);
         },
         onFeverStarted: (_idx) => {
           soundSynth.playFeverStart();
@@ -436,8 +444,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           crosshairRefs.current[idx]?.current?.updatePosition(x, y, false);
           if (idx === 0) {
             latestAimRef.current = { aimX: x, aimY: y };
-            canvasRef.current?.setAim(x, y, false);
           }
+          canvasRef.current?.setAim(x, y, false, idx);
           const phase = gamePhaseRef.current;
           if (phase === 'GAMEOVER' || phase === 'VICTORY') {
             updateResultButtonHover();
@@ -1256,6 +1264,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         engine={engine}
         playerColors={playerColors}
         ownerOutlineColors={ownerOutlineColors}
+        gunPresentations={gunPresentations}
         onCardAnchorsUpdate={setCardAnchors}
         aimX={0}
         aimY={0}
