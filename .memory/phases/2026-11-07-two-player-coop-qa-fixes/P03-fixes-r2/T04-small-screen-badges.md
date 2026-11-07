@@ -1,6 +1,6 @@
 # Task: T04 작은 화면에서 배지·이름표가 화면 안에 들어오게
 
-## Status: pending
+## Status: done
 
 ## Goal
 1024×768에서 선택 화면의 카드 소유 배지(1P/2P)와 십자선 이름표가 화면 밖으로 잘리지 않게 한다(B BUG-4: 1P 배지 x=−24.4, 2P 배지 right=1048.4 — `B-mouse-phone/report.md` 94행 부근).
@@ -47,6 +47,6 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: (이 Task 커밋, Task: T04-small-screen-badges)

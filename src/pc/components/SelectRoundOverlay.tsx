@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
+import { clampToViewport } from '../overlayClamp';
 import type { PlayerIndex } from '../engine/PlayerCombatState';
 import type { HudSnapshot } from '../hudSnapshot';
 import type { PlayerPresentation } from '../playerPresentation';
@@ -15,6 +16,19 @@ export const SelectRoundOverlay: React.FC<SelectRoundOverlayProps> = ({
   presentations,
   cardAnchors,
 }) => {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // 카드 소유 배지는 카드 중심에 맞추되 화면 가장자리에서는 안쪽으로 민다.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const viewportW = root.clientWidth;
+    root.querySelectorAll<HTMLElement>('[data-owner-badge]').forEach((el) => {
+      const centerX = (Number(el.dataset.anchorPercent) / 100) * viewportW;
+      el.style.left = `${clampToViewport(centerX, el.offsetWidth, viewportW)}px`;
+    });
+  });
+
   if (!selection || selection.kind === null) {
     return null;
   }
@@ -64,6 +78,7 @@ export const SelectRoundOverlay: React.FC<SelectRoundOverlayProps> = ({
 
   return (
     <div
+      ref={rootRef}
       style={{
         position: 'absolute',
         inset: 0,
@@ -195,11 +210,13 @@ export const SelectRoundOverlay: React.FC<SelectRoundOverlayProps> = ({
           <div
             key={i}
             data-testid={`card-owner-badge-${pres.slotLabel}`}
+            data-owner-badge
+            data-anchor-percent={anchor.leftPercent}
             style={{
               position: 'absolute',
               left: `${anchor.leftPercent}%`,
               top: `calc(${anchor.topPercent}% - 22px)`,
-              transform: 'translate(-50%, -100%)',
+              transform: 'translateY(-100%)',
               background: pres.color,
               color: '#111',
               fontSize: '13px',

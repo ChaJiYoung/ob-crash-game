@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { aimToViewportPercent, aimToNdc, viewportRatioToAim } from '../aimMapping';
+import { clampToViewport } from '../overlayClamp';
 
 export { aimToViewportPercent, aimToNdc, viewportRatioToAim };
 
@@ -271,13 +272,33 @@ export const CrosshairOverlay = React.memo(
     const kickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const kickScaleRef = useRef(1.0);
 
+    const nameTagRef = useRef<HTMLElement>(null);
+
+    // 십자선이 화면 가장자리에 있으면 이름표만 안쪽으로 민다(링은 그대로).
+    const clampNameTag = useCallback((leftPercent: number) => {
+      const tag = nameTagRef.current;
+      const parent = containerRef.current?.offsetParent as HTMLElement | null;
+      if (!tag || !parent) return;
+      const viewportW = parent.clientWidth;
+      if (viewportW <= 0) return;
+      const centerX = (leftPercent / 100) * viewportW;
+      const tagW = tag.offsetWidth;
+      const shift = clampToViewport(centerX, tagW, viewportW) - (centerX - tagW / 2);
+      tag.style.transform = `translateX(calc(-50% + ${shift}px))`;
+    }, []);
+
     const applyDomPosition = useCallback((curX: number, curY: number) => {
       if (containerRef.current) {
         const pos = aimToViewportPercent(curX, curY);
         containerRef.current.style.left = `${pos.leftPercent}%`;
         containerRef.current.style.top = `${pos.topPercent}%`;
+        clampNameTag(pos.leftPercent);
       }
-    }, []);
+    }, [clampNameTag]);
+
+    useLayoutEffect(() => {
+      clampNameTag(leftPercent);
+    });
 
     useImperativeHandle(
       ref,
@@ -597,6 +618,7 @@ export const CrosshairOverlay = React.memo(
         {/* Name Tag (.xh em: 1P · SHOTGUN Lv.1 / SHOTGUN Lv.1) */}
         {nameTag && !isMenu && (
           <em
+            ref={nameTagRef}
             data-testid="crosshair-nametag"
             style={{
               position: 'absolute',
