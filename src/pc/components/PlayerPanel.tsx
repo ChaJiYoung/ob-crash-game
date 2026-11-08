@@ -3,6 +3,19 @@ import type { PlayerHudSnapshot } from '../hudSnapshot';
 import type { PlayerPresentation } from '../playerPresentation';
 import { formatAmmoStatusText, formatWeaponSkillBadge } from './ArcadeOverlayHUD';
 import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS } from '../../shared/constants';
+import { GAME_TUNING } from '../../shared/gameTuning';
+
+/** 패널 피버 상태 문구. */
+export function formatPanelFeverText(isActive: boolean, isReady: boolean, gauge: number): string {
+  if (isActive) return '⚡ FEVER TIME!';
+  if (isReady) return 'FEVER READY';
+  return `FEVER GAUGE ${gauge}%`;
+}
+
+/** 피버 중에만 보여 주는 실제 보너스 배율(튜닝 값). */
+export function formatPanelFeverBonus(): string {
+  return `점수 ${GAME_TUNING.fever.scoreMult}배 · 대미지 ${GAME_TUNING.judgment.feverDamage}배`;
+}
 
 export interface PlayerPanelProps {
   snapshot: PlayerHudSnapshot;
@@ -241,14 +254,15 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation
           }}
         >
           <span>
-            {snapshot.isFeverActive
-              ? '⚡ FEVER TIME!'
-              : snapshot.isFeverReady
-              ? 'FEVER READY'
-              : `FEVER GAUGE ${snapshot.feverGauge}%`}
+            {formatPanelFeverText(snapshot.isFeverActive, snapshot.isFeverReady, snapshot.feverGauge)}
           </span>
           <span>{snapshot.feverGauge}%</span>
         </div>
+        {snapshot.isFeverActive && (
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#fca5a5', whiteSpace: 'nowrap' }}>
+            {formatPanelFeverBonus()}
+          </div>
+        )}
         <div
           style={{
             height: '8px',

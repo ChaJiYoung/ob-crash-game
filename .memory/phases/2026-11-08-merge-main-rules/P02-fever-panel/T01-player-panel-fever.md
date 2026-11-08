@@ -1,6 +1,6 @@
 # Task: T01 PlayerPanel 피버 표시에 배율 반영
 
-## Status: pending
+## Status: done
 
 ## Goal
 2인용 `PlayerPanel`이 피버 중 `⚡ FEVER TIME!`만 보여 주는 대신 점수·대미지 배율을 함께 보여 준다. main에는 이 컴포넌트가 없어서 병합으로는 반영되지 않는 부분이다.
@@ -42,6 +42,7 @@ Task: T01-player-panel-fever
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- note: 패널이 좁아 한 줄 문구 대신 피버 중에만 게이지 아래 별도 줄(`formatPanelFeverBonus`)로 배율 표시
+- commit: see git log
