@@ -25,7 +25,6 @@
   2. 남겨야 하는 것을 지우지 않도록 주의한다: `sensorLivenessRef`, `sensorEpoch`, 화면 복귀·워치독 effect(`onVisibility`, `watchdog` 인터벌)는 그대로 둔다. 로그 호출이 끼어 있던 줄만 제거하고 `bump()` 호출은 남긴다.
   3. `onVisibility`에서 `sendDebugRef.current('visibility', ...)`와 `reregister` 로그를 지운 뒤에도 `if (document.visibilityState === 'visible') bump();` 형태가 유지되어야 한다.
   4. 서버의 `fs` import가 이 임시 코드 때문에 추가된 것이면 같이 제거한다. `path`는 기존 코드가 쓰므로 유지한다.
-  5. `SensorLiveness.elapsedMs`가 로그 전용이 되어 사용처가 없어져도 테스트(`tests/sensor-liveness.test.ts`)가 있으므로 남긴다.
 
 ### I02. 최종 검증
 
@@ -53,7 +52,7 @@ Phase: P05-verify-and-cleanup
 Task: T02-cleanup-and-finalize
 
 - DEBUG_LOG 타입·서버 핸들러·프레임 요약 로그·폰 로그 큐와 호출 제거
-- SENSOR_STALE_MS를 실기기 로그 기준 값으로 확정
+- 서버 판정 추적 로그(traceLifecycle) 제거
 - tsc, vitest, build 통과 확인
 ```
 
