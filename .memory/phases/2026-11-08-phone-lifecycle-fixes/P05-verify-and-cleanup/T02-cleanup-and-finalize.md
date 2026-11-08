@@ -1,6 +1,6 @@
 # Task: T02 임시 진단 코드 제거와 최종 검증
 
-## Status: pending
+## Status: done
 
 ## Goal
 `TEMP(sensor-debug)`가 붙은 임시 진단 코드를 모두 제거하고, `tsc`·전체 `vitest`·`build`를 통과시킨다.
@@ -57,6 +57,6 @@ Task: T02-cleanup-and-finalize
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과 (tsc, vitest 741, build)
 - commit: pending

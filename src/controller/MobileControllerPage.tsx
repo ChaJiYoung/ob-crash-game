@@ -108,42 +108,6 @@ export const MobileControllerPage: React.FC = () => {
     []
   );
 
-  // TEMP(sensor-debug): queue diagnostics while the socket is down (screen off) and flush once it is open again.
-  const debugQueueRef = useRef<Array<{ tag: string; data?: Record<string, unknown>; ts: number }>>([]);
-  const debugRegisteredAtRef = useRef<number | null>(null);
-  const debugLastOrientationRef = useRef<number | null>(null);
-  const sendDebugRef = useRef<(tag?: string, data?: Record<string, unknown>) => void>(() => {});
-  // TEMP(sensor-debug): what the phone itself believes, reported every 2s so a lost event cannot hide it.
-  const debugStateRef = useRef<Record<string, unknown>>({});
-  debugStateRef.current = { step, sensorsActive, needsReturn, sensorEpoch };
-  useEffect(() => {
-    const loadedAt = Date.now();
-    const timer = setInterval(() => {
-      const last = debugLastOrientationRef.current;
-      sendDebugRef.current('state', {
-        ...debugStateRef.current,
-        vis: document.visibilityState,
-        pageAgeS: Math.round((Date.now() - loadedAt) / 1000),
-        lastOrientationAgoMs: last === null ? null : Math.round(performance.now() - last),
-        ws: wsRef.current?.readyState ?? null,
-      });
-    }, 2000);
-    return () => clearInterval(timer);
-  }, []);
-  sendDebugRef.current = (tag?: string, data?: Record<string, unknown>) => {
-    const queue = debugQueueRef.current;
-    if (tag) {
-      queue.push({ tag, data, ts: Date.now() });
-      if (queue.length > 100) queue.shift();
-    }
-    const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN || !roomId) return;
-    while (queue.length > 0) {
-      const item = queue.shift()!;
-      ws.send(JSON.stringify({ type: 'DEBUG_LOG', roomId, deviceId, tag: item.tag, data: item.data, ts: item.ts }));
-    }
-  };
-
   // 1. Parse Room ID & Slot from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -209,7 +173,6 @@ export const MobileControllerPage: React.FC = () => {
             slot: slotRef.current,
           })
         );
-        sendDebugRef.current(); // TEMP(sensor-debug): flush logs queued while the socket was down
       };
 
       socket.onclose = () => {
@@ -323,7 +286,6 @@ export const MobileControllerPage: React.FC = () => {
     const onBackgroundSignals = () => {
       const cur = wsRef.current;
       const open = !!cur && cur.readyState === WebSocket.OPEN;
-      sendDebugRef.current('visibility', { state: document.visibilityState }); // TEMP(sensor-debug)
       if (document.visibilityState === 'hidden') {
         hiddenAtMs = Date.now();
         if (open) {
@@ -422,22 +384,7 @@ export const MobileControllerPage: React.FC = () => {
   useEffect(() => {
     if (!sensorsActive) return;
 
-    debugRegisteredAtRef.current = performance.now(); // TEMP(sensor-debug)
-
     const onOrientation = (e: DeviceOrientationEvent) => {
-      // TEMP(sensor-debug)
-      {
-        const t = performance.now();
-        if (debugRegisteredAtRef.current !== null) {
-          sendDebugRef.current('orientation-first', { afterRegisterMs: Math.round(t - debugRegisteredAtRef.current) });
-          debugRegisteredAtRef.current = null;
-        }
-        const last = debugLastOrientationRef.current;
-        if (last !== null && t - last > 1000) {
-          sendDebugRef.current('orientation-gap', { gapMs: Math.round(t - last) });
-        }
-        debugLastOrientationRef.current = t;
-      }
       latestOrientationRef.current = {
         alpha: e.alpha || 0,
         beta: e.beta || 0,

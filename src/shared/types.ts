@@ -213,8 +213,6 @@ export type ClientToServerMessage =
   | { type: 'CONTROLLER_BACKGROUND'; roomId: string; deviceId: string; slot?: PlayerSlot }
   /** 폰 화면이 다시 켜졌다. 서버의 대기 중인 알림을 취소한다. */
   | { type: 'CONTROLLER_FOREGROUND'; roomId: string; deviceId: string; slot?: PlayerSlot }
-  // TEMP(sensor-debug)
-  | { type: 'DEBUG_LOG'; roomId: string; deviceId: string; tag: string; data?: Record<string, unknown>; ts: number }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean; slot?: PlayerSlot }
   | {
       type: 'SKILL_STATE_SYNC';

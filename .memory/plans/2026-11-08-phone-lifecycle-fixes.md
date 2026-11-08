@@ -21,7 +21,7 @@
 | P02 | `done` | 폰: 화면 꺼짐/복귀 신호 전송, 허용 직후 자동 영점 | [P02](../phases/2026-11-08-phone-lifecycle-fixes/P02-phone-controller/phase.md) |
 | P03 | `done` | 정리 번들: 개발 서버 자동 재시작(`tsx watch`), 폰 영점 안내 화면 죽은 코드 제거, README 동기화 | [P03](../phases/2026-11-08-phone-lifecycle-fixes/P03-cleanup-bundle/phase.md) |
 | P04 | `done` | 복귀 버튼 전환: 자동 복귀 경로 제거, "게임으로 돌아가기" 버튼 | [P04](../phases/2026-11-08-phone-lifecycle-fixes/P04-return-button/phase.md) |
-| P05 | `in_progress` | 실기기 통합 검증, 임시 진단 코드 제거, 최종 빌드 | [P05](../phases/2026-11-08-phone-lifecycle-fixes/P05-verify-and-cleanup/phase.md) |
+| P05 | `done` | 실기기 통합 검증, 임시 진단 코드 제거, 최종 빌드 | [P05](../phases/2026-11-08-phone-lifecycle-fixes/P05-verify-and-cleanup/phase.md) |
 
 ## 참고
 - 이전 계획 `2026-11-08-controller-sensor-revive-after-screen-off`의 P02(T02·T03)는 이 계획의 P05로 흡수되었다(`superseded`).

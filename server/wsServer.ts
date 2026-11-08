@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'node:fs'; // TEMP(sensor-debug)
 import http from 'node:http';
 import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -80,7 +79,6 @@ export async function createBeerCrusherServer(options?: {
           watch.forget(key);
           continue;
         }
-        traceLifecycle('frame-loss-notify', { key }); // TEMP(sensor-debug)
         sendJson(session.pcSocket, {
           type: 'ERROR',
           code: 'CONTROLLER_DISCONNECTED',
@@ -93,27 +91,6 @@ export async function createBeerCrusherServer(options?: {
     }
   }, options?.watchIntervalMs ?? CONTROLLER_LIFECYCLE.WATCH_INTERVAL_MS);
   watchTimer.unref?.();
-
-  // TEMP(sensor-debug): append one line to data/sensor-debug.log; removed in P02-T03.
-  const writeSensorDebug = (line: string) => {
-    if (process.env.VITEST) return; // tests must not write into the real diagnostics file
-    console.log('[sensor-debug]', line);
-    try {
-      const dir = path.resolve(process.cwd(), 'data');
-      fs.mkdirSync(dir, { recursive: true });
-      fs.appendFileSync(path.join(dir, 'sensor-debug.log'), `${line}\n`);
-    } catch {
-      // Diagnostics must never affect the game.
-    }
-  };
-  // TEMP(sensor-debug): server-side trace of the background / frame-loss decisions.
-  const traceLifecycle = (tag: string, data: Record<string, unknown>) =>
-    writeSensorDebug(`${new Date().toISOString()} server ${tag} ${JSON.stringify(data)}`);
-  // TEMP(sensor-debug): per-second summary of the SENSOR_FRAME stream, so the log does not depend on the phone's socket.
-  const frameStats = new Map<
-    string,
-    { start: number; count: number; minX: number; maxX: number; minY: number; maxY: number; minYaw: number; maxYaw: number }
-  >();
 
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
@@ -194,7 +171,6 @@ export async function createBeerCrusherServer(options?: {
 
             // 폰이 다시 인증을 보냈다면 돌아온 것이다: 화면 꺼짐 상태와 끊김 표시를 지운다.
             // 이 뒤의 PC 복귀는 폰이 보내는 CALIBRATE_ZERO(resume)가 맡으므로, 다음 프레임이 복귀 알림을 또 보내지 않게 한다.
-            traceLifecycle('device-check', { key: watchKey(roomId, slot), wasLost: watch.isLost(watchKey(roomId, slot)) }); // TEMP(sensor-debug)
             clearBackground(watchKey(roomId, slot));
             watch.forget(watchKey(roomId, slot));
 
@@ -375,7 +351,6 @@ export async function createBeerCrusherServer(options?: {
               const key = watchKey(session.roomId, zeroSlot);
               clearBackground(key);
               const wasLost = watch.release(key, Date.now());
-              traceLifecycle('zero-release', { key, wasLost }); // TEMP(sensor-debug)
             }
             if (session && session.pcSocket) {
               const slot = roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot);
@@ -430,30 +405,6 @@ export async function createBeerCrusherServer(options?: {
           }
 
           case 'SENSOR_FRAME': {
-            // TEMP(sensor-debug)
-            {
-              const now = Date.now();
-              const p = msg.payload;
-              let s = frameStats.get(msg.deviceId);
-              if (!s) {
-                s = { start: now, count: 0, minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minYaw: Infinity, maxYaw: -Infinity };
-                frameStats.set(msg.deviceId, s);
-              }
-              s.count += 1;
-              s.minX = Math.min(s.minX, p.aimX);
-              s.maxX = Math.max(s.maxX, p.aimX);
-              s.minY = Math.min(s.minY, p.aimY);
-              s.maxY = Math.max(s.maxY, p.aimY);
-              s.minYaw = Math.min(s.minYaw, p.yawDeg);
-              s.maxYaw = Math.max(s.maxYaw, p.yawDeg);
-              if (now - s.start >= 1000) {
-                const f = (n: number) => Math.round(n * 1000) / 1000;
-                writeSensorDebug(
-                  `${new Date(now).toISOString()} ${msg.deviceId} frames ${JSON.stringify({ n: s.count, aimX: [f(s.minX), f(s.maxX)], aimY: [f(s.minY), f(s.maxY)], yaw: [f(s.minYaw), f(s.maxYaw)] })}`
-                );
-                frameStats.delete(msg.deviceId);
-              }
-            }
             const session = roomManager.getRoom(msg.roomId);
             if (session) {
               // 슬롯은 메시지가 아니라 소켓 기준으로 찾는다(다른 슬롯 흉내 방지).
@@ -481,11 +432,9 @@ export async function createBeerCrusherServer(options?: {
             const session = roomManager.getRoom(msg.roomId);
             const slot = session ? roomManager.getControllerSlot(session, ws) : undefined;
             if (!session || slot === undefined || session.controllers[slot]?.deviceId !== msg.deviceId) {
-              traceLifecycle('lifecycle-rejected', { type: msg.type, hasSession: !!session, slot: slot ?? null, deviceId: msg.deviceId }); // TEMP(sensor-debug)
               break;
             }
             const key = watchKey(session.roomId, slot);
-            traceLifecycle('lifecycle-received', { type: msg.type, key, tracked: watch.isLost(key) ? 'lost' : 'ok-or-untracked' }); // TEMP(sensor-debug)
 
             if (msg.type === 'CONTROLLER_FOREGROUND') {
               clearBackground(key);
@@ -499,12 +448,10 @@ export async function createBeerCrusherServer(options?: {
                 const current = roomManager.getRoom(session.roomId);
                 // 그 사이 소켓이 바뀌었거나 PC가 없으면 알릴 필요가 없다.
                 if (!current?.pcSocket || current.controllers[slot]?.socket !== ws) {
-                  traceLifecycle('background-skipped', { key, hasPc: !!current?.pcSocket, sameSocket: current?.controllers[slot]?.socket === ws }); // TEMP(sensor-debug)
                   return;
                 }
                 // 프레임 끊김 감지가 이미 알렸다면 다시 알리지 않는다.
                 const newlyLost = watch.markLost(key);
-                traceLifecycle('background-timer', { key, newlyLost, alreadyLost: watch.isLost(key) }); // TEMP(sensor-debug)
                 if (newlyLost) {
                   sendJson(current.pcSocket, {
                     type: 'ERROR',
@@ -518,13 +465,6 @@ export async function createBeerCrusherServer(options?: {
               }
             }, options?.backgroundNotifyDelayMs ?? CONTROLLER_LIFECYCLE.BACKGROUND_NOTIFY_DELAY_MS);
             pendingBackground.set(key, timer);
-            break;
-          }
-
-          // TEMP(sensor-debug): phone sensor diagnostics, written to data/sensor-debug.log. Removed in P02-T03.
-          case 'DEBUG_LOG': {
-            const line = `${new Date(msg.ts).toISOString()} ${msg.deviceId} ${msg.tag} ${JSON.stringify(msg.data ?? {})}`;
-            writeSensorDebug(line);
             break;
           }
 
@@ -715,7 +655,6 @@ export async function createBeerCrusherServer(options?: {
       if (roomId && role === 'CONTROLLER' && slot !== undefined) {
         const key = watchKey(roomId, slot);
         alreadyReported = watch.isLost(key);
-        traceLifecycle('socket-closed', { key, alreadyReported }); // TEMP(sensor-debug)
         watch.forget(key);
         clearBackground(key);
       }
