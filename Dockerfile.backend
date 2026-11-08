@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+FROM node:24-bookworm-slim AS deps
+WORKDIR /app
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ \
+ && rm -rf /var/lib/apt/lists/*
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM node:24-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8787
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json tsconfig.json ./
+COPY server ./server
+COPY src/shared ./src/shared
+EXPOSE 8787
+CMD ["node_modules/.bin/tsx", "server/index.ts"]

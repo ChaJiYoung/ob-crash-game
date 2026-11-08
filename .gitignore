@@ -7,3 +7,5 @@ data/
 # orchestration marker files
 .memory/.done-*
 .memory/.blocked-*
+.env
+.smoke-data/
