@@ -579,7 +579,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           }
 
           case 'LOCAL_PLAYER_REGISTERED':
-            setSlots((prev) => updateSlot(prev, msg.slot, { player: msg.player }));
+            // 조회 응답이 오기 전에 슬롯을 폰으로 바꾸거나 비웠다면 늦게 온 응답은 무시한다.
+            setSlots((prev) =>
+              prev.find((s) => s.slot === msg.slot)?.input !== 'mouse' ? prev : updateSlot(prev, msg.slot, { player: msg.player })
+            );
             setMouseNicknameError(null);
             break;
 

@@ -268,9 +268,9 @@ export type ClientToServerMessage =
       skillCooldownTotalMs: number;
       slot?: PlayerSlot;
     }
-  /** 무기 선택 화면이 뜨는 순간(PCGamePage.handleStartGame) PC가 보낸다. beginId는 응답을 짝짓는 PC 쪽 임의 문자열. */
   /** 마우스 슬롯 선택 시 PC가 자기 deviceId로 기존 플레이어를 조회한다. */
   | { type: 'LOOKUP_LOCAL_PLAYER'; roomId: string; deviceId: string; slot: PlayerSlot }
+  /** 무기 선택 화면이 뜨는 순간(PCGamePage.handleStartGame) PC가 보낸다. beginId는 응답을 짝짓는 PC 쪽 임의 문자열. */
   | { type: 'GAME_BEGIN'; roomId: string; beginId: string; mode: PlayMode; players: GameBeginPlayer[] }
   | { type: 'WEAPON_CHOSEN'; roomId: string; gameId: number; slot: PlayerSlot; weaponKind: WeaponKind }
   /** 일시정지 메뉴의 "로비로"/"다시시작". */

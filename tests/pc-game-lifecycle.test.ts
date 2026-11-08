@@ -98,4 +98,10 @@ describe('PCGamePage lifecycle wiring (source guard)', () => {
     const block = source.slice(start, source.indexOf("case 'CONTROLLER_UNSUPPORTED'", start));
     expect(block).toContain('LOOKUP_LOCAL_PLAYER');
   });
+
+  it('ignores a late LOCAL_PLAYER_REGISTERED once the slot is no longer a mouse slot', () => {
+    const start = source.indexOf("case 'LOCAL_PLAYER_REGISTERED':");
+    const block = source.slice(start, source.indexOf("case 'LOCAL_PLAYER_UNKNOWN'", start));
+    expect(block).toContain("input !== 'mouse'");
+  });
 });
