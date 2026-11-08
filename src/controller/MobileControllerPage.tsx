@@ -111,6 +111,23 @@ export const MobileControllerPage: React.FC = () => {
   const debugRegisteredAtRef = useRef<number | null>(null);
   const debugLastOrientationRef = useRef<number | null>(null);
   const sendDebugRef = useRef<(tag?: string, data?: Record<string, unknown>) => void>(() => {});
+  // TEMP(sensor-debug): what the phone itself believes, reported every 2s so a lost event cannot hide it.
+  const debugStateRef = useRef<Record<string, unknown>>({});
+  debugStateRef.current = { step, sensorsActive, needsReturn, sensorEpoch };
+  useEffect(() => {
+    const loadedAt = Date.now();
+    const timer = setInterval(() => {
+      const last = debugLastOrientationRef.current;
+      sendDebugRef.current('state', {
+        ...debugStateRef.current,
+        vis: document.visibilityState,
+        pageAgeS: Math.round((Date.now() - loadedAt) / 1000),
+        lastOrientationAgoMs: last === null ? null : Math.round(performance.now() - last),
+        ws: wsRef.current?.readyState ?? null,
+      });
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
   sendDebugRef.current = (tag?: string, data?: Record<string, unknown>) => {
     const queue = debugQueueRef.current;
     if (tag) {
@@ -190,6 +207,7 @@ export const MobileControllerPage: React.FC = () => {
             slot: slotRef.current,
           })
         );
+        sendDebugRef.current(); // TEMP(sensor-debug): flush logs queued while the socket was down
       };
 
       socket.onclose = () => {
