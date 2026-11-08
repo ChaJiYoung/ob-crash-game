@@ -6,7 +6,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | tsc·vitest·build, 실서버 DB 기록 스모크 확인, 브라우저 체크리스트 기록 | [T01](./T01-verify-db-recording.md) |
+| T01 | `done` | tsc·vitest·build, 실서버 DB 기록 스모크 확인, 브라우저 체크리스트 기록 | [T01](./T01-verify-db-recording.md) |
 
 ## Progress
-- done: 0/1 (active: T01)
+- done: 1/1 (Phase 완료). 브라우저·실기기 체크리스트 A~G는 사용자 확인 대기.

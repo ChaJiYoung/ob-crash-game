@@ -1,6 +1,6 @@
 # Task: T01 전체 검증과 DB 기록 확인
 
-## Status: pending
+## Status: done
 
 ## Goal
 코드 변경 없이 계획 전체를 검증한다. 타입 검사·전체 테스트·운영 빌드를 통과시키고, 실제 서버 코드에 웹소켓으로 솔로·협동·중도 종료 판을 흘려 DB에 기대한 행이 남는지 확인한다. 브라우저로만 확인 가능한 항목은 체크리스트로 남긴다. 결과는 이 파일의 "검증 결과" 절에 기록하고 커밋한다.
@@ -62,7 +62,47 @@
 - `npx tsc --noEmit && npm test && npm run build` — 모두 성공
 
 ## 검증 결과
-(실행 후 기록)
+실행: 2026-11-08, Orca Sonnet 워커(검증만) + 코디네이터 재확인.
+
+### I01 자동 검증
+- `npx tsc --noEmit`: 오류 0건
+- `npm test`: 107 파일 / 868 테스트 전부 통과, 실패 0건 (코디네이터 재확인, HEAD 이후 `docs-sync` 'monster studio info cards' 케이스는 사용자 요청으로 `5c02ffa`에서 제거)
+- `npm run build`: 성공 (청크 500kB 경고만)
+- 잔여 참조 grep: 처음 1건(`src/shared/gameTuning.ts:7` 낡은 주석의 `players.json`) → 코디네이터가 주석 갱신 커밋 후 0건
+
+### I02 실서버 코드 스모크 (임시 DB, 끝난 뒤 삭제)
+| 시나리오 | 결과 |
+|---|---|
+| 1. 솔로: 마우스 등록 → GAME_BEGIN → WEAPON_CHOSEN → 제출(웨이브 2, 카드 3) | 통과 (gameId 1) |
+| 2. 협동: 폰 slot2 + 마우스 slot1, 제출 2번 | 통과 (gameId 2, 두 번째 응답에 teamRankings 1) |
+| 3. 솔로 → GAME_ABANDON | 통과 (gameId 3) |
+| 4. 솔로 → PC 소켓 종료 → 같은 방 코드 재접속 → LOOKUP_LOCAL_PLAYER → 이전 gameId 제출 | 통과 (gameId 4) |
+
+기대 조회 결과 모두 일치:
+- `games` 상태: finished 3, abandoned 1
+- 솔로 판 `game_waves` 2행, `damage_taken` = 1, NULL
+- 협동 판 `team_key` 정렬된 두 ID, `game_players` 2행 모두 제출됨(800/700), `total_score` 1500 = teamScore
+- `game_player_card_picks.pick_order` 0, 1, 2
+- `rankings`에 솔로 판, `teamRankings`에 협동 판 1개
+- 참고: 스모크가 WEAPON_CHOSEN(revolver) 뒤 제출 통계에 shotgun을 넣자 최종 무기가 shotgun으로 기록됨. D03(최종 무기·레벨은 제출 값으로 덮음)대로의 동작이며 정상 게임에서는 두 값이 같다.
+
+### I03 서버 기동
+- 사용자가 띄운 `npm run server`(tsx watch, 8787)가 이미 실행 중이어서 그 서버로 확인(새로 띄우거나 끄지 않음)
+- `/health`: `{"status":"ok"}`
+- `data/game.db` 테이블: players, games, game_players, game_waves, game_player_card_picks (+sqlite_sequence)
+- `data/players.json` 수정 시각 그대로(옛 파일 읽기·쓰기 없음). `play-records.jsonl`은 P01 중 기존 테스트 버그로 이미 삭제됨(복구 안 함, 새로 시작)
+
+### I04 브라우저 체크리스트
+서버 쪽 응답은 I02로 자동 확인됐고, 화면 동작은 모두 실기기·브라우저 확인이 필요하다.
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| A. 마우스 슬롯 재선택 시 폼 없이 준비 완료 | 미확인 | 서버 LOOKUP→LOCAL_PLAYER_REGISTERED는 I02-4에서 확인 |
+| B. 마우스 닉네임 변경, 랭킹에 새 닉네임 | 미확인 | 브라우저 필요 |
+| C. 솔로 결과 화면 랭킹·개인 신기록 | 미확인 | 서버 RANKING_UPDATED·bestScore는 I02-1에서 확인 |
+| D. 협동 결과 화면 팀 기록·팀 신기록 | 미확인 | 서버 teamRankings·coopBests(playedAt)는 I02-2에서 확인 |
+| E. 일시정지 "로비로" → abandoned | 미확인 | 서버 GAME_ABANDON 처리는 I02-3에서 확인 |
+| F. 판 도중 서버 재시작 후 정상 기록 | 미확인 | PC 재접속 후 이전 gameId 제출은 I02-4에서 확인(서버 프로세스 재시작 자체는 아님) |
+| G. 폰 닉네임 변경·취소, PC 로비 반영 | 미확인 | 실제 폰 필요 |
 
 ## Commit Message
 ```text
@@ -78,6 +118,6 @@ Task: T01-verify-db-recording
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: 주석 갱신 `cf4be4e`, 결과 기록은 docs(memory) 커밋
