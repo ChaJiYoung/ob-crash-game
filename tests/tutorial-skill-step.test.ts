@@ -102,6 +102,22 @@ describe('tutorial guide overlay for the skill and fever steps', () => {
     expect(fever).toContain('더블클릭');
   });
 
+  it('steps 2 and 4 only mention the input the player actually uses (the mouse no longer works for a phone player)', () => {
+    const holdPhone = render(2, 'mobile');
+    expect(holdPhone).toContain('화면을');
+    expect(holdPhone).not.toContain('마우스');
+    const holdMouse = render(2, 'mouse');
+    expect(holdMouse).toContain('마우스 좌클릭');
+    expect(holdMouse).not.toContain('화면을');
+
+    const feverPhone = render(4, 'mobile');
+    expect(feverPhone).toContain('두 번 탭');
+    expect(feverPhone).not.toContain('마우스');
+    const feverMouse = render(4, 'mouse');
+    expect(feverMouse).toContain('마우스 더블클릭');
+    expect(feverMouse).not.toContain('두 번 탭');
+  });
+
   it('step 3 shows phone snap guide when inputKind is mobile', () => {
     const skill = render(3, 'mobile');
     expect(skill).toContain('STEP 3');

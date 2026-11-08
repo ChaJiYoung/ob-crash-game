@@ -2539,7 +2539,6 @@ export class BeerCrusherEngine {
         reloadedByPlayer.push(false);
         continue;
       }
-      const feverActive = p.scoreManager.getState().isFeverActive;
       const { reloadedJustNow } = p.weaponSystem.update(nowMs, dtSec * 1000);
       reloadedByPlayer.push(reloadedJustNow);
       p.scoreManager.updateFeverTimer(nowMs);

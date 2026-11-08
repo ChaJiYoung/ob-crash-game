@@ -93,7 +93,11 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 2 && (
               <>
-                다가오는 <strong>카스 병맥주 (4HP)</strong>를 향해 화면을 <strong>꾸욱 누르고(홀드) 있거나</strong> PC 마우스 좌클릭을 유지하여 <strong>'투두두두' 자동 연발</strong>로 격파하세요!
+                다가오는 <strong>카스 병맥주 (4HP)</strong>를 향해 {inputKind === 'mouse' ? (
+                  <>마우스 좌클릭을 <strong>꾸욱 누르고(홀드) 있어</strong></>
+                ) : (
+                  <>화면을 <strong>꾸욱 누르고(홀드) 있어</strong></>
+                )} <strong>'투두두두' 자동 연발</strong>로 격파하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   💡 100% 슬림 연속 체력 게이지가 깎이며, 탄약 소진 시 자동으로 재장전됩니다.
                 </div>
@@ -115,7 +119,11 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 4 && (
               <>
-                피버 게이지 100% 충전 완료! 화면을 <strong style={{ color: '#fbbf24' }}>따닥! 빠르게 두 번 탭</strong>하거나 PC에서는 <strong style={{ color: '#fbbf24' }}>마우스 더블클릭</strong>으로 피버를 발동하세요!
+                피버 게이지 100% 충전 완료! {inputKind === 'mouse' ? (
+                  <strong style={{ color: '#fbbf24' }}>마우스 더블클릭</strong>
+                ) : (
+                  <>화면을 <strong style={{ color: '#fbbf24' }}>따닥! 빠르게 두 번 탭</strong></>
+                )}으로 피버를 발동하세요!
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
                   {isFeverActive ? (
                     <span style={{ color: '#ef4444', fontWeight: 900 }}>
