@@ -16,14 +16,28 @@ All plan files, phase folders, and decision files MUST start with today's date i
 A Task must be **independently executable**: an engineer or AI agent reading **ONLY that single Task file** must be able to write the exact production code without re-exploring the codebase or guessing missing details.
 Never summarize or collapse technical details into vague bullet points. When brevity conflicts with completeness, **always keep the exact technical information**.
 
-## Phase vs Task Granularity
-- **Plan / Phase / Task 정의**:
-  - **Plan**: 하나의 기능 목표를 나타냅니다.
-  - **Phase**: 관련 Task들을 함께 검증·리뷰할 수 있는 의미 있는 결과를 나타냅니다.
-  - **Task**: 구현·검증 단위를 나타냅니다.
-- **다중 Phase 분리 기준**: 하나의 기능 안에서도 중간 결과를 검증하고 다음 작업 전에 묶어서 리뷰할 가치가 있다면 `P01`, `P02`...로 나눕니다. 대규모 프로젝트나 서로 다른 도메인·계층일 때만 분리할 수 있는 것은 아닙니다.
-- **단일 Phase 기준**: 작은 작업이나 자연스러운 중간 검증·리뷰 경계가 없는 작업은 단일 Phase로 둡니다.
-- **분할 판단 원칙**: 함수별·사소한 작업 단계별로 나누거나 Task 수만으로 기계적으로 분할하지 않습니다. Task 수에 고정 상한을 두지 않고 결과와 리뷰 가능성으로 판단합니다.
+## 계층 구조
+- **Plan**: 하나의 기능 목표.
+- **Phase**: 중간 검증·리뷰가 가능한 의미 있는 결과 단위.
+- **Task**: 독립 빌드·테스트 통과 및 단일 커밋 기준의 최소 완결 단위.
+- **Implementation (I0x)**: Task 내부 파일·심볼별 세부 구현 및 부수 작업.
+
+## Task 묶음 원칙
+- **기능 완결성**: 선언(타입/헬퍼) + 핵심 로직 + 호출부 + 부수 동기화(문서/테스트)를 1개 Task에 묶고 내부 `I01`, `I02`...로 분할.
+- **소규모 결함 번들링**: QA/폴리싱의 1~3줄짜리 경미한 수정은 유사 도메인(UI/레이아웃, 규칙 등)별 1개 Task로 묶어 처리.
+
+## Anti-patterns
+- **경미한 단독 작업**: 미사용 코드 정리, 린트/스타일 경고 1줄 수정, 단순 상수 변경 ➔ 단독 Task 금지, 관련 Task의 `I0x`로 흡수.
+- **호출 흐름 단절**: 헬퍼/인터페이스 선언과 호출부 분리 ➔ 단독 Task 금지, 1개 Task로 결합.
+- **종속 작업 분리**: 문서 동기화, README 갱신 등 ➔ 단독 Task 금지, 관련 Task의 마지막 `I0x`로 포함.
+- **사소한 티켓 과분할**: 1~2줄짜리 결함의 건별 Task 생성 ➔ 단독 Task 금지, 성격별 번들링.
+
+## Self-Check
+청사진 파일 생성 전 Task 목록 점검:
+- [ ] 단독 검증 가치가 없는 경미한 수정(정리/상수/경고)이 분리되었는가? ➔ I0x로 병합
+- [ ] 선언부와 호출부가 나뉘었는가? ➔ 1개 Task로 결합
+- [ ] 문서/가이드 갱신이 떨어져 있는가? ➔ 관련 Task I0x로 흡수
+- [ ] 유사 소규모 결함이 파편화되었는가? ➔ 유사 도메인 Task로 번들링
 
 ---
 
@@ -114,9 +128,10 @@ Plan: YYYY-MM-DD-{feature-name}
 Phase: P01-{phase-name}
 Task: T01-{task-name}
 
-- {구체적인 변경점 1}
-- {구체적인 변경점 2}
+- {I01 핵심 변경 요약}
+- {I02 핵심 변경 요약}
 ```
+*복수 I0x 포함 시 커밋 본문 불릿에 각 I0x 변경점 1:1 매핑.*
 
 ## Progress
 - [ ] 구현 완료
