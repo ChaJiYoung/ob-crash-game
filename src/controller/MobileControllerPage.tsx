@@ -6,8 +6,10 @@ import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
 import { requestSensorPermission } from './sensors/SensorPermission';
 import { ReturnToGameOverlay } from './components/ReturnToGameOverlay';
+import { UnsupportedDeviceScreen } from './components/UnsupportedDeviceScreen';
+import { probeSensorSupport } from './sensors/SensorSupportProbe';
 import { CONTROLLER_LIFECYCLE } from '../shared/controllerLifecycle';
-import { PlayerProfile, PlayerSlot, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
+import { PlayerProfile, PlayerSlot, ServerToClientMessage, UnsupportedReason, WeaponKind, WeaponLevel } from '../shared/types';
 import { PLAYER_COLORS, WEAPON_CONSTANTS } from '../shared/constants';
 import { GAME_TUNING } from '../shared/gameTuning';
 import {
@@ -28,6 +30,8 @@ export const MobileControllerPage: React.FC = () => {
   slotRef.current = slot;
   const [slotError, setSlotError] = useState<string | null>(null);
   const blockedRef = useRef<boolean>(false);
+  // 센서 판별에서 미지원으로 나온 이유. 값이 있으면 차단 화면만 보인다.
+  const [unsupportedReason, setUnsupportedReason] = useState<UnsupportedReason | null>(null);
 
   const [step, setStep] = useState<'LOGIN_GATE' | 'PAD'>('LOGIN_GATE');
   const [sensorsActive, setSensorsActive] = useState<boolean>(false);
@@ -447,7 +451,26 @@ export const MobileControllerPage: React.FC = () => {
     };
   }, [sensorsActive, sensorEpoch, tracker, flushSensorFrame]);
 
-  const handlePermissionGranted = () => {
+  // 미지원 기기: 서버에 알리고(서버가 슬롯을 비우고 소켓을 닫는다) 차단 화면만 보인다. 재연결·재시도는 하지 않는다.
+  const rejectUnsupportedDevice = (reason: UnsupportedReason) => {
+    // 재연결 루프(onclose), 화면 복귀 재연결(reviveIfDead)이 모두 blockedRef를 보고 멈춘다.
+    blockedRef.current = true;
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'DEVICE_UNSUPPORTED', roomId, deviceId, slot: slotRef.current, reason }));
+    }
+    setUnsupportedReason(reason);
+  };
+
+  const handlePermissionGranted = async () => {
+    // 개발 모드에서는 PC 브라우저로도 폰 화면을 볼 수 있게 판별을 건너뛴다. 배포 빌드에는 우회가 없다.
+    if (!import.meta.env.DEV) {
+      const verdict = await probeSensorSupport();
+      if (!verdict.supported) {
+        rejectUnsupportedDevice(verdict.reason);
+        return;
+      }
+    }
     setSensorsActive(true);
     setStep('PAD');
     autoZeroPendingRef.current = true;
@@ -606,6 +629,10 @@ export const MobileControllerPage: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (unsupportedReason !== null) {
+    return <UnsupportedDeviceScreen reason={unsupportedReason} />;
   }
 
   return (

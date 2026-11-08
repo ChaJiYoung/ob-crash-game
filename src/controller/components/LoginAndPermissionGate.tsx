@@ -17,7 +17,8 @@ export interface LoginAndPermissionGateProps {
   isNewUser: boolean;
   player?: PlayerProfile;
   onRegisterNickname: (nickname: string) => void;
-  onPermissionGranted: () => void;
+  /** 센서 확인(판별)이 끝날 때까지 기다린다. 그동안 허용 버튼이 잠긴다. */
+  onPermissionGranted: () => void | Promise<void>;
 }
 
 export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
@@ -49,7 +50,8 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
         alert('모션 센서 권한이 허용되어야 권총 조준이 가능합니다.');
         return;
       }
-      onPermissionGranted();
+      // requestSensorPermission()은 사용자 터치 호출 흐름 안(위)에서 이미 끝났다. 판별은 그 뒤라 iOS 제약과 무관하다.
+      await onPermissionGranted();
     } finally {
       setIsRequestingPermission(false);
     }
@@ -179,7 +181,7 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
                 boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
               }}
             >
-              {isRequestingPermission ? '권한 요청 중...' : '🔫 센서 권한 허용 및 총기 그립 준비'}
+              {isRequestingPermission ? '센서 확인 중...' : '🔫 센서 권한 허용 및 총기 그립 준비'}
             </button>
           </div>
         )}
