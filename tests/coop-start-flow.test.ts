@@ -130,11 +130,12 @@ describe('Coop Start and Result Flow (P04-T05)', () => {
       ];
       const map = buildSlotIndexMap(slots);
 
-      const submissions = buildScoreSubmissions(engine, slots, map, 'ROOM_SOLO');
+      const submissions = buildScoreSubmissions(engine, slots, map, 'ROOM_SOLO', 42);
       expect(submissions).toHaveLength(1);
       const sub = submissions[0];
       expect(sub.type).toBe('GAME_SCORE_SUBMIT');
       expect(sub.roomId).toBe('ROOM_SOLO');
+      expect(sub.gameId).toBe(42);
       expect(sub.deviceId).toBe('dev-solo');
       expect(sub.mode).toBe('solo');
       expect(sub.stats?.mode).toBe('solo');
@@ -171,10 +172,12 @@ describe('Coop Start and Result Flow (P04-T05)', () => {
       ];
       const map = buildSlotIndexMap(slots);
 
-      const submissions = buildScoreSubmissions(engine, slots, map, 'ROOM_COOP');
+      const submissions = buildScoreSubmissions(engine, slots, map, 'ROOM_COOP', 42);
       expect(submissions).toHaveLength(2);
 
       const [sub1, sub2] = submissions;
+      expect(sub1.gameId).toBe(42);
+      expect(sub2.gameId).toBe(42);
       expect(sub1.mode).toBe('coop');
       expect(sub2.mode).toBe('coop');
 

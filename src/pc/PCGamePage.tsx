@@ -59,7 +59,7 @@ import {
   SlotPair,
   SlotInput,
 } from './coopSlots';
-import { buildScoreSubmissions } from './scoreSubmission';
+import { buildGameBegin, buildScoreSubmissions } from './scoreSubmission';
 import { getOrCreateDeviceId } from '../shared/deviceIdentity';
 import { PlayerSlot } from '../shared/types';
 
@@ -244,6 +244,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
+  /** 서버가 발급한 현재 판 ID. GAME_STARTED를 받기 전이나 판이 없으면 null. */
+  const gameIdRef = useRef<number | null>(null);
+  /** 응답을 기다리는 GAME_BEGIN의 beginId. 늦게 온 옛 응답을 걸러낸다. */
+  const pendingBeginIdRef = useRef<string | null>(null);
+  /** gameId를 받기 전에 고른 무기. GAME_STARTED를 받으면 보낸다. */
+  const pendingWeaponsRef = useRef<{ slot: PlayerSlot; weaponKind: WeaponKind }[]>([]);
   const pairedPlayerRef = useRef<PlayerProfile | undefined>(undefined);
   pairedPlayerRef.current = pairedPlayer;
 
@@ -736,7 +742,22 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
             break;
 
+          case 'GAME_STARTED':
+            if (msg.beginId !== pendingBeginIdRef.current) break; // 이전 판의 늦은 응답
+            pendingBeginIdRef.current = null;
+            gameIdRef.current = msg.gameId;
+            for (const w of pendingWeaponsRef.current) {
+              wsRef.current?.send(JSON.stringify({ type: 'WEAPON_CHOSEN', roomId: roomIdRef.current, gameId: msg.gameId, slot: w.slot, weaponKind: w.weaponKind }));
+            }
+            pendingWeaponsRef.current = [];
+            break;
+
           case 'ERROR':
+            if (msg.code === 'GAME_BEGIN_REJECTED') {
+              pendingBeginIdRef.current = null;
+              console.warn('GAME_BEGIN rejected; this run will not be recorded', msg.message);
+              break;
+            }
             if (msg.code === 'INVALID_NICKNAME') {
               setMouseNicknameError(msg.message);
               break;
@@ -825,11 +846,34 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     };
   }, [engine, soundSynth, handleShootEvent]);
 
+  useEffect(() => {
+    engine.onWeaponChosen = (playerIndex, weaponKind) => {
+      const slot = indexToSlot(slotIndexMapRef.current, playerIndex);
+      if (slot === undefined) return;
+      const gameId = gameIdRef.current;
+      if (gameId === null) {
+        pendingWeaponsRef.current.push({ slot, weaponKind });
+        return;
+      }
+      const ws = wsRef.current;
+      if (ws && ws.readyState === WebSocket.OPEN && roomIdRef.current) {
+        ws.send(JSON.stringify({ type: 'WEAPON_CHOSEN', roomId: roomIdRef.current, gameId, slot, weaponKind }));
+      }
+    };
+    return () => {
+      engine.onWeaponChosen = null;
+    };
+  }, [engine]);
+
   const submitScores = useCallback(() => {
     submitTimeRef.current = Date.now();
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
-      const messages = buildScoreSubmissions(engine, slotsRef.current, slotIndexMapRef.current, roomId);
+    const gameId = gameIdRef.current;
+    if (gameId === null) {
+      console.warn('Score not submitted: no gameId');
+    } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
+      const messages = buildScoreSubmissions(engine, slotsRef.current, slotIndexMapRef.current, roomId, gameId);
       messages.forEach((msg) => wsRef.current!.send(JSON.stringify(msg)));
+      gameIdRef.current = null;
     }
     if (engine.players.length >= 2) {
       const p0Stats = engine.getPlayRunStats(0);
@@ -945,6 +989,20 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         engine.setPlayerAway(pIdx, true, performance.now());
       }
     });
+    gameIdRef.current = null;
+    pendingWeaponsRef.current = [];
+    const beginId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const roomIdNow = roomIdRef.current;
+    const beginMsg = roomIdNow ? buildGameBegin(slotsRef.current, slotIndexMapRef.current, roomIdNow, beginId) : null;
+    pendingBeginIdRef.current = beginMsg ? beginId : null;
+    if (beginMsg) {
+      const ws = wsRef.current;
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(beginMsg));
+    } else {
+      console.warn('GAME_BEGIN not sent: missing room or player identity; this run will not be recorded');
+    }
     setPhase('PLAYING');
     syncProcessors();
     setIsNewRecord(false);
@@ -1144,6 +1202,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [engine, startResumeCountdown]);
 
   const handleRestartFromPause = useCallback(() => {
+    const abandonId = gameIdRef.current;
+    if (abandonId !== null && roomIdRef.current) {
+      wsRef.current?.readyState === WebSocket.OPEN &&
+        wsRef.current.send(JSON.stringify({ type: 'GAME_ABANDON', roomId: roomIdRef.current, gameId: abandonId }));
+    }
+    gameIdRef.current = null;
+    pendingBeginIdRef.current = null;
     if (countdownTimerRef.current) {
       clearInterval(countdownTimerRef.current);
       countdownTimerRef.current = null;
@@ -1309,6 +1374,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   // Leaving from the pause menu drops this run's score (no submitScore), like restart does.
   const handleExitToLobbyFromPause = useCallback(() => {
+    const abandonId = gameIdRef.current;
+    if (abandonId !== null && roomIdRef.current) {
+      wsRef.current?.readyState === WebSocket.OPEN &&
+        wsRef.current.send(JSON.stringify({ type: 'GAME_ABANDON', roomId: roomIdRef.current, gameId: abandonId }));
+    }
+    gameIdRef.current = null;
+    pendingBeginIdRef.current = null;
     if (countdownTimerRef.current) {
       clearInterval(countdownTimerRef.current);
       countdownTimerRef.current = null;
