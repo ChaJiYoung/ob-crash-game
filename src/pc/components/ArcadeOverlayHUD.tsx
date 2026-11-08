@@ -5,6 +5,7 @@ import { PassiveCardStack, WaveProgressInfo } from '../engine/BeerCrusherEngine'
 import type { BossHudInfo, PlayerHudSnapshot } from '../hudSnapshot';
 import type { PanelInputKind, PlayerPresentation } from '../playerPresentation';
 import { PlayerPanel } from './PlayerPanel';
+import { GAME_TUNING } from '../../shared/gameTuning';
 
 export interface MonsterHudProjection {
   id: string;
@@ -70,7 +71,9 @@ export function formatWeaponSkillBadge(
 
   let skillStatusText = '';
   if (isReady) {
-    const stockBadge = maxSkillStock > 1 ? ` [★${skillStock}/${maxSkillStock}]` : '';
+    const nextCharge =
+      skillStock < maxSkillStock && cooldownRemainingMs > 0 ? ` · 다음 ${(cooldownRemainingMs / 1000).toFixed(1)}s` : '';
+    const stockBadge = maxSkillStock > 1 ? ` [★${skillStock}/${maxSkillStock}${nextCharge}]` : '';
     skillStatusText = `⚡ SKILL READY!${stockBadge} [${inputKind === 'mouse' ? '우클릭' : '위로 휙!'}]`;
   } else {
     skillStatusText = `쿨다운 ${(Math.max(0, cooldownRemainingMs) / 1000).toFixed(1)}s`;
@@ -111,7 +114,7 @@ export function formatFeverStatusBadge(
 } {
   if (isFeverActive) {
     return {
-      label: '⚡ FEVER ACTIVE',
+      label: `🔥 FEVER ACTIVE (무한 탄창·점수 ${GAME_TUNING.fever.scoreMult}배·대미지 ${GAME_TUNING.judgment.feverDamage}배)`,
       isLocked: false,
       accentColor: '#ef4444',
     };

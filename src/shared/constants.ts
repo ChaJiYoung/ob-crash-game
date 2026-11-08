@@ -168,7 +168,7 @@ export const FEVER_CONSTANTS = {
   MAX_GAUGE: 100,
   MISS_PENALTY: 0,
   KILL_FEVER_DELTA: GAME_TUNING.fever.killDelta,
-  DURATION_MS: 4000,
+  DURATION_MS: GAME_TUNING.fever.durationMs,
   LOCK_WHEN_FULL: true,
 } as const;
 

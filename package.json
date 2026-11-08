@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n vite,tunnel -c cyan,blue \"npm run dev:vite\" \"npm run dev:tunnel\"",
+    "dev:vite": "vite",
+    "dev:tunnel": "npx --yes cloudflared tunnel --url https://localhost:5173 --no-tls-verify",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "server": "tsx server/index.ts",
@@ -26,6 +28,7 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "@vitejs/plugin-react": "^4.3.3",
+    "concurrently": "^10.0.7",
     "playwright": "^1.64.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",

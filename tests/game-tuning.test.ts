@@ -3,6 +3,7 @@ import { GAME_TUNING } from '../src/shared/gameTuning';
 import { FEVER_CONSTANTS, JUDGMENT_SPECS, WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import { WeaponSystem } from '../src/pc/engine/WeaponSystem';
+import { evaluateHitJudgment } from '../src/pc/engine/HitJudgment';
 
 describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
   it('feeds judgment, fever and skill cooldown constants', () => {
@@ -15,6 +16,20 @@ describe('GAME_TUNING (gameplay-polish P03-T01)', () => {
       (['shotgun', 'revolver', 'gatling'] as const).forEach((kind) => {
         expect(WEAPON_ARCHETYPE_SPECS[kind].levels[lv].skillCooldownMs).toBe(GAME_TUNING.skillCooldownMsByLevel[lv]);
       });
+    });
+  });
+
+  it('fever hits are GREAT for score but deal feverDamage', () => {
+    expect(GAME_TUNING.judgment.feverDamage).toBe(2.0);
+    const hit = evaluateHitJudgment(0.05, 1.0, true);
+    expect(hit.grade).toBe('GREAT');
+    expect(hit.damageMultiplier).toBe(GAME_TUNING.judgment.feverDamage);
+    expect(hit.feverDelta).toBe(0);
+  });
+
+  it('boss damage scale is 1 for every weapon', () => {
+    (['shotgun', 'revolver', 'gatling'] as const).forEach((kind) => {
+      expect(GAME_TUNING.boss.damageScaleByWeapon[kind]).toBe(1);
     });
   });
 

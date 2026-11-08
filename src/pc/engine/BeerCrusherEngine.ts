@@ -2667,7 +2667,7 @@ export class BeerCrusherEngine {
 
   public triggerWeaponSkill(nowMs: number, playerIndex: PlayerIndex = 0): SkillExecuteResult {
     const player = this.getPlayer(playerIndex);
-    if (player.isAway) {
+    const rejected = (): SkillExecuteResult => {
       const weaponState = player.weaponSystem.getState();
       return {
         activated: false,
@@ -2676,9 +2676,13 @@ export class BeerCrusherEngine {
         affectedTargets: [],
         playerIndex,
       };
-    }
+    };
+    if (player.isAway) return rejected();
+    // 한 번 젖힐 때 스킬이 두 번 나가지 않도록, 같은 플레이어의 재발동은 reuseLockMs 동안 거부한다.
+    if (nowMs - player.lastSkillActivatedMs < GAME_TUNING.skillInput.reuseLockMs) return rejected();
     const result = this.runWeaponSkill(nowMs, playerIndex);
     if (result.activated) {
+      player.lastSkillActivatedMs = nowMs;
       this.emit({ type: 'skillUsed', playerIndex, result, nowMs });
     }
     return result;

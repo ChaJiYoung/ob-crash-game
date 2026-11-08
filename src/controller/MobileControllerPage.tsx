@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { getOrCreateDeviceId } from './sensors/DeviceIdentity';
-import { GunGripTracker, EulerOrientation } from './sensors/GunGripTracker';
+import { GunGripTracker, EulerOrientation, shouldSendSkillSnap } from './sensors/GunGripTracker';
 import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
 import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
@@ -74,6 +74,8 @@ export const MobileControllerPage: React.FC = () => {
   }, [countdownSec]);
   const snapFireRef = useRef<boolean>(false);
   const skillSnapTriggeredRef = useRef<boolean>(false);
+  // 스킬 신호 전용 디바운스: 스냅 사격(110ms)과 분리해, 한 번 젖힐 때 스킬 신호는 한 번만 보낸다.
+  const lastSkillSnapMsRef = useRef<number>(-Infinity);
   const prevSkillStockRef = useRef<number>(1);
   const rapidFireHoldRef = useRef<boolean>(false);
   const feverTriggeredRef = useRef<boolean>(false);
@@ -349,7 +351,10 @@ export const MobileControllerPage: React.FC = () => {
           timestampMs: now,
         });
         if (snap && isSnapAllowed) {
-          skillSnapTriggeredRef.current = true;
+          if (shouldSendSkillSnap(now, lastSkillSnapMsRef.current)) {
+            skillSnapTriggeredRef.current = true;
+            lastSkillSnapMsRef.current = now;
+          }
 
           // [손목 반동 흡수] 스킬 시전 시 에임을 350ms 동안 모니터 정면에 고정하여 천장으로 튀는 현상 방지
           tracker.lockAim(latestOrientationRef.current);

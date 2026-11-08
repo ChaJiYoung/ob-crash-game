@@ -1,6 +1,6 @@
 # Task: T01 main 병합과 충돌 해결
 
-## Status: pending
+## Status: done
 
 ## Goal
 `git merge main`을 하고, 충돌 7개 파일(`.memory/current.md`, `PCGamePage.tsx`, `ArcadeOverlayHUD.tsx`, `GuideModal.tsx`, `JudgmentBanner.tsx`, `TutorialGuideOverlay.tsx`, `BeerCrusherEngine.ts`)을 이 브랜치 구조에 맞게 풀어 타입체크와 전체 테스트가 통과하는 병합 커밋을 만든다.
@@ -118,6 +118,6 @@ Task: T01-merge-main
 (병합 커밋 메시지 끝에 `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>` 포함)
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: merge commit (git log --merges -1)

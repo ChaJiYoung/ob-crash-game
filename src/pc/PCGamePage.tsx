@@ -362,16 +362,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     } else if (result.grade !== 'MISS') {
       soundSynth.playHit(result.grade);
       const pres = presentations[result.playerIndex];
-      judgmentRef.current?.show(
-        result.grade,
-        pres?.slotLabel
-          ? {
-              color: pres.color,
-              label: pres.slotLabel,
-              side: pres.popupSide,
-            }
-          : undefined
-      );
+      judgmentRef.current?.show(result.grade, {
+        ...(pres?.slotLabel ? { color: pres.color, label: pres.slotLabel, side: pres.popupSide } : {}),
+        isFever,
+      });
       if (gamePhaseRef.current === 'SANDBOX') {
         setSandboxJudgment({ grade: result.grade, key: Date.now() });
       }

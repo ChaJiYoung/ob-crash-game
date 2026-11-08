@@ -25,6 +25,8 @@ export class PlayerCombatState {
   /** 가장 최근 선택 라운드에서 고른 항목(상태 상자용) */
   public lastPick: { weapon?: WeaponKind; card?: RewardCardKind; auto: boolean } | null = null;
   public isAway = false;
+  /** 마지막 스킬 발동 시각(엔진 시계). reuseLockMs 안의 재요청은 거부해 스냅 한 번에 스킬이 두 번 나가지 않게 한다. */
+  public lastSkillActivatedMs = -Infinity;
   /** 이탈 시작 시각(엔진 시계). 복귀 때 그 사이만큼 개인 타이머를 민다. null이면 이탈 아님. */
   public awaySinceMs: number | null = null;
 
@@ -50,6 +52,7 @@ export class PlayerCombatState {
     this.lastPick = null;
     this.isAway = false;
     this.awaySinceMs = null;
+    this.lastSkillActivatedMs = -Infinity;
   }
 
   /** 카드 스택 초기화 + 무기 쿨다운 배율 1.0 + 피버 연장 0. 엔진의 기존 private resetCardStacks와 같은 내용. */

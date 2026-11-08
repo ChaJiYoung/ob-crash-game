@@ -9,8 +9,12 @@
 export const RANKING_RULESET_VERSION = 5;
 
 export const GAME_TUNING = {
-  fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50 },
-  judgment: { perfectDamage: 2.0, greatDamage: 1.0, goodDamage: 0.5 },
+  /** 스킬 입력: 폰 스냅 재감지 대기(ms), 엔진 스킬 재발동 잠금(ms). 한 번 젖힐 때 두 번 나가는 것을 막는다. */
+  skillInput: { snapDebounceMs: 400, reuseLockMs: 500 },
+  /** durationMs: 피버 지속 시간, scoreMult: 피버 중 명중 점수 배율. */
+  fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50, durationMs: 4000, scoreMult: 1.5 },
+  /** feverDamage: 피버 중 모든 명중(등급은 GREAT 고정)에 쓰는 판정 배율. */
+  judgment: { perfectDamage: 2.0, greatDamage: 1.0, goodDamage: 0.5, feverDamage: 2.0 },
   /**
    * scale: 명중 점수·처치 보너스에 곱하는 전체 점수 단위(표의 기본 점수 150/100/50, 처치 30~1500은 scale 1.0 기준).
    * 클리어(VICTORY) 시 한 번 더해지는 정밀도 보너스 = k × (가중 판정 비율)^power. k는 최종 점수 단위(scale 적용 후).
@@ -116,8 +120,8 @@ export const GAME_TUNING = {
     /** 보스 등장 경고 띠가 떠 있는 시간. 이 안에서 나타났다가 사라진다. */
     warningMs: 2000,
     coolerSpreadRad: 0.34,
-    /** 무기별 보스 피해 배율(샷건이 보스를 너무 빨리 녹이지 않게 조정). */
-    damageScaleByWeapon: { shotgun: 0.7, revolver: 0.8, gatling: 2.2 },
+    /** 무기별 보스 피해 배율. 지금은 모두 1이다(조정이 필요하면 무기별로 다시 나눈다). */
+    damageScaleByWeapon: { shotgun: 1, revolver: 1, gatling: 1 },
     /** 일반 몬스터를 totalSpawns의 이 비율(올림)만큼 소환하면 보스가 등장한다. 보스가 살아 있는 동안 일반 몬스터는 계속 보충된다. */
     encounterStartRatio: 0.5,
     /** 보스 포탄 발사 간격. 보스 등장 후 everyMs마다 stepMs씩 줄어 minMs에서 멈춘다(오래 끄는 플레이에 압박). */

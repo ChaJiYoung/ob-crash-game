@@ -656,14 +656,14 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     <strong>📱 모바일 건그립 컨트롤러:</strong><br />
                     • <strong>톡 탭 / 꾸욱 홀드:</strong> 화면 톡 탭 시 1발 단발, 화면을 꾸욱 누르면 첫 발은 즉시 단발 강타 후 무기별 속도로 <strong>'투두두두' 자동 연발!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> 총구를 위로 <strong>'휙!(Snap)'</strong> 젖히기 (스킬 완충 시 진동 알림, 카드 선택 직후 0.3초간은 안전 잠금)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> (4초간 무한 탄창 자동 연사 & 명중 점수 1.5배, 명중은 모두 GREAT 판정!)<br />
+                    • <strong>🔥 {GAME_TUNING.fever.durationMs / 1000}초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 100% 게이지에서 <strong>따닥 더블 탭</strong> ({GAME_TUNING.fever.durationMs / 1000}초간 무한 탄창 자동 연사 & 명중 점수 {GAME_TUNING.fever.scoreMult}배, 명중은 모두 GREAT 판정 & 대미지 {GAME_TUNING.judgment.feverDamage}배!)<br />
                     • <strong>영점 보정:</strong> 상단 주황색 띠 탭
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                     <strong>💻 PC 단독 플레이 키보드/마우스:</strong><br />
                     • <strong>조준 & 사격:</strong> 마우스 이동 및 좌클릭 톡 탭 / 좌클릭 홀드 시 모든 무기 <strong>'투두두두' 자동 연발 지원!</strong><br />
                     • <strong>⚡ 필살 액티브 스킬:</strong> <strong>마우스 우클릭</strong> (시작 카운트다운 중·카드 선택 중엔 미발동, 카드 선택 직후 0.3초 안전 잠금)<br />
-                    • <strong>🔥 4초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>마우스 더블클릭</strong> (4초간 무한 탄창 자동 연사 & 명중 점수 1.5배, 명중은 모두 GREAT 판정)<br />
+                    • <strong>🔥 {GAME_TUNING.fever.durationMs / 1000}초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>마우스 더블클릭</strong> ({GAME_TUNING.fever.durationMs / 1000}초간 무한 탄창 자동 연사 & 명중 점수 {GAME_TUNING.fever.scoreMult}배, 명중은 모두 GREAT 판정 & 대미지 {GAME_TUNING.judgment.feverDamage}배)<br />
                     • <strong>⏸ 일시정지:</strong> <strong>Esc 키</strong> 또는 상단 일시정지 버튼 (이어하기 / 다시시작)
                   </div>
                 </div>
