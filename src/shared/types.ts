@@ -209,6 +209,8 @@ export type ClientToServerMessage =
   | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string; resume?: boolean; slot?: PlayerSlot }
   | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string; slot?: PlayerSlot }
   | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload; slot?: PlayerSlot }
+  // TEMP(sensor-debug)
+  | { type: 'DEBUG_LOG'; roomId: string; deviceId: string; tag: string; data?: Record<string, unknown>; ts: number }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean; slot?: PlayerSlot }
   | {
       type: 'SKILL_STATE_SYNC';

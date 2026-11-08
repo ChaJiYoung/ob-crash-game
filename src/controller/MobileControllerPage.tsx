@@ -80,6 +80,25 @@ export const MobileControllerPage: React.FC = () => {
   const [sensorEpoch, setSensorEpoch] = useState<number>(0);
   const sensorLivenessRef = useRef<SensorLiveness>(new SensorLiveness());
 
+  // TEMP(sensor-debug): queue diagnostics while the socket is down (screen off) and flush once it is open again.
+  const debugQueueRef = useRef<Array<{ tag: string; data?: Record<string, unknown>; ts: number }>>([]);
+  const debugRegisteredAtRef = useRef<number | null>(null);
+  const debugLastOrientationRef = useRef<number | null>(null);
+  const sendDebugRef = useRef<(tag?: string, data?: Record<string, unknown>) => void>(() => {});
+  sendDebugRef.current = (tag?: string, data?: Record<string, unknown>) => {
+    const queue = debugQueueRef.current;
+    if (tag) {
+      queue.push({ tag, data, ts: Date.now() });
+      if (queue.length > 100) queue.shift();
+    }
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !roomId) return;
+    while (queue.length > 0) {
+      const item = queue.shift()!;
+      ws.send(JSON.stringify({ type: 'DEBUG_LOG', roomId, deviceId, tag: item.tag, data: item.data, ts: item.ts }));
+    }
+  };
+
   // 1. Parse Room ID & Slot from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -330,9 +349,23 @@ export const MobileControllerPage: React.FC = () => {
 
     // A fresh registration gets a new grace period before the watchdog may call the sensors stalled.
     sensorLivenessRef.current.reset(performance.now());
+    debugRegisteredAtRef.current = performance.now(); // TEMP(sensor-debug)
 
     const onOrientation = (e: DeviceOrientationEvent) => {
       sensorLivenessRef.current.markEvent(performance.now());
+      // TEMP(sensor-debug)
+      {
+        const t = performance.now();
+        if (debugRegisteredAtRef.current !== null) {
+          sendDebugRef.current('orientation-first', { afterRegisterMs: Math.round(t - debugRegisteredAtRef.current) });
+          debugRegisteredAtRef.current = null;
+        }
+        const last = debugLastOrientationRef.current;
+        if (last !== null && t - last > 1000) {
+          sendDebugRef.current('orientation-gap', { gapMs: Math.round(t - last) });
+        }
+        debugLastOrientationRef.current = t;
+      }
       latestOrientationRef.current = {
         alpha: e.alpha || 0,
         beta: e.beta || 0,
@@ -400,14 +433,22 @@ export const MobileControllerPage: React.FC = () => {
 
     const bump = () => setSensorEpoch((e) => e + 1);
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') bump();
+      sendDebugRef.current('visibility', { state: document.visibilityState }); // TEMP(sensor-debug)
+      if (document.visibilityState === 'visible') {
+        sendDebugRef.current('reregister', { reason: 'visible', sinceLastEventMs: Math.round(sensorLivenessRef.current.elapsedMs(performance.now())) }); // TEMP(sensor-debug)
+        bump();
+      }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
     // Re-registering resets the grace period, so a phone that never delivers events is retried once per SENSOR_STALE_MS.
     const watchdog = setInterval(() => {
+      sendDebugRef.current(); // TEMP(sensor-debug): flush logs queued while the socket was down
       if (document.visibilityState !== 'visible') return;
-      if (sensorLivenessRef.current.isStale(performance.now(), SENSOR_STALE_MS)) bump();
+      if (sensorLivenessRef.current.isStale(performance.now(), SENSOR_STALE_MS)) {
+        sendDebugRef.current('reregister', { reason: 'watchdog', sinceLastEventMs: Math.round(sensorLivenessRef.current.elapsedMs(performance.now())) }); // TEMP(sensor-debug)
+        bump();
+      }
     }, 500);
 
     return () => {

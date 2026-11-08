@@ -1,6 +1,6 @@
 # Task: T01 임시 디버그 로그 릴레이
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰에서 센서 이벤트 정지·재등록 시점을 서버 파일 `data/sensor-debug.log`에 남겨서, 사용자가 폰으로 테스트한 뒤 로그를 읽고 가설(화면 꺼짐 → 센서 이벤트 정지)을 확인할 수 있게 한다. **임시 코드**이며 P02-T03에서 제거한다.
@@ -80,6 +80,6 @@ Task: T01-debug-log-relay
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'node:fs'; // TEMP(sensor-debug)
 import http from 'node:http';
 import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -363,6 +364,20 @@ export async function createBeerCrusherServer(options?: {
                 payload: msg.payload,
                 slot,
               });
+            }
+            break;
+          }
+
+          // TEMP(sensor-debug): phone sensor diagnostics, written to data/sensor-debug.log. Removed in P02-T03.
+          case 'DEBUG_LOG': {
+            const line = `${new Date(msg.ts).toISOString()} ${msg.deviceId} ${msg.tag} ${JSON.stringify(msg.data ?? {})}`;
+            console.log('[sensor-debug]', line);
+            try {
+              const dir = path.resolve(process.cwd(), 'data');
+              fs.mkdirSync(dir, { recursive: true });
+              fs.appendFileSync(path.join(dir, 'sensor-debug.log'), `${line}\n`);
+            } catch {
+              // Diagnostics must never affect the game.
             }
             break;
           }
