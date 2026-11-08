@@ -119,43 +119,6 @@ export function computeCrosshairVisualSpec(options: CrosshairVisualSpecOptions):
 
 export const getCrosshairVisualSpec = computeCrosshairVisualSpec;
 
-export interface ReloadRingSpec {
-  visible: boolean;
-  diameterPx: number;
-  radiusPx: number;
-  durationMs: number;
-  color: string;
-  strokeWidthPx: number;
-  outlineWidthPx: number;
-  /** 링 바깥 조준점의 투명도. 링이 보일 때 0.45, 아니면 1. */
-  reticleOpacity: number;
-}
-
-/** 장전 게이지 링을 그릴지와 크기를 정한다. 피버(무한 탄약) 중에는 장전이 없으므로 그리지 않는다. */
-export function getReloadRingSpec(options: {
-  isReloading?: boolean;
-  isFeverActive?: boolean;
-  reloadDurationMs?: number;
-  sizePx: number;
-}): ReloadRingSpec {
-  const durationMs = options.reloadDurationMs ?? 0;
-  const diameterPx = options.sizePx + 16;
-  const outlineWidthPx = 12;
-  // 외곽선 절반만큼 안쪽에 그려야 SVG 밖으로 잘리지 않는다.
-  const radiusPx = diameterPx / 2 - outlineWidthPx / 2;
-  const visible = Boolean(options.isReloading) && !options.isFeverActive && durationMs > 0;
-  return {
-    visible,
-    diameterPx,
-    radiusPx,
-    durationMs,
-    color: '#f87171',
-    strokeWidthPx: 8,
-    outlineWidthPx,
-    reticleOpacity: visible ? 0.45 : 1,
-  };
-}
-
 /**
  * 링 애니메이션 길이와 시작 지연. HUD는 100ms 주기로 갱신되므로 링은 장전이 시작된 뒤에야 마운트될 수 있다.
  * 이미 지난 만큼은 음수 지연으로 건너뛰어 실제 장전 종료 시각에 맞춰 가득 찬다.
@@ -170,46 +133,7 @@ export function computeReloadRingTiming(
   return { durationMs: duration, delayMs: remaining - duration };
 }
 
-/**
- * 장전 게이지 링. 장전 중에만 마운트되므로 마운트 시점의 길이·남은 시간을 한 번 고정한다.
- * (장전 도중 rapid_reload 카드를 받아도 진행 중인 장전은 처음 길이로 끝나므로 링도 그대로 둔다.)
- */
-const ReloadRing: React.FC<{
-  spec: ReloadRingSpec;
-  getRemainingMs?: () => number;
-  isPaused: boolean;
-}> = ({ spec, getRemainingMs, isPaused }) => {
-  const [timing] = useState(() => computeReloadRingTiming(spec.durationMs, getRemainingMs?.()));
-  const center = spec.diameterPx / 2;
-  return (
-    <svg
-      width={spec.diameterPx}
-      height={spec.diameterPx}
-      style={{ position: 'absolute', transform: 'rotate(-90deg)', pointerEvents: 'none' }}
-      aria-hidden
-    >
-      <circle cx={center} cy={center} r={spec.radiusPx} fill="none" stroke="rgba(0,0,0,0.85)" strokeWidth={spec.outlineWidthPx} />
-      <circle cx={center} cy={center} r={spec.radiusPx} fill="none" stroke="rgba(248,113,113,0.35)" strokeWidth={spec.strokeWidthPx} />
-      <circle
-        cx={center}
-        cy={center}
-        r={spec.radiusPx}
-        fill="none"
-        stroke={spec.color}
-        strokeWidth={spec.strokeWidthPx}
-        strokeLinecap="round"
-        pathLength={1}
-        strokeDasharray={1}
-        style={{
-          animation: `reload-ring-fill ${timing.durationMs}ms linear ${timing.delayMs}ms forwards`,
-          animationPlayState: isPaused ? 'paused' : 'running',
-        }}
-      />
-    </svg>
-  );
-};
-
-/** 장전 링(반지름 약 sizePx/2+2, 두께 12) 바깥에 그린다. */
+/** 십자선 바깥에 그리는 링 게이지의 반지름. */
 export function getScopeGaugeRadius(sizePx: number): number {
   return sizePx / 2 + 14;
 }
@@ -234,19 +158,53 @@ const GaugeArc: React.FC<{ c: number; r: number; arc: ArcSpec; color: string; fr
   );
 };
 
+/**
+ * 장전 중 탄창 호가 차오르는 모양. 장전 중에만 마운트되므로 마운트 시점의 남은 시간을 한 번 고정한다.
+ * HUD 스냅샷은 100ms 주기라 장전이 시작된 뒤 최대 100ms 늦게 마운트된다: 이미 지난 만큼은 음수 지연으로 건너뛴다.
+ * (장전 도중 rapid_reload 카드를 받아도 진행 중인 장전은 처음 길이로 끝나므로 호도 그대로 둔다.)
+ */
+const ReloadArcFill: React.FC<{
+  c: number;
+  r: number;
+  arc: ArcSpec;
+  durationMs: number;
+  endTimeMs: number;
+  isPaused: boolean;
+}> = ({ c, r, arc, durationMs, endTimeMs, isPaused }) => {
+  const [timing] = useState(() => computeReloadRingTiming(durationMs, endTimeMs - performance.now()));
+  return (
+    <path
+      d={describeArc(c, c, r, arc.startDeg, arc.endDeg)}
+      stroke={SCOPE_GAUGE_COLORS.reload}
+      strokeWidth={3}
+      fill="none"
+      strokeLinecap="round"
+      pathLength={1}
+      strokeDasharray={1}
+      data-testid="scope-reload-fill"
+      style={{
+        animation: `reload-ring-fill ${timing.durationMs}ms linear ${timing.delayMs}ms forwards`,
+        animationPlayState: isPaused ? 'paused' : 'running',
+      }}
+    />
+  );
+};
+
 /** 조준경 링 게이지(playtest-feedback D08). */
-const ScopeGauges: React.FC<{ input: ScopeGaugeInput; sizePx: number }> = ({ input, sizePx }) => {
+const ScopeGauges: React.FC<{ input: ScopeGaugeInput; sizePx: number; isPaused: boolean }> = ({ input, sizePx, isPaused }) => {
   const g = computeScopeGauges(input);
   const r = getScopeGaugeRadius(sizePx);
   const size = r * 2 + 24;
   const c = size / 2;
   return (
     <svg width={size} height={size} data-testid="scope-gauges" style={{ position: 'absolute', pointerEvents: 'none' }} aria-hidden>
-      {g.ammo && (
-        <GaugeArc c={c} r={r} arc={g.ammo} color={g.ammo.warn ? SCOPE_GAUGE_COLORS.warn : SCOPE_GAUGE_COLORS.ammo} />
+      {/* 장전 중에는 fill 0의 호(트랙만 그려짐) 위에 차오르는 호를 겹친다. */}
+      <GaugeArc c={c} r={r} arc={g.ammo} color={g.ammo.warn ? SCOPE_GAUGE_COLORS.warn : SCOPE_GAUGE_COLORS.ammo} />
+      {g.ammo.reloading && (
+        <ReloadArcFill c={c} r={r} arc={g.ammo} durationMs={input.reloadDurationMs} endTimeMs={input.reloadEndTimeMs} isPaused={isPaused} />
       )}
       <GaugeArc c={c} r={r} arc={g.skill} color={SCOPE_GAUGE_COLORS.skill} fromEnd />
-      <GaugeArc c={c} r={r} arc={g.fever} color={SCOPE_GAUGE_COLORS.fever} />
+      <GaugeArc c={c} r={r} arc={g.fever} color={g.fever.active ? SCOPE_GAUGE_COLORS.feverActive : SCOPE_GAUGE_COLORS.fever} />
       {Array.from({ length: g.skillDots.total }, (_, i) => {
         const [x, y] = polarPoint(c, c, r + 9, 215 + i * 22);
         return (
@@ -279,14 +237,10 @@ export interface CrosshairOverlayProps {
   isAimLocked?: boolean;
   weaponKind?: WeaponKind;
   weaponLevel?: WeaponLevel;
-  /** 장전 중이면 true. 피버 중에는 링을 그리지 않는다. */
+  /** 장전 중이면 true. 피버가 아닐 때만 십자선 본체를 흐리게 한다(피버 중에는 선명하게 둔다). */
   isReloading?: boolean;
-  /** 링이 차오르는 시간(ms). HudSnapshot.reloadDurationMs. */
-  reloadDurationMs?: number;
-  /** 일시정지·카드 선택 중이면 true: 링 애니메이션을 멈춘다. */
+  /** 일시정지·카드 선택 중이면 true: 호 애니메이션을 멈춘다. */
   isPaused?: boolean;
-  /** 장전 종료까지 남은 시간(ms). 링이 마운트될 때 한 번만 읽는다(스냅샷에 매 프레임 값을 넣지 않기 위해). */
-  getReloadRemainingMs?: () => number;
   playerColor?: string;
   nameTag?: string;
   hidden?: boolean;
@@ -310,9 +264,7 @@ export const CrosshairOverlay = React.memo(
     weaponKind = 'shotgun',
     weaponLevel = 1,
     isReloading = false,
-    reloadDurationMs = 0,
     isPaused = false,
-    getReloadRemainingMs,
     playerColor,
     nameTag,
     hidden = false,
@@ -450,7 +402,8 @@ export const CrosshairOverlay = React.memo(
     const isMenu = variant === 'menu';
     const menuScale = isMenu ? 0.6 : 1;
     const cornerSize = spec.sizePx * 0.22;
-    const ring = getReloadRingSpec({ isReloading, isFeverActive, reloadDurationMs, sizePx: spec.sizePx });
+    // 장전 중에는 십자선 본체를 흐리게 하되, 피버 중에는 장전 중이어도 선명하게 둔다.
+    const reticleOpacity = isReloading && !isFeverActive ? 0.45 : 1;
 
     return (
       <div
@@ -475,7 +428,7 @@ export const CrosshairOverlay = React.memo(
         {/* Fixed keyframes (always mounted): crosshair-spin rotates the reticle rings (rotation only, no translate), reload-ring-fill uses pathLength=1. */}
         <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } } @keyframes scope-gauge-flash { from { opacity: 0.45; } to { opacity: 1; } } .scope-gauge-flash { animation: scope-gauge-flash 0.7s ease-in-out infinite alternate; } @media (prefers-reduced-motion: reduce) { .scope-gauge-flash { animation: none; } }`}</style>
 
-        {/* Reticle: dimmed while reloading. The ring stays outside so it keeps full brightness. */}
+        {/* Reticle: dimmed while reloading (not during fever). The gauge arcs stay outside so they keep full brightness. */}
         <div
           style={{
             position: 'absolute',
@@ -483,7 +436,7 @@ export const CrosshairOverlay = React.memo(
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: ring.reticleOpacity,
+            opacity: reticleOpacity,
             transition: 'opacity 0.12s linear',
           }}
         >
@@ -744,8 +697,7 @@ export const CrosshairOverlay = React.memo(
         </div>
 
         {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
-        {ring.visible && <ReloadRing spec={ring} getRemainingMs={getReloadRemainingMs} isPaused={isPaused} />}
-        {!isMenu && gaugeSource && <ScopeGauges input={gaugeSource} sizePx={spec.sizePx} />}
+        {!isMenu && gaugeSource && <ScopeGauges input={gaugeSource} sizePx={spec.sizePx} isPaused={isPaused} />}
         </div>
       </div>
     );

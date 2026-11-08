@@ -24,6 +24,8 @@ export interface PlayerHudSnapshot {
   maxAmmo: number;
   isReloading: boolean;
   reloadDurationMs: number;
+  /** 장전이 끝나는 시각(performance.now 기준 ms). 장전 중에만 의미가 있고, 한 장전 동안은 일시정지가 아니면 변하지 않는다. */
+  reloadEndTimeMs: number;
   feverGauge: number;
   isFeverReady: boolean;
   isFeverActive: boolean;
@@ -103,6 +105,7 @@ export function buildHudSnapshot(
       maxAmmo: weaponState.maxAmmo,
       isReloading: weaponState.isReloading,
       reloadDurationMs: p.weaponSystem.getReloadDurationMs(),
+      reloadEndTimeMs: weaponState.reloadEndTimeMs,
       feverGauge: feverState.feverGauge,
       isFeverReady: feverState.isFeverReady,
       isFeverActive: feverState.isFeverActive,

@@ -208,12 +208,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     React.createRef(),
     React.createRef(),
   ]);
-  // Read once by the reload ring when it mounts, so it can skip the part of the reload already elapsed.
-  const getReloadRemainingMs = useCallback(
-    () => Math.max(0, engine.getPlayer(0).weaponSystem.getState().reloadEndTimeMs - performance.now()),
-    [engine]
-  );
-
   const judgmentRef = useRef<JudgmentBannerHandle>(null);
   const hpLayerRef = useRef<MonsterHpBarLayerHandle>(null);
   // Only the sandbox lab panel displays the last judgment; other phases use the imperative banner.
@@ -1541,9 +1535,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 weaponKind={weaponKind}
                 weaponLevel={weaponLevel}
                 isReloading={playerSnap?.isReloading ?? pWeapon.isReloading}
-                reloadDurationMs={playerSnap?.reloadDurationMs ?? p.weaponSystem.getReloadDurationMs()}
                 isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
-                getReloadRemainingMs={getReloadRemainingMs}
                 playerColor={pres?.ringColorMode === 'player' ? pres.color : undefined}
                 nameTag={formatCrosshairNameTag(weaponKind, weaponLevel, pres?.slotLabel ?? null)}
                 hidden={playerSnap?.isAway ?? p.isAway}
@@ -1568,7 +1560,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onExitToLobby={handleExitTutorial}
           />
           {hudState.players.map((s, i) => (
-            <PlayerPanel key={i} snapshot={s} presentation={presentations[i]} />
+            <PlayerPanel
+              key={i}
+              snapshot={s}
+              presentation={presentations[i]}
+              isPaused={hudState.isPaused || hudState.isRewardCardPending || hudState.isWeaponSelectPending}
+            />
           ))}
           <CrosshairOverlay
             ref={crosshairRefs.current[0]}
@@ -1581,9 +1578,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
             weaponLevel={hudState.players[0]?.weaponLevel ?? 1}
             isReloading={hudState.players[0]?.isReloading ?? false}
-            reloadDurationMs={hudState.players[0]?.reloadDurationMs ?? 2000}
             isPaused={hudState.isPaused}
-            getReloadRemainingMs={getReloadRemainingMs}
+            gaugeSource={hudState.players[0]}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>
@@ -1662,9 +1658,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
             weaponLevel={hudState.players[0]?.weaponLevel ?? 1}
             isReloading={hudState.players[0]?.isReloading ?? false}
-            reloadDurationMs={hudState.players[0]?.reloadDurationMs ?? 2000}
             isPaused={hudState.isPaused}
-            getReloadRemainingMs={getReloadRemainingMs}
+            gaugeSource={hudState.players[0]}
           />
           <JudgmentBanner ref={judgmentRef} />
         </>

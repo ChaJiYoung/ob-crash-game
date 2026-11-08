@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { PlayerHudSnapshot } from '../hudSnapshot';
 import type { PlayerPresentation } from '../playerPresentation';
 import { formatAmmoStatusText, formatWeaponSkillBadge } from './ArcadeOverlayHUD';
 import { ITEM_BUFF_SPECS, REWARD_CARD_SPECS } from '../../shared/constants';
 import { GAME_TUNING } from '../../shared/gameTuning';
+import { computeReloadRingTiming } from './CrosshairOverlay';
+import { SCOPE_GAUGE_COLORS } from './scopeGauges';
 
 /** 패널 피버 상태 문구. */
 export function formatPanelFeverText(isActive: boolean, isReady: boolean, gauge: number): string {
@@ -25,9 +27,42 @@ export interface PlayerPanelProps {
    * here would unmount the whole PC page and drop its socket, which deletes the room.
    */
   presentation: PlayerPresentation | undefined;
+  /** 일시정지·카드 선택 중이면 true: 장전 막대 애니메이션을 멈춘다. */
+  isPaused?: boolean;
 }
 
-export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation }) => {
+/**
+ * 장전 중 탄창 줄 자리에 그리는 채움 막대. 장전 중에만 마운트되므로 마운트 시점의 남은 시간을 한 번 고정한다
+ * (조준경의 장전 호와 같은 방식: 스냅샷이 100ms 주기라 늦게 마운트된 만큼은 음수 지연으로 건너뛴다).
+ * 높이는 평소 줄(칸 18px, 막대 10px)과 같게 해서 장전 때 패널 높이가 흔들리지 않게 한다.
+ */
+const PanelReloadBar: React.FC<{ durationMs: number; endTimeMs: number; heightPx: number; isPaused: boolean }> = ({
+  durationMs,
+  endTimeMs,
+  heightPx,
+  isPaused,
+}) => {
+  const [timing] = useState(() => computeReloadRingTiming(durationMs, endTimeMs - performance.now()));
+  return (
+    <div
+      data-testid="panel-reload-bar"
+      style={{ height: `${heightPx}px`, background: 'rgba(255, 255, 255, 0.12)', borderRadius: '5px', overflow: 'hidden' }}
+    >
+      <div
+        style={{
+          height: '100%',
+          width: '100%',
+          background: SCOPE_GAUGE_COLORS.reload,
+          transformOrigin: 'left',
+          animation: `panel-reload-fill ${timing.durationMs}ms linear ${timing.delayMs}ms forwards`,
+          animationPlayState: isPaused ? 'paused' : 'running',
+        }}
+      />
+    </div>
+  );
+};
+
+export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation, isPaused = false }) => {
   if (!presentation) return null;
   const skillBadge = formatWeaponSkillBadge(
     snapshot.weaponKind,
@@ -69,6 +104,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation
         boxSizing: 'border-box',
       }}
     >
+      <style>{'@keyframes panel-reload-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }'}</style>
       {/* 1st row: Slot Badge, Nickname, Away Tag, Score, Combo */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
@@ -165,11 +201,18 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation
         </span>
       </div>
 
-      {/* 3rd row: Dynamic Magazine */}
-      {snapshot.maxAmmo <= 12 ? (
+      {/* 3rd row: Dynamic Magazine. 피버는 탄창을 채우지 않으므로 피버 중에도 실제 탄창을 보여 주고, 장전 중에는 막대가 차오른다. */}
+      {snapshot.isReloading ? (
+        <PanelReloadBar
+          durationMs={snapshot.reloadDurationMs}
+          endTimeMs={snapshot.reloadEndTimeMs}
+          heightPx={snapshot.maxAmmo <= 12 ? 18 : 10}
+          isPaused={isPaused}
+        />
+      ) : snapshot.maxAmmo <= 12 ? (
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {Array.from({ length: snapshot.maxAmmo }).map((_, idx) => {
-            const filled = snapshot.isFeverActive || idx < snapshot.ammo;
+            const filled = idx < snapshot.ammo;
             return (
               <div
                 key={idx}
@@ -177,11 +220,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation
                   width: '12px',
                   height: '18px',
                   borderRadius: '3px',
-                  background: filled
-                    ? snapshot.isFeverActive
-                      ? '#fbbf24'
-                      : skillBadge.accentColor
-                    : 'rgba(255, 255, 255, 0.1)',
+                  background: filled ? skillBadge.accentColor : 'rgba(255, 255, 255, 0.1)',
                   transition: 'background 0.15s',
                 }}
               />
@@ -201,9 +240,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation
             style={{
               height: '100%',
               width: `${(snapshot.ammo / snapshot.maxAmmo) * 100}%`,
-              background: snapshot.isFeverActive
-                ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
-                : `linear-gradient(90deg, #0284c7, ${skillBadge.accentColor})`,
+              background: `linear-gradient(90deg, #0284c7, ${skillBadge.accentColor})`,
               transition: 'width 0.08s ease-out',
             }}
           />

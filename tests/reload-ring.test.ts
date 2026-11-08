@@ -1,33 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
-import { computeReloadRingTiming, getReloadRingSpec } from '../src/pc/components/CrosshairOverlay';
+import { computeReloadRingTiming } from '../src/pc/components/CrosshairOverlay';
 
 const overlaySource = () => fs.readFileSync('src/pc/components/CrosshairOverlay.tsx', 'utf8');
 
-describe('reload progress ring spec', () => {
-  it('shows a ring around the crosshair for the reload duration', () => {
-    const ring = getReloadRingSpec({ isReloading: true, isFeverActive: false, reloadDurationMs: 1680, sizePx: 120 });
-    expect(ring.visible).toBe(true);
-    expect(ring.diameterPx).toBe(136);
-    expect(ring.radiusPx).toBe(62);
-    expect(ring.strokeWidthPx).toBe(8);
-    expect(ring.outlineWidthPx).toBe(12);
-    expect(ring.reticleOpacity).toBe(0.45);
-    expect(ring.durationMs).toBe(1680);
-  });
-
-  it('keeps the reticle at full brightness when not reloading and during fever', () => {
-    expect(getReloadRingSpec({ isReloading: false, reloadDurationMs: 1680, sizePx: 88 }).reticleOpacity).toBe(1);
-    expect(getReloadRingSpec({ isReloading: true, isFeverActive: true, reloadDurationMs: 1680, sizePx: 88 }).reticleOpacity).toBe(1);
-  });
-
-  it('hides the ring when not reloading, during fever, or without a duration', () => {
-    expect(getReloadRingSpec({ isReloading: false, reloadDurationMs: 1680, sizePx: 88 }).visible).toBe(false);
-    expect(getReloadRingSpec({ isReloading: true, isFeverActive: true, reloadDurationMs: 1680, sizePx: 88 }).visible).toBe(false);
-    expect(getReloadRingSpec({ isReloading: true, reloadDurationMs: 0, sizePx: 88 }).visible).toBe(false);
-    expect(getReloadRingSpec({ isReloading: true, sizePx: 88 }).visible).toBe(false);
-  });
-});
+// 별도 장전 링(getReloadRingSpec/ReloadRing)은 없앴다. 장전은 조준경 탄창 호가 차오르는 모양으로 보인다(scope-gauges.test.tsx).
+// 아래 타이밍 함수는 그 호와 하단 패널 장전 막대가 이미 지난 만큼을 건너뛰는 데 그대로 쓴다.
 
 describe('reload ring timing (the ring mounts up to ~100ms after the reload really started)', () => {
   it('starts from zero when the whole reload is still ahead', () => {
@@ -54,37 +32,45 @@ describe('reload ring timing (the ring mounts up to ~100ms after the reload real
   });
 });
 
-describe('reload ring wiring', () => {
+describe('reload arc wiring', () => {
   it('defines its keyframes once, in the always-mounted style tag, without a per-reload <style>', () => {
     const src = overlaySource();
     expect((src.match(/@keyframes reload-ring-fill/g) || []).length).toBe(1);
     expect((src.match(/@keyframes crosshair-spin/g) || []).length).toBe(1);
     expect(src).toContain('pathLength={1}');
-    const ring = src.slice(src.indexOf('const ReloadRing'), src.indexOf('export interface CrosshairOverlayHandle'));
-    expect(ring).not.toContain('<style>');
+    const arc = src.slice(src.indexOf('const ReloadArcFill'), src.indexOf('export interface CrosshairOverlayHandle'));
+    expect(arc).not.toContain('<style>');
   });
 
-  it('renders the ring after the dimmed reticle wrapper closes, so only the reticle dims', () => {
+  it('removed the separate reload ring', () => {
     const src = overlaySource();
-    const lastBadge = src.lastIndexOf("spec.weaponLevel === 4 ? 'MAX'");
-    expect(src.indexOf('opacity: ring.reticleOpacity')).toBeLessThan(lastBadge);
-    expect(src.indexOf('{ring.visible && <ReloadRing')).toBeGreaterThan(lastBadge);
+    expect(src).not.toContain('getReloadRingSpec');
+    expect(src).not.toContain('<ReloadRing');
+    expect(src).not.toContain('getReloadRemainingMs');
+  });
+
+  it('dims only the reticle while reloading, never during fever', () => {
+    const src = overlaySource();
+    expect(src).toContain('const reticleOpacity = isReloading && !isFeverActive ? 0.45 : 1;');
+    expect(src).toContain('opacity: reticleOpacity');
   });
 
   it('no longer uses the undefined "spin" animation', () => {
     expect(overlaySource()).not.toMatch(/'spin \d/);
   });
 
-  it('PCGamePage passes the reload props to the three in-game crosshairs and pauses correctly per mode', () => {
+  it('PCGamePage gives the three in-game crosshairs the HUD snapshot so every one draws the gauge arcs', () => {
     const src = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
     // In-game crosshairs are the ones that receive a weapon; the lobby and result ones do not.
     const gameplay = src.match(/<CrosshairOverlay\b[\s\S]*?\/>/g)!.filter((b) => b.includes('weaponKind='));
     expect(gameplay.length).toBe(3);
     gameplay.forEach((block) => {
       expect(block).toContain('isReloading=');
-      expect(block).toContain('reloadDurationMs=');
-      expect(block).toContain('getReloadRemainingMs=');
       expect(block).toContain('isPaused=');
+      // 튜토리얼·샌드박스도 장전 표시가 있어야 한다(별도 링이 없어졌다).
+      expect(block).toContain('gaugeSource=');
+      expect(block).not.toContain('reloadDurationMs=');
+      expect(block).not.toContain('getReloadRemainingMs=');
     });
     // Only the regular run freezes its clock for cards; tutorial and sandbox pause on the user pause only.
     const freezing = gameplay.filter((b) => b.includes('hudState.isRewardCardPending'));

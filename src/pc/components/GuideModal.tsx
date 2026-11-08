@@ -667,7 +667,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     • <strong>⏸ 일시정지:</strong> <strong>Esc 키</strong> 또는 상단 일시정지 버튼 (이어하기 / 다시시작)
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
-                    <strong>🎯 조준경 링 게이지:</strong> 십자선 둘레의 원호로 상태를 봅니다. <strong>위</strong>는 남은 탄창(20% 미만이면 노란색), <strong>왼쪽 아래</strong>는 스킬 충전(점은 스택), <strong>오른쪽 아래</strong>는 피버 게이지입니다. 가득 차면 반짝입니다.
+                    <strong>🎯 조준경 링 게이지:</strong> 십자선 둘레의 원호로 상태를 봅니다. <strong>위</strong>는 남은 탄창(20% 미만이면 노란색, 장전 중에는 하늘색으로 차오르며 피버 중에도 장전은 계속됩니다), <strong>왼쪽 아래</strong>는 스킬 충전(점은 스택), <strong>오른쪽 아래</strong>는 피버입니다. 피버 게이지는 충전될 때 주황색으로 차오르고, 피버가 켜지면 붉은색으로 남은 시간만큼 줄어듭니다. 가득 차면 반짝입니다.
                   </div>
                 </div>
               </div>

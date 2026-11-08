@@ -18,6 +18,7 @@ function createMockPlayerSnapshot(overrides: Partial<PlayerHudSnapshot> = {}): P
     maxAmmo: 8,
     isReloading: false,
     reloadDurationMs: 1500,
+    reloadEndTimeMs: 0,
     feverGauge: 75,
     isFeverReady: false,
     isFeverActive: false,
@@ -216,5 +217,56 @@ describe('PlayerPanel without a presentation (player count changed between HUD t
       );
     expect(render).not.toThrow();
     expect(render()).toBe('');
+  });
+});
+
+describe('PlayerPanel magazine row (fever-ammo-and-aim-source D01/D03)', () => {
+  const pres = getPlayerPresentation({
+    playerCount: 1,
+    slotIndexMap: { 1: 0 },
+    slots: (() => {
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 1, 'mouse').slots;
+      return updateSlot(slots, 1, { player: { deviceId: 'd1', nickname: '솔로', bestScore: 0, totalGames: 0, lastPlayedAt: '' } });
+    })(),
+  });
+  const render = (over: Partial<PlayerHudSnapshot>, isPaused = false) =>
+    renderToStaticMarkup(<PlayerPanel snapshot={createMockPlayerSnapshot(over)} presentation={pres[0]} isPaused={isPaused} />);
+  /** 칸 줄의 칸(너비 12px, 높이 18px) 중 채워진 것(배경이 반투명 흰색이 아닌 것)의 수. */
+  const filledCells = (html: string) =>
+    (html.match(/width:12px;height:18px;border-radius:3px;background:[^;]+/g) || []).filter(
+      (c) => !c.includes('rgba(255, 255, 255, 0.1)') && !c.includes('rgba(255,255,255,0.1)')
+    ).length;
+
+  it('피버 중에도 실제 탄창만큼만 채워 보인다 (전부 채움이 아니다)', () => {
+    const html = render({ ammo: 5, maxAmmo: 8, isFeverActive: true });
+    expect(filledCells(html)).toBe(5);
+    expect(html).not.toContain('#fbbf24;transition:background');
+  });
+
+  it('장전 중에는 칸 줄 대신 차오르는 장전 막대를 그린다 (평소 줄과 같은 높이)', () => {
+    const html = render({ ammo: 0, maxAmmo: 8, isReloading: true, reloadDurationMs: 1500, reloadEndTimeMs: performance.now() + 1000 });
+    expect(html).toContain('data-testid="panel-reload-bar"');
+    expect(html).toContain('panel-reload-fill 1500ms');
+    expect(html).toContain('#4cc9f0');
+    expect(html).toContain('height:18px');
+    expect(html).not.toContain('width:12px;height:18px');
+  });
+
+  it('큰 탄창(막대형)은 10px 높이의 장전 막대를 쓰고, 일시정지면 애니메이션을 멈춘다', () => {
+    const html = render({ ammo: 0, maxAmmo: 30, isReloading: true }, true);
+    expect(html).toContain('data-testid="panel-reload-bar"');
+    expect(html).toContain('height:10px');
+    expect(html).toContain('animation-play-state:paused');
+  });
+
+  it('장전 중이 아니면 장전 막대가 없다', () => {
+    expect(render({ ammo: 4 })).not.toContain('panel-reload-bar');
+  });
+
+  it('피버 중 장전이면 피버 문구는 그대로 두고 막대로 장전을 보여 준다', () => {
+    const html = render({ ammo: 0, isReloading: true, isFeverActive: true });
+    expect(html).toContain('FEVER UNLIMITED AMMO');
+    expect(html).toContain('panel-reload-bar');
   });
 });

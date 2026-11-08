@@ -20,6 +20,8 @@ const input = (over: Partial<ScopeGaugeInput> = {}): ScopeGaugeInput => ({
   feverGauge: 55,
   isFeverReady: false,
   isFeverActive: false,
+  reloadDurationMs: 1680,
+  reloadEndTimeMs: 0,
   ...over,
 });
 
@@ -35,17 +37,46 @@ describe('computeScopeGauges (playtest-feedback D08)', () => {
     expect(g.fever.flash).toBe(false);
   });
 
-  it('warns under 20% ammo and hides the ammo arc while reloading', () => {
-    expect(computeScopeGauges(input({ ammo: 5 })).ammo?.warn).toBe(true);
-    expect(computeScopeGauges(input({ ammo: 6 })).ammo?.warn).toBe(false);
-    expect(computeScopeGauges(input({ isReloading: true })).ammo).toBeNull();
+  it('warns under 20% ammo', () => {
+    expect(computeScopeGauges(input({ ammo: 5 })).ammo.warn).toBe(true);
+    expect(computeScopeGauges(input({ ammo: 6 })).ammo.warn).toBe(false);
   });
 
-  it('shows a full, non-warning ammo arc during fever (ammo does not drop)', () => {
-    const g = computeScopeGauges(input({ ammo: 1, isFeverActive: true }));
-    expect(g.ammo?.fill).toBe(1);
-    expect(g.ammo?.warn).toBe(false);
-    expect(g.fever.flash).toBe(true);
+  it('keeps drawing the ammo arc while reloading: empty fill, filled by the reload animation', () => {
+    const g = computeScopeGauges(input({ isReloading: true, ammo: 0 }));
+    expect(g.ammo.reloading).toBe(true);
+    expect(g.ammo.fill).toBe(0);
+    expect(g.ammo.warn).toBe(false);
+    expect(computeScopeGauges(input()).ammo.reloading).toBeUndefined();
+  });
+
+  it('shows the real ammo during fever (fever does not refill) and does not warn (shots are free)', () => {
+    const g = computeScopeGauges(input({ ammo: 18, isFeverActive: true, feverGauge: 70 }));
+    expect(g.ammo.fill).toBeCloseTo(0.6);
+    expect(g.ammo.warn).toBe(false);
+    expect(computeScopeGauges(input({ ammo: 3, isFeverActive: true })).ammo.warn).toBe(false);
+  });
+
+  it('keeps reloading visible during fever as well', () => {
+    const g = computeScopeGauges(input({ ammo: 0, isReloading: true, isFeverActive: true, feverGauge: 40 }));
+    expect(g.ammo.reloading).toBe(true);
+    expect(g.fever.active).toBe(true);
+  });
+
+  it('shrinks the fever arc with the remaining time while fever runs (no flash, active colour)', () => {
+    const g = computeScopeGauges(input({ isFeverActive: true, feverGauge: 40 }));
+    expect(g.fever.fill).toBeCloseTo(0.4);
+    expect(g.fever.active).toBe(true);
+    expect(g.fever.flash).toBe(false);
+    expect(computeScopeGauges(input({ isFeverActive: true, feverGauge: 100 })).fever.fill).toBe(1);
+    expect(computeScopeGauges(input({ isFeverActive: true, feverGauge: 0 })).fever.fill).toBe(0);
+  });
+
+  it('charges the fever arc with the charging colour before fever (not active)', () => {
+    const g = computeScopeGauges(input({ feverGauge: 55 }));
+    expect(g.fever.fill).toBeCloseTo(0.55);
+    expect(g.fever.active).toBeUndefined();
+    expect(g.fever.flash).toBe(false);
   });
 
   it('flashes a full skill stock and a ready fever', () => {
@@ -88,5 +119,40 @@ describe('CrosshairOverlay gauges', () => {
     expect(menu).not.toContain('data-testid="scope-gauges"');
     const none = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} />);
     expect(none).not.toContain('data-testid="scope-gauges"');
+  });
+});
+
+describe('scope gauge rendering of reload and fever (fever-ammo-and-aim-source D03/D04)', () => {
+  it('draws a reload fill in the reload colour only while reloading', () => {
+    const reloading = renderToStaticMarkup(
+      <CrosshairOverlay aimX={0} aimY={0} gaugeSource={input({ isReloading: true, ammo: 0, reloadEndTimeMs: performance.now() + 1000 })} />
+    );
+    expect(reloading).toContain('data-testid="scope-reload-fill"');
+    expect(reloading).toContain('#4cc9f0');
+    expect(reloading).toContain('reload-ring-fill 1680ms');
+    const idle = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} gaugeSource={input()} />);
+    expect(idle).not.toContain('scope-reload-fill');
+  });
+
+  it('draws the fever arc red while fever runs and orange while charging', () => {
+    const active = renderToStaticMarkup(
+      <CrosshairOverlay aimX={0} aimY={0} gaugeSource={input({ isFeverActive: true, feverGauge: 50 })} />
+    );
+    expect(active).toContain('#ef4444');
+    const charging = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} gaugeSource={input({ feverGauge: 50 })} />);
+    expect(charging).toContain('#ff7a3d');
+    expect(charging).not.toContain('#ef4444');
+  });
+
+  it('has no separate reload ring any more (the old ring was a rotated -90deg svg)', () => {
+    const html = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} isReloading gaugeSource={input({ isReloading: true })} />);
+    expect(html).not.toContain('rotate(-90deg)');
+  });
+
+  it('dims the reticle while reloading but not during fever', () => {
+    const dimmed = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} isReloading />);
+    expect(dimmed).toContain('opacity:0.45');
+    const fever = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} isReloading isFeverActive />);
+    expect(fever).not.toContain('opacity:0.45');
   });
 });
