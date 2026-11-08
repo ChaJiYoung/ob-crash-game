@@ -11,4 +11,4 @@ Decisions: [2026-11-08-webgl-context-loss](../decisions/2026-11-08-webgl-context
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 컨텍스트 가드 + 안내 오버레이 + GameCanvas3D 연결 | [P01](../phases/2026-11-09-webgl-context-loss/P01-context-guard/phase.md) |
+| P01 | `done` | 컨텍스트 가드 + 안내 오버레이 + GameCanvas3D 연결 | [P01](../phases/2026-11-09-webgl-context-loss/P01-context-guard/phase.md) |

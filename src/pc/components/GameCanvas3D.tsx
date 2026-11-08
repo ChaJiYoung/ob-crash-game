@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import React, { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 import { computeRenderPixelRatio } from '../three/renderBudget';
+import { attachContextLossGuard, ContextLossGuard } from '../three/webglContextGuard';
+import { WebGLErrorOverlay, WebGLErrorReason } from './WebGLErrorOverlay';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
 import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
@@ -183,6 +185,7 @@ export const GameCanvas3D = React.memo(
     onCardAnchorsUpdate,
   }, ref) => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const [glError, setGlError] = useState<WebGLErrorReason | null>(null);
     const gunAimsRef = useRef<Array<{ target: { aimX: number; aimY: number }; current: { aimX: number; aimY: number } }>>([
       { target: { aimX, aimY }, current: { aimX, aimY } },
     ]);
@@ -365,10 +368,25 @@ export const GameCanvas3D = React.memo(
         container.appendChild(renderer.domElement);
       } catch (e) {
         console.warn('WebGL initialization failed:', e);
+        setGlError('blocked');
       }
 
       // 2. Add Brewery Stage, Gun, and Particle pool
       let disposed = false;
+      // 게임 중 컨텍스트 손실: 일시정지하고 3초 동안 복구를 기다린다(webgl-context-loss D02).
+      let contextGuard: ContextLossGuard | null = null;
+      if (renderer) {
+        contextGuard = attachContextLossGuard(renderer.domElement, {
+          isDisposed: () => disposed,
+          onLost: () => {
+            console.warn('WebGL context lost: pausing and waiting for restore');
+            engine.setPaused(true, performance.now());
+          },
+          // 텍스처·셰이더를 다시 올리는 대신 새로고침으로 장면을 새로 만든다.
+          onRestored: () => window.location.reload(),
+          onGiveUp: () => setGlError('lost'),
+        });
+      }
       let shaderAnchors: THREE.Group | null = null;
       let environmentReady = false;
       let sceneReady = false;
@@ -377,7 +395,7 @@ export const GameCanvas3D = React.memo(
       // variants, so warming up earlier would be wasted. The anchor group stays referenced
       // (never disposed during play) so shader programs are not released.
       const runShaderWarmup = () => {
-        if (!renderer || disposed) return;
+        if (!renderer || disposed || contextGuard?.isLost()) return;
         if (typeof renderer.compile !== 'function') return;
         let anchors: THREE.Group | null = null;
         try {
@@ -863,7 +881,7 @@ export const GameCanvas3D = React.memo(
         );
         particles.update(dtSec);
 
-        if (renderer && camera) renderer.render(scene, camera);
+        if (renderer && camera && !contextGuard?.isLost()) renderer.render(scene, camera);
 
         // Periodic render performance reporting (~250ms throttled)
         fpsFrameCount++;
@@ -927,9 +945,15 @@ export const GameCanvas3D = React.memo(
         }
 
         // Resource cleanup
-        if (renderer && renderer.domElement && container.contains(renderer.domElement)) {
-          container.removeChild(renderer.domElement);
+        // 컨텍스트를 GC까지 남기지 않고 즉시 반납한다. StrictMode·HMR 반복 마운트로 쌓이면 브라우저가 사이트를 차단한다(D01).
+        // disposed가 이미 true이고 가드도 떼었으므로, 여기서 생기는 lost 이벤트는 안내를 띄우지 않는다.
+        contextGuard?.detach();
+        if (renderer) {
+          if (renderer.domElement && container.contains(renderer.domElement)) {
+            container.removeChild(renderer.domElement);
+          }
           renderer.dispose();
+          renderer.forceContextLoss();
         }
       };
     }, [engine, soundSynth]);
@@ -944,7 +968,10 @@ export const GameCanvas3D = React.memo(
           position: 'relative',
           cursor: 'crosshair',
         }}
-      />
+      >
+        {/* renderer.domElement는 appendChild로 붙는다. 오버레이는 그 위(zIndex 50)에 덮인다. */}
+        {glError && <WebGLErrorOverlay reason={glError} />}
+      </div>
     );
   })
 );

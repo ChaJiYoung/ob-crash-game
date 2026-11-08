@@ -1,6 +1,6 @@
 # Task: T01 컨텍스트 손실 감시·안내 오버레이·정리 시 반납
 
-## Status: pending
+## Status: done
 
 ## Goal
 `GameCanvas3D`가 (1) 언마운트 때 WebGL 컨텍스트를 즉시 반납하고, (2) 게임 중 손실을 감지해 일시정지·복구 대기·새로고침 또는 안내를 하며, (3) 렌더러 생성 실패 시 안내 오버레이를 띄운다. 지금은 콘솔 경고만 남고 화면이 검거나 하얗게 남는다.
@@ -142,6 +142,10 @@ Task: T01-context-guard-and-overlay
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
+
+## 구현 메모
+- `let disposed` 선언은 이미 셰이더 워밍업 함수보다 앞(렌더러 생성 try 블록 바로 뒤)에 있어 옮기지 않았다. 가드는 그 선언 바로 뒤에서 붙인다.
+- 검증: tsc 0 오류, vitest 111 파일·888 테스트 통과, `npm run build` 성공. 브라우저 수동 확인(`loseContext()`)은 하지 않았다.
