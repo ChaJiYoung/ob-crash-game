@@ -247,6 +247,8 @@ export type ClientToServerMessage =
   | { type: 'CONTROLLER_BACKGROUND'; roomId: string; deviceId: string; slot?: PlayerSlot }
   /** 폰 화면이 다시 켜졌다. 서버의 대기 중인 알림을 취소한다. */
   | { type: 'CONTROLLER_FOREGROUND'; roomId: string; deviceId: string; slot?: PlayerSlot }
+  /** 권한을 허용했지만 센서 실측에서 자이로가 확인되지 않았다. 서버가 이 폰을 슬롯에서 내보낸다. */
+  | { type: 'DEVICE_UNSUPPORTED'; roomId: string; deviceId: string; reason: UnsupportedReason; slot?: PlayerSlot }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean; slot?: PlayerSlot }
   | {
       type: 'SKILL_STATE_SYNC';
@@ -273,6 +275,8 @@ export type ServerToClientMessage =
   | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[]; lanIp?: string }
   | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile; slot: PlayerSlot }
+  /** 슬롯의 폰이 미지원 기기라서 내보냈다. 곧 CONTROLLER_DISCONNECTED가 이어진다. */
+  | { type: 'CONTROLLER_UNSUPPORTED'; roomId: string; slot: PlayerSlot; reason: UnsupportedReason }
   | { type: 'LOCAL_PLAYER_REGISTERED'; roomId: string; slot: PlayerSlot; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean; slot: PlayerSlot }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }

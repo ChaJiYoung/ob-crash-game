@@ -4,7 +4,7 @@ import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
 import { RoomManager, normalizeSlot } from './RoomManager';
-import { ClientToServerMessage, PlayerProfile, PlayerSlot, ServerToClientMessage } from '../src/shared/types';
+import { ClientToServerMessage, PlayerProfile, PlayerSlot, ServerToClientMessage, UnsupportedReason } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
 import { ControllerWatch, watchKey, parseWatchKey } from './ControllerWatch';
@@ -423,6 +423,35 @@ export async function createBeerCrusherServer(options?: {
                 slot,
               });
             }
+            break;
+          }
+
+          case 'DEVICE_UNSUPPORTED': {
+            const { roomId, deviceId } = msg;
+            if (!roomId || !deviceId) {
+              sendJson(ws, {
+                type: 'ERROR',
+                code: 'INVALID_REQUEST',
+                message: 'roomId and deviceId are required for DEVICE_UNSUPPORTED',
+                slot: normalizeSlot(msg.slot),
+              });
+              return;
+            }
+            // 슬롯은 메시지가 아니라 소켓 기준으로 찾고, 그 자리의 기기와 같을 때만 인정한다.
+            // 좌석에 안 붙은 소켓이 보낸 메시지는 다른 폰을 쫓아낼 수 없다.
+            const session = roomManager.getRoom(roomId);
+            const slot = session ? roomManager.getControllerSlot(session, ws) : undefined;
+            if (!session || slot === undefined || session.controllers[slot]?.deviceId !== deviceId) {
+              ws.close();
+              break;
+            }
+            // 클라이언트 입력은 믿지 않는다: 알려진 이유가 아니면 NO_GYRO로 보정한다.
+            const reason: UnsupportedReason = msg.reason === 'NO_EVENTS' ? 'NO_EVENTS' : 'NO_GYRO';
+            console.warn(`[unsupported-device] room=${roomId} slot=${slot} device=${deviceId} reason=${reason}`);
+            sendJson(session.pcSocket, { type: 'CONTROLLER_UNSUPPORTED', roomId, slot, reason });
+            // 소켓을 닫으면 아래 close 핸들러가 좌석을 비우고 PC에 CONTROLLER_DISCONNECTED를 보낸다.
+            // (removeSocket을 여기서 직접 부르면 close 핸들러가 빈 결과를 받아 PC가 끊김을 모른다.)
+            ws.close();
             break;
           }
 

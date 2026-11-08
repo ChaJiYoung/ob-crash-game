@@ -1,6 +1,6 @@
 # Task: T02 미지원 기기 메시지와 서버 핸들러
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰이 `DEVICE_UNSUPPORTED`를 보내면 서버가 그 폰의 소켓을 닫아 슬롯을 비우고, PC에 `CONTROLLER_UNSUPPORTED`를 보낸다. 같은 QR로 다른 폰이 그 슬롯에 들어올 수 있어야 한다.
@@ -79,6 +79,6 @@ Task: T02-server-unsupported-message
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
