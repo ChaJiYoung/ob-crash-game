@@ -37,16 +37,21 @@ export class ControllerWatch {
     return 'ok';
   }
 
-  /** 사라진 것으로 표시한다(백그라운드 신호용). 새로 표시했으면 true, 이미 표시돼 있었으면 false. */
+  /**
+   * 사라진 것으로 표시한다(백그라운드 신호용). 새로 표시했으면 true.
+   * 프레임을 한 번도 받지 못한 키는 추적 중이 아니므로 표시하지 않고 false를 돌려준다(센서가 아직 시작되지 않은 폰에게
+   * 나중에 '복귀'를 알리지 않기 위해). 이미 표시돼 있어도 false.
+   */
   public markLost(key: string): boolean {
     const entry = this.entries.get(key);
-    if (!entry) {
-      this.entries.set(key, { lastMs: 0, lost: true });
-      return true;
-    }
-    if (entry.lost) return false;
+    if (!entry || entry.lost) return false;
     entry.lost = true;
     return true;
+  }
+
+  /** 사라진 것으로 표시돼 PC에 이미 알렸는가. */
+  public isLost(key: string): boolean {
+    return this.entries.get(key)?.lost === true;
   }
 
   /** timeoutMs를 넘겨 새로 사라진 키들. 같은 키는 다시 돌려주지 않는다. */

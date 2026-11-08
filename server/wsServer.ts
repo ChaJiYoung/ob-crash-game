@@ -206,8 +206,10 @@ export async function createBeerCrusherServer(options?: {
               return;
             }
 
-            // 폰이 다시 인증을 보냈다면 돌아온 것이다: 화면 꺼짐 상태를 지운다.
+            // 폰이 다시 인증을 보냈다면 돌아온 것이다: 화면 꺼짐 상태와 끊김 표시를 지운다.
+            // 이 뒤의 PC 복귀는 폰이 보내는 CALIBRATE_ZERO(resume)가 맡으므로, 다음 프레임이 복귀 알림을 또 보내지 않게 한다.
             clearBackground(watchKey(roomId, slot));
+            watch.forget(watchKey(roomId, slot));
 
             if (attachResult.movedFromSlot && session.pcSocket) {
               sendJson(session.pcSocket, {
@@ -709,14 +711,20 @@ export async function createBeerCrusherServer(options?: {
 
     ws.on('close', () => {
       const { roomId, role, slot } = roomManager.removeSocket(ws);
+      // 화면 꺼짐/프레임 끊김으로 PC에 이미 알렸다면 소켓이 닫혀도 같은 슬롯을 다시 알리지 않는다.
+      // (PC는 두 번째 알림을 새 이탈로 받아 유예를 새로 시작할 수 있다.)
+      let alreadyReported = false;
       if (roomId && role === 'CONTROLLER' && slot !== undefined) {
-        watch.forget(watchKey(roomId, slot));
-        clearBackground(watchKey(roomId, slot));
+        const key = watchKey(roomId, slot);
+        alreadyReported = watch.isLost(key);
+        watch.forget(key);
+        clearBackground(key);
       }
       if (roomId && role) {
         const session = roomManager.getRoom(roomId);
         if (session) {
           if (role === 'CONTROLLER' && session.pcSocket) {
+            if (alreadyReported) return;
             sendJson(session.pcSocket, {
               type: 'ERROR',
               code: 'CONTROLLER_DISCONNECTED',

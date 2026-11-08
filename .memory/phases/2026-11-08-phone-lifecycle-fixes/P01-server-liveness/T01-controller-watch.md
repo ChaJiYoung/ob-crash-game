@@ -90,6 +90,10 @@
   5. `ws.on('close')`: `removeSocket`이 `role === 'CONTROLLER'`이고 `roomId`와 `slot`이 있으면 `watch.forget(watchKey(roomId, slot))`. (기존 `CONTROLLER_DISCONNECTED` 전송은 그대로.)
   6. 반환 객체의 `close()`에서 `clearInterval(watchTimer)`를 먼저 호출한다.
   7. 에러 처리: 타이머 콜백 전체를 `try/catch`로 감싸 예외가 서버를 죽이지 않게 한다.
+- **리뷰 반영(opus 코드 리뷰, 청사진 변경)**:
+  - `markLost(key)`는 프레임을 한 번이라도 받은(추적 중인) 키만 표시하고, 추적 중이 아니면 `false`를 돌려준다(센서가 시작되지 않은 폰이 나중에 첫 프레임으로 '복귀' 처리되어 영점 신호보다 먼저 `ZERO_CALIBRATED`가 가는 것을 막는다). `isLost(key): boolean`을 추가했다.
+  - `DEVICE_CHECK`가 성공하면 해당 슬롯의 `watch`를 `forget`한다. 복귀 경로는 폰의 `CALIBRATE_ZERO(resume)` 하나로 두고, 다음 프레임이 복귀 알림을 중복으로 보내지 않게 한다.
+  - `ws.on('close')`는 그 슬롯이 이미 `lost`로 PC에 알려진 상태면 `CONTROLLER_DISCONNECTED`를 다시 보내지 않는다(PC가 두 번째 이탈 뒤의 중복 알림을 새 유예로 받아 1P 없이 재개하던 문제).
 - **주의(회귀 방지)**:
   - `watch.onFrame`은 `getControllerSlot(session, ws)`(소켓 기준)을 쓴다. 메시지의 `msg.slot`을 믿지 않는다(다른 슬롯 흉내 방지).
   - `DEVICE_CHECK`로 슬롯이 이동(`movedFromSlot`)하면 지워진 슬롯의 추적이 남을 수 있다. 4번의 소켓 상태 확인이 이를 걸러낸다.

@@ -51,6 +51,17 @@ describe('server frame-loss detection', () => {
     expect(h.pc.disconnects(1)).toHaveLength(1);
   });
 
+  it('does not repeat the alert when the socket of an already reported controller closes', async () => {
+    h = await startHarness({ controllerFrameTimeoutMs: 300, watchIntervalMs: 50 });
+    const phone = await h.phone('phone-A', 1);
+    phone.ws.send(sensorFrame(h.roomId, 'phone-A'));
+    await h.pc.waitFor(() => h!.pc.disconnects(1).length > 0, 2000);
+
+    phone.ws.close();
+    await sleep(500);
+    expect(h.pc.disconnects(1)).toHaveLength(1);
+  });
+
   it('watches the two slots independently', async () => {
     h = await startHarness({ controllerFrameTimeoutMs: 300, watchIntervalMs: 50 });
     const a = await h.phone('phone-A', 1);

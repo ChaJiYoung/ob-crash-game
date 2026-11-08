@@ -32,10 +32,25 @@ describe('ControllerWatch', () => {
     expect(w.onFrame('R:1', T * 10)).toBe('recovered');
   });
 
-  it('markLost works for a controller that never sent a frame', () => {
+  it('does not track a controller that never sent a frame, so it is never reported as coming back', () => {
     const w = new ControllerWatch();
-    expect(w.markLost('R:2')).toBe(true);
-    expect(w.onFrame('R:2', 5)).toBe('recovered');
+    expect(w.markLost('R:2')).toBe(false);
+    expect(w.isLost('R:2')).toBe(false);
+    expect(w.onFrame('R:2', 5)).toBe('ok');
+  });
+
+  it('isLost is true from the moment a loss was reported until the next frame or forget', () => {
+    const w = new ControllerWatch();
+    w.onFrame('R:1', 0);
+    expect(w.isLost('R:1')).toBe(false);
+    w.check(T + 1);
+    expect(w.isLost('R:1')).toBe(true);
+    w.onFrame('R:1', T + 2);
+    expect(w.isLost('R:1')).toBe(false);
+    w.markLost('R:1');
+    expect(w.isLost('R:1')).toBe(true);
+    w.forget('R:1');
+    expect(w.isLost('R:1')).toBe(false);
   });
 
   it('forget stops tracking', () => {
