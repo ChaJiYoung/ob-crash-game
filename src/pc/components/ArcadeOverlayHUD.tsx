@@ -336,27 +336,45 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                   color: '#94a3b8',
                 }}
               >
-                <span>WAVE 진행도</span>
+                <span>WAVE 진행도{waveProgress.cardKillTarget !== null && !waveProgress.midCardGranted ? ' · 🃏 절반에 카드' : ''}</span>
                 <span>
                   {waveProgress.killedInWave} / {waveProgress.totalSpawns}
                 </span>
               </div>
-              <div
-                style={{
-                  height: '6px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  borderRadius: '3px',
-                  overflow: 'hidden',
-                }}
-              >
+              <div style={{ position: 'relative' }}>
                 <div
                   style={{
-                    height: '100%',
-                    width: `${waveProgress.progressPercent}%`,
-                    background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
-                    transition: 'width 0.15s ease-out',
+                    height: '6px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '3px',
+                    overflow: 'hidden',
                   }}
-                />
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${waveProgress.progressPercent}%`,
+                      background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+                      transition: 'width 0.15s ease-out',
+                    }}
+                  />
+                </div>
+                {/* 절반 중간 카드 눈금(4·6웨이브). 카드를 받으면 흐려진다. */}
+                {waveProgress.cardKillTarget !== null && (
+                  <div
+                    data-testid="mid-card-tick"
+                    style={{
+                      position: 'absolute',
+                      top: '-3px',
+                      left: `${(waveProgress.cardKillTarget / waveProgress.totalSpawns) * 100}%`,
+                      width: '2px',
+                      height: '12px',
+                      background: '#a78bfa',
+                      opacity: waveProgress.midCardGranted ? 0.35 : 1,
+                      transform: 'translateX(-1px)',
+                    }}
+                  />
+                )}
               </div>
             </div>
           )}

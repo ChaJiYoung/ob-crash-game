@@ -51,12 +51,12 @@ describe('BeerCrusherEngine playerCountRules (P02-T02)', () => {
       expect(boss!.hp).toBe(expectedCoolerHp);
     });
 
-    it('applies the card kill target and boss summon multipliers', () => {
+    it('puts the mid-wave card at half the scaled wave and applies boss summon multipliers', () => {
       const engine: any = new BeerCrusherEngine();
       engine.startGame({ withWeaponSelect: false, playerCount: count });
       const rules = GAME_TUNING.playerCountRules[count];
 
-      expect(engine.waveCardKillTargets[4]).toBe(Math.ceil(22 * rules.cardKillTargetMult));
+      expect(engine.getCardKillTarget(4)).toBe(Math.ceil(Math.ceil(34 * rules.spawnCountMult) / 2));
 
       engine.startWave(3);
       engine.spawnedInWave = Math.ceil(15 * rules.spawnCountMult);

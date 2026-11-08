@@ -1,6 +1,6 @@
 # Task: T01 웨이브 절반 1회 중간 카드
 
-## Status: pending
+## Status: done
 
 ## Goal
 4·6웨이브에서 처치 수(`killedInWave`)가 `ceil(totalSpawns/2)`에 닿는 순간 보상 카드 3장을 한 번만 띄운다. 처치 수로 반복해서 주던 카드를 대체한다. 2P는 `totalSpawns`가 이미 2배이므로 별도 배율 없이 맞춰진다.
@@ -83,6 +83,6 @@ Task: T01-half-wave-card
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

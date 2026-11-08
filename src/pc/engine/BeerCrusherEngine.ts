@@ -206,7 +206,8 @@ export interface WaveProgressInfo {
   totalSpawns: number;
   remainingInWave: number;
   progressPercent: number;
-  cardKillCount: number;
+  midCardGranted: boolean;
+  /** 중간 카드가 나오는 처치 수(웨이브 절반). 없으면 null. */
   cardKillTarget: number | null;
   luckyDropMultiplier: number;
 }
@@ -303,14 +304,15 @@ export class BeerCrusherEngine {
   public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
 
   // Roguelike card & item drop state
-  public cardKillCount = 0;
+  /** 이번 웨이브의 절반 중간 카드를 이미 줬으면 true. */
+  public midCardGranted = false;
   public get pendingWaveAdvance(): boolean {
     return this.selectRound?.isWaveClear ?? false;
   }
   public set pendingWaveAdvance(v: boolean) {
     if (this.selectRound) this.selectRound.isWaveClear = v;
   }
-  private waveCardKillTargets: Record<number, number | null> = {};
+  private waveMidCardTargets: Record<number, number | null> = {};
   public dropRng: () => number = () => Math.random();
 
   // Boss summon state
@@ -336,11 +338,11 @@ export class BeerCrusherEngine {
 
   private buildWaveDefinitions(): void {
     const spawnMult = this.rules.spawnCountMult;
-    const cardMult = this.rules.cardKillTargetMult;
-    this.waveCardKillTargets = Object.fromEntries(
+    // 중간 카드는 처치 수가 웨이브 몬스터 수(인원수 배율 적용 후)의 절반에 닿을 때 한 번 나온다.
+    this.waveMidCardTargets = Object.fromEntries(
       GAME_TUNING.waves.map((w) => [
         w.waveIndex,
-        w.cardKillTarget === null ? null : Math.ceil(w.cardKillTarget * cardMult),
+        w.midWaveCard ? Math.ceil(Math.ceil(w.totalSpawns * spawnMult) / 2) : null,
       ])
     );
     this.waveDefinitions = Object.fromEntries(
@@ -441,7 +443,7 @@ export class BeerCrusherEngine {
   }
 
   public getCardKillTarget(waveIndex: number = this.currentWave): number | null {
-    const target = this.waveCardKillTargets[waveIndex];
+    const target = this.waveMidCardTargets[waveIndex];
     return target === undefined ? null : target;
   }
 
@@ -472,7 +474,7 @@ export class BeerCrusherEngine {
       totalSpawns,
       remainingInWave: remaining,
       progressPercent,
-      cardKillCount: this.cardKillCount,
+      midCardGranted: this.midCardGranted,
       cardKillTarget: this.getCardKillTarget(),
       luckyDropMultiplier: this.getLuckyDropMultiplier(),
     };
@@ -518,7 +520,7 @@ export class BeerCrusherEngine {
     this.bossEncounterStartMs = 0;
     this.bossWarningUntilMs = 0;
     this.mode = 'game';
-    this.cardKillCount = 0;
+    this.midCardGranted = false;
     this.pendingWaveAdvance = false;
     this.bossSummonActionUntilMs = 0;
     this.bossSummonCrossed.clear();
@@ -556,7 +558,7 @@ export class BeerCrusherEngine {
     this.bossWarningUntilMs = 0;
     this.isRewardCardPending = false;
     this.pendingWaveAdvance = false;
-    this.cardKillCount = 0;
+    this.midCardGranted = false;
     this.bossSummonActionUntilMs = 0;
     this.bossSummonCrossed.clear();
     this.waveStartMs = null;
@@ -1816,11 +1818,10 @@ export class BeerCrusherEngine {
           }
         }
 
-        // 2. 킬 게이지 누적 및 중도 카드 스폰
+        // 2. 웨이브 절반 중간 카드(한 웨이브에 한 번). killedInWave는 호출 전에 이미 올라가 있다.
         const cardTarget = this.getCardKillTarget();
-        this.cardKillCount += 1;
-        if (cardTarget !== null && this.cardKillCount >= cardTarget) {
-          this.cardKillCount = 0;
+        if (cardTarget !== null && !this.midCardGranted && this.killedInWave >= cardTarget) {
+          this.midCardGranted = true;
           if (!this.isRewardCardPending) {
             this.spawnWaveRewardCards(nowMs, false);
           }
@@ -2531,7 +2532,7 @@ export class BeerCrusherEngine {
     // 지웠으니 대기 상태도 풀어야 update()가 카드 대기로 영원히 멈추지 않는다. 웨이브 종료 카드는 연출 뒤에 새로 나온다.
     this.isRewardCardPending = false;
     this.pendingWaveAdvance = false;
-    this.cardKillCount = 0;
+    this.midCardGranted = false;
     // 칼날·거품은 비우되, 같은 프레임에 이미 쌓인 타격 사건은 남겨 연출이 사라지지 않게 한다.
     this.activeSkillBlades = [];
     this.activeSkillFoamWaves = [];

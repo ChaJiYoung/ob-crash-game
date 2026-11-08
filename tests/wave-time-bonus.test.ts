@@ -147,7 +147,7 @@ describe('wave time bonus (score-differentiation P01-T01)', () => {
       engine.update(1000, 0.016);
       engine.spawnedInWave = engine.waveDefinitions[4].totalSpawns;
       engine.activeTargets = [];
-      engine.cardKillCount = 0;
+      engine.midCardGranted = false;
       // The final kill reaches the card count: the mid-wave cards are dealt before the wave-complete check runs
       engine.spawnWaveRewardCards(5000, false);
       expect(engine.isCardSelectPending).toBe(true);

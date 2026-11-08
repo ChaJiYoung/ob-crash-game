@@ -95,7 +95,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
   });
 
   describe('T02: Kill-Gauge Reward Cards, Field Freeze & Roguelike Passives', () => {
-    it('should spawn 3D cards at 22 kills in Wave 4 and freeze monsters on field', () => {
+    it('should spawn 3D cards at half the wave (17 kills) in Wave 4 and freeze monsters on field', () => {
       engine.startGame({ withWeaponSelect: false });
       engine.startWave(4);
       engine.activeTargets = [];
@@ -109,8 +109,10 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       engine.mode = 'game';
       engine.activeTargets = [extraMonster];
 
-      // Simulate killing 22 monsters (Wave 4 target is 22)
-      for (let i = 0; i < 22; i++) {
+      // Simulate killing up to the mid-card target (half of wave 4 = 17)
+      const cardTarget = engine.getCardKillTarget(4)!;
+      expect(cardTarget).toBe(17);
+      for (let i = 0; i < cardTarget; i++) {
         const dummy = {
           id: `target_kill_${i}`,
           kind: 'pilgood' as const,
@@ -132,7 +134,7 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
         expect(res.killed).toBe(true);
       }
 
-      // Check that 22 kills triggered reward cards
+      // Check that reaching half of the wave triggered reward cards
       expect(engine.isRewardCardPending).toBe(true);
       expect(engine.pendingWaveAdvance).toBe(false);
 

@@ -141,7 +141,7 @@ describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
     expect(solo.monsterHpMult).toBe(1);
     expect(solo.bossHpMult).toBe(1);
     expect(solo.summonCountMult).toBe(1);
-    expect(solo.cardKillTargetMult).toBe(1);
+    expect('cardKillTargetMult' in solo).toBe(false);
     expect(solo.spawnCountMult).toBe(1);
     expect(solo.disconnectGraceMs).toBeNull();
     expect(solo.selectLayout).toEqual({
@@ -157,7 +157,7 @@ describe('playerCountRules tuning (two-player-coop P02-T02)', () => {
     expect(coop.bossHpMult).toBe(2);
     expect(coop.summonCountMult).toBe(2);
     expect(coop.spawnCountMult).toBe(2);
-    expect(coop.cardKillTargetMult).toBe(2);
+    expect('cardKillTargetMult' in coop).toBe(false);
     expect(coop.disconnectGraceMs).toBe(30000);
     expect(coop.selectLayout).toEqual({
       depthZ: -5.5,
