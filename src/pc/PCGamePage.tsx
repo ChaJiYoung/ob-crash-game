@@ -113,15 +113,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const pendingPlayerCountRef = useRef<1 | 2>(1);
   const startGate = useMemo(() => getStartGate(slots), [slots]);
 
-  const [savedMouseNickname, setSavedMouseNickname] = useState<string>(() => {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem('beer_crusher_mouse_nickname') || '';
-      }
-    } catch {}
-    return '';
-  });
-
   // 호환용 파생값
   const primarySlot = getJoinedSlots(slots)[0];
   const pairedPlayer = primarySlot?.player;
@@ -534,6 +525,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             if (msg.rankings) setTopRankings(msg.rankings);
             if (msg.teamRankings) setTeamRankings(msg.teamRankings);
             if (msg.lanIp) setLanIp(msg.lanIp);
+            // 서버가 재시작되면 localPlayers가 비므로, 마우스 슬롯을 다시 조회해 서버 기록을 복구한다.
+            for (const seat of slotsRef.current) {
+              if (seat.input === 'mouse' && seat.player && wsRef.current?.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify({ type: 'LOOKUP_LOCAL_PLAYER', roomId: msg.roomId, deviceId: getOrCreateDeviceId(), slot: seat.slot }));
+              }
+            }
             break;
 
           case 'CONTROLLER_UNSUPPORTED': {
@@ -584,12 +581,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           case 'LOCAL_PLAYER_REGISTERED':
             setSlots((prev) => updateSlot(prev, msg.slot, { player: msg.player }));
             setMouseNicknameError(null);
-            setSavedMouseNickname(msg.player.nickname);
-            try {
-              if (typeof window !== 'undefined' && window.localStorage) {
-                window.localStorage.setItem('beer_crusher_mouse_nickname', msg.player.nickname);
-              }
-            } catch {}
+            break;
+
+          case 'LOCAL_PLAYER_UNKNOWN':
+            setMouseNicknameError(null);
             break;
 
           case 'SENSOR_CONFIG_UPDATE':
@@ -1330,12 +1325,24 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     window.location.reload();
   }, []);
 
+  const sendLookupLocalPlayer = useCallback((slot: PlayerSlot) => {
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN && roomIdRef.current) {
+      ws.send(JSON.stringify({ type: 'LOOKUP_LOCAL_PLAYER', roomId: roomIdRef.current, deviceId: getOrCreateDeviceId(), slot }));
+    }
+  }, []);
+
   const handleChooseInput = useCallback((slot: PlayerSlot, input: SlotInput | null) => {
-    setSlots((prev) => {
-      const res = chooseSlotInput(prev, slot, input);
-      if (res.rejected) return prev;
-      return res.slots;
-    });
+    const res = chooseSlotInput(slotsRef.current, slot, input);
+    if (res.rejected) return;
+    const changedToMouse = input === 'mouse' && slotsRef.current.find((s) => s.slot === slot)?.input !== 'mouse';
+    setSlots(res.slots);
+    if (changedToMouse) sendLookupLocalPlayer(slot);
+  }, [sendLookupLocalPlayer]);
+
+  const handleEditMouseNickname = useCallback((slot: PlayerSlot) => {
+    setSlots((prev) => updateSlot(prev, slot, { player: undefined }));
+    setMouseNicknameError(null);
   }, []);
 
   const handleSubmitMouseNickname = useCallback((slot: PlayerSlot, nickname: string) => {
@@ -1757,12 +1764,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             teamRankings={teamRankings}
             highlightTeamKey={highlightTeamKey}
             highlightDeviceIds={highlightDeviceIds}
-            savedMouseNickname={savedMouseNickname}
             mouseNicknameError={mouseNicknameError}
             startNotice={startNotice}
             unsupportedNotice={unsupportedNotice}
             onChooseInput={handleChooseInput}
             onSubmitMouseNickname={handleSubmitMouseNickname}
+            onEditMouseNickname={handleEditMouseNickname}
             onStart={() => pressScreenButton('start')}
             onOpenGuide={handleOpenGuide}
             onStartTutorial={handleStartTutorial}

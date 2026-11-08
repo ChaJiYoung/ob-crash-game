@@ -269,6 +269,8 @@ export type ClientToServerMessage =
       slot?: PlayerSlot;
     }
   /** 무기 선택 화면이 뜨는 순간(PCGamePage.handleStartGame) PC가 보낸다. beginId는 응답을 짝짓는 PC 쪽 임의 문자열. */
+  /** 마우스 슬롯 선택 시 PC가 자기 deviceId로 기존 플레이어를 조회한다. */
+  | { type: 'LOOKUP_LOCAL_PLAYER'; roomId: string; deviceId: string; slot: PlayerSlot }
   | { type: 'GAME_BEGIN'; roomId: string; beginId: string; mode: PlayMode; players: GameBeginPlayer[] }
   | { type: 'WEAPON_CHOSEN'; roomId: string; gameId: number; slot: PlayerSlot; weaponKind: WeaponKind }
   /** 일시정지 메뉴의 "로비로"/"다시시작". */
@@ -292,6 +294,8 @@ export type ServerToClientMessage =
   | { type: 'LOCAL_PLAYER_REGISTERED'; roomId: string; slot: PlayerSlot; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean; slot: PlayerSlot }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
+  /** 조회한 deviceId가 등록되지 않았다. PC는 닉네임 입력 폼을 보여준다. */
+  | { type: 'LOCAL_PLAYER_UNKNOWN'; roomId: string; slot: PlayerSlot }
   | { type: 'GAME_STARTED'; roomId: string; beginId: string; gameId: number }
   | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string; slot: PlayerSlot }
   | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload; slot: PlayerSlot }

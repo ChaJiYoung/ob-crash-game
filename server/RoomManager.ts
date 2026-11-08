@@ -15,6 +15,8 @@ export interface RoomSession {
   pcSocket?: WebSocket;
   controllers: Partial<Record<PlayerSlot, ControllerSeat>>;
   createdAt: number;
+  /** 마우스(PC 로컬) 플레이어의 슬롯별 deviceId. 서버 재시작 시 비므로 PC가 재접속 때 다시 조회한다. */
+  localPlayers: Partial<Record<PlayerSlot, string>>;
   /** 호환용: 슬롯 1의 소켓·기기 ID(기존 테스트 및 단일 컨트롤러 호환). */
   readonly controllerSocket?: WebSocket;
   readonly deviceId?: string;
@@ -25,6 +27,7 @@ function createRoomSession(roomId: string): RoomSession {
     roomId,
     controllers: {},
     createdAt: Date.now(),
+    localPlayers: {},
   };
   Object.defineProperty(session, 'controllerSocket', {
     get() {
@@ -121,8 +124,17 @@ export class RoomManager {
     }
 
     session.controllers[slot] = { socket, deviceId };
+    // 그 슬롯은 이제 폰 자리다.
+    delete session.localPlayers[slot];
     this.socketToRoom.set(socket, session.roomId);
     return { session, movedFromSlot };
+  }
+
+  /** 마우스 플레이어를 슬롯에 기록한다. 같은 deviceId가 다른 슬롯에 있으면 지운다. */
+  public setLocalPlayer(session: RoomSession, slot: PlayerSlot, deviceId: string): void {
+    const other: PlayerSlot = slot === 1 ? 2 : 1;
+    if (session.localPlayers[other] === deviceId) delete session.localPlayers[other];
+    session.localPlayers[slot] = deviceId;
   }
 
   public getControllerSlot(session: RoomSession, socket: WebSocket): PlayerSlot | undefined {

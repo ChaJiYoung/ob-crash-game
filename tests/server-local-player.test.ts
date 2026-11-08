@@ -1,7 +1,8 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { WebSocket } from 'ws';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { ServerToClientMessage } from '../src/shared/types';
+import { startHarness, Harness } from './helpers/wsHarness';
 
 describe('server local player registration (P03-T02)', () => {
   let serverInstance: BeerCrusherServerInstance | undefined;
@@ -121,5 +122,60 @@ describe('server local player registration (P03-T02)', () => {
 
     pcWs.close();
     phoneWs.close();
+  });
+});
+
+describe('LOOKUP_LOCAL_PLAYER and localPlayers (sqlite-db-design P02-T03)', () => {
+  let h: Harness;
+  beforeEach(async () => {
+    h = await startHarness({});
+  });
+  afterEach(async () => {
+    await h.cleanup();
+  });
+
+  const send = (ws: WebSocket, msg: Record<string, unknown>) => ws.send(JSON.stringify(msg));
+  const local = () => h.server.roomManager.getRoom(h.roomId)!.localPlayers;
+
+  it('answers a known deviceId with LOCAL_PLAYER_REGISTERED and records the slot', async () => {
+    h.server.playerStore.registerOrUpdateNickname('pc_dev', '두둥');
+    send(h.pc.ws, { type: 'LOOKUP_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'pc_dev', slot: 1 });
+    await h.pc.waitFor(() => h.pc.of('LOCAL_PLAYER_REGISTERED').length > 0);
+    const msg = h.pc.of('LOCAL_PLAYER_REGISTERED')[0];
+    expect(msg.slot).toBe(1);
+    expect(msg.player.nickname).toBe('두둥');
+    expect(local()[1]).toBe('pc_dev');
+  });
+
+  it('answers an unknown deviceId with LOCAL_PLAYER_UNKNOWN', async () => {
+    send(h.pc.ws, { type: 'LOOKUP_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'nobody', slot: 2 });
+    await h.pc.waitFor(() => h.pc.of('LOCAL_PLAYER_UNKNOWN').length > 0);
+    expect(h.pc.of('LOCAL_PLAYER_UNKNOWN')[0].slot).toBe(2);
+    expect(local()[2]).toBeUndefined();
+  });
+
+  it('rejects a lookup from a phone socket', async () => {
+    const phone = await h.phone('dev1', 1);
+    send(phone.ws, { type: 'LOOKUP_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'dev1', slot: 2 });
+    await phone.waitFor(() => phone.messages.some((m) => m.type === 'ERROR' && m.code === 'NOT_ROOM_HOST'));
+    expect(local()[2]).toBeUndefined();
+  });
+
+  it('records REGISTER_LOCAL_PLAYER and moves the entry when the same device takes another slot', async () => {
+    send(h.pc.ws, { type: 'REGISTER_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'pc_dev', nickname: '마우스왕', slot: 1 });
+    await h.pc.waitFor(() => h.pc.of('LOCAL_PLAYER_REGISTERED').length === 1);
+    expect(local()[1]).toBe('pc_dev');
+    send(h.pc.ws, { type: 'REGISTER_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'pc_dev', nickname: '마우스왕', slot: 2 });
+    await h.pc.waitFor(() => h.pc.of('LOCAL_PLAYER_REGISTERED').length === 2);
+    expect(local()[2]).toBe('pc_dev');
+    expect(local()[1]).toBeUndefined();
+  });
+
+  it('clears the slot entry when a phone sits there', async () => {
+    h.server.playerStore.registerOrUpdateNickname('pc_dev', '두둥');
+    send(h.pc.ws, { type: 'LOOKUP_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'pc_dev', slot: 1 });
+    await h.pc.waitFor(() => local()[1] === 'pc_dev');
+    await h.phone('dev1', 1);
+    expect(local()[1]).toBeUndefined();
   });
 });

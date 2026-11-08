@@ -24,13 +24,13 @@ export interface QRPairingModalProps {
   highlightDeviceIds?: string[];
   activeRankTab?: RankingTab;
   onChangeRankTab?: (tab: RankingTab) => void;
-  savedMouseNickname: string;
   mouseNicknameError?: string | null;
   startNotice?: string | null;
   /** 지원하지 않는 폰이 연결을 시도했다는 안내(몇 초간). */
   unsupportedNotice?: string | null;
   onChooseInput: (slot: PlayerSlot, input: SlotInput | null) => void;
   onSubmitMouseNickname: (slot: PlayerSlot, nickname: string) => void;
+  onEditMouseNickname: (slot: PlayerSlot) => void;
   onStart: () => void;
   onOpenGuide?: () => void;
   onStartTutorial?: () => void;
@@ -42,10 +42,10 @@ interface SlotCardProps {
   otherSlotState: SlotState;
   roomId: string;
   lanIp?: string;
-  savedMouseNickname: string;
   mouseNicknameError?: string | null;
   onChooseInput: (slot: PlayerSlot, input: SlotInput | null) => void;
   onSubmitMouseNickname: (slot: PlayerSlot, nickname: string) => void;
+  onEditMouseNickname: (slot: PlayerSlot) => void;
 }
 
 const SlotCard: React.FC<SlotCardProps> = ({
@@ -53,26 +53,20 @@ const SlotCard: React.FC<SlotCardProps> = ({
   otherSlotState,
   roomId,
   lanIp,
-  savedMouseNickname,
   mouseNicknameError,
   onChooseInput,
   onSubmitMouseNickname,
+  onEditMouseNickname,
 }) => {
   const { slot, input, player, isZeroCalibrated, isConnected } = slotState;
   const color = PLAYER_COLORS[slot];
-  const [mouseNameInput, setMouseNameInput] = useState<string>(savedMouseNickname || '');
+  const [mouseNameInput, setMouseNameInput] = useState<string>('');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
   const pairingUrl = roomId ? buildControllerPairingUrl(origin, roomId, lanIp, slot) : '';
 
   const otherHasMouse = otherSlotState.input === 'mouse';
   const isPhoneLocked = input === 'mobile' && !!player;
-
-  useEffect(() => {
-    if (savedMouseNickname && !mouseNameInput) {
-      setMouseNameInput(savedMouseNickname);
-    }
-  }, [savedMouseNickname]);
 
   useEffect(() => {
     if (!pairingUrl) return;
@@ -357,6 +351,14 @@ const SlotCard: React.FC<SlotCardProps> = ({
             <div style={{ fontSize: '13px', color: '#94a3b8' }}>
               좌클릭 발사 · 우클릭 스킬
             </div>
+            <button
+              type="button"
+              data-testid={`mouse-nickname-edit-${slot}`}
+              onClick={() => { setMouseNameInput(player.nickname); onEditMouseNickname(slot); }}
+              style={{ marginTop: '10px', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: '#cbd5e1', fontSize: '12px', cursor: 'pointer' }}
+            >
+              닉네임 변경
+            </button>
           </div>
         )}
       </div>
@@ -375,12 +377,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   highlightDeviceIds,
   activeRankTab,
   onChangeRankTab,
-  savedMouseNickname,
   mouseNicknameError,
   startNotice,
   unsupportedNotice,
   onChooseInput,
   onSubmitMouseNickname,
+  onEditMouseNickname,
   onStart,
   onOpenGuide,
   onStartTutorial,
@@ -489,20 +491,20 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
             otherSlotState={slots[1]}
             roomId={roomId}
             lanIp={lanIp}
-            savedMouseNickname={savedMouseNickname}
             mouseNicknameError={mouseNicknameError}
             onChooseInput={onChooseInput}
             onSubmitMouseNickname={onSubmitMouseNickname}
+            onEditMouseNickname={onEditMouseNickname}
           />
           <SlotCard
             slotState={slots[1]}
             otherSlotState={slots[0]}
             roomId={roomId}
             lanIp={lanIp}
-            savedMouseNickname={savedMouseNickname}
             mouseNicknameError={mouseNicknameError}
             onChooseInput={onChooseInput}
             onSubmitMouseNickname={onSubmitMouseNickname}
+            onEditMouseNickname={onEditMouseNickname}
           />
         </div>
 

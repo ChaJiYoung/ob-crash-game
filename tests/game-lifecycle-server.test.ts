@@ -67,6 +67,23 @@ describe('game lifecycle over the websocket', () => {
     ghost.ws.close();
   });
 
+  it('checks mouse participants against the registered local player of the slot', async () => {
+    h.server.playerStore.registerOrUpdateNickname('mouse1', '마우스일');
+    const begin = (beginId: string) =>
+      send(h.pc, { type: 'GAME_BEGIN', roomId: h.roomId, beginId, mode: 'solo', players: [{ slot: 1, deviceId: 'mouse1', inputKind: 'mouse' }] });
+    // never looked up / registered: rejected
+    begin('m1');
+    await h.pc.waitFor(() => errors(h.pc, 'GAME_BEGIN_REJECTED').length === 1);
+    // after LOOKUP_LOCAL_PLAYER: accepted
+    send(h.pc, { type: 'LOOKUP_LOCAL_PLAYER', roomId: h.roomId, deviceId: 'mouse1', slot: 1 });
+    await h.pc.waitFor(() => h.pc.of('LOCAL_PLAYER_REGISTERED').length > 0);
+    begin('m2');
+    await h.pc.waitFor(() => h.pc.of('GAME_STARTED', (m) => m.beginId === 'm2').length > 0);
+    // registered to slot 1, claimed on slot 2: rejected
+    send(h.pc, { type: 'GAME_BEGIN', roomId: h.roomId, beginId: 'm3', mode: 'solo', players: [{ slot: 2, deviceId: 'mouse1', inputKind: 'mouse' }] });
+    await h.pc.waitFor(() => errors(h.pc, 'GAME_BEGIN_REJECTED').length === 2);
+  });
+
   it('creates a game on GAME_BEGIN and abandons the previous one in the same room', async () => {
     await h.phone('dev1', 1);
     const beginId = 'fixed-begin-id';

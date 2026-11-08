@@ -326,6 +326,7 @@ export async function createBeerCrusherServer(options?: {
 
             try {
               const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
+              roomManager.setLocalPlayer(session, slot, deviceId);
               sendJson(ws, {
                 type: 'LOCAL_PLAYER_REGISTERED',
                 roomId,
@@ -542,6 +543,26 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'LOOKUP_LOCAL_PLAYER': {
+            const session = requireHost(ws, msg.roomId);
+            if (!session) return;
+            const { deviceId } = msg;
+            if (typeof deviceId !== 'string' || deviceId.length < 1 || deviceId.length > 64) {
+              sendJson(ws, { type: 'ERROR', code: 'INVALID_REQUEST', message: 'deviceId is required for LOOKUP_LOCAL_PLAYER' });
+              return;
+            }
+            const slot = normalizeSlot(msg.slot);
+            const player = playerStore.findByDeviceId(deviceId);
+            if (player) {
+              roomManager.setLocalPlayer(session, slot, deviceId);
+              playerStore.touchLastSeen(deviceId);
+              sendJson(ws, { type: 'LOCAL_PLAYER_REGISTERED', roomId: session.roomId, slot, player });
+            } else {
+              sendJson(ws, { type: 'LOCAL_PLAYER_UNKNOWN', roomId: session.roomId, slot });
+            }
+            break;
+          }
+
           case 'GAME_BEGIN': {
             const session = requireHost(ws, msg.roomId);
             if (!session) return;
@@ -570,6 +591,9 @@ export async function createBeerCrusherServer(options?: {
             for (const p of players) {
               if (p.inputKind === 'mobile' && session.controllers[p.slot]?.deviceId !== p.deviceId) {
                 return reject(`Slot ${p.slot} is not seated by that device`);
+              }
+              if (p.inputKind === 'mouse' && session.localPlayers[p.slot] !== p.deviceId) {
+                return reject(`Slot ${p.slot} is not registered to that mouse player`);
               }
             }
             for (const p of players) {

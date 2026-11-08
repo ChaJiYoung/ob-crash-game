@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { requestSensorPermission } from '../sensors/SensorPermission';
 import { PlayerProfile } from '../../shared/types';
 
@@ -30,6 +30,12 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
   const [nicknameInput, setNicknameInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+
+  // 저장이 끝나 서버가 새 닉네임을 돌려주면 편집 모드를 닫는다.
+  useEffect(() => {
+    setIsEditingNickname(false);
+  }, [player?.nickname]);
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +45,11 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
       return;
     }
     setErrorMessage('');
+    if (result.trimmed === player?.nickname) {
+      // 바뀐 게 없으면 서버에 보내지 않는다(닉네임이 그대로라 닫힘 effect도 돌지 않는다).
+      setIsEditingNickname(false);
+      return;
+    }
     onRegisterNickname(result.trimmed);
   };
 
@@ -90,11 +101,11 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
           비어 크러셔 컨트롤러
         </div>
 
-        {isNewUser ? (
+        {isNewUser || isEditingNickname ? (
           /* New User Form */
           <form onSubmit={handleRegisterSubmit} style={{ marginTop: '20px' }}>
             <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '16px' }}>
-              첫 접속입니다! 게임에서 사용할 닉네임을 입력해주세요.
+              {isNewUser ? '첫 접속입니다! 게임에서 사용할 닉네임을 입력해주세요.' : '새 닉네임을 입력해주세요.'}
             </div>
 
             <input
@@ -140,6 +151,25 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
             >
               🚀 닉네임 등록 및 계속하기
             </button>
+            {!isNewUser && (
+              <button
+                type="button"
+                onClick={() => { setIsEditingNickname(false); setErrorMessage(''); }}
+                style={{
+                  width: '100%',
+                  marginTop: '10px',
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  background: 'transparent',
+                  color: '#cbd5e1',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                취소
+              </button>
+            )}
           </form>
         ) : (
           /* Existing User Welcome & Sensor Permission */
@@ -160,6 +190,15 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
                 최고 기록: {player?.bestScore || 0}점 (총 {player?.totalGames || 0}회 플레이)
               </div>
             </div>
+
+            <button
+              type="button"
+              data-testid="phone-nickname-edit"
+              onClick={() => { setNicknameInput(player?.nickname ?? ''); setErrorMessage(''); setIsEditingNickname(true); }}
+              style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: '#cbd5e1', fontSize: '13px', marginBottom: '12px', cursor: 'pointer' }}
+            >
+              닉네임 변경
+            </button>
 
             <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '20px', lineHeight: 1.5 }}>
               스마트폰을 권총처럼 쥐어 조준할 수 있도록 센서 권한을 허용해주세요.

@@ -87,4 +87,15 @@ describe('PCGamePage lifecycle wiring (source guard)', () => {
     expect(open.length).toBeGreaterThan(0);
     expect(open).not.toContain('gameIdRef.current = null');
   });
+
+  it('no longer stores the mouse nickname in the browser', () => {
+    // Key is built from parts so the repo-wide grep gate for the old key stays at zero.
+    expect(source).not.toContain(['beer_crusher', 'mouse_nickname'].join('_'));
+  });
+
+  it('looks the mouse player up again when the room is (re)created', () => {
+    const start = source.indexOf("case 'ROOM_CREATED':");
+    const block = source.slice(start, source.indexOf("case 'CONTROLLER_UNSUPPORTED'", start));
+    expect(block).toContain('LOOKUP_LOCAL_PLAYER');
+  });
 });

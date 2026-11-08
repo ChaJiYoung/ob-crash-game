@@ -32,7 +32,7 @@ describe('센서 테스트장은 주소(/sensor-test)로만 들어간다', () =>
         slots={slots}
         startGate={getStartGate(slots)}
         topRankings={[]}
-        savedMouseNickname=""
+        onEditMouseNickname={() => {}}
         onChooseInput={() => {}}
         onSubmitMouseNickname={() => {}}
         onStart={() => {}}

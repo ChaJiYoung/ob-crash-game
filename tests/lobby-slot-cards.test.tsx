@@ -20,7 +20,7 @@ describe('lobby slot cards UI (P04-T03)', () => {
         slots={slots}
         startGate={startGate}
         topRankings={[]}
-        savedMouseNickname=""
+        onEditMouseNickname={() => {}}
         onChooseInput={() => {}}
         onSubmitMouseNickname={() => {}}
         onStart={() => {}}
@@ -64,7 +64,7 @@ describe('lobby slot cards UI (P04-T03)', () => {
         slots={slots}
         startGate={startGate}
         topRankings={[]}
-        savedMouseNickname="마우스선수"
+        onEditMouseNickname={() => {}}
         onChooseInput={() => {}}
         onSubmitMouseNickname={() => {}}
         onStart={() => {}}
@@ -73,6 +73,8 @@ describe('lobby slot cards UI (P04-T03)', () => {
 
     // 1P has ready status
     expect(html).toContain('마우스선수 · 마우스로 플레이');
+    expect(html).toContain('닉네임 변경');
+    expect(html).toContain('data-testid="mouse-nickname-edit-1"');
     expect(html).toContain('● 준비 완료');
 
     // 2P waiting status and slot=2 in url
@@ -117,7 +119,7 @@ describe('lobby slot cards UI (P04-T03)', () => {
         slots={slots}
         startGate={startGate}
         topRankings={[]}
-        savedMouseNickname="마우스선수"
+        onEditMouseNickname={() => {}}
         onChooseInput={() => {}}
         onSubmitMouseNickname={() => {}}
         onStart={() => {}}
@@ -151,7 +153,7 @@ describe('lobby slot cards UI (P04-T03)', () => {
         slots={slots}
         startGate={startGate}
         topRankings={[]}
-        savedMouseNickname="솔로선수"
+        onEditMouseNickname={() => {}}
         onChooseInput={() => {}}
         onSubmitMouseNickname={() => {}}
         onStart={() => {}}
