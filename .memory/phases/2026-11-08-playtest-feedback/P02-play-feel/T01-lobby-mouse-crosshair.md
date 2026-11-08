@@ -1,6 +1,6 @@
 # Task: T01 로비에서 마우스 십자선 표시
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비(PAIRING/ZEROING)에서 마우스 슬롯에 참여하면 그 플레이어 색의 메뉴용 십자선이 보이고 마우스 커서를 따라간다. 지금은 모바일 슬롯만 보이고 마우스는 게임에 들어가야 보인다.
@@ -66,6 +66,6 @@ Task: T01-lobby-mouse-crosshair
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과 (tsc, vitest 752, build. 로비 육안 확인은 사용자)
 - commit: pending

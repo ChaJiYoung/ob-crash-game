@@ -50,6 +50,7 @@ import {
   indexToSlot,
   getSoloSlot,
   getMouseBinding,
+  shouldShowLobbyCrosshair,
   decideLobbyStart,
   applyControllerPaired,
   SlotPair,
@@ -1675,10 +1676,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onStartSandbox={handleStartSandbox}
             onRenewRoom={handleRenewRoom}
           />
-          {slots.some((s) => s.input === 'mobile' && s.isZeroCalibrated) && (
+          {slots.some(shouldShowLobbyCrosshair) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 130 }}>
               {processorsRef.current.map((proc, i) => {
                 const slot = indexToSlot(slotIndexMapRef.current, i as PlayerIndex);
+                if (!shouldShowLobbyCrosshair(slots.find((s) => s.slot === slot))) return null;
                 const slotColor = slot ? PLAYER_COLORS[slot] : (i === 0 ? PLAYER_COLORS[1] : PLAYER_COLORS[2]);
                 return (
                   <CrosshairOverlay

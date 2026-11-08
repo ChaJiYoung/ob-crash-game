@@ -12,6 +12,7 @@ import {
   getSoloSlot,
   getMouseIndex,
   applyControllerPaired,
+  shouldShowLobbyCrosshair,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
 
@@ -221,5 +222,24 @@ describe('applyControllerPaired (P03-T01)', () => {
     slots = applyControllerPaired(slots, 2, X);
     expect(slots[0].player?.deviceId).toBe('Y');
     expect(slots[1].player?.deviceId).toBe('X');
+  });
+});
+
+describe('shouldShowLobbyCrosshair (playtest-feedback P02-T01)', () => {
+  const base = { slot: 1 as const, isConnected: true, isAway: false };
+  it('shows a mouse slot as soon as it has joined', () => {
+    expect(shouldShowLobbyCrosshair({ ...base, input: 'mouse', player: makeProfile('m', 'M'), isZeroCalibrated: false })).toBe(true);
+  });
+  it('hides a mouse slot before the nickname is confirmed', () => {
+    expect(shouldShowLobbyCrosshair({ ...base, input: 'mouse', player: undefined, isZeroCalibrated: false })).toBe(false);
+  });
+  it('shows a mobile slot only after zeroing', () => {
+    const phone = { ...base, input: 'mobile' as const, player: makeProfile('p', 'P') };
+    expect(shouldShowLobbyCrosshair({ ...phone, isZeroCalibrated: false })).toBe(false);
+    expect(shouldShowLobbyCrosshair({ ...phone, isZeroCalibrated: true })).toBe(true);
+  });
+  it('hides an empty or missing slot', () => {
+    expect(shouldShowLobbyCrosshair(undefined)).toBe(false);
+    expect(shouldShowLobbyCrosshair({ ...base, input: null, player: undefined, isZeroCalibrated: false })).toBe(false);
   });
 });

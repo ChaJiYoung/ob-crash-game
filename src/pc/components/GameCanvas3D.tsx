@@ -483,8 +483,10 @@ export const GameCanvas3D = React.memo(
       // 5. Mouse fallback handlers
       const handleMouseMove = (e: MouseEvent) => {
         const rect = container.getBoundingClientRect();
-        const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const normY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+        // Listened on window (lobby modals and HUD panels cover the canvas), so clamp a cursor outside the canvas.
+        const clamp = (v: number) => Math.max(-1.2, Math.min(1.2, v));
+        const normX = clamp(((e.clientX - rect.left) / rect.width) * 2 - 1);
+        const normY = clamp(-(((e.clientY - rect.top) / rect.height) * 2 - 1));
         const mapped = viewportRatioToAim(normX, normY);
         if (onMouseAimRef.current) {
           onMouseAimRef.current(mapped.aimX, mapped.aimY);
@@ -519,7 +521,7 @@ export const GameCanvas3D = React.memo(
         }
       };
 
-      container.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mousemove', handleMouseMove);
       container.addEventListener('mousedown', handleMouseDown);
       window.addEventListener('mouseup', handleMouseUp);
       container.addEventListener('mouseleave', handleMouseLeave);
@@ -892,7 +894,7 @@ export const GameCanvas3D = React.memo(
         disposed = true;
         window.clearTimeout(fallbackWarmupTimer);
         window.removeEventListener('resize', handleResize);
-        container.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mousemove', handleMouseMove);
         container.removeEventListener('mousedown', handleMouseDown);
         window.removeEventListener('mouseup', handleMouseUp);
         container.removeEventListener('mouseleave', handleMouseLeave);

@@ -92,6 +92,11 @@ export function isSlotReady(s: SlotState): boolean {
   return s.isZeroCalibrated && s.isConnected;
 }
 
+/** 로비 십자선을 그릴 슬롯: 마우스는 참여 즉시, 모바일은 영점 완료 후. */
+export function shouldShowLobbyCrosshair(s: SlotState | undefined): boolean {
+  return !!s && isSlotReady(s);
+}
+
 export function getJoinedSlots(slots: SlotPair): SlotState[] {
   return slots.filter(isSlotJoined).sort((a, b) => a.slot - b.slot);
 }
