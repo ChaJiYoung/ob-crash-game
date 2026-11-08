@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
-import path from 'node:path';
 import { createBeerCrusherServer } from '../server/wsServer';
 import { open, Inbox } from './helpers/wsHarness';
 
@@ -21,8 +20,7 @@ describe('PC socket reconnect (source guard)', () => {
 
 describe('a restarted server gets the same room back from the PC', () => {
   it('lets a phone rejoin once the PC recreates the room with its saved code', async () => {
-    const storePath = path.join(process.cwd(), 'data', `test-pc-reconnect-${Date.now()}.json`);
-    let server = await createBeerCrusherServer({ port: 0, storePath });
+    let server = await createBeerCrusherServer({ port: 0, dbPath: ':memory:' });
     const port = server.port;
     const pc1 = new Inbox(await open(`ws://localhost:${port}`));
     pc1.ws.send(JSON.stringify({ type: 'CREATE_ROOM' }));
@@ -32,7 +30,7 @@ describe('a restarted server gets the same room back from the PC', () => {
     await server.close();
 
     // restart on the same port (what tsx watch does) and reconnect like the PC does: CREATE_ROOM with the saved code
-    server = await createBeerCrusherServer({ port, storePath });
+    server = await createBeerCrusherServer({ port, dbPath: ':memory:' });
     const pc2 = new Inbox(await open(`ws://localhost:${port}`));
     pc2.ws.send(JSON.stringify({ type: 'CREATE_ROOM', roomId }));
     await pc2.waitFor(() => pc2.of('ROOM_CREATED').length > 0);
@@ -47,6 +45,5 @@ describe('a restarted server gets the same room back from the PC', () => {
     phone.ws.close();
     pc2.ws.close();
     await server.close();
-    if (fs.existsSync(storePath)) fs.unlinkSync(storePath);
   });
 });

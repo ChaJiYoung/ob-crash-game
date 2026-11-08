@@ -1,130 +1,88 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { GameDatabase } from './db/GameDatabase';
 import { CoopBestEntry, PlayerProfile } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
-export interface PlayerStoreData {
-  /** 파일에 없으면 1(이전 5웨이브 규칙)로 본다. */
-  rulesetVersion?: number;
-  players: Record<string, PlayerProfile>;
+interface ProfileRow {
+  id: string;
+  nickname: string;
+  last_seen_at: string;
+  best_score: number;
+  total_games: number;
 }
 
+interface CoopRow {
+  total_score: number;
+  wave_reached: number;
+  ended_at: string;
+  my_score: number | null;
+  partner_id: string;
+  partner_nickname: string;
+  partner_score: number | null;
+}
+
+const BEST_SCORE_SQL = `COALESCE((SELECT MAX(gp.score) FROM game_players gp JOIN games g ON g.id = gp.game_id
+              WHERE gp.player_id = p.id AND g.mode = 'solo' AND g.status = 'finished'
+                AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL), 0)`;
+const TOTAL_GAMES_SQL = `(SELECT COUNT(*) FROM game_players gp JOIN games g ON g.id = gp.game_id
+      WHERE gp.player_id = p.id AND g.status = 'finished' AND g.ruleset_version = @rv)`;
+
 export class PlayerStore {
-  private filePath: string;
-  private data: PlayerStoreData = { rulesetVersion: RANKING_RULESET_VERSION, players: {} };
+  constructor(
+    private readonly db: GameDatabase,
+    private readonly rulesetVersion: number = RANKING_RULESET_VERSION,
+  ) {}
 
-  constructor(filePath?: string) {
-    this.filePath = filePath || path.resolve(process.cwd(), 'data', 'players.json');
-    this.load();
-  }
-
-  /** 같은 폴더의 임시 파일에 쓴 뒤 이름을 바꿔 저장한다. 중간에 실패해도 기존 파일은 온전하다. */
-  private writeFileAtomic(target: string, content: string): void {
-    const tmp = `${target}.tmp-${process.pid}`;
-    fs.writeFileSync(tmp, content, 'utf-8');
-    fs.renameSync(tmp, target);
-  }
-
-  private load(): void {
-    let fileMissing = false;
-    try {
-      if (fs.existsSync(this.filePath)) {
-        const raw = fs.readFileSync(this.filePath, 'utf-8');
-        const parsed = JSON.parse(raw);
-        if (
-          parsed &&
-          typeof parsed.players === 'object' &&
-          parsed.players !== null &&
-          !Array.isArray(parsed.players)
-        ) {
-          this.data = this.migrateRuleset(parsed, raw);
-          return;
-        }
-      } else {
-        fileMissing = true;
-      }
-    } catch {
-      // If reading fails or file is malformed, start with empty store
-    }
-    if (!fileMissing) this.backupUnreadableFile();
-    this.data = { rulesetVersion: RANKING_RULESET_VERSION, players: {} };
-    if (fileMissing) this.save();
-  }
-
-  /** 읽을 수 없는 기존 파일은 빈 저장소로 덮어쓰기 전에 따로 보관한다(닉네임·기기 연결 보호). */
-  private backupUnreadableFile(): void {
-    try {
-      if (!fs.existsSync(this.filePath)) return;
-      const backup = `${this.filePath}.unreadable-${Date.now()}.bak`;
-      fs.copyFileSync(this.filePath, backup);
-      console.error('Player store is unreadable; saved a copy before starting empty:', backup);
-    } catch (err) {
-      console.error('Could not back up the unreadable player store:', err);
-    }
-  }
-
-  /**
-   * 규칙 버전이 다르면 원본을 그대로 백업한 뒤 점수만 초기화한다(닉네임과 기기 연결은 유지).
-   * 백업이 실패하면 아무것도 지우지 않는다.
-   */
-  private migrateRuleset(parsed: PlayerStoreData, raw: string): PlayerStoreData {
-    const oldVersion = parsed.rulesetVersion ?? 1;
-    if (oldVersion === RANKING_RULESET_VERSION) {
-      return parsed;
-    }
-    if (oldVersion > RANKING_RULESET_VERSION) {
-      // A newer server wrote this file; never reset it from an older build
-      console.error(`Player store ruleset ${oldVersion} is newer than ${RANKING_RULESET_VERSION}; leaving it untouched.`);
-      return parsed;
-    }
-
-    try {
-      // Reset only profile objects we understand; anything else is left as-is rather than crashing the load
-      const profiles = Object.values(parsed.players).filter(
-        (p): p is PlayerProfile => !!p && typeof p === 'object'
-      );
-
-      let backupPath = `${this.filePath}.ruleset-${oldVersion}.bak`;
-      if (fs.existsSync(backupPath) && fs.readFileSync(backupPath, 'utf-8') !== raw) {
-        // A different backup already uses this name (older run, partial file...): never reuse or overwrite it
-        backupPath = `${this.filePath}.ruleset-${oldVersion}.${Date.now()}.bak`;
-      }
-      if (!fs.existsSync(backupPath)) {
-        this.writeFileAtomic(backupPath, raw);
-      }
-
-      for (const profile of profiles) {
-        profile.bestScore = 0;
-        profile.totalGames = 0;
-        delete profile.coopBests;
-      }
-      parsed.rulesetVersion = RANKING_RULESET_VERSION;
-      this.data = parsed;
-      this.save();
-      return parsed;
-    } catch (err) {
-      console.error('Ranking backup/reset failed; keeping existing scores untouched:', err);
-      return parsed;
-    }
-  }
-
-  private save(): void {
-    try {
-      const dir = path.dirname(this.filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      this.writeFileAtomic(this.filePath, JSON.stringify(this.data, null, 2));
-    } catch (err) {
-      console.error('Failed to save players to', this.filePath, err);
-    }
+  private toProfile(row: ProfileRow): PlayerProfile {
+    return {
+      deviceId: row.id,
+      nickname: row.nickname,
+      bestScore: row.best_score,
+      totalGames: row.total_games,
+      lastPlayedAt: row.last_seen_at,
+    };
   }
 
   public findByDeviceId(deviceId: string): PlayerProfile | undefined {
-    if (Object.prototype.hasOwnProperty.call(this.data.players, deviceId)) {
-      return this.data.players[deviceId];
+    const row = this.db.conn
+      .prepare(
+        `SELECT p.id, p.nickname, p.last_seen_at,
+           ${BEST_SCORE_SQL} AS best_score,
+           ${TOTAL_GAMES_SQL} AS total_games
+         FROM players p WHERE p.id = @id`,
+      )
+      .get({ id: deviceId, rv: this.rulesetVersion }) as ProfileRow | undefined;
+    if (!row) return undefined;
+    const profile = this.toProfile(row);
+
+    const coopRows = this.db.conn
+      .prepare(
+        `SELECT g.total_score, g.wave_reached, g.ended_at, me.score AS my_score,
+                pa.player_id AS partner_id, pp.nickname AS partner_nickname, pa.score AS partner_score
+         FROM game_players me
+         JOIN games g ON g.id = me.game_id
+         JOIN game_players pa ON pa.game_id = g.id AND pa.player_id <> me.player_id
+         JOIN players pp ON pp.id = pa.player_id
+         WHERE me.player_id = @id AND g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv
+         ORDER BY g.total_score DESC, g.ended_at ASC`,
+      )
+      .all({ id: deviceId, rv: this.rulesetVersion }) as CoopRow[];
+    if (coopRows.length > 0) {
+      const coopBests: Record<string, CoopBestEntry> = {};
+      for (const r of coopRows) {
+        if (coopBests[r.partner_id]) continue;
+        coopBests[r.partner_id] = {
+          partnerDeviceId: r.partner_id,
+          partnerNickname: r.partner_nickname,
+          teamScore: r.total_score,
+          myScore: r.my_score ?? 0,
+          partnerScore: r.partner_score ?? 0,
+          waveReached: r.wave_reached,
+          playedAt: r.ended_at,
+        };
+      }
+      profile.coopBests = coopBests;
     }
-    return undefined;
+    return profile;
   }
 
   public registerOrUpdateNickname(deviceId: string, nickname: string): PlayerProfile {
@@ -132,110 +90,35 @@ export class PlayerStore {
     if (trimmed.length < 2 || trimmed.length > 10) {
       throw new Error('INVALID_NICKNAME: Nickname must be 2 to 10 characters');
     }
-
-    const existing = this.data.players[deviceId];
     const now = new Date().toISOString();
-    if (existing) {
-      existing.nickname = trimmed;
-      existing.lastPlayedAt = now;
-      this.save();
-      return existing;
-    }
-
-    const newProfile: PlayerProfile = {
-      deviceId,
-      nickname: trimmed,
-      bestScore: 0,
-      totalGames: 0,
-      lastPlayedAt: now,
-    };
-    this.data.players[deviceId] = newProfile;
-    this.save();
-    return newProfile;
+    this.db.conn
+      .prepare(
+        `INSERT INTO players (id, nickname, auth_provider, last_seen_at, created_at, updated_at)
+         VALUES (@id, @nickname, 'device', @now, @now, @now)
+         ON CONFLICT(id) DO UPDATE SET nickname = excluded.nickname, last_seen_at = excluded.last_seen_at, updated_at = excluded.updated_at`,
+      )
+      .run({ id: deviceId, nickname: trimmed, now });
+    return this.findByDeviceId(deviceId)!;
   }
 
-  public recordGameScore(
-    deviceId: string,
-    score: number
-  ): { profile: PlayerProfile; isNewRecord: boolean; rankings: PlayerProfile[] } {
-    let profile = this.data.players[deviceId];
-    const now = new Date().toISOString();
-    let isNewRecord = false;
-
-    if (!profile) {
-      profile = {
-        deviceId,
-        nickname: `맥주고수_${deviceId.slice(0, 4)}`,
-        bestScore: score,
-        totalGames: 1,
-        lastPlayedAt: now,
-      };
-      this.data.players[deviceId] = profile;
-      isNewRecord = true;
-    } else {
-      profile.totalGames += 1;
-      profile.lastPlayedAt = now;
-      if (score > profile.bestScore) {
-        profile.bestScore = score;
-        isNewRecord = true;
-      }
-    }
-
-    this.save();
-    return {
-      profile,
-      isNewRecord,
-      rankings: this.getTopRankings(5),
-    };
-  }
-
-  public recordCoopResult(
-    deviceId: string,
-    entry: CoopBestEntry
-  ): { profile: PlayerProfile; isNewTeamBest: boolean } {
-    let profile = this.data.players[deviceId];
-    const now = new Date().toISOString();
-    let isNewTeamBest = false;
-
-    if (!profile) {
-      profile = {
-        deviceId,
-        nickname: `맥주고수_${deviceId.slice(0, 4)}`,
-        bestScore: 0,
-        totalGames: 1,
-        lastPlayedAt: now,
-      };
-      this.data.players[deviceId] = profile;
-    } else {
-      profile.totalGames += 1;
-      profile.lastPlayedAt = now;
-    }
-
-    if (entry.partnerDeviceId && entry.partnerDeviceId.trim().length > 0) {
-      profile.coopBests ??= {};
-      const partnerKey = entry.partnerDeviceId;
-      const existing = profile.coopBests[partnerKey];
-      if (!existing || entry.teamScore > existing.teamScore) {
-        profile.coopBests[partnerKey] = { ...entry };
-        isNewTeamBest = true;
-      } else {
-        existing.partnerNickname = entry.partnerNickname;
-      }
-    }
-
-    this.save();
-    return { profile, isNewTeamBest };
+  public touchLastSeen(deviceId: string): void {
+    this.db.conn
+      .prepare(`UPDATE players SET last_seen_at = @now WHERE id = @id`)
+      .run({ id: deviceId, now: new Date().toISOString() });
   }
 
   public getTopRankings(limit = 5): PlayerProfile[] {
-    // After a ruleset reset everyone is at 0: show an empty board instead of five zero-point rows
-    const list = Object.values(this.data.players).filter((p) => p.bestScore > 0);
-    list.sort((a, b) => {
-      if (b.bestScore !== a.bestScore) {
-        return b.bestScore - a.bestScore;
-      }
-      return a.lastPlayedAt.localeCompare(b.lastPlayedAt);
-    });
-    return list.slice(0, limit);
+    const rows = this.db.conn
+      .prepare(
+        `SELECT * FROM (
+           SELECT p.id, p.nickname, p.last_seen_at,
+             ${BEST_SCORE_SQL} AS best_score,
+             ${TOTAL_GAMES_SQL} AS total_games
+           FROM players p)
+         WHERE best_score > 0
+         ORDER BY best_score DESC, last_seen_at ASC LIMIT @limit`,
+      )
+      .all({ rv: this.rulesetVersion, limit }) as ProfileRow[];
+    return rows.map((r) => this.toProfile(r));
   }
 }

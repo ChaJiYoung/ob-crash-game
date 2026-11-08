@@ -1,12 +1,11 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { WebSocket } from 'ws';
-import { PlayRecordStore, isValidPlayRunStats } from '../server/PlayRecordStore';
-import { PlayerStore } from '../server/PlayerStore';
+import { isValidPlayRunStats } from '../server/PlayRecordStore';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { PlayRunStats, ServerToClientMessage } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
+import { beginGame, Inbox, open } from './helpers/wsHarness';
+import { coopStats, makeEnv, playCoop, playSolo, register } from './helpers/dbFixtures';
 
 function makeDummyStats(mode: 'solo' | 'coop' = 'solo', teamScore = 200): PlayRunStats {
   const base: PlayRunStats = {
@@ -43,19 +42,6 @@ function makeDummyStats(mode: 'solo' | 'coop' = 'solo', teamScore = 200): PlayRu
 }
 
 describe('coop records and stats (P03-T03)', () => {
-  let tmpDir: string;
-
-  beforeEach(() => {
-    tmpDir = path.join(process.cwd(), 'data', `test-coop-rec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
-    fs.mkdirSync(tmpDir, { recursive: true });
-  });
-
-  afterEach(() => {
-    if (fs.existsSync(tmpDir)) {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
   describe('isValidPlayRunStats', () => {
     it('validates mode and coop structure', () => {
       const validSolo = makeDummyStats('solo');
@@ -88,146 +74,56 @@ describe('coop records and stats (P03-T03)', () => {
     });
   });
 
-  describe('PlayRecordStore', () => {
-    it('appends coop runs to file with mode:"coop" but excludes them from Top5 and reloads', () => {
-      const recFile = path.join(tmpDir, 'records.jsonl');
-      const store = new PlayRecordStore(recFile, RANKING_RULESET_VERSION);
-
-      // Append a solo record
-      const soloStats = makeDummyStats('solo');
-      soloStats.totalScore = 50;
-      store.append({
-        playedAt: '2026-11-07T10:00:00.000Z',
-        deviceId: 'dev_solo_1',
-        nickname: '솔로맨',
-        rulesetVersion: RANKING_RULESET_VERSION,
-        stats: soloStats,
+  describe('coop games in the DB', () => {
+    it('keeps coop runs off the solo Top5 and finishes the game on the first submit', () => {
+      const env = makeEnv();
+      register(env, 'dev_solo_1', 'dev_c1', 'dev_c2');
+      playSolo(env, { playerId: 'dev_solo_1', score: 50, at: 1 });
+      const gameId = playCoop(env, { a: 'dev_c1', b: 'dev_c2', teamScore: 1000, scoreA: 600, scoreB: 400, at: 2 });
+      expect(env.records.getTopRuns()).toHaveLength(1);
+      expect(env.records.getTopRuns()[0].deviceId).toBe('dev_solo_1');
+      expect(env.db.conn.prepare('SELECT status, mode, total_score, team_key FROM games WHERE id = ?').get(gameId)).toEqual({
+        status: 'finished', mode: 'coop', total_score: 1000, team_key: 'dev_c1|dev_c2',
       });
-
-      expect(store.getTopRuns()).toHaveLength(1);
-      expect(store.getTopRuns()[0].score).toBe(50);
-
-      // Append a coop record with huge score
-      const coopStats = makeDummyStats('coop', 1000);
-      coopStats.totalScore = 600;
-      store.append({
-        playedAt: '2026-11-07T10:05:00.000Z',
-        deviceId: 'dev_coop_1',
-        nickname: '협동맨',
-        rulesetVersion: RANKING_RULESET_VERSION,
-        stats: coopStats,
-      });
-
-      // Top runs should STILL only have solo 50!
-      expect(store.getTopRuns()).toHaveLength(1);
-      expect(store.getTopRuns()[0].deviceId).toBe('dev_solo_1');
-
-      // Verify file content has mode:"coop"
-      const content = fs.readFileSync(recFile, 'utf-8');
-      expect(content).toContain('"mode":"coop"');
-      expect(content).toContain('"mode":"solo"');
-
-      // New store reloading from file must also exclude coop from Top5
-      const reloadedStore = new PlayRecordStore(recFile, RANKING_RULESET_VERSION);
-      expect(reloadedStore.getTopRuns()).toHaveLength(1);
-      expect(reloadedStore.getTopRuns()[0].deviceId).toBe('dev_solo_1');
-    });
-  });
-
-  describe('PlayerStore.recordCoopResult', () => {
-    it('leaves solo bestScore untouched, increments totalGames, and tracks coopBests per partner', () => {
-      const playerFile = path.join(tmpDir, 'players.json');
-      const store = new PlayerStore(playerFile);
-
-      // 1. Player has an existing solo bestScore 100
-      store.registerOrUpdateNickname('dev_p1', '원조선수');
-      store.recordGameScore('dev_p1', 100);
-      const initial = store.findByDeviceId('dev_p1');
-      expect(initial?.bestScore).toBe(100);
-      expect(initial?.totalGames).toBe(1);
-
-      // 2. Play coop match with partner P2: teamScore 300, myScore 120
-      const res1 = store.recordCoopResult('dev_p1', {
-        partnerDeviceId: 'dev_p2',
-        partnerNickname: '동반자A',
-        teamScore: 300,
-        myScore: 120,
-        partnerScore: 180,
-        waveReached: 10,
-        playedAt: '2026-11-07T10:10:00.000Z',
-      });
-
-      expect(res1.isNewTeamBest).toBe(true);
-      expect(res1.profile.bestScore).toBe(100); // solo best UNTOUCHED!
-      expect(res1.profile.totalGames).toBe(2);
-      expect(res1.profile.coopBests?.dev_p2.teamScore).toBe(300);
-      expect(res1.profile.coopBests?.dev_p2.partnerNickname).toBe('동반자A');
-
-      // 3. Lower score with same partner: teamScore 250 -> not new team best, updates nickname if changed
-      const res2 = store.recordCoopResult('dev_p1', {
-        partnerDeviceId: 'dev_p2',
-        partnerNickname: '동반자A_개명',
-        teamScore: 250,
-        myScore: 100,
-        partnerScore: 150,
-        waveReached: 8,
-        playedAt: '2026-11-07T10:15:00.000Z',
-      });
-
-      expect(res2.isNewTeamBest).toBe(false);
-      expect(res2.profile.totalGames).toBe(3);
-      expect(res2.profile.coopBests?.dev_p2.teamScore).toBe(300); // kept 300
-      expect(res2.profile.coopBests?.dev_p2.partnerNickname).toBe('동반자A_개명');
-
-      // 4. Empty partnerDeviceId -> only totalGames increments
-      const res3 = store.recordCoopResult('dev_p1', {
-        partnerDeviceId: '',
-        partnerNickname: '',
-        teamScore: 0,
-        myScore: 50,
-        partnerScore: 0,
-        waveReached: 3,
-        playedAt: '2026-11-07T10:20:00.000Z',
-      });
-      expect(res3.profile.totalGames).toBe(4);
-      expect(res3.profile.coopBests?.dev_p2.teamScore).toBe(300);
+      env.db.close();
     });
 
-    it('clears coopBests on ruleset migration', () => {
-      const playerFile = path.join(tmpDir, 'players.json');
-      // Create players file with rulesetVersion: 1
-      const oldData = {
-        rulesetVersion: 1,
-        players: {
-          dev_mig: {
-            deviceId: 'dev_mig',
-            nickname: '구버전유저',
-            bestScore: 200,
-            totalGames: 5,
-            lastPlayedAt: '2026-11-01T00:00:00.000Z',
-            coopBests: {
-              dev_other: {
-                partnerDeviceId: 'dev_other',
-                partnerNickname: '파트너',
-                teamScore: 500,
-                myScore: 250,
-                partnerScore: 250,
-                waveReached: 10,
-                playedAt: '2026-11-01T00:00:00.000Z',
-              },
-            },
-          },
-        },
-      };
-      fs.writeFileSync(playerFile, JSON.stringify(oldData, null, 2), 'utf-8');
+    it('first submit reports finishedGame, the second does not, and a slot mismatch is rejected', () => {
+      const env = makeEnv();
+      register(env, 'a', 'b');
+      const gameId = env.records.beginGame({
+        roomId: 'ROOM', mode: 'coop', rulesetVersion: RANKING_RULESET_VERSION, startedAt: 't0',
+        players: [{ slot: 1, playerId: 'a', inputKind: null }, { slot: 2, playerId: 'b', inputKind: null }],
+      });
+      const partner = (id: string) => ({ id, nickname: id });
+      const send = (playerId: string, slot: 1 | 2) =>
+        env.records.submitResult({ gameId, roomId: 'ROOM', playerId, submittedAt: 't1', stats: coopStats(slot, 400, 200, partner('x')) });
+      expect(send('a', 2)).toEqual({ ok: false, reason: 'SLOT_MISMATCH' });
+      expect(send('a', 1)).toEqual({ ok: true, finishedGame: true });
+      expect(send('b', 2)).toEqual({ ok: true, finishedGame: false });
+      env.db.close();
+    });
 
-      // Load with current ruleset
-      const store = new PlayerStore(playerFile);
-      const migrated = store.findByDeviceId('dev_mig');
-      expect(migrated).toBeDefined();
-      expect(migrated?.bestScore).toBe(0);
-      expect(migrated?.totalGames).toBe(0);
-      expect(migrated?.coopBests).toBeUndefined();
+    it('leaves solo bestScore untouched, counts totalGames, and tracks coopBests per partner', () => {
+      const env = makeEnv();
+      register(env, 'dev_p1', 'dev_p2', 'dev_p3');
+      playSolo(env, { playerId: 'dev_p1', score: 100, at: 1 });
+      expect(env.players.findByDeviceId('dev_p1')).toMatchObject({ bestScore: 100, totalGames: 1 });
+
+      playCoop(env, { a: 'dev_p1', b: 'dev_p2', teamScore: 300, scoreA: 120, scoreB: 180, at: 2 });
+      playCoop(env, { a: 'dev_p2', b: 'dev_p1', teamScore: 250, scoreA: 150, scoreB: 100, at: 3 });
+      playCoop(env, { a: 'dev_p1', b: 'dev_p3', teamScore: 90, scoreA: 40, scoreB: 50, at: 4 });
+
+      const p1 = env.players.findByDeviceId('dev_p1')!;
+      expect(p1.bestScore).toBe(100);
+      expect(p1.totalGames).toBe(4);
+      expect(Object.keys(p1.coopBests!).sort()).toEqual(['dev_p2', 'dev_p3']);
+      expect(p1.coopBests!.dev_p2).toMatchObject({
+        partnerDeviceId: 'dev_p2', partnerNickname: '닉_dev_p2', teamScore: 300, myScore: 120, partnerScore: 180, waveReached: 7,
+      });
+      // playedAt is the game's ended_at (the PC compares it with its submit time)
+      expect(p1.coopBests!.dev_p2.playedAt).toBe(env.db.conn.prepare(`SELECT ended_at FROM games WHERE total_score = 300`).pluck().get());
+      env.db.close();
     });
   });
 
@@ -273,79 +169,66 @@ describe('coop records and stats (P03-T03)', () => {
     }
 
     it('processes coop submissions for both players without affecting solo top5', async () => {
-      serverInstance = await createBeerCrusherServer({
-        port: 0,
-        storePath: path.join(tmpDir, 'players.json'),
-        recordPath: path.join(tmpDir, 'records.jsonl'),
-      });
-      const port = serverInstance.port;
+      serverInstance = await createBeerCrusherServer({ port: 0, dbPath: ':memory:' });
+      const server = serverInstance;
+      const url = `ws://localhost:${server.port}`;
+      const pc = new Inbox(await open(url));
+      pc.ws.send(JSON.stringify({ type: 'CREATE_ROOM' }));
+      await pc.waitFor(() => pc.of('ROOM_CREATED').length > 0);
+      const roomId = pc.of('ROOM_CREATED')[0].roomId;
 
-      const pcWs = new WebSocket(`ws://localhost:${port}`);
-      await new Promise<void>((res) => pcWs.on('open', () => res()));
+      server.playerStore.registerOrUpdateNickname('dev_p1_slot1', '폰유저1');
+      server.playerStore.registerOrUpdateNickname('dev_p2_slot2', '폰유저2');
+      const phone1 = new Inbox(await open(url));
+      phone1.ws.send(JSON.stringify({ type: 'DEVICE_CHECK', roomId, deviceId: 'dev_p1_slot1', slot: 1 }));
+      const phone2 = new Inbox(await open(url));
+      phone2.ws.send(JSON.stringify({ type: 'DEVICE_CHECK', roomId, deviceId: 'dev_p2_slot2', slot: 2 }));
+      await pc.waitFor(() => pc.of('CONTROLLER_PAIRED').length >= 2);
 
-      const roomCreatedPromise = waitForMessage(pcWs, 'ROOM_CREATED');
-      pcWs.send(JSON.stringify({ type: 'CREATE_ROOM' }));
-      const { roomId } = await roomCreatedPromise;
+      const gameId = await beginGame(pc, roomId, 'coop', [
+        { slot: 1, deviceId: 'dev_p1_slot1', inputKind: 'mobile' },
+        { slot: 2, deviceId: 'dev_p2_slot2', inputKind: 'mobile' },
+      ]);
 
-      // Submit coop score for player 1 (score 150, team 400)
-      const p1Stats = makeDummyStats('coop', 400);
-      p1Stats.totalScore = 150;
-      p1Stats.coop!.slot = 1;
-      p1Stats.coop!.partnerDeviceId = 'dev_p2_slot2';
-      p1Stats.coop!.partnerNickname = '폰유저2';
-      p1Stats.coop!.partnerScore = 250;
+      const submit = (deviceId: string, slot: 1 | 2, score: number, partner: string) => {
+        const stats = makeDummyStats('coop', 400);
+        stats.totalScore = score;
+        stats.coop!.slot = slot;
+        stats.coop!.partnerDeviceId = partner;
+        stats.coop!.partnerNickname = '파트너';
+        stats.coop!.partnerScore = 400 - score;
+        pc.ws.send(JSON.stringify({
+          type: 'GAME_SCORE_SUBMIT', roomId, deviceId, gameId, score, waveReached: 10, maxCombo: 15,
+          stats, rulesetVersion: RANKING_RULESET_VERSION, mode: 'coop',
+        }));
+      };
 
-      const p1RankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
-      pcWs.send(
-        JSON.stringify({
-          type: 'GAME_SCORE_SUBMIT',
-          roomId,
-          deviceId: 'dev_p1_slot1',
-          score: 150,
-          waveReached: 10,
-          maxCombo: 15,
-          stats: p1Stats,
-          rulesetVersion: RANKING_RULESET_VERSION,
-          mode: 'coop',
-        })
-      );
-      const resP1 = await p1RankingPromise;
+      submit('dev_p1_slot1', 1, 150, 'dev_p2_slot2');
+      await pc.waitFor(() => pc.of('RANKING_UPDATED').length >= 1);
+      const resP1 = pc.of('RANKING_UPDATED')[0];
       expect(resP1.updatedPlayer?.deviceId).toBe('dev_p1_slot1');
-      expect(resP1.updatedPlayer?.bestScore).toBe(0); // not solo score
+      expect(resP1.updatedPlayer?.bestScore).toBe(0); // not a solo score
       expect(resP1.updatedPlayer?.totalGames).toBe(1);
       expect(resP1.updatedPlayer?.coopBests?.dev_p2_slot2.teamScore).toBe(400);
-      expect(resP1.rankings).toHaveLength(0); // Top5 untouched
+      expect(resP1.rankings).toHaveLength(0);
+      expect(resP1.teamRankings).toHaveLength(1);
 
-      // Submit coop score for player 2 (score 250, team 400)
-      const p2Stats = makeDummyStats('coop', 400);
-      p2Stats.totalScore = 250;
-      p2Stats.coop!.slot = 2;
-      p2Stats.coop!.partnerDeviceId = 'dev_p1_slot1';
-      p2Stats.coop!.partnerNickname = resP1.updatedPlayer?.nickname || '맥주고수';
-      p2Stats.coop!.partnerScore = 150;
-
-      const p2RankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
-      pcWs.send(
-        JSON.stringify({
-          type: 'GAME_SCORE_SUBMIT',
-          roomId,
-          deviceId: 'dev_p2_slot2',
-          score: 250,
-          waveReached: 10,
-          maxCombo: 15,
-          stats: p2Stats,
-          rulesetVersion: RANKING_RULESET_VERSION,
-          mode: 'coop',
-        })
-      );
-      const resP2 = await p2RankingPromise;
+      submit('dev_p2_slot2', 2, 250, 'dev_p1_slot1');
+      await pc.waitFor(() => pc.of('RANKING_UPDATED').length >= 2);
+      const resP2 = pc.of('RANKING_UPDATED')[1];
       expect(resP2.updatedPlayer?.deviceId).toBe('dev_p2_slot2');
       expect(resP2.updatedPlayer?.bestScore).toBe(0);
       expect(resP2.updatedPlayer?.totalGames).toBe(1);
       expect(resP2.updatedPlayer?.coopBests?.dev_p1_slot1.teamScore).toBe(400);
-      expect(resP2.rankings).toHaveLength(0); // Top5 still 0!
+      expect(resP2.rankings).toHaveLength(0);
+      expect(resP2.teamRankings![0].members.map((m) => m.score)).toEqual([150, 250]);
 
-      pcWs.close();
+      // Both controllers also get the update
+      await phone1.waitFor(() => phone1.of('RANKING_UPDATED').length >= 2);
+
+      pc.ws.close();
+      phone1.ws.close();
+      phone2.ws.close();
     });
   });
 });

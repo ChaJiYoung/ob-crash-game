@@ -1,10 +1,10 @@
-import path from 'path';
 import http from 'node:http';
 import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
-import { RoomManager, normalizeSlot } from './RoomManager';
-import { ClientToServerMessage, PlayerProfile, PlayerSlot, ServerToClientMessage, UnsupportedReason } from '../src/shared/types';
+import { RoomManager, RoomSession, normalizeSlot } from './RoomManager';
+import { GameDatabase } from './db/GameDatabase';
+import { ClientToServerMessage, GameBeginPlayer, PlayerSlot, WeaponKind, ServerToClientMessage, UnsupportedReason } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
 import { ControllerWatch, watchKey, parseWatchKey } from './ControllerWatch';
@@ -15,6 +15,8 @@ export interface BeerCrusherServerInstance {
   wss: WebSocketServer;
   port: number;
   playerStore: PlayerStore;
+  playRecordStore: PlayRecordStore;
+  db: GameDatabase;
   roomManager: RoomManager;
   close: () => Promise<void>;
 }
@@ -43,8 +45,8 @@ export function sendJson(ws: WebSocket | undefined, message: ServerToClientMessa
 
 export async function createBeerCrusherServer(options?: {
   port?: number;
-  storePath?: string;
-  recordPath?: string;
+  /** SQLite 파일 경로. ':memory:'면 메모리 DB. 기본 data/game.db */
+  dbPath?: string;
   /** 테스트용: 프레임 끊김 판정 시간(ms). 기본 CONTROLLER_LIFECYCLE.FRAME_TIMEOUT_MS */
   controllerFrameTimeoutMs?: number;
   /** 테스트용: 프레임 끊김 확인 주기(ms). 기본 CONTROLLER_LIFECYCLE.WATCH_INTERVAL_MS */
@@ -53,13 +55,21 @@ export async function createBeerCrusherServer(options?: {
   backgroundNotifyDelayMs?: number;
 }): Promise<BeerCrusherServerInstance> {
   const port = options?.port ?? 8787;
-  const playerStore = new PlayerStore(options?.storePath);
-  // 저장소 경로를 주면 기록도 같은 폴더에 둔다(테스트가 실제 data/에 쓰지 않게).
-  const recordPath =
-    options?.recordPath ?? (options?.storePath ? path.join(path.dirname(options.storePath), 'play-records.jsonl') : undefined);
-  const playRecordStore = new PlayRecordStore(recordPath);
+  const db = new GameDatabase(options?.dbPath);
+  const playerStore = new PlayerStore(db);
+  const playRecordStore = new PlayRecordStore(db);
   const roomManager = new RoomManager();
   const watch = new ControllerWatch();
+
+  /** 방의 PC 소켓이 보낸 메시지인지 확인한다. 아니면 NOT_ROOM_HOST를 보내고 undefined. */
+  const requireHost = (ws: WebSocket, roomId: unknown): RoomSession | undefined => {
+    const session = typeof roomId === 'string' ? roomManager.getRoom(roomId) : undefined;
+    if (!session || session.pcSocket !== ws) {
+      sendJson(ws, { type: 'ERROR', code: 'NOT_ROOM_HOST', message: 'Only the room host can do this' });
+      return undefined;
+    }
+    return session;
+  };
 
   /** 폰이 "화면 꺼짐"을 알린 뒤 PC에 알리기까지 대기 중인 타이머. key = watchKey(roomId, slot) */
   const pendingBackground = new Map<string, ReturnType<typeof setTimeout>>();
@@ -532,6 +542,76 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'GAME_BEGIN': {
+            const session = requireHost(ws, msg.roomId);
+            if (!session) return;
+            const reject = (message: string) =>
+              sendJson(ws, { type: 'ERROR', code: 'GAME_BEGIN_REJECTED', message });
+            const { beginId, mode, players } = msg;
+            if (typeof beginId !== 'string' || beginId.length > 64) return reject('Invalid beginId');
+            if (mode !== 'solo' && mode !== 'coop') return reject('Invalid mode');
+            if (!Array.isArray(players) || players.length !== (mode === 'solo' ? 1 : 2)) {
+              return reject('Invalid player count');
+            }
+            const slots = new Set<number>();
+            const ids = new Set<string>();
+            let mice = 0;
+            for (const p of players as GameBeginPlayer[]) {
+              if (!p || (p.slot !== 1 && p.slot !== 2) || slots.has(p.slot)) return reject('Invalid slot');
+              if (typeof p.deviceId !== 'string' || p.deviceId.length < 1 || p.deviceId.length > 64 || ids.has(p.deviceId)) {
+                return reject('Invalid deviceId');
+              }
+              if (p.inputKind !== 'mobile' && p.inputKind !== 'mouse') return reject('Invalid inputKind');
+              slots.add(p.slot);
+              ids.add(p.deviceId);
+              if (p.inputKind === 'mouse') mice += 1;
+            }
+            if (mice > 1) return reject('At most one mouse player');
+            for (const p of players) {
+              if (p.inputKind === 'mobile' && session.controllers[p.slot]?.deviceId !== p.deviceId) {
+                return reject(`Slot ${p.slot} is not seated by that device`);
+              }
+            }
+            for (const p of players) {
+              if (!playerStore.findByDeviceId(p.deviceId)) return reject('Unregistered device');
+            }
+            for (const p of players) playerStore.touchLastSeen(p.deviceId);
+            const gameId = playRecordStore.beginGame({
+              roomId: session.roomId,
+              mode,
+              rulesetVersion: RANKING_RULESET_VERSION,
+              startedAt: new Date().toISOString(),
+              players: players.map((p) => ({ slot: p.slot, playerId: p.deviceId, inputKind: p.inputKind })),
+            });
+            sendJson(ws, { type: 'GAME_STARTED', roomId: session.roomId, beginId, gameId });
+            break;
+          }
+
+          case 'WEAPON_CHOSEN': {
+            const session = requireHost(ws, msg.roomId);
+            if (!session) return;
+            const weapons: readonly WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
+            if (typeof msg.gameId !== 'number' || (msg.slot !== 1 && msg.slot !== 2) || !weapons.includes(msg.weaponKind)) {
+              sendJson(ws, { type: 'ERROR', code: 'INVALID_REQUEST', message: 'gameId, slot and weaponKind are required for WEAPON_CHOSEN' });
+              return;
+            }
+            if (!playRecordStore.chooseWeapon(msg.gameId, session.roomId, msg.slot, msg.weaponKind)) {
+              console.warn(`[WEAPON_CHOSEN] ignored: game=${msg.gameId} room=${session.roomId} slot=${msg.slot}`);
+            }
+            break;
+          }
+
+          case 'GAME_ABANDON': {
+            const session = requireHost(ws, msg.roomId);
+            if (!session) return;
+            if (typeof msg.gameId !== 'number') {
+              sendJson(ws, { type: 'ERROR', code: 'INVALID_REQUEST', message: 'gameId is required for GAME_ABANDON' });
+              return;
+            }
+            playRecordStore.abandonGame(msg.gameId, session.roomId, new Date().toISOString());
+            break;
+          }
+
           case 'GAME_SCORE_SUBMIT': {
             const { deviceId, score, roomId } = msg;
             if (!deviceId || typeof score !== 'number' || isNaN(score) || !roomId) {
@@ -553,67 +633,32 @@ export async function createBeerCrusherServer(options?: {
               return;
             }
 
-            const now = new Date().toISOString();
-            const isCoop = msg.mode === 'coop';
-            let profile: PlayerProfile;
+            const session = requireHost(ws, roomId);
+            if (!session) return;
 
-            if (!isCoop) {
-              const res = playerStore.recordGameScore(deviceId, score);
-              profile = res.profile;
-              // 기록 실패는 랭킹 저장을 막지 않는다.
-              if (isValidPlayRunStats(msg.stats) && msg.stats.totalScore === score) {
-                playRecordStore.append({
-                  playedAt: now,
-                  deviceId,
-                  nickname: profile.nickname,
-                  rulesetVersion: RANKING_RULESET_VERSION,
-                  stats: msg.stats,
-                });
-              } else if (msg.stats !== undefined) {
-                console.warn('Ignored invalid play stats from', deviceId);
-              }
-            } else {
-              const statsValid =
-                isValidPlayRunStats(msg.stats) &&
-                msg.stats.mode === 'coop' &&
-                !!msg.stats.coop &&
-                msg.stats.totalScore === score;
-
-              if (statsValid && msg.stats && msg.stats.coop) {
-                const res = playerStore.recordCoopResult(deviceId, {
-                  partnerDeviceId: msg.stats.coop.partnerDeviceId,
-                  partnerNickname: msg.stats.coop.partnerNickname,
-                  teamScore: msg.stats.coop.teamScore,
-                  myScore: score,
-                  partnerScore: msg.stats.coop.partnerScore,
-                  waveReached: msg.stats.waveReached,
-                  playedAt: now,
-                });
-                profile = res.profile;
-
-                playRecordStore.append({
-                  playedAt: now,
-                  deviceId,
-                  nickname: profile.nickname,
-                  rulesetVersion: RANKING_RULESET_VERSION,
-                  stats: msg.stats,
-                });
-              } else {
-                console.warn('Ignored invalid coop play stats from', deviceId);
-                const res = playerStore.recordCoopResult(deviceId, {
-                  partnerDeviceId: '',
-                  partnerNickname: '',
-                  teamScore: 0,
-                  myScore: score,
-                  partnerScore: 0,
-                  waveReached: msg.waveReached,
-                  playedAt: now,
-                });
-                profile = res.profile;
-              }
+            if (typeof msg.gameId !== 'number') {
+              sendJson(ws, { type: 'ERROR', code: 'GAME_NOT_FOUND', message: 'gameId is required for GAME_SCORE_SUBMIT' });
+              return;
+            }
+            if (!isValidPlayRunStats(msg.stats) || msg.stats.totalScore !== score) {
+              sendJson(ws, { type: 'ERROR', code: 'INVALID_STATS', message: 'Play stats are missing or invalid' });
+              return;
             }
 
-            const session = roomManager.getRoom(roomId);
+            const result = playRecordStore.submitResult({
+              gameId: msg.gameId,
+              roomId: session.roomId,
+              playerId: deviceId,
+              submittedAt: new Date().toISOString(),
+              stats: msg.stats,
+            });
+            if (!result.ok) {
+              sendJson(ws, { type: 'ERROR', code: result.reason, message: `Score rejected: ${result.reason}` });
+              return;
+            }
+
+            playerStore.touchLastSeen(deviceId);
+            const profile = playerStore.findByDeviceId(deviceId)!;
 
             const response: ServerToClientMessage = {
               type: 'RANKING_UPDATED',
@@ -623,14 +668,9 @@ export async function createBeerCrusherServer(options?: {
             };
 
             sendJson(ws, response);
-            if (session) {
-              if (session.pcSocket && session.pcSocket !== ws) {
-                sendJson(session.pcSocket, response);
-              }
-              for (const cSocket of roomManager.getControllerSockets(session)) {
-                if (cSocket !== ws) {
-                  sendJson(cSocket, response);
-                }
+            for (const cSocket of roomManager.getControllerSockets(session)) {
+              if (cSocket !== ws) {
+                sendJson(cSocket, response);
               }
             }
             break;
@@ -721,6 +761,8 @@ export async function createBeerCrusherServer(options?: {
         wss,
         port: actualPort,
         playerStore,
+        playRecordStore,
+        db,
         roomManager,
         close: async () => {
           clearInterval(watchTimer);
@@ -728,7 +770,10 @@ export async function createBeerCrusherServer(options?: {
           pendingBackground.clear();
           return new Promise<void>((resClose) => {
             wss.close(() => {
-              server.close(() => resClose());
+              server.close(() => {
+                db.close();
+                resClose();
+              });
             });
           });
         },

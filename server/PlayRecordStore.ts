@@ -1,15 +1,30 @@
-import fs from 'fs';
-import path from 'path';
-import { CardPickRecord, InputKind, PlayRunStats, RewardCardKind, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../src/shared/types';
+import { GameDatabase } from './db/GameDatabase';
+import { CardPickRecord, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
-export interface PlayRecordInput {
-  playedAt: string;
-  deviceId: string;
-  nickname: string;
+export interface BeginGameInput {
+  /** 대문자 정규화된 값(RoomSession.roomId) */
+  roomId: string;
+  mode: PlayMode;
   rulesetVersion: number;
+  startedAt: string;
+  players: { slot: PlayerSlot; playerId: string; inputKind: InputKind | null }[];
+}
+
+export interface SubmitResultInput {
+  gameId: number;
+  roomId: string;
+  playerId: string;
+  /** ISO, 서버 시각 */
+  submittedAt: string;
+  /** isValidPlayRunStats를 통과한 값만 */
   stats: PlayRunStats;
 }
+
+export type SubmitFailure =
+  | 'GAME_NOT_FOUND' | 'ROOM_MISMATCH' | 'GAME_NOT_PLAYING'
+  | 'NOT_IN_GAME' | 'ALREADY_SUBMITTED' | 'MODE_MISMATCH' | 'SLOT_MISMATCH';
+export type SubmitResult = { ok: true; finishedGame: boolean } | { ok: false; reason: SubmitFailure };
 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const WEAPONS: readonly WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
@@ -38,7 +53,7 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   if (!s.shots || !SHOT_KEYS.every((k) => isCount(s.shots[k]))) return false;
   if (!s.cardStacks || !CARD_KEYS.every((k) => isCount(s.cardStacks[k]))) return false;
   if (!Array.isArray(s.waves) || s.waves.length > 20) return false;
-  if (!s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus))) return false;
+  if (!s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus) && (w.damageTaken === undefined || isCount(w.damageTaken)))) return false;
 
   if (s.inputKind !== undefined && !INPUTS.includes(s.inputKind)) return false;
   if (s.cardPicks !== undefined) {
@@ -64,55 +79,6 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   return true;
 }
 
-/** 알 수 없는 키가 파일에 들어가지 않도록 정해진 항목만 다시 만든다. */
-function pickStats(s: PlayRunStats): PlayRunStats {
-  const base: PlayRunStats = {
-    outcome: s.outcome,
-    waveReached: s.waveReached,
-    livesLeft: s.livesLeft,
-    durationSec: s.durationSec,
-    totalScore: s.totalScore,
-    baseScore: s.baseScore,
-    timeBonus: s.timeBonus,
-    precisionBonus: s.precisionBonus,
-    levelBonus: s.levelBonus,
-    maxCombo: s.maxCombo,
-    kills: s.kills,
-    damageTaken: s.damageTaken ?? 0,
-    healedLives: s.healedLives ?? 0,
-    itemsCollected: s.itemsCollected ?? 0,
-    waves: s.waves.map((w) => ({ wave: w.wave, seconds: w.seconds, bonus: w.bonus })),
-    shots: { PERFECT: s.shots.PERFECT, GREAT: s.shots.GREAT, GOOD: s.shots.GOOD, MISS: s.shots.MISS },
-    accuracy: s.accuracy,
-    weaponKind: s.weaponKind,
-    weaponLevel: s.weaponLevel,
-    cardStacks: {
-      damage_up: s.cardStacks.damage_up,
-      skill_cooldown: s.cardStacks.skill_cooldown,
-      fever_extend: s.cardStacks.fever_extend,
-      hit_zone_up: s.cardStacks.hit_zone_up,
-    },
-    mode: s.mode === 'coop' ? 'coop' : 'solo',
-  };
-  if (s.mode === 'coop' && s.coop) {
-    base.coop = {
-      slot: s.coop.slot,
-      teamScore: s.coop.teamScore,
-      partnerScore: s.coop.partnerScore,
-      partnerDeviceId: s.coop.partnerDeviceId,
-      partnerNickname: s.coop.partnerNickname,
-      leftEarly: s.coop.leftEarly,
-    };
-    if (s.coop.partnerWeaponKind) base.coop.partnerWeaponKind = s.coop.partnerWeaponKind;
-    if (s.coop.partnerInputKind) base.coop.partnerInputKind = s.coop.partnerInputKind;
-  }
-  if (s.inputKind) base.inputKind = s.inputKind;
-  if (s.cardPicks) {
-    base.cardPicks = s.cardPicks.map((c) => ({ wave: c.wave, kind: c.kind, midWave: c.midWave, auto: c.auto }));
-  }
-  return base;
-}
-
 /** 값이 없는 선택 필드는 키째 뺀다. */
 function compactMember(m: TeamRankingMember): TeamRankingMember {
   const out: TeamRankingMember = { deviceId: m.deviceId, nickname: m.nickname };
@@ -122,136 +88,242 @@ function compactMember(m: TeamRankingMember): TeamRankingMember {
   return out;
 }
 
-/** 끝난 판을 JSONL(한 줄에 JSON 하나)로 덧붙인다. 규칙 버전이 바뀌어도 파일은 지우지 않는다. */
+interface RunRow {
+  player_id: string;
+  nickname: string;
+  total_score: number;
+  wave_reached: number;
+  weapon_kind: WeaponKind;
+  ended_at: string;
+  input_kind: InputKind | null;
+}
+
+interface TeamGameRow {
+  id: number;
+  team_key: string;
+  total_score: number;
+  wave_reached: number;
+  ended_at: string;
+}
+
+interface MemberRow {
+  slot: number;
+  player_id: string;
+  nickname: string;
+  score: number | null;
+  weapon_kind: WeaponKind | null;
+  input_kind: InputKind | null;
+}
+
+/** 판(games)과 플레이어별 기록(game_players 등)을 SQLite에 저장하고 랭킹을 쿼리로 만든다. */
 export class PlayRecordStore {
-  private filePath: string;
-  private rulesetVersion: number;
-  private topRuns: RunRankingEntry[] = [];
-  private teamBests: Map<string, TeamRankingEntry> = new Map();
+  constructor(
+    private readonly db: GameDatabase,
+    private readonly rulesetVersion: number = RANKING_RULESET_VERSION,
+  ) {}
 
-  constructor(filePath?: string, rulesetVersion: number = RANKING_RULESET_VERSION) {
-    this.filePath = filePath || path.resolve(process.cwd(), 'data', 'play-records.jsonl');
-    this.rulesetVersion = rulesetVersion;
-    this.loadTopRuns();
-  }
-
-  /** 현재 규칙 버전의 기록에서 랭킹을 복원한다. 깨진 줄 하나로 서버가 멈추면 안 되므로 건너뛴다. */
-  private loadTopRuns(): void {
-    let raw = '';
-    try {
-      if (!fs.existsSync(this.filePath)) return;
-      raw = fs.readFileSync(this.filePath, 'utf-8');
-    } catch (err) {
-      console.error('Failed to read play records from', this.filePath, err);
-      return;
-    }
-    for (const line of raw.split('\n')) {
-      if (!line.trim()) continue;
-      try {
-        const r = JSON.parse(line);
-        if (r?.rulesetVersion !== this.rulesetVersion || !isValidPlayRunStats(r)) continue;
-        const meta = r as unknown as { deviceId: unknown; nickname: unknown; playedAt: unknown };
-        if (typeof meta.deviceId !== 'string' || typeof meta.nickname !== 'string' || typeof meta.playedAt !== 'string') continue;
-        if (r.mode === 'coop') {
-          this.addToTeamTop({ deviceId: meta.deviceId, nickname: meta.nickname, playedAt: meta.playedAt, stats: r });
-          continue;
-        }
-        this.addToTop({ deviceId: meta.deviceId, nickname: meta.nickname, score: r.totalScore, waveReached: r.waveReached, weaponKind: r.weaponKind, playedAt: meta.playedAt, ...(r.inputKind ? { inputKind: r.inputKind } : {}) });
-      } catch {
-        // 깨진 줄
+  /** 새 판을 만든다. 같은 방의 진행 중인 판은 abandoned로 바꾼다. */
+  public beginGame(input: BeginGameInput): number {
+    return this.db.transaction(() => {
+      const conn = this.db.conn;
+      conn
+        .prepare(`UPDATE games SET status = 'abandoned', ended_at = @startedAt WHERE room_id = @roomId AND status = 'playing'`)
+        .run({ startedAt: input.startedAt, roomId: input.roomId });
+      const teamKey = input.mode === 'coop' ? input.players.map((p) => p.playerId).sort().join('|') : null;
+      const res = conn
+        .prepare(
+          `INSERT INTO games (room_id, mode, player_count, team_key, ruleset_version, status, started_at)
+           VALUES (@roomId, @mode, @playerCount, @teamKey, @rv, 'playing', @startedAt)`,
+        )
+        .run({
+          roomId: input.roomId,
+          mode: input.mode,
+          playerCount: input.players.length,
+          teamKey,
+          rv: input.rulesetVersion,
+          startedAt: input.startedAt,
+        });
+      const gameId = Number(res.lastInsertRowid);
+      const insertPlayer = conn.prepare(
+        `INSERT INTO game_players (game_id, player_id, slot, input_kind) VALUES (@gameId, @playerId, @slot, @inputKind)`,
+      );
+      for (const p of input.players) {
+        insertPlayer.run({ gameId, playerId: p.playerId, slot: p.slot, inputKind: p.inputKind });
       }
-    }
-  }
-
-  /** 점수 내림차순, 같으면 먼저 세운 기록이 위. */
-  private addToTop(entry: RunRankingEntry): void {
-    this.topRuns.push(entry);
-    this.topRuns.sort((a, b) => b.score - a.score || a.playedAt.localeCompare(b.playedAt));
-    this.topRuns.length = Math.min(this.topRuns.length, 5);
-  }
-
-  private addToTeamTop(record: { deviceId: string; nickname: string; playedAt: string; stats: PlayRunStats }): void {
-    const { deviceId, nickname, playedAt, stats } = record;
-    if (stats.mode !== 'coop' || !stats.coop?.partnerDeviceId || stats.coop.partnerDeviceId.trim().length === 0) {
-      return;
-    }
-    const coop = stats.coop;
-    const me = compactMember({ deviceId, nickname, score: stats.totalScore, weaponKind: stats.weaponKind, inputKind: stats.inputKind });
-    const partner = compactMember({
-      deviceId: coop.partnerDeviceId,
-      nickname: coop.partnerNickname,
-      score: coop.partnerScore,
-      weaponKind: coop.partnerWeaponKind,
-      inputKind: coop.partnerInputKind,
+      return gameId;
     });
-    const members: [TeamRankingMember, TeamRankingMember] =
-      coop.slot === 1 ? [me, partner] : [partner, me];
-    const teamKey = [me.deviceId, partner.deviceId].sort().join('|');
+  }
 
-    const existing = this.teamBests.get(teamKey);
-    if (!existing || coop.teamScore > existing.teamScore) {
-      this.teamBests.set(teamKey, {
-        teamKey,
-        members,
-        teamScore: coop.teamScore,
-        waveReached: stats.waveReached,
-        playedAt,
+  public chooseWeapon(gameId: number, roomId: string, slot: PlayerSlot, weaponKind: WeaponKind): boolean {
+    const res = this.db.conn
+      .prepare(
+        `UPDATE game_players SET weapon_kind = @weaponKind, weapon_level = COALESCE(weapon_level, 1)
+         WHERE slot = @slot AND game_id = (SELECT id FROM games WHERE id = @gameId AND room_id = @roomId AND status = 'playing')`,
+      )
+      .run({ weaponKind, slot, gameId, roomId });
+    return res.changes === 1;
+  }
+
+  public abandonGame(gameId: number, roomId: string, endedAt: string): boolean {
+    const res = this.db.conn
+      .prepare(`UPDATE games SET status = 'abandoned', ended_at = @endedAt WHERE id = @gameId AND room_id = @roomId AND status = 'playing'`)
+      .run({ endedAt, gameId, roomId });
+    return res.changes === 1;
+  }
+
+  public submitResult(input: SubmitResultInput): SubmitResult {
+    return this.db.transaction((): SubmitResult => {
+      const conn = this.db.conn;
+      const { gameId, roomId, playerId, submittedAt, stats } = input;
+      const game = conn
+        .prepare(`SELECT id, room_id, mode, status FROM games WHERE id = ?`)
+        .get(gameId) as { id: number; room_id: string; mode: PlayMode; status: string } | undefined;
+      if (!game) return { ok: false, reason: 'GAME_NOT_FOUND' };
+      if (game.room_id !== roomId) return { ok: false, reason: 'ROOM_MISMATCH' };
+      // finished는 거절하지 않는다: 협동은 첫 제출이 판을 끝낸 뒤 두 번째 제출이 온다.
+      if (game.status === 'abandoned') return { ok: false, reason: 'GAME_NOT_PLAYING' };
+
+      const row = conn
+        .prepare(`SELECT id, slot, submitted_at FROM game_players WHERE game_id = ? AND player_id = ?`)
+        .get(gameId, playerId) as { id: number; slot: number; submitted_at: string | null } | undefined;
+      if (!row) return { ok: false, reason: 'NOT_IN_GAME' };
+      if (row.submitted_at) return { ok: false, reason: 'ALREADY_SUBMITTED' };
+
+      if ((stats.mode ?? 'solo') !== game.mode) return { ok: false, reason: 'MODE_MISMATCH' };
+      if (game.mode === 'coop' && stats.coop!.slot !== row.slot) return { ok: false, reason: 'SLOT_MISMATCH' };
+
+      conn
+        .prepare(
+          `UPDATE game_players SET
+             submitted_at = @submittedAt, score = @totalScore, base_score = @baseScore, time_bonus = @timeBonus,
+             precision_bonus = @precisionBonus, level_bonus = @levelBonus, kills = @kills, accuracy = @accuracy,
+             max_combo = @maxCombo, damage_taken = @damageTaken, healed_lives = @healedLives, items_collected = @itemsCollected,
+             left_early = @leftEarly, weapon_kind = @weaponKind, weapon_level = @weaponLevel,
+             input_kind = COALESCE(input_kind, @inputKind),
+             shots_perfect = @PERFECT, shots_great = @GREAT, shots_good = @GOOD, shots_miss = @MISS,
+             cards_damage_up = @damage_up, cards_skill_cooldown = @skill_cooldown,
+             cards_fever_extend = @fever_extend, cards_hit_zone_up = @hit_zone_up
+           WHERE id = @rowId`,
+        )
+        .run({
+          submittedAt,
+          totalScore: stats.totalScore,
+          baseScore: stats.baseScore,
+          timeBonus: stats.timeBonus,
+          precisionBonus: stats.precisionBonus,
+          levelBonus: stats.levelBonus,
+          kills: stats.kills,
+          accuracy: stats.accuracy,
+          maxCombo: stats.maxCombo,
+          damageTaken: stats.damageTaken ?? 0,
+          healedLives: stats.healedLives ?? 0,
+          itemsCollected: stats.itemsCollected ?? 0,
+          leftEarly: stats.coop?.leftEarly ? 1 : 0,
+          weaponKind: stats.weaponKind,
+          weaponLevel: stats.weaponLevel,
+          inputKind: stats.inputKind ?? null,
+          PERFECT: stats.shots.PERFECT,
+          GREAT: stats.shots.GREAT,
+          GOOD: stats.shots.GOOD,
+          MISS: stats.shots.MISS,
+          damage_up: stats.cardStacks.damage_up,
+          skill_cooldown: stats.cardStacks.skill_cooldown,
+          fever_extend: stats.cardStacks.fever_extend,
+          hit_zone_up: stats.cardStacks.hit_zone_up,
+          rowId: row.id,
+        });
+
+      const insertPick = conn.prepare(
+        `INSERT INTO game_player_card_picks (game_player_id, pick_order, wave_num, card_kind, mid_wave, auto_picked)
+         VALUES (@gpId, @order, @wave, @kind, @mid, @auto)`,
+      );
+      (stats.cardPicks ?? []).forEach((c, i) => {
+        insertPick.run({ gpId: row.id, order: i, wave: c.wave, kind: c.kind, mid: c.midWave ? 1 : 0, auto: c.auto ? 1 : 0 });
       });
-    }
+
+      let finishedGame = false;
+      if (game.status === 'playing') {
+        conn
+          .prepare(
+            `UPDATE games SET status = 'finished', outcome = @outcome, total_score = @total, wave_reached = @waveReached,
+               lives_left = @livesLeft, duration_sec = @durationSec, ended_at = @submittedAt WHERE id = @gameId`,
+          )
+          .run({
+            outcome: stats.outcome,
+            total: game.mode === 'coop' ? stats.coop!.teamScore : stats.totalScore,
+            waveReached: stats.waveReached,
+            livesLeft: stats.livesLeft,
+            durationSec: stats.durationSec,
+            submittedAt,
+            gameId,
+          });
+        const insertWave = conn.prepare(
+          `INSERT INTO game_waves (game_id, wave_num, seconds, bonus, damage_taken) VALUES (@gameId, @wave, @seconds, @bonus, @damageTaken)`,
+        );
+        for (const w of stats.waves) {
+          insertWave.run({ gameId, wave: w.wave, seconds: w.seconds, bonus: w.bonus, damageTaken: w.damageTaken ?? null });
+        }
+        finishedGame = true;
+      }
+      return { ok: true, finishedGame };
+    });
   }
 
   public getTopRuns(limit = 5): RunRankingEntry[] {
-    return this.topRuns.slice(0, limit).map((r) => ({ ...r }));
-  }
-
-  public getTopTeams(limit = 5): TeamRankingEntry[] {
-    const list = Array.from(this.teamBests.values());
-    list.sort((a, b) => b.teamScore - a.teamScore || a.playedAt.localeCompare(b.playedAt));
-    return list.slice(0, limit).map((t) => ({
-      teamKey: t.teamKey,
-      members: [{ ...t.members[0] }, { ...t.members[1] }],
-      teamScore: t.teamScore,
-      waveReached: t.waveReached,
-      playedAt: t.playedAt,
+    const rows = this.db.conn
+      .prepare(
+        `SELECT gp.player_id, p.nickname, g.total_score, g.wave_reached, gp.weapon_kind, g.ended_at, gp.input_kind
+         FROM games g JOIN game_players gp ON gp.game_id = g.id JOIN players p ON p.id = gp.player_id
+         WHERE g.mode = 'solo' AND g.status = 'finished' AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL
+         ORDER BY g.total_score DESC, g.ended_at ASC LIMIT @limit`,
+      )
+      .all({ rv: this.rulesetVersion, limit }) as RunRow[];
+    return rows.map((r) => ({
+      deviceId: r.player_id,
+      nickname: r.nickname,
+      score: r.total_score,
+      waveReached: r.wave_reached,
+      weaponKind: r.weapon_kind,
+      playedAt: r.ended_at,
+      ...(r.input_kind ? { inputKind: r.input_kind } : {}),
     }));
   }
 
-  public append(record: PlayRecordInput): boolean {
-    try {
-      fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-      const line = JSON.stringify({
-        playedAt: record.playedAt,
-        deviceId: record.deviceId,
-        nickname: record.nickname,
-        rulesetVersion: record.rulesetVersion,
-        ...pickStats(record.stats),
+  public getTopTeams(limit = 5): TeamRankingEntry[] {
+    const games = this.db.conn
+      .prepare(
+        `WITH ranked AS (
+           SELECT g.id, g.team_key, g.total_score, g.wave_reached, g.ended_at,
+                  ROW_NUMBER() OVER (PARTITION BY g.team_key ORDER BY g.total_score DESC, g.ended_at ASC) AS rn
+           FROM games g WHERE g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv)
+         SELECT id, team_key, total_score, wave_reached, ended_at FROM ranked WHERE rn = 1
+         ORDER BY total_score DESC, ended_at ASC LIMIT @limit`,
+      )
+      .all({ rv: this.rulesetVersion, limit }) as TeamGameRow[];
+    const memberStmt = this.db.conn.prepare(
+      `SELECT gp.slot, gp.player_id, p.nickname, gp.score, gp.weapon_kind, gp.input_kind
+       FROM game_players gp JOIN players p ON p.id = gp.player_id WHERE gp.game_id = ? ORDER BY gp.slot`,
+    );
+    const out: TeamRankingEntry[] = [];
+    for (const g of games) {
+      const members = (memberStmt.all(g.id) as MemberRow[]).map((m) =>
+        compactMember({
+          deviceId: m.player_id,
+          nickname: m.nickname,
+          score: m.score ?? undefined,
+          weaponKind: m.weapon_kind ?? undefined,
+          inputKind: m.input_kind ?? undefined,
+        }),
+      );
+      if (members.length !== 2) continue;
+      out.push({
+        teamKey: g.team_key,
+        members: [members[0], members[1]],
+        teamScore: g.total_score,
+        waveReached: g.wave_reached,
+        playedAt: g.ended_at,
       });
-      fs.appendFileSync(this.filePath, `${line}\n`, 'utf-8');
-      // 파일에 남은 기록만 보드에 올린다. 재시작 뒤 사라질 기록이 보이면 안 된다.
-      if (record.rulesetVersion === this.rulesetVersion) {
-        if (record.stats.mode === 'coop') {
-          this.addToTeamTop({
-            deviceId: record.deviceId,
-            nickname: record.nickname,
-            playedAt: record.playedAt,
-            stats: record.stats,
-          });
-        } else {
-          this.addToTop({
-            deviceId: record.deviceId,
-            nickname: record.nickname,
-            score: record.stats.totalScore,
-            waveReached: record.stats.waveReached,
-            weaponKind: record.stats.weaponKind,
-            playedAt: record.playedAt,
-            ...(record.stats.inputKind ? { inputKind: record.stats.inputKind } : {}),
-          });
-        }
-      }
-      return true;
-    } catch (err) {
-      console.error('Failed to append play record to', this.filePath, err);
-      return false;
     }
+    return out;
   }
 }

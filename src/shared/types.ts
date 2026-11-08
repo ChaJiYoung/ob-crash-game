@@ -125,6 +125,13 @@ export interface CoopRunInfo {
 /** 플레이어 입력 장치. */
 export type InputKind = 'mobile' | 'mouse';
 
+/** GAME_BEGIN에 담는 참가자 한 명. */
+export interface GameBeginPlayer {
+  slot: PlayerSlot;
+  deviceId: string;
+  inputKind: InputKind;
+}
+
 /** 판 동안 고른 보상 카드 한 장. */
 export interface CardPickRecord {
   /** 고른 시점의 웨이브 */
@@ -136,7 +143,7 @@ export interface CardPickRecord {
   auto: boolean;
 }
 
-/** 끝난 한 판의 통계. 서버가 data/play-records.jsonl에 저장한다. */
+/** 끝난 한 판의 통계. 서버가 SQLite DB(data/game.db)에 저장한다. */
 export interface PlayRunStats {
   outcome: 'GAMEOVER' | 'VICTORY';
   waveReached: number;
@@ -153,7 +160,7 @@ export interface PlayRunStats {
   damageTaken?: number;
   healedLives?: number;
   itemsCollected?: number;
-  waves: { wave: number; seconds: number; bonus: number }[];
+  waves: { wave: number; seconds: number; bonus: number; damageTaken?: number }[];
   shots: { PERFECT: number; GREAT: number; GOOD: number; MISS: number };
   /** 0..1 */
   accuracy: number;
@@ -262,7 +269,12 @@ export type ClientToServerMessage =
       slot?: PlayerSlot;
     }
   /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
-  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number; mode?: PlayMode }
+  /** 무기 선택 화면이 뜨는 순간(PCGamePage.handleStartGame) PC가 보낸다. beginId는 응답을 짝짓는 PC 쪽 임의 문자열. */
+  | { type: 'GAME_BEGIN'; roomId: string; beginId: string; mode: PlayMode; players: GameBeginPlayer[] }
+  | { type: 'WEAPON_CHOSEN'; roomId: string; gameId: number; slot: PlayerSlot; weaponKind: WeaponKind }
+  /** 일시정지 메뉴의 "로비로"/"다시시작". */
+  | { type: 'GAME_ABANDON'; roomId: string; gameId: number }
+  | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; gameId?: number; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number; mode?: PlayMode }
   | { type: 'REGISTER_LOCAL_PLAYER'; roomId: string; deviceId: string; nickname: string; slot: PlayerSlot }
   | {
       type: 'SENSOR_CONFIG_UPDATE';
@@ -280,7 +292,7 @@ export type ServerToClientMessage =
   | { type: 'LOCAL_PLAYER_REGISTERED'; roomId: string; slot: PlayerSlot; player: PlayerProfile }
   | { type: 'ZERO_CALIBRATED'; roomId: string; deviceId: string; resume?: boolean; slot: PlayerSlot }
   | { type: 'GAME_COUNTDOWN_START'; roomId: string; sec: number }
-  | { type: 'GAME_STARTED'; roomId: string }
+  | { type: 'GAME_STARTED'; roomId: string; beginId: string; gameId: number }
   | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string; slot: PlayerSlot }
   | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload; slot: PlayerSlot }
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }

@@ -1,29 +1,14 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { WebSocket } from 'ws';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { ServerToClientMessage } from '../src/shared/types';
 
 describe('server coop controller slots (P03-T01)', () => {
   let serverInstance: BeerCrusherServerInstance | undefined;
-  let testStorePath: string;
-
-  beforeEach(() => {
-    testStorePath = path.join(process.cwd(), 'data', `test-coop-slots-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.json`);
-  });
-
   afterEach(async () => {
     if (serverInstance) {
       await serverInstance.close();
       serverInstance = undefined;
-    }
-    if (fs.existsSync(testStorePath)) {
-      fs.unlinkSync(testStorePath);
-    }
-    const recPath = path.join(path.dirname(testStorePath), 'play-records.jsonl');
-    if (fs.existsSync(recPath)) {
-      fs.unlinkSync(recPath);
     }
   });
 
@@ -58,7 +43,7 @@ describe('server coop controller slots (P03-T01)', () => {
   }
 
   it('handles two controller slots, slot relays, slot isolation, and moved slots', async () => {
-    serverInstance = await createBeerCrusherServer({ port: 0, storePath: testStorePath });
+    serverInstance = await createBeerCrusherServer({ port: 0, dbPath: ':memory:' });
     const wsUrl = `ws://localhost:${serverInstance.port}`;
 
     // Pre-register phoneA and phoneB

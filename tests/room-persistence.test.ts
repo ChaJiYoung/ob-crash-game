@@ -1,7 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
 import { WebSocket } from 'ws';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { ServerToClientMessage } from '../src/shared/types';
@@ -55,19 +52,16 @@ describe('PC room code memory', () => {
 });
 
 describe('room persistence on the server', () => {
-  let tempDir: string;
   let server: BeerCrusherServerInstance;
   const sockets: WebSocket[] = [];
 
   beforeEach(async () => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bc-room-'));
-    server = await createBeerCrusherServer({ port: 0, storePath: path.join(tempDir, 'players.json') });
+    server = await createBeerCrusherServer({ port: 0, dbPath: ':memory:' });
   });
 
   afterEach(async () => {
     for (const s of sockets.splice(0)) s.close();
     await server.close();
-    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   /** Opens a socket that records every message so none are missed between awaits. */
@@ -121,19 +115,16 @@ describe('room persistence on the server', () => {
 });
 
 describe('resume flag relay', () => {
-  let tempDir: string;
   let server: BeerCrusherServerInstance;
   const sockets: WebSocket[] = [];
 
   beforeEach(async () => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bc-resume-'));
-    server = await createBeerCrusherServer({ port: 0, storePath: path.join(tempDir, 'players.json') });
+    server = await createBeerCrusherServer({ port: 0, dbPath: ':memory:' });
   });
 
   afterEach(async () => {
     for (const s of sockets.splice(0)) s.close();
     await server.close();
-    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   async function open() {

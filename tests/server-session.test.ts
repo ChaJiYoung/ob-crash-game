@@ -1,247 +1,68 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
+import { describe, it, expect, afterEach } from 'vitest';
 import { WebSocket } from 'ws';
-import { PlayerStore } from '../server/PlayerStore';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { ServerToClientMessage } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
+import { makeEnv, playSolo, register } from './helpers/dbFixtures';
 
 describe('PlayerStore & WebSocket Server', () => {
-  let tempDir: string;
-  let testStorePath: string;
   let serverInstance: BeerCrusherServerInstance | undefined;
-
-  beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bc-test-'));
-    testStorePath = path.join(tempDir, 'players.json');
-  });
 
   afterEach(async () => {
     if (serverInstance) {
       await serverInstance.close();
       serverInstance = undefined;
     }
-    if (fs.existsSync(tempDir)) {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    }
   });
 
-  describe('ranking ruleset migration (gameplay-polish P05-T03)', () => {
-    const oldFile = () =>
-      JSON.stringify(
-        {
-          players: {
-            'device-1': { deviceId: 'device-1', nickname: '맥주고수', bestScore: 9000, totalGames: 7, lastPlayedAt: '2026-10-01T00:00:00.000Z' },
-            'device-2': { deviceId: 'device-2', nickname: '필굿요정', bestScore: 4000, totalGames: 2, lastPlayedAt: '2026-10-02T00:00:00.000Z' },
-          },
-        },
-        null,
-        2
-      );
-
-    it('backs up a versionless file byte for byte, then resets scores but keeps nicknames', () => {
-      const original = oldFile();
-      fs.writeFileSync(testStorePath, original, 'utf-8');
-
-      const store = new PlayerStore(testStorePath);
-      const backupPath = `${testStorePath}.ruleset-1.bak`;
-      expect(fs.existsSync(backupPath)).toBe(true);
-      expect(fs.readFileSync(backupPath, 'utf-8')).toBe(original);
-
-      const p1 = store.findByDeviceId('device-1')!;
-      expect(p1.nickname).toBe('맥주고수');
-      expect(p1.bestScore).toBe(0);
-      expect(p1.totalGames).toBe(0);
-      expect(p1.lastPlayedAt).toBe('2026-10-01T00:00:00.000Z');
-      expect(store.getTopRankings(5).every((p) => p.bestScore === 0)).toBe(true);
-
-      const saved = JSON.parse(fs.readFileSync(testStorePath, 'utf-8'));
-      expect(saved.rulesetVersion).toBe(RANKING_RULESET_VERSION);
+  describe('PlayerStore on the DB', () => {
+    it('validates nicknames, registers, renames and reports unknown devices', () => {
+      const env = makeEnv();
+      expect(env.players.findByDeviceId('device-001')).toBeUndefined();
+      expect(() => env.players.registerOrUpdateNickname('device-001', ' ')).toThrow('INVALID_NICKNAME: Nickname must be 2 to 10 characters');
+      expect(() => env.players.registerOrUpdateNickname('device-001', 'a')).toThrow('INVALID_NICKNAME');
+      expect(() => env.players.registerOrUpdateNickname('device-001', '이것은열한글자가넘는닉네임입니다')).toThrow('INVALID_NICKNAME');
+      const p1 = env.players.registerOrUpdateNickname('device-001', ' 맥주고수 ');
+      expect(p1).toMatchObject({ deviceId: 'device-001', nickname: '맥주고수', bestScore: 0, totalGames: 0 });
+      const p2 = env.players.registerOrUpdateNickname('device-001', '새닉네임');
+      expect(p2.nickname).toBe('새닉네임');
+      expect(env.db.conn.prepare('SELECT COUNT(*) AS c FROM players').pluck().get()).toBe(1);
+      env.db.close();
     });
 
-    it('keeps new scores and the first backup on later loads', () => {
-      const original = oldFile();
-      fs.writeFileSync(testStorePath, original, 'utf-8');
-      const first = new PlayerStore(testStorePath);
-      first.recordGameScore('device-1', 3210);
-
-      const second = new PlayerStore(testStorePath);
-      expect(second.findByDeviceId('device-1')?.bestScore).toBe(3210);
-      expect(second.findByDeviceId('device-1')?.totalGames).toBe(1);
-      expect(fs.readFileSync(`${testStorePath}.ruleset-1.bak`, 'utf-8')).toBe(original);
+    it('derives bestScore and totalGames from finished games of the current ruleset', () => {
+      const env = makeEnv();
+      register(env, 'device-001');
+      playSolo(env, { playerId: 'device-001', score: 100, at: 1 });
+      playSolo(env, { playerId: 'device-001', score: 300, at: 2 });
+      playSolo(env, { playerId: 'device-001', score: 9999, at: 3, rv: RANKING_RULESET_VERSION - 1 });
+      const ab = playSolo(env, { playerId: 'device-001', score: 5000, at: 4, submit: false, roomId: 'AB' });
+      env.records.abandonGame(ab, 'AB', 't');
+      playSolo(env, { playerId: 'device-001', score: 7777, at: 5, submit: false });
+      const p = env.players.findByDeviceId('device-001')!;
+      expect(p.bestScore).toBe(300);
+      expect(p.totalGames).toBe(2);
+      expect(p.coopBests).toBeUndefined();
+      env.db.close();
     });
 
-    it('does not reset anything when the backup cannot be written', () => {
-      fs.writeFileSync(testStorePath, oldFile(), 'utf-8');
-      const realWrite = fs.writeFileSync;
-      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const spy = vi.spyOn(fs, 'writeFileSync').mockImplementation(((file: any, ...rest: any[]) => {
-        if (String(file).includes('.bak')) throw new Error('disk full');
-        return (realWrite as any)(file, ...rest);
-      }) as any);
-
-      try {
-        const store = new PlayerStore(testStorePath);
-        expect(store.findByDeviceId('device-1')?.bestScore).toBe(9000);
-        expect(fs.existsSync(`${testStorePath}.ruleset-1.bak`)).toBe(false);
-        expect(JSON.parse(fs.readFileSync(testStorePath, 'utf-8')).rulesetVersion).toBeUndefined();
-      } finally {
-        spy.mockRestore();
-        errSpy.mockRestore();
-      }
+    it('ranks players by best score, skipping zeros, ties by earlier last_seen_at', () => {
+      const env = makeEnv();
+      register(env, 'a', 'b', 'c', 'd');
+      playSolo(env, { playerId: 'a', score: 500, at: 1 });
+      playSolo(env, { playerId: 'b', score: 900, at: 2 });
+      playSolo(env, { playerId: 'c', score: 500, at: 3 });
+      env.db.conn.prepare(`UPDATE players SET last_seen_at = ? WHERE id = 'a'`).run('2026-11-08T00:00:02.000Z');
+      env.db.conn.prepare(`UPDATE players SET last_seen_at = ? WHERE id = 'c'`).run('2026-11-08T00:00:01.000Z');
+      const top = env.players.getTopRankings(5);
+      expect(top.map((p) => p.deviceId)).toEqual(['b', 'c', 'a']);
+      expect(top.map((p) => p.deviceId)).not.toContain('d');
+      env.db.close();
     });
-
-    it('leaves a current-version file untouched', () => {
-      const current = JSON.stringify(
-        {
-          rulesetVersion: RANKING_RULESET_VERSION,
-          players: { 'device-1': { deviceId: 'device-1', nickname: '맥주고수', bestScore: 777, totalGames: 3, lastPlayedAt: '2026-11-01T00:00:00.000Z' } },
-        },
-        null,
-        2
-      );
-      fs.writeFileSync(testStorePath, current, 'utf-8');
-      const store = new PlayerStore(testStorePath);
-      expect(store.findByDeviceId('device-1')?.bestScore).toBe(777);
-      expect(fs.readdirSync(tempDir).filter((f) => f.endsWith('.bak'))).toEqual([]);
-      expect(fs.readFileSync(testStorePath, 'utf-8')).toBe(current);
-    });
-
-    it('never resets a file written by a newer ruleset version', () => {
-      const future = JSON.stringify(
-        {
-          rulesetVersion: RANKING_RULESET_VERSION + 1,
-          players: { 'device-1': { deviceId: 'device-1', nickname: '미래고수', bestScore: 5555, totalGames: 9, lastPlayedAt: '2027-01-01T00:00:00.000Z' } },
-        },
-        null,
-        2
-      );
-      fs.writeFileSync(testStorePath, future, 'utf-8');
-      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      try {
-        const store = new PlayerStore(testStorePath);
-        expect(store.findByDeviceId('device-1')?.bestScore).toBe(5555);
-        expect(fs.readFileSync(testStorePath, 'utf-8')).toBe(future);
-        expect(fs.readdirSync(tempDir).filter((f) => f.endsWith('.bak'))).toEqual([]);
-      } finally {
-        errSpy.mockRestore();
-      }
-    });
-
-    it('does not trust or overwrite a different pre-existing backup', () => {
-      const original = oldFile();
-      fs.writeFileSync(testStorePath, original, 'utf-8');
-      // A truncated / foreign file already sits at the backup path
-      fs.writeFileSync(`${testStorePath}.ruleset-1.bak`, '{"players": {', 'utf-8');
-
-      new PlayerStore(testStorePath);
-
-      expect(fs.readFileSync(`${testStorePath}.ruleset-1.bak`, 'utf-8')).toBe('{"players": {');
-      const extra = fs.readdirSync(tempDir).filter((f) => f.startsWith('players.json.ruleset-1.') && f !== 'players.json.ruleset-1.bak');
-      expect(extra.length).toBe(1);
-      expect(fs.readFileSync(path.join(tempDir, extra[0]), 'utf-8')).toBe(original);
-    });
-
-    it('keeps a copy of an unreadable store before starting empty', () => {
-      fs.writeFileSync(testStorePath, '{"players": {"device-1": ', 'utf-8');
-      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      try {
-        const store = new PlayerStore(testStorePath);
-        expect(store.getTopRankings(5)).toEqual([]);
-        const copies = fs.readdirSync(tempDir).filter((f) => f.includes('.unreadable-'));
-        expect(copies.length).toBe(1);
-        expect(fs.readFileSync(path.join(tempDir, copies[0]), 'utf-8')).toBe('{"players": {"device-1": ');
-      } finally {
-        errSpy.mockRestore();
-      }
-    });
-
-    it('shows an empty board after the reset instead of zero-point rows, and leaves no temp files', () => {
-      fs.writeFileSync(testStorePath, oldFile(), 'utf-8');
-      const store = new PlayerStore(testStorePath);
-      expect(store.getTopRankings(5)).toEqual([]);
-      store.recordGameScore('device-2', 100);
-      expect(store.getTopRankings(5).map((p) => p.deviceId)).toEqual(['device-2']);
-      expect(fs.readdirSync(tempDir).filter((f) => f.includes('.tmp-'))).toEqual([]);
-    });
-
-    it('survives a null profile entry without crashing the load', () => {
-      fs.writeFileSync(
-        testStorePath,
-        JSON.stringify({ players: { bad: null, 'device-1': { deviceId: 'device-1', nickname: '맥주고수', bestScore: 10, totalGames: 1, lastPlayedAt: 'x' } } }),
-        'utf-8'
-      );
-      const store = new PlayerStore(testStorePath);
-      expect(store.findByDeviceId('device-1')?.nickname).toBe('맥주고수');
-      expect(store.findByDeviceId('device-1')?.bestScore).toBe(0);
-    });
-
-    it('writes the current version when the store file does not exist yet', () => {
-      new PlayerStore(testStorePath);
-      expect(JSON.parse(fs.readFileSync(testStorePath, 'utf-8')).rulesetVersion).toBe(RANKING_RULESET_VERSION);
-    });
-  });
-
-  it('should handle PlayerStore registration, score recording, and ranking', () => {
-    const store = new PlayerStore(testStorePath);
-
-    expect(store.findByDeviceId('device-001')).toBeUndefined();
-
-    // Nickname validation
-    expect(() => store.registerOrUpdateNickname('device-001', ' ')).toThrow('INVALID_NICKNAME');
-    expect(() => store.registerOrUpdateNickname('device-001', 'a')).toThrow('INVALID_NICKNAME');
-    expect(() => store.registerOrUpdateNickname('device-001', '이것은열한글자가넘는닉네임입니다')).toThrow('INVALID_NICKNAME');
-
-    const p1 = store.registerOrUpdateNickname('device-001', '맥주고수');
-    expect(p1.nickname).toBe('맥주고수');
-    expect(p1.bestScore).toBe(0);
-
-    // Record scores
-    const r1 = store.recordGameScore('device-001', 3500);
-    expect(r1.isNewRecord).toBe(true);
-    expect(r1.profile.bestScore).toBe(3500);
-    expect(r1.profile.totalGames).toBe(1);
-
-    const r2 = store.recordGameScore('device-001', 2100); // Lower score
-    expect(r2.isNewRecord).toBe(false);
-    expect(r2.profile.bestScore).toBe(3500);
-    expect(r2.profile.totalGames).toBe(2);
-
-    // Add more players
-    store.registerOrUpdateNickname('device-002', '카스마스터');
-    store.recordGameScore('device-002', 4500);
-
-    store.registerOrUpdateNickname('device-003', '라거황제');
-    store.recordGameScore('device-003', 1200);
-
-    store.registerOrUpdateNickname('device-004', '한맥장인');
-    store.recordGameScore('device-004', 5600);
-
-    store.registerOrUpdateNickname('device-005', '필굿요정');
-    store.recordGameScore('device-005', 2800);
-
-    store.registerOrUpdateNickname('device-006', '생맥폭격기');
-    store.recordGameScore('device-006', 7200);
-
-    const top5 = store.getTopRankings(5);
-    expect(top5).toHaveLength(5);
-    expect(top5[0].nickname).toBe('생맥폭격기');
-    expect(top5[0].bestScore).toBe(7200);
-    expect(top5[1].nickname).toBe('한맥장인');
-    expect(top5[1].bestScore).toBe(5600);
-    expect(top5[2].nickname).toBe('카스마스터');
-    expect(top5[2].bestScore).toBe(4500);
-
-    // Verify persistence by loading into a new instance
-    const store2 = new PlayerStore(testStorePath);
-    expect(store2.findByDeviceId('device-001')?.nickname).toBe('맥주고수');
-    expect(store2.getTopRankings(5)[0].nickname).toBe('생맥폭격기');
   });
 
   it('should relay QR pairing, device check, nickname register, and sensor frames over WebSocket', async () => {
-    serverInstance = await createBeerCrusherServer({ port: 0, storePath: testStorePath });
+    serverInstance = await createBeerCrusherServer({ port: 0, dbPath: ':memory:' });
     const wsUrl = `ws://localhost:${serverInstance.port}`;
 
     // Helper to wait for specific message type using exact union extraction
@@ -385,8 +206,8 @@ describe('PlayerStore & WebSocket Server', () => {
 
     // 6a. A client built for other ranking rules (or an old build without a version) is rejected and records nothing
     for (const stale of [{ rulesetVersion: RANKING_RULESET_VERSION - 1 }, {}]) {
-      const rejected = waitForMessage(mobileWs, 'ERROR');
-      mobileWs.send(
+      const rejected = waitForMessage(pcWs, 'ERROR');
+      pcWs.send(
         JSON.stringify({
           type: 'GAME_SCORE_SUBMIT',
           roomId,
@@ -401,38 +222,43 @@ describe('PlayerStore & WebSocket Server', () => {
       expect(rejection.code).toBe('RULESET_MISMATCH');
     }
 
-    // 6. Submit score and receive updated rankings (the rejected 99999 must not appear)
-    const rankingPromise = waitForMessage(pcWs, 'RANKING_UPDATED');
+    // 6b. Only the PC socket may submit scores
+    const notHost = waitForMessage(mobileWs, 'ERROR');
     mobileWs.send(
-      JSON.stringify({
-        type: 'GAME_SCORE_SUBMIT',
-        roomId,
-        deviceId: 'phone-xyz-123',
-        score: 6400,
-        waveReached: 3,
-        maxCombo: 24,
-        rulesetVersion: RANKING_RULESET_VERSION,
-      })
+      JSON.stringify({ type: 'GAME_SCORE_SUBMIT', roomId, deviceId: 'phone-xyz-123', score: 1, waveReached: 1, maxCombo: 1, rulesetVersion: RANKING_RULESET_VERSION })
     );
-    const rankingMsg = await rankingPromise;
-    expect(rankingMsg.updatedPlayer?.bestScore).toBe(6400);
-    // No stats were sent, so this run is not on the run ranking
-    expect(rankingMsg.rankings).toEqual([]);
+    expect((await notHost).code).toBe('NOT_ROOM_HOST');
 
-    // With stats the run reaches the ranking, with a mismatched total it does not
+    // 6. PC begins a game, then submits; the rejected 99999 must not appear
+    const beginId = 'b-1';
+    const startedPromise = waitForMessage(pcWs, 'GAME_STARTED');
+    pcWs.send(JSON.stringify({ type: 'GAME_BEGIN', roomId, beginId, mode: 'solo', players: [{ slot: 1, deviceId: 'phone-xyz-123', inputKind: 'mobile' }] }));
+    const started = await startedPromise;
+    expect(started.beginId).toBe(beginId);
+    const gameId = started.gameId;
+
     const runStats = {
       outcome: 'GAMEOVER', waveReached: 3, livesLeft: 0, durationSec: 60, totalScore: 7000, baseScore: 7000, timeBonus: 0,
       precisionBonus: 0, levelBonus: 0, maxCombo: 24, kills: 40, waves: [], shots: { PERFECT: 1, GREAT: 1, GOOD: 1, MISS: 1 }, accuracy: 0.5,
       weaponKind: 'shotgun', weaponLevel: 2, cardStacks: { damage_up: 0, skill_cooldown: 0, fever_extend: 0, hit_zone_up: 0 },
     };
-    const submitRun = (score: number) =>
-      mobileWs.send(JSON.stringify({ type: 'GAME_SCORE_SUBMIT', roomId, deviceId: 'phone-xyz-123', score, waveReached: 3, maxCombo: 24, rulesetVersion: RANKING_RULESET_VERSION, stats: runStats }));
-    const mismatch = waitForMessage(pcWs, 'RANKING_UPDATED');
+    const submitRun = (score: number, extra: Record<string, unknown> = {}) =>
+      pcWs.send(JSON.stringify({ type: 'GAME_SCORE_SUBMIT', roomId, deviceId: 'phone-xyz-123', gameId, score, waveReached: 3, maxCombo: 24, rulesetVersion: RANKING_RULESET_VERSION, stats: runStats, ...extra }));
+
+    // Without stats nothing is recorded
+    const noStats = waitForMessage(pcWs, 'ERROR');
+    submitRun(6400, { stats: undefined });
+    expect((await noStats).code).toBe('INVALID_STATS');
+    // A mismatched total is rejected too
+    const mismatch = waitForMessage(pcWs, 'ERROR');
     submitRun(9999);
-    expect((await mismatch).rankings).toEqual([]);
+    expect((await mismatch).code).toBe('INVALID_STATS');
+    // Valid stats finish the game
     const accepted = waitForMessage(pcWs, 'RANKING_UPDATED');
     submitRun(7000);
-    expect((await accepted).rankings[0]).toMatchObject({ score: 7000, waveReached: 3, weaponKind: 'shotgun' });
+    const rankingMsg = await accepted;
+    expect(rankingMsg.rankings[0]).toMatchObject({ score: 7000, waveReached: 3, weaponKind: 'shotgun' });
+    expect(rankingMsg.updatedPlayer).toMatchObject({ bestScore: 7000, totalGames: 1 });
 
     // 7. Verify disconnect notification when controller closes
     const disconnectPromise = waitForMessage(pcWs, 'ERROR');

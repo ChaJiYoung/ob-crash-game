@@ -1,8 +1,6 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { WebSocket } from 'ws';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../../server/wsServer';
-import type { ServerToClientMessage } from '../../src/shared/types';
+import type { GameBeginPlayer, PlayMode, ServerToClientMessage } from '../../src/shared/types';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -82,12 +80,7 @@ export async function startHarness(options: {
   watchIntervalMs?: number;
   backgroundNotifyDelayMs?: number;
 }): Promise<Harness> {
-  const storePath = path.join(
-    process.cwd(),
-    'data',
-    `test-harness-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.json`
-  );
-  const server = await createBeerCrusherServer({ port: 0, storePath, ...options });
+  const server = await createBeerCrusherServer({ port: 0, dbPath: ':memory:', ...options });
   const url = `ws://localhost:${server.port}`;
   const pcWs = await open(url);
   const pc = new Inbox(pcWs);
@@ -112,7 +105,14 @@ export async function startHarness(options: {
     cleanup: async () => {
       for (const s of sockets) s.close();
       await server.close();
-      if (fs.existsSync(storePath)) fs.unlinkSync(storePath);
     },
   };
+}
+
+/** PC 소켓으로 GAME_BEGIN을 보내고 gameId를 받는다. */
+export async function beginGame(pc: Inbox, roomId: string, mode: PlayMode, players: GameBeginPlayer[]): Promise<number> {
+  const beginId = `t-${Date.now()}-${Math.random()}`;
+  pc.ws.send(JSON.stringify({ type: 'GAME_BEGIN', roomId, beginId, mode, players }));
+  await pc.waitFor(() => pc.of('GAME_STARTED', (m) => m.beginId === beginId).length > 0);
+  return pc.of('GAME_STARTED', (m) => m.beginId === beginId)[0].gameId;
 }
