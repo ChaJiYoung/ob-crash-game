@@ -15,5 +15,5 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 코드 수정: 영점 오류 수정, 센서 정지 판정 헬퍼, 폰 컨트롤러 재등록·워치독 연결, 조준 잠금 자동 만료, `__setStep` 제거 | [P01](../phases/2026-11-08-controller-sensor-revive-after-screen-off/P01-sensor-revive/phase.md) |
-| P02 | `pending` | 실기기 검증: 임시 로그 릴레이로 가설 확인, 임계값 확정, 임시 코드 제거 | [P02](../phases/2026-11-08-controller-sensor-revive-after-screen-off/P02-device-verify/phase.md) |
+| P01 | `done` | 코드 수정: 영점 오류 수정, 센서 정지 판정 헬퍼, 폰 컨트롤러 재등록·워치독 연결, 조준 잠금 자동 만료, `__setStep` 제거 | [P01](../phases/2026-11-08-controller-sensor-revive-after-screen-off/P01-sensor-revive/phase.md) |
+| P02 | `in_progress` | 실기기 검증: 임시 로그 릴레이로 가설 확인, 임계값 확정, 임시 코드 제거 | [P02](../phases/2026-11-08-controller-sensor-revive-after-screen-off/P02-device-verify/phase.md) |
