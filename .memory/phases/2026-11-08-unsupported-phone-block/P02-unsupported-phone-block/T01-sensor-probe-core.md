@@ -1,6 +1,6 @@
 # Task: T01 센서 판별 코어
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰이 센서 권한을 허용한 직후 "이 기기에 쓸 만한 자이로가 있는지"를 1초 안에 판정하는 모듈을 만든다. 화면 연결은 T04에서 한다. 이 Task는 판정 규칙(순수 함수)과 실측 함수, 상수, 단위 테스트까지다.
@@ -91,6 +91,6 @@ Task: T01-sensor-probe-core
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

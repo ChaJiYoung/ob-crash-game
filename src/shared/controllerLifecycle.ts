@@ -10,4 +10,6 @@ export const CONTROLLER_LIFECYCLE = {
   FOREGROUND_RESUME_MIN_MS: 1000,
   /** 센서 권한 허용 뒤 첫 센서 이벤트를 기다리는 최대 시간. 지나면 그대로 영점을 보낸다. */
   AUTO_ZERO_FALLBACK_MS: 1000,
+  /** 센서 권한 허용 뒤 기기가 쓸 만한 자이로를 가졌는지 지켜보는 시간. 이 시간 안에 자이로 값이 한 번도 안 오면 미지원. */
+  SENSOR_PROBE_MS: 1000,
 } as const;

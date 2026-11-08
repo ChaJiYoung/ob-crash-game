@@ -233,6 +233,9 @@ export interface SensorFramePayload {
   timestamp: number;
 }
 
+/** 미지원 기기로 판정된 이유. NO_EVENTS: 모션 이벤트가 안 옴, NO_GYRO: 이벤트는 오지만 자이로 값(rotationRate)이 없음. */
+export type UnsupportedReason = 'NO_EVENTS' | 'NO_GYRO';
+
 export type ClientToServerMessage =
   | { type: 'CREATE_ROOM'; roomId?: string }
   | { type: 'DEVICE_CHECK'; roomId: string; deviceId: string; slot?: PlayerSlot }
