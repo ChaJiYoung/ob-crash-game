@@ -73,4 +73,4 @@ Task: T01-auto-zero-raw
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: 03d1118

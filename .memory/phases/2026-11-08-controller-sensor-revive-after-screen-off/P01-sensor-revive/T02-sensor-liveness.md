@@ -1,6 +1,6 @@
 # Task: T02 센서 이벤트 정지 판정 헬퍼
 
-## Status: pending
+## Status: done
 
 ## Goal
 "센서 이벤트가 마지막으로 온 뒤 일정 시간이 지났는가"를 판단하는 순수 클래스 `SensorLiveness`를 만든다. T03의 워치독이 이 클래스를 쓰고, 시간을 인자로 받으므로 테스트가 쉽다.
@@ -76,6 +76,6 @@ Task: T02-sensor-liveness
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
