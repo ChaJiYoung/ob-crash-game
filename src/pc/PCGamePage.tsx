@@ -1679,21 +1679,23 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           {slots.some(shouldShowLobbyCrosshair) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 130 }}>
-              {processorsRef.current.map((proc, i) => {
-                const slot = indexToSlot(slotIndexMapRef.current, i as PlayerIndex);
-                if (!shouldShowLobbyCrosshair(slots.find((s) => s.slot === slot))) return null;
-                const slotColor = slot ? PLAYER_COLORS[slot] : (i === 0 ? PLAYER_COLORS[1] : PLAYER_COLORS[2]);
+              {/* 슬롯 상태(state)에서 바로 계산한다. processorsRef·slotIndexMapRef는 렌더 뒤 effect에서 갱신되므로,
+                  그 뒤 리렌더가 없는 마우스 참여 직후에는 빈 목록이 남는다. */}
+              {getJoinedSlots(slots).map((slotState, i) => {
+                if (!shouldShowLobbyCrosshair(slotState)) return null;
+                const idx = i as PlayerIndex; // 로비 매핑(buildSlotIndexMap)과 같은 순서
+                const aim = processorsRef.current[idx]?.aim ?? { aimX: 0, aimY: 0 };
                 return (
                   <CrosshairOverlay
-                    key={i}
-                    ref={crosshairRefs.current[i]}
-                    aimX={proc.aim.aimX}
-                    aimY={proc.aim.aimY}
+                    key={slotState.slot}
+                    ref={crosshairRefs.current[idx]}
+                    aimX={aim.aimX}
+                    aimY={aim.aimY}
                     isFeverActive={false}
                     isWideScopeActive={false}
                     isPowerShotActive={false}
-                    isAimLocked={i === 0 ? isAimLocked : false}
-                    playerColor={slotColor}
+                    isAimLocked={idx === 0 ? isAimLocked : false}
+                    playerColor={PLAYER_COLORS[slotState.slot]}
                     variant="menu"
                   />
                 );
