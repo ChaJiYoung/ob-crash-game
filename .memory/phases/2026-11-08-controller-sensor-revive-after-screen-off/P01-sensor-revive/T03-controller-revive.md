@@ -1,6 +1,6 @@
 # Task: T03 폰 컨트롤러 센서 리스너 재등록과 워치독
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰 화면이 다시 보이거나, 화면이 보이는데 센서 이벤트가 `SENSOR_STALE_MS` 넘게 끊기면 `deviceorientation`/`devicemotion` 리스너를 해제 후 재등록한다. 영점은 건드리지 않는다.
@@ -86,6 +86,6 @@ Task: T03-controller-revive
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

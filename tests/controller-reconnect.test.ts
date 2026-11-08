@@ -54,6 +54,25 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(source).not.toMatch(/alert\(\s*['"`]PC 호스트/);
   });
 
+  it('registers the sensor listeners again when the screen is back or the sensors stall', () => {
+    expect(source).toContain('sensorEpoch');
+    expect(source).toContain('SensorLiveness');
+    expect(source).toContain('SENSOR_STALE_MS');
+    // The sensor effect re-runs on sensorEpoch...
+    expect(source).toMatch(/\[sensorsActive,\s*sensorEpoch,/);
+    // ...and its cleanup releases the aim lock whose only release is the freeze timer.
+    const cleanup = source.slice(source.indexOf("removeEventListener('deviceorientation'") - 400, source.indexOf("removeEventListener('deviceorientation'"));
+    expect(cleanup).toContain('tracker.unlockAim()');
+  });
+
+  it('keeps the zero when the sensors are revived', () => {
+    const start = source.indexOf('const onVisibility');
+    const end = source.indexOf("clearInterval(watchdog)");
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    expect(source.slice(start, end)).not.toMatch(/calibrateZero|CALIBRATE_ZERO/);
+  });
+
   it('revives the socket when the screen comes back', () => {
     expect(source).toContain('visibilitychange');
     expect(source).toContain("'online'");

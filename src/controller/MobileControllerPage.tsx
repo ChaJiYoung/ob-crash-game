@@ -5,6 +5,7 @@ import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
 import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
+import { SensorLiveness, SENSOR_STALE_MS } from './sensors/SensorLiveness';
 import { PlayerProfile, PlayerSlot, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { PLAYER_COLORS, WEAPON_CONSTANTS } from '../shared/constants';
 import { GAME_TUNING } from '../shared/gameTuning';
@@ -79,6 +80,8 @@ export const MobileControllerPage: React.FC = () => {
   const feverTriggeredRef = useRef<boolean>(false);
   const isCockedRef = useRef<boolean>(false);
   const snapFreezeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [sensorEpoch, setSensorEpoch] = useState<number>(0);
+  const sensorLivenessRef = useRef<SensorLiveness>(new SensorLiveness());
 
   // 1. Parse Room ID & Slot from URL
   useEffect(() => {
@@ -323,10 +326,15 @@ export const MobileControllerPage: React.FC = () => {
   }, [roomId, deviceId, tracker]);
 
   // 4. Start Sensors after permission granted with lifecycle cleanup
+  // sensorEpoch is bumped to tear this effect down and register the listeners again (screen back on, sensor stalled).
   useEffect(() => {
     if (!sensorsActive) return;
 
+    // A fresh registration gets a new grace period before the watchdog may call the sensors stalled.
+    sensorLivenessRef.current.reset(performance.now());
+
     const onOrientation = (e: DeviceOrientationEvent) => {
+      sensorLivenessRef.current.markEvent(performance.now());
       latestOrientationRef.current = {
         alpha: e.alpha || 0,
         beta: e.beta || 0,
@@ -378,11 +386,37 @@ export const MobileControllerPage: React.FC = () => {
     return () => {
       if (snapFreezeTimerRef.current) {
         clearTimeout(snapFreezeTimerRef.current);
+        snapFreezeTimerRef.current = null;
       }
+      // The freeze timer above is the only thing that releases the lock: cancelling it must not leave the aim stuck.
+      tracker.unlockAim();
       window.removeEventListener('deviceorientation', onOrientation);
       window.removeEventListener('devicemotion', onMotion);
     };
-  }, [sensorsActive, tracker, flushSensorFrame]);
+  }, [sensorsActive, sensorEpoch, tracker, flushSensorFrame]);
+
+  // Screen back on, or the sensors went quiet while the page is visible: register the listeners again.
+  // The zero is left alone on purpose, so the player can keep shooting from where the phone points.
+  useEffect(() => {
+    if (!sensorsActive) return;
+
+    const bump = () => setSensorEpoch((e) => e + 1);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') bump();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    // Re-registering resets the grace period, so a phone that never delivers events is retried once per SENSOR_STALE_MS.
+    const watchdog = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      if (sensorLivenessRef.current.isStale(performance.now(), SENSOR_STALE_MS)) bump();
+    }, 500);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearInterval(watchdog);
+    };
+  }, [sensorsActive]);
 
   const handlePermissionGranted = () => {
     setSensorsActive(true);
