@@ -24,3 +24,4 @@
 ## 참고
 - 이전 계획 `2026-11-08-controller-sensor-revive-after-screen-off`의 P02(T02·T03)는 이 계획의 P04로 흡수되었다(`superseded`).
 - 로컬 개발 서버(`tsx server/index.ts`)는 지금은 파일 변경을 감시하지 않는다. P03-T01이 `tsx watch`로 바꾸기 전까지는, 서버 코드를 바꾼 Task 뒤에 사용자가 서버를 재시작해야 실기기 테스트에 반영된다(P03 이후에도 `package.json` 변경은 한 번 직접 재시작해야 적용된다).
+- (추가, 실기기 테스트 중 발견) PC 소켓 자동 재연결: 서버가 재시작되면(`tsx watch` 포함) PC가 다시 붙지 않아 방이 사라지고 폰이 `ROOM_NOT_FOUND`로 "연결중↔연결끊김"을 무한 반복했다. PC가 백오프(`getReconnectDelayMs`)로 재연결하고 저장된 방 코드로 `CREATE_ROOM`을 다시 보내게 했다(`src/pc/PCGamePage.tsx`, `tests/pc-reconnect.test.ts`).

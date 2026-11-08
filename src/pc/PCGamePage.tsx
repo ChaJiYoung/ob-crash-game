@@ -34,6 +34,7 @@ import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
 import { PlayerIndex } from './engine/PlayerCombatState';
 import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProcessor';
 import { MouseAdapter } from './input/MouseAdapter';
+import { getReconnectDelayMs } from '../controller/sensors/ReconnectPolicy';
 import { PhoneAdapter } from './input/PhoneAdapter';
 import { GraceState, decideDisconnectAction, startGrace, tickGrace } from './coopDisconnect';
 import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './playerPresentation';
@@ -498,20 +499,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    let socket: WebSocket;
-    try {
-      socket = new WebSocket(wsUrl);
-    } catch {
-      socket = new WebSocket(`${protocol}//${window.location.hostname}:8787`);
-    }
+    // The server can restart (tsx watch in dev, a crash, a network drop). Without reconnecting the PC never comes back,
+    // the room stays gone, and every phone loops on ROOM_NOT_FOUND. Reconnect and recreate the same room from its saved code.
+    let disposed = false;
+    let attempt = 0;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-    wsRef.current = socket;
-
-    socket.onopen = () => {
-      socket.send(JSON.stringify({ type: 'CREATE_ROOM', roomId: loadSavedRoomId() }));
-    };
-
-    socket.onmessage = (event) => {
+    const handleMessage = (event: MessageEvent) => {
       try {
         const msg = JSON.parse(event.data) as ServerToClientMessage;
         switch (msg.type) {
@@ -762,10 +756,43 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       }
     };
 
+    const connect = () => {
+      if (disposed) return;
+      let socket: WebSocket;
+      try {
+        socket = new WebSocket(wsUrl);
+      } catch {
+        socket = new WebSocket(`${protocol}//${window.location.hostname}:8787`);
+      }
+      wsRef.current = socket;
+
+      socket.onopen = () => {
+        if (wsRef.current !== socket) return;
+        attempt = 0;
+        socket.send(JSON.stringify({ type: 'CREATE_ROOM', roomId: loadSavedRoomId() }));
+      };
+      socket.onmessage = (event) => {
+        if (wsRef.current !== socket) return;
+        handleMessage(event);
+      };
+      socket.onclose = () => {
+        // A replaced or disposed socket must not start another retry loop.
+        if (disposed || wsRef.current !== socket) return;
+        if (retryTimer) clearTimeout(retryTimer);
+        retryTimer = setTimeout(connect, getReconnectDelayMs(attempt));
+        attempt += 1;
+      };
+    };
+    connect();
+
     return () => {
+      disposed = true;
+      if (retryTimer) clearTimeout(retryTimer);
       processorsRef.current.forEach((p) => p.stopAll());
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-      socket.close();
+      const current = wsRef.current;
+      wsRef.current = null;
+      current?.close();
     };
   }, [engine, soundSynth, handleShootEvent]);
 
