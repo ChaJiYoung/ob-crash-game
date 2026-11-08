@@ -12,6 +12,7 @@ import {
   getSoloSlot,
   getMouseIndex,
   applyControllerPaired,
+  applyControllerUnsupported,
   shouldShowLobbyCrosshair,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
@@ -241,5 +242,34 @@ describe('shouldShowLobbyCrosshair (playtest-feedback P02-T01)', () => {
   it('hides an empty or missing slot', () => {
     expect(shouldShowLobbyCrosshair(undefined)).toBe(false);
     expect(shouldShowLobbyCrosshair({ ...base, input: null, player: undefined, isZeroCalibrated: false })).toBe(false);
+  });
+});
+
+describe('applyControllerUnsupported (미지원 폰 차단 P02-T03)', () => {
+  const X = makeProfile('X', 'xx');
+
+  it('폰으로 참여한 슬롯의 입력·프로필·영점을 비운다', () => {
+    let slots = applyControllerPaired(createInitialSlots(), 1, X);
+    slots = updateSlot(slots, 1, { isZeroCalibrated: true });
+    const next = applyControllerUnsupported(slots, 1);
+    expect(next[0].input).toBeNull();
+    expect(next[0].player).toBeUndefined();
+    expect(next[0].isZeroCalibrated).toBe(false);
+    expect(isSlotJoined(next[0])).toBe(false);
+  });
+
+  it('이미 빈 슬롯이면 같은 배열 참조를 돌려준다', () => {
+    const slots = createInitialSlots();
+    expect(applyControllerUnsupported(slots, 2)).toBe(slots);
+  });
+
+  it('다른 슬롯(마우스 참여)은 건드리지 않는다', () => {
+    let slots = chooseSlotInput(createInitialSlots(), 2, 'mouse').slots;
+    slots = updateSlot(slots, 2, { player: makeProfile('M', 'mm') });
+    slots = applyControllerPaired(slots, 1, X);
+    const next = applyControllerUnsupported(slots, 1);
+    expect(next[0].input).toBeNull();
+    expect(next[1].input).toBe('mouse');
+    expect(next[1].player?.deviceId).toBe('M');
   });
 });

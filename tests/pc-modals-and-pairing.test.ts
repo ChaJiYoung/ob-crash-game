@@ -217,3 +217,32 @@ describe('lobby tutorial and guide buttons', () => {
     expect(src).not.toContain('튜토리얼 플레이');
   });
 });
+
+describe('unsupported device notice chip', () => {
+  const slots = createInitialSlots();
+  const render = (unsupportedNotice?: string | null) =>
+    renderToStaticMarkup(
+      React.createElement(QRPairingModal, {
+        roomId: 'AB12',
+        slots,
+        startGate: getStartGate(slots),
+        topRankings: [],
+        savedMouseNickname: '',
+        onChooseInput: () => {},
+        onSubmitMouseNickname: () => {},
+        onStart: () => {},
+        unsupportedNotice,
+      })
+    );
+
+  it('안내가 있으면 문구와 칩이 보인다', () => {
+    const html = render('1P에 연결한 폰은 센서가 지원되지 않아요. 다른 폰으로 접속해 주세요');
+    expect(html).toContain('data-testid="unsupported-notice-chip"');
+    expect(html).toContain('다른 폰으로 접속해 주세요');
+  });
+
+  it('안내가 없거나 null이면 칩이 없다', () => {
+    expect(render()).not.toContain('unsupported-notice-chip');
+    expect(render(null)).not.toContain('unsupported-notice-chip');
+  });
+});

@@ -27,6 +27,8 @@ export interface QRPairingModalProps {
   savedMouseNickname: string;
   mouseNicknameError?: string | null;
   startNotice?: string | null;
+  /** 지원하지 않는 폰이 연결을 시도했다는 안내(몇 초간). */
+  unsupportedNotice?: string | null;
   onChooseInput: (slot: PlayerSlot, input: SlotInput | null) => void;
   onSubmitMouseNickname: (slot: PlayerSlot, nickname: string) => void;
   onStart: () => void;
@@ -376,6 +378,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   savedMouseNickname,
   mouseNicknameError,
   startNotice,
+  unsupportedNotice,
   onChooseInput,
   onSubmitMouseNickname,
   onStart,
@@ -528,6 +531,29 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
 
           {/* Right: Start & Action Buttons */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {unsupportedNotice && (
+              <div
+                data-testid="unsupported-notice-chip"
+                role="alert"
+                style={{
+                  padding: '16px',
+                  borderRadius: '12px',
+                  border: '2px solid #ef4444',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#fca5a5',
+                  fontSize: '15px',
+                  fontWeight: 900,
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>📵</span>
+                <span>{unsupportedNotice}</span>
+              </div>
+            )}
             {/* Start Button or Waiting Chip */}
             <div style={{ display: 'flex' }}>
               {startNotice ? (

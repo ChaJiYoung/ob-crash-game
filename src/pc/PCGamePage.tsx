@@ -54,6 +54,7 @@ import {
   shouldShowLobbyCrosshair,
   decideLobbyStart,
   applyControllerPaired,
+  applyControllerUnsupported,
   SlotPair,
   SlotInput,
 } from './coopSlots';
@@ -100,6 +101,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   slotsRef.current = slots;
   const [mouseNicknameError, setMouseNicknameError] = useState<string | null>(null);
   const [startNotice, setStartNotice] = useState<string | null>(null);
+  const [unsupportedNotice, setUnsupportedNotice] = useState<string | null>(null);
+  const unsupportedNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (unsupportedNoticeTimerRef.current) clearTimeout(unsupportedNoticeTimerRef.current);
+    },
+    []
+  );
   const pendingPlayerCountRef = useRef<1 | 2>(1);
   const startGate = useMemo(() => getStartGate(slots), [slots]);
 
@@ -518,6 +527,18 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             if (msg.teamRankings) setTeamRankings(msg.teamRankings);
             if (msg.lanIp) setLanIp(msg.lanIp);
             break;
+
+          case 'CONTROLLER_UNSUPPORTED': {
+            // 로비에서만 슬롯을 비운다. 판 도중이면 곧 이어지는 CONTROLLER_DISCONNECTED의 유예·일시정지 처리에 맡긴다.
+            // (소켓 핸들러의 클로저는 오래된 state를 읽으므로 반드시 ref를 쓴다.)
+            const inLobby = gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING';
+            if (!inLobby) break;
+            setSlots((prev) => applyControllerUnsupported(prev, msg.slot));
+            setUnsupportedNotice(`${msg.slot}P에 연결한 폰은 센서가 지원되지 않아요. 다른 폰으로 접속해 주세요`);
+            if (unsupportedNoticeTimerRef.current) clearTimeout(unsupportedNoticeTimerRef.current);
+            unsupportedNoticeTimerRef.current = setTimeout(() => setUnsupportedNotice(null), 6000);
+            break;
+          }
 
           case 'CONTROLLER_PAIRED': {
             const slot = msg.slot;
@@ -1664,6 +1685,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             savedMouseNickname={savedMouseNickname}
             mouseNicknameError={mouseNicknameError}
             startNotice={startNotice}
+            unsupportedNotice={unsupportedNotice}
             onChooseInput={handleChooseInput}
             onSubmitMouseNickname={handleSubmitMouseNickname}
             onStart={() => pressScreenButton('start')}

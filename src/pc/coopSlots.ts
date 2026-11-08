@@ -82,6 +82,15 @@ export function applyControllerPaired(
   });
 }
 
+/**
+ * CONTROLLER_UNSUPPORTED 반영(로비 전용): 그 슬롯의 입력·프로필·영점 상태를 비워 처음 상태로 돌린다.
+ * isConnected는 건드리지 않는다: 뒤따르는 CONTROLLER_DISCONNECTED 처리가 맞춘다.
+ * 입력(input)까지 null로 비워야 로비가 "폰 대기 중" 카드에 머물지 않고 입력 선택 화면으로 돌아간다.
+ */
+export function applyControllerUnsupported(slots: SlotPair, slot: PlayerSlot): SlotPair {
+  return chooseSlotInput(slots, slot, null).slots;
+}
+
 export function isSlotJoined(s: SlotState): boolean {
   return s.input !== null && !!s.player;
 }

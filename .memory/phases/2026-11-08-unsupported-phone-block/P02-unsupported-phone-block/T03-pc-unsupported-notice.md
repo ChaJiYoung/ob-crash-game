@@ -1,6 +1,6 @@
 # Task: T03 PC 미지원 폰 안내
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC가 `CONTROLLER_UNSUPPORTED`를 받으면, 로비에서는 해당 슬롯을 "빈 슬롯"으로 되돌리고 QR 모달에 "지원하지 않는 기기" 안내 칩을 몇 초간 보여 준다.
@@ -80,6 +80,6 @@ Task: T03-pc-unsupported-notice
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
