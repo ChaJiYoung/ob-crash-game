@@ -5,9 +5,12 @@ import os from 'node:os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { PlayerStore } from './PlayerStore';
 import { RoomManager, normalizeSlot } from './RoomManager';
-import { ClientToServerMessage, PlayerProfile, ServerToClientMessage } from '../src/shared/types';
+import { ClientToServerMessage, PlayerProfile, PlayerSlot, ServerToClientMessage } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
+import { ControllerWatch, watchKey, parseWatchKey } from './ControllerWatch';
+import { CONTROLLER_LIFECYCLE } from '../src/shared/controllerLifecycle';
+import type { RoomSession } from './RoomManager';
 
 export interface BeerCrusherServerInstance {
   server: http.Server;
@@ -44,6 +47,12 @@ export async function createBeerCrusherServer(options?: {
   port?: number;
   storePath?: string;
   recordPath?: string;
+  /** 테스트용: 프레임 끊김 판정 시간(ms). 기본 CONTROLLER_LIFECYCLE.FRAME_TIMEOUT_MS */
+  controllerFrameTimeoutMs?: number;
+  /** 테스트용: 프레임 끊김 확인 주기(ms). 기본 CONTROLLER_LIFECYCLE.WATCH_INTERVAL_MS */
+  watchIntervalMs?: number;
+  /** 테스트용: 백그라운드 알림 대기(ms). 기본 CONTROLLER_LIFECYCLE.BACKGROUND_NOTIFY_DELAY_MS */
+  backgroundNotifyDelayMs?: number;
 }): Promise<BeerCrusherServerInstance> {
   const port = options?.port ?? 8787;
   const playerStore = new PlayerStore(options?.storePath);
@@ -52,6 +61,56 @@ export async function createBeerCrusherServer(options?: {
     options?.recordPath ?? (options?.storePath ? path.join(path.dirname(options.storePath), 'play-records.jsonl') : undefined);
   const playRecordStore = new PlayRecordStore(recordPath);
   const roomManager = new RoomManager();
+  const watch = new ControllerWatch();
+
+  /** 프레임이 다시 오기 시작한 컨트롤러를 PC에 복귀시킨다(폰이 재연결할 때와 같은 알림). */
+  const notifyControllerBack = (session: RoomSession, slot: PlayerSlot) => {
+    const pc = session.pcSocket;
+    const seat = session.controllers[slot];
+    if (!pc || !seat) return;
+    const player = playerStore.findByDeviceId(seat.deviceId);
+    if (player) {
+      sendJson(pc, { type: 'CONTROLLER_PAIRED', roomId: session.roomId, player, slot });
+    }
+    sendJson(pc, { type: 'ZERO_CALIBRATED', roomId: session.roomId, deviceId: seat.deviceId, slot, resume: true });
+  };
+
+  /** 폰이 "화면 꺼짐"을 알린 뒤 PC에 알리기까지 대기 중인 타이머. key = watchKey(roomId, slot) */
+  const pendingBackground = new Map<string, ReturnType<typeof setTimeout>>();
+  /**
+   * 폰이 "화면 꺼짐"을 알리고 아직 "다시 켜짐"을 알리지 않은 자리.
+   * 숨겨진 폰이 느리게나마 프레임을 계속 보내도, 켜짐 신호 전에는 프레임을 복귀로 보지 않는다.
+   */
+  const backgrounded = new Set<string>();
+  const clearBackground = (key: string) => {
+    const timer = pendingBackground.get(key);
+    if (timer) clearTimeout(timer);
+    pendingBackground.delete(key);
+    backgrounded.delete(key);
+  };
+
+  const watchTimer = setInterval(() => {
+    try {
+      for (const key of watch.check(Date.now(), options?.controllerFrameTimeoutMs)) {
+        const { roomId, slot } = parseWatchKey(key);
+        const session = roomManager.getRoom(roomId);
+        // 이미 지워졌거나 닫힌 자리는 알리지 않고 추적만 끝낸다.
+        if (session?.controllers[slot]?.socket?.readyState !== WebSocket.OPEN) {
+          watch.forget(key);
+          continue;
+        }
+        sendJson(session.pcSocket, {
+          type: 'ERROR',
+          code: 'CONTROLLER_DISCONNECTED',
+          message: 'Controller stopped sending sensor frames',
+          slot,
+        });
+      }
+    } catch (err) {
+      console.error('Controller watch failed', err);
+    }
+  }, options?.watchIntervalMs ?? CONTROLLER_LIFECYCLE.WATCH_INTERVAL_MS);
+  watchTimer.unref?.();
 
   // TEMP(sensor-debug): append one line to data/sensor-debug.log; removed in P02-T03.
   const writeSensorDebug = (line: string) => {
@@ -146,6 +205,9 @@ export async function createBeerCrusherServer(options?: {
               });
               return;
             }
+
+            // 폰이 다시 인증을 보냈다면 돌아온 것이다: 화면 꺼짐 상태를 지운다.
+            clearBackground(watchKey(roomId, slot));
 
             if (attachResult.movedFromSlot && session.pcSocket) {
               sendJson(session.pcSocket, {
@@ -396,6 +458,18 @@ export async function createBeerCrusherServer(options?: {
               }
             }
             const session = roomManager.getRoom(msg.roomId);
+            if (session) {
+              // 슬롯은 메시지가 아니라 소켓 기준으로 찾는다(다른 슬롯 흉내 방지).
+              const frameSlot = roomManager.getControllerSlot(session, ws);
+              if (frameSlot !== undefined) {
+                const frameKey = watchKey(session.roomId, frameSlot);
+                const result = watch.onFrame(frameKey, Date.now());
+                if (result === 'recovered') {
+                  if (backgrounded.has(frameKey)) watch.markLost(frameKey);
+                  else notifyControllerBack(session, frameSlot);
+                }
+              }
+            }
             if (session && session.pcSocket) {
               const slot = roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot);
               sendJson(session.pcSocket, {
@@ -406,6 +480,44 @@ export async function createBeerCrusherServer(options?: {
                 slot,
               });
             }
+            break;
+          }
+
+          case 'CONTROLLER_BACKGROUND':
+          case 'CONTROLLER_FOREGROUND': {
+            // 슬롯은 메시지가 아니라 소켓 기준으로 찾고, 그 자리의 기기와 같을 때만 받는다.
+            const session = roomManager.getRoom(msg.roomId);
+            const slot = session ? roomManager.getControllerSlot(session, ws) : undefined;
+            if (!session || slot === undefined || session.controllers[slot]?.deviceId !== msg.deviceId) break;
+            const key = watchKey(session.roomId, slot);
+
+            if (msg.type === 'CONTROLLER_FOREGROUND') {
+              clearBackground(key);
+              break;
+            }
+            backgrounded.add(key);
+            if (pendingBackground.has(key)) break;
+
+            const timer = setTimeout(() => {
+              pendingBackground.delete(key);
+              try {
+                const current = roomManager.getRoom(session.roomId);
+                // 그 사이 소켓이 바뀌었거나 PC가 없으면 알릴 필요가 없다.
+                if (!current?.pcSocket || current.controllers[slot]?.socket !== ws) return;
+                // 프레임 끊김 감지가 이미 알렸다면 다시 알리지 않는다.
+                if (watch.markLost(key)) {
+                  sendJson(current.pcSocket, {
+                    type: 'ERROR',
+                    code: 'CONTROLLER_DISCONNECTED',
+                    message: 'Controller went to background',
+                    slot,
+                  });
+                }
+              } catch (err) {
+                console.error('Background notify failed', err);
+              }
+            }, options?.backgroundNotifyDelayMs ?? CONTROLLER_LIFECYCLE.BACKGROUND_NOTIFY_DELAY_MS);
+            pendingBackground.set(key, timer);
             break;
           }
 
@@ -597,6 +709,10 @@ export async function createBeerCrusherServer(options?: {
 
     ws.on('close', () => {
       const { roomId, role, slot } = roomManager.removeSocket(ws);
+      if (roomId && role === 'CONTROLLER' && slot !== undefined) {
+        watch.forget(watchKey(roomId, slot));
+        clearBackground(watchKey(roomId, slot));
+      }
       if (roomId && role) {
         const session = roomManager.getRoom(roomId);
         if (session) {
@@ -632,6 +748,10 @@ export async function createBeerCrusherServer(options?: {
         playerStore,
         roomManager,
         close: async () => {
+          clearInterval(watchTimer);
+          for (const timer of pendingBackground.values()) clearTimeout(timer);
+          pendingBackground.clear();
+          backgrounded.clear();
           return new Promise<void>((resClose) => {
             wss.close(() => {
               server.close(() => resClose());

@@ -1,6 +1,6 @@
 # Task: T02 백그라운드/포그라운드 신호와 PC 중복 알림 방어
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰이 `CONTROLLER_BACKGROUND`를 보내면 서버가 1초를 기다린 뒤(그 사이 `CONTROLLER_FOREGROUND`가 오지 않으면) PC에 `CONTROLLER_DISCONNECTED`를 보낸다. 같은 슬롯의 `CONTROLLER_DISCONNECTED`가 여러 번 와도 PC가 유예 카운트다운을 다시 시작하지 않는다.
@@ -54,6 +54,7 @@
   5. `ws.on('close')`: 닫힌 컨트롤러의 `pendingBackground` 타이머도 정리한다(`clearTimeout` + delete, 키는 T01의 `watchKey(roomId, slot)`).
   6. `close()`: 남은 `pendingBackground` 타이머를 모두 `clearTimeout`.
   7. 타이머 콜백은 `try/catch`로 감싼다.
+- **구현 중 보강(청사진 추가)**: `backgrounded: Set<string>`을 두어, `CONTROLLER_BACKGROUND`를 받은 자리는 `CONTROLLER_FOREGROUND`(또는 같은 소켓의 `DEVICE_CHECK`)가 오기 전까지 프레임이 다시 와도 복귀로 처리하지 않는다(`watch.onFrame`이 `'recovered'`를 돌려주면 `watch.markLost`로 되돌리고 복귀 알림을 보내지 않는다). 백그라운드 탭이 느리게나마 프레임을 계속 보내는 기기에서, 알림 직후 다음 프레임이 PC를 곧바로 재개시키는 것을 막는다.
 - **주의(회귀 방지)**: 소켓을 `removeSocket`하거나 `session.controllers`를 건드리지 않는다. 지우면 폰이 돌아와도 `SENSOR_FRAME`이 PC로 전달되지 않는다.
 
 ### I03. PC 중복 알림 방어
@@ -128,6 +129,6 @@ Task: T02-background-foreground-and-pc-dedupe
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

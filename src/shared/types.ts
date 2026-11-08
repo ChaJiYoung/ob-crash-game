@@ -209,6 +209,10 @@ export type ClientToServerMessage =
   | { type: 'CALIBRATE_ZERO'; roomId: string; deviceId: string; resume?: boolean; slot?: PlayerSlot }
   | { type: 'START_GAME_REQUEST'; roomId: string; deviceId: string; slot?: PlayerSlot }
   | { type: 'SENSOR_FRAME'; roomId: string; deviceId: string; payload: SensorFramePayload; slot?: PlayerSlot }
+  /** 폰 화면이 꺼졌다/백그라운드로 갔다. 서버가 잠시 기다린 뒤 PC에 알린다. */
+  | { type: 'CONTROLLER_BACKGROUND'; roomId: string; deviceId: string; slot?: PlayerSlot }
+  /** 폰 화면이 다시 켜졌다. 서버의 대기 중인 알림을 취소한다. */
+  | { type: 'CONTROLLER_FOREGROUND'; roomId: string; deviceId: string; slot?: PlayerSlot }
   // TEMP(sensor-debug)
   | { type: 'DEBUG_LOG'; roomId: string; deviceId: string; tag: string; data?: Record<string, unknown>; ts: number }
   | { type: 'FEVER_STATUS_SYNC'; roomId: string; isFeverReady: boolean; slot?: PlayerSlot }

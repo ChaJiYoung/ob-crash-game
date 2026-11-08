@@ -1,6 +1,6 @@
 # Task: T01 컨트롤러 센서 프레임 끊김 감지와 복귀 알림
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 중 폰이 소리 없이 사라져도(소켓이 닫히지 않아도) 센서 프레임이 3초 끊기면 서버가 PC에 `CONTROLLER_DISCONNECTED`를 한 번 보내고, 프레임이 다시 오면 복귀 알림(`CONTROLLER_PAIRED` + `ZERO_CALIBRATED` `resume: true`)을 보낸다.
@@ -138,6 +138,6 @@ Task: T01-controller-watch
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

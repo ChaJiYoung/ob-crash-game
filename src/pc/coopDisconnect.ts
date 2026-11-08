@@ -32,3 +32,15 @@ export function tickGrace(
   const remainingSec = Math.ceil(remainingMs / 1000);
   return { remainingSec, expired: false };
 }
+
+export type DisconnectAction = 'start' | 'ignore' | 'second_loss';
+
+/**
+ * 같은 슬롯의 CONTROLLER_DISCONNECTED가 거듭 와도(화면 꺼짐 신호 뒤 소켓이 닫히거나, 프레임 끊김 감지와 겹칠 때)
+ * 유예 기한을 다시 시작하지 않는다.
+ * grace가 없으면 'start', 같은 슬롯이면 'ignore', 다른 슬롯이면(두 번째 사람도 끊김) 'second_loss'.
+ */
+export function decideDisconnectAction(grace: GraceState | null, droppedSlot: PlayerSlot): DisconnectAction {
+  if (grace === null) return 'start';
+  return grace.slot === droppedSlot ? 'ignore' : 'second_loss';
+}

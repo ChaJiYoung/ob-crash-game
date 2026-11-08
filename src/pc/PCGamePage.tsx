@@ -35,7 +35,7 @@ import { PlayerIndex } from './engine/PlayerCombatState';
 import { PlayerActionProcessor, ShootableButton } from './input/PlayerActionProcessor';
 import { MouseAdapter } from './input/MouseAdapter';
 import { PhoneAdapter } from './input/PhoneAdapter';
-import { GraceState, startGrace, tickGrace } from './coopDisconnect';
+import { GraceState, decideDisconnectAction, startGrace, tickGrace } from './coopDisconnect';
 import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './playerPresentation';
 import { buildDebugSnapshot } from './debug/debugSnapshot';
 
@@ -730,17 +730,21 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   playerIndex !== undefined &&
                   !engine.getPlayer(playerIndex).isAway
                 ) {
-                  if (graceRef.current !== null && graceRef.current.slot !== droppedSlot) {
+                  const action = decideDisconnectAction(graceRef.current, droppedSlot);
+                  if (action === 'second_loss') {
                     setGrace(null);
                     setPauseMenu({ open: true, reason: 'CONTROLLER_LOST' });
-                  } else {
+                  } else if (action === 'start') {
                     const newGrace = startGrace(droppedSlot, playerIndex, performance.now(), graceMs);
                     setGrace(newGrace);
+                    // graceRef는 렌더 때만 갱신된다. 같은 슬롯의 알림이 연달아 오면 이 값으로 중복을 걸러야 한다.
+                    graceRef.current = newGrace;
                     setGraceRemainingSec(Math.ceil(graceMs / 1000));
                     engine.setPaused(true, performance.now());
                     setIsExitConfirmOpen(false);
                     setPauseMenu({ open: true, reason: 'PLAYER_LOST' });
                   }
+                  // 'ignore': 이미 이 슬롯의 유예가 진행 중이다. 기한을 다시 시작하지 않는다.
                 } else {
                   if (pauseMenuOpenRef.current) {
                     // The player had already paused: keep the menu, but it must now wait for the phone.

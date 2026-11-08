@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { startGrace, tickGrace } from '../src/pc/coopDisconnect';
+import fs from 'node:fs';
+import { decideDisconnectAction, startGrace, tickGrace } from '../src/pc/coopDisconnect';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 
 describe('Coop Disconnect Grace (P04-T06)', () => {
@@ -62,3 +63,24 @@ describe('Coop Disconnect Grace (P04-T06)', () => {
     });
   });
 });
+
+describe('decideDisconnectAction', () => {
+  it('starts a grace when none is running', () => {
+    expect(decideDisconnectAction(null, 1)).toBe('start');
+  });
+
+  it('ignores a repeated loss of the slot that is already in grace', () => {
+    expect(decideDisconnectAction(startGrace(1, 0, 0, 30000), 1)).toBe('ignore');
+  });
+
+  it('flags the other slot dropping as a second loss', () => {
+    expect(decideDisconnectAction(startGrace(1, 0, 0, 30000), 2)).toBe('second_loss');
+  });
+
+  it('PCGamePage uses it and records the new grace immediately', () => {
+    const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    expect(source).toContain('decideDisconnectAction(graceRef.current, droppedSlot)');
+    expect(source).toMatch(/setGrace\(newGrace\);[\s\S]{0,200}graceRef\.current = newGrace;/);
+  });
+});
+
