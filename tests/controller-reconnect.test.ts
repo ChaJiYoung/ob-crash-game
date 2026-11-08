@@ -65,6 +65,10 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(cleanup).toContain('tracker.unlockAim()');
   });
 
+  it('does not expose a step setter on window', () => {
+    expect(source).not.toContain('__setStep');
+  });
+
   it('times the aim lock so a lost freeze timer cannot pin the aim', () => {
     expect(source).toMatch(/tracker\.lockAim\(latestOrientationRef\.current,\s*performance\.now\(\)\)/);
     expect(source).toContain('tracker.expireAimLock(performance.now())');

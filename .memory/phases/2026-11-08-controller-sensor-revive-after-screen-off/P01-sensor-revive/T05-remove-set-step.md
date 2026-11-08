@@ -1,6 +1,6 @@
 # Task: T05 `__setStep` 전역 노출 제거
 
-## Status: pending
+## Status: done
 
 ## Goal
 `MobileControllerPage.tsx` 상단에 남아 있는 `window.__setStep` 디버그 훅을 제거한다.
@@ -45,6 +45,6 @@ Task: T05-remove-set-step
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
