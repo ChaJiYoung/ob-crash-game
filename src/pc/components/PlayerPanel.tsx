@@ -19,10 +19,16 @@ export function formatPanelFeverBonus(): string {
 
 export interface PlayerPanelProps {
   snapshot: PlayerHudSnapshot;
-  presentation: PlayerPresentation;
+  /**
+   * The HUD snapshot is taken on a tick while presentations follow the engine's current player count, so for one
+   * render they can disagree (e.g. right after "continue alone"). A missing presentation renders nothing: throwing
+   * here would unmount the whole PC page and drop its socket, which deletes the room.
+   */
+  presentation: PlayerPresentation | undefined;
 }
 
 export const PlayerPanel: React.FC<PlayerPanelProps> = ({ snapshot, presentation }) => {
+  if (!presentation) return null;
   const skillBadge = formatWeaponSkillBadge(
     snapshot.weaponKind,
     snapshot.weaponLevel,

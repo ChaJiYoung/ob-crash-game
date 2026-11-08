@@ -206,3 +206,14 @@ describe('PlayerPanel and PlayerPresentation (P05-T01)', () => {
     });
   });
 });
+
+describe('PlayerPanel without a presentation (player count changed between HUD ticks)', () => {
+  it('renders nothing instead of crashing the whole PC page', () => {
+    const render = () =>
+      renderToStaticMarkup(
+        <PlayerPanel snapshot={createMockPlayerSnapshot({ index: 1 })} presentation={undefined} />
+      );
+    expect(render).not.toThrow();
+    expect(render()).toBe('');
+  });
+});
