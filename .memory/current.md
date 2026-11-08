@@ -1,21 +1,18 @@
 # Current Context
 
 ## Active Plan
-[플레이 테스트 피드백](./plans/2026-11-08-playtest-feedback.md)
+[미지원 폰 차단 + 센서 테스트장 숨기기 + 피버·탄창·조준 수정](./plans/2026-11-08-unsupported-phone-block.md)
 
 ## Active Phase
-[P02 플레이 감각](./phases/2026-11-08-playtest-feedback/P02-play-feel/phase.md)
+[P01 센서 테스트장 숨기기 + 센서 랩 모달 흔들림 수정](./phases/2026-11-08-unsupported-phone-block/P01-hide-lab-and-fix-flicker/phase.md)
 
 ## Active Task
-없음 (플레이 테스트 피드백 계획 전체 완료)
+[T01 센서 테스트장 숨기기 + 센서 랩 모달 흔들림 수정](./phases/2026-11-08-unsupported-phone-block/P01-hide-lab-and-fix-flicker/T01-sensor-lab-url-only.md)
 
 ## Status
-- P02-T03 완료(`702033a`): 조준경 링 게이지. 계획 전체 완료.
-- P02-T02 완료(`e71b1f2`): 카드 빈도 시뮬레이션 회귀 테스트. 배율 2 유지.
-- P02-T01 완료(`5570926`): 마우스 이동을 window에서 받고 로비 십자선을 준비된 슬롯마다 표시. 로비 육안 확인 필요.
-- P01-T01 완료(`7017d38`): 입력 방식·파트너 무기·카드 선택 기록 저장, 랭킹·결과 화면 표시. tsc·vitest(748)·build 통과.
-- 2인팟 결정 문서 D10·D35에 배율 변경 내역(`f8e2669`, D41)을 기록했다. 카드 배율은 시뮬레이션 결과 2배 유지(D07-1). 재조정은 cardPicks 기록이 쌓인 뒤 판단.
-- 이전 계획 [폰 컨트롤러 수명주기 수정](./plans/2026-11-08-phone-lifecycle-fixes.md) 전체 완료(실기기 A~F 통과, 임시 진단 코드 제거).
+- 계획 `2026-11-08-unsupported-phone-block`에 피버·탄창·조준 수정(P03)을 합쳐 수립 완료. 실행 순서: P01(T01) → P02(T01~T04) → P03(T01~T03) → P04(T01). 병렬 금지, 한 Task씩 커밋.
+- 이전 계획 [플레이 테스트 피드백](./plans/2026-11-08-playtest-feedback.md) 전체 완료.
+- 주의: 실기기 검증(P04)은 `npm run dev`가 아니라 운영 빌드(`npm run build && npm run preview`)로 해야 한다. 개발 모드는 폰 판별을 건너뛴다.
 
 ## Next Step (IMPORTANT)
-사용자 육안 확인: 로비 마우스 십자선(P02-T01), 조준경 링 게이지(P02-T03), 랭킹·결과 화면 입력 방식 표시(P01-T01). 몇 판 플레이 후 `data/play-records.jsonl`의 `cardPicks`로 1인·2인 카드 횟수를 비교해 배율 재조정 여부를 판단(D07-1).
+P01-T01 청사진을 읽고 `src/pc/components/QRPairingModal.tsx`의 테스트장 버튼 제거부터 구현 시작
