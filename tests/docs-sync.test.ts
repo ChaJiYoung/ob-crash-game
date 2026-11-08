@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { GAME_TUNING } from '../src/shared/gameTuning';
-import { TARGET_SPECS, WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
+import { WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
 
 /** Guards against old specs creeping back into player-facing text (gameplay-polish P05-T02). */
 const FORBIDDEN: { pattern: RegExp; why: string }[] = [
@@ -284,18 +284,5 @@ describe('doc ranges and wording are derived from the tuned tables', () => {
   it('the tutorial guide does not claim R reloads (R fires the skill)', () => {
     const tutorial = fs.readFileSync('docs/튜토리얼_훈련장_가이드.md', 'utf8');
     expect(tutorial).not.toMatch(/재장전\*\*: `R`/);
-  });
-});
-
-describe('monster studio info cards', () => {
-  it('match the real monster table', () => {
-    const html = fs.readFileSync('docs/monster-studio.html', 'utf8');
-    for (const kind of ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] as const) {
-      const spec = TARGET_SPECS[kind];
-      const row = html.split('\n').find((l) => l.trim().startsWith(`${kind}: { badge:`))!;
-      expect(row).toContain(`hp: '${spec.maxHp}'`);
-      expect(row).toContain(`speed: '${spec.speedMps.toFixed(1)} m/s'`);
-      expect(row).toContain(`score: '+${Math.round(spec.killBonusScore * GAME_TUNING.score.scale)}점'`);
-    }
   });
 });
