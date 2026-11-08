@@ -1,6 +1,6 @@
 # Task: T01 입력 방식·카드 선택 기록 저장과 랭킹·결과 화면 표시
 
-## Status: pending
+## Status: done
 
 ## Goal
 판 기록에 플레이어의 입력 방식(마우스/모바일)과 2인 판 파트너의 무기·입력 방식을 저장한다. 그 정보로 개인 랭킹 줄에 🖱/📱 아이콘을, 팀 랭킹 줄에 1P·2P 각자의 점수·무기·입력 방식을, 결과 화면(클리어·게임 오버)에 플레이어별 무기·입력 방식을 보여 준다. 지금은 입력 방식이 어디에도 저장되지 않는다.
@@ -136,11 +136,11 @@ cardPicks?: CardPickRecord[];
 - 서버: 잘못된 `kind`, 61개짜리 배열 → false. `cardPicks`가 없는 옛 기록 → 유효.
 
 ## Acceptance Criteria
-- [ ] 새 판 기록 JSONL 줄에 `inputKind`(와 coop이면 `partnerWeaponKind`, `partnerInputKind`)가 저장된다.
-- [ ] 로비·결과 화면 개인 랭킹 줄에 🖱/📱가 보이고, 옛 기록은 아이콘 없이 보인다.
-- [ ] 팀 랭킹 줄에 1P·2P 각자 아이콘·닉네임·무기·점수가 보인다.
-- [ ] 결과 화면에 플레이어별 무기와 입력 방식이 보인다(1인·2인).
-- [ ] 새 판 기록에 플레이어별 `cardPicks`(웨이브, 종류, 중간/클리어, 자동 여부)가 저장된다.
+- [x] 새 판 기록 JSONL 줄에 `inputKind`(와 coop이면 `partnerWeaponKind`, `partnerInputKind`)가 저장된다.
+- [x] 로비·결과 화면 개인 랭킹 줄에 🖱/📱가 보이고, 옛 기록은 아이콘 없이 보인다.
+- [x] 팀 랭킹 줄에 1P·2P 각자 아이콘·닉네임·무기·점수가 보인다.
+- [x] 결과 화면에 플레이어별 무기와 입력 방식이 보인다(1인·2인).
+- [x] 새 판 기록에 플레이어별 `cardPicks`(웨이브, 종류, 중간/클리어, 자동 여부)가 저장된다.
 
 ## Validation
 - `npx tsc --noEmit` — 오류 0
@@ -165,6 +165,6 @@ Task: T01-input-kind-in-records
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과 (tsc, vitest 748, build)
 - commit: pending

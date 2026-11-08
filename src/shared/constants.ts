@@ -1,4 +1,5 @@
 import {
+  InputKind,
   ItemBuffKind,
   ItemBuffSpec,
   JudgmentGrade,
@@ -620,3 +621,7 @@ export const WEAPON_RANKING_LABEL: Record<WeaponKind, string> = {
   revolver: '🍾 리볼버',
   gatling: '🍺 개틀링',
 };
+
+/** 입력 장치 아이콘과 이름(랭킹·결과 화면). */
+export const INPUT_KIND_ICON: Record<InputKind, string> = { mouse: '🖱', mobile: '📱' };
+export const INPUT_KIND_LABEL: Record<InputKind, string> = { mouse: '마우스', mobile: '모바일' };

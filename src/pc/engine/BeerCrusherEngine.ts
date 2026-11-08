@@ -1945,6 +1945,13 @@ export class BeerCrusherEngine {
     } else if (target.rewardCardKind) {
       this.applyRewardCard(target.rewardCardKind, nowMs, playerIndex);
       player.lastPick = { card: target.rewardCardKind, auto };
+      // 라운드는 아직 열려 있다(닫는 건 아래 finishSelectRound).
+      player.cardPicks.push({
+        wave: this.currentWave,
+        kind: target.rewardCardKind,
+        midWave: !(this.selectRound?.isWaveClear ?? false),
+        auto,
+      });
     }
 
     this.activeTargets = this.activeTargets.filter(
@@ -2128,6 +2135,7 @@ export class BeerCrusherEngine {
       weaponLevel: weapon.weaponLevel,
       cardStacks: { ...player.cardStacks },
       mode: this.players.length > 1 ? 'coop' : 'solo',
+      cardPicks: player.cardPicks.map((c) => ({ ...c })),
     };
 
     if (this.players.length > 1) {

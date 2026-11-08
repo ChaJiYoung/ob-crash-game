@@ -1,6 +1,22 @@
 import React, { useEffect } from 'react';
-import { RunRankingEntry, TeamRankingEntry, WeaponKind } from '../../shared/types';
-import { WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { InputKind, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../../shared/types';
+import { INPUT_KIND_ICON, INPUT_KIND_LABEL, WEAPON_RANKING_LABEL } from '../../shared/constants';
+
+/** 입력 장치 아이콘. 옛 기록(값 없음)은 아무것도 그리지 않는다. */
+export const InputKindIcon: React.FC<{ kind?: InputKind }> = ({ kind }) =>
+  kind ? (
+    <span data-testid="rank-input-icon" title={INPUT_KIND_LABEL[kind]} style={{ flexShrink: 0 }}>
+      {INPUT_KIND_ICON[kind]}
+    </span>
+  ) : null;
+
+/** 팀 멤버 한 줄: 아이콘 닉네임 · 무기 · 점수. 없는 값은 그 조각만 생략한다. */
+export function formatTeamMemberDetail(m: TeamRankingMember): string {
+  const parts: string[] = [];
+  if (m.weaponKind) parts.push(WEAPON_RANKING_LABEL[m.weaponKind] ?? m.weaponKind);
+  if (m.score !== undefined) parts.push(m.score.toLocaleString());
+  return parts.join(' · ');
+}
 
 export type RankingTab = 'solo' | 'team';
 
@@ -175,6 +191,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
                     >
                       {index + 1}
                     </span>
+                    <InputKindIcon kind={entry.inputKind} />
                     <span
                       style={{
                         fontWeight: 700,
@@ -258,18 +275,36 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
                     >
                       {index + 1}
                     </span>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        color: '#f8fafc',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: compact ? '140px' : '180px',
-                      }}
-                    >
-                      {p1} & {p2}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
+                      {[entry.members?.[0], entry.members?.[1]].map((m, mi) => {
+                        const detail = m ? formatTeamMemberDetail(m) : '';
+                        return (
+                          <div
+                            key={mi}
+                            data-testid={`team-member-${mi}`}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              maxWidth: compact ? '200px' : '260px',
+                            }}
+                          >
+                            <InputKindIcon kind={m?.inputKind} />
+                            <span style={{ fontWeight: 700, color: '#f8fafc', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {mi === 0 ? p1 : p2}
+                            </span>
+                            {detail && (
+                              <span style={{ fontSize: compact ? '10px' : '11px', color: '#64748b', flexShrink: 0 }}>
+                                {detail}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <div style={{ fontWeight: 800, color: compact ? '#f59e0b' : '#38bdf8' }}>

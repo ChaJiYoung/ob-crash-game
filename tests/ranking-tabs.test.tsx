@@ -61,8 +61,9 @@ describe('RankingTabs Component and Pure Helpers (P05-T07)', () => {
       })
     );
 
-    expect(html).toContain('카스왕 &amp; 오비맨');
-    expect(html).toContain('하이트러 &amp; 클라우드');
+    for (const name of ['카스왕', '오비맨', '하이트러', '클라우드']) expect(html).toContain(name);
+    // 옛 기록(입력 방식 없음)은 아이콘 없이 그린다.
+    expect(html).not.toContain('rank-input-icon');
     expect(html).toContain('50,000');
     expect(html).toContain('35,000');
     expect(html).not.toContain('솔로킹');
@@ -143,5 +144,39 @@ describe('RankingTabs Component and Pure Helpers (P05-T07)', () => {
       })
     );
     expect(htmlModal).toContain('99999점');
+  });
+
+  it('shows input icons on solo rows and per-member detail on team rows', () => {
+    const solo: RunRankingEntry[] = [
+      { deviceId: 'a', nickname: '마우스왕', score: 100, waveReached: 3, weaponKind: 'gatling', playedAt: 't1', inputKind: 'mouse' },
+      { deviceId: 'b', nickname: '옛기록', score: 50, waveReached: 2, weaponKind: 'revolver', playedAt: 't0' },
+    ];
+    const soloHtml = renderToStaticMarkup(
+      React.createElement(RankingTabs, { soloRankings: solo, teamRankings: [], activeTab: 'solo', onChangeTab: () => {} })
+    );
+    expect(soloHtml.match(/rank-input-icon/g)?.length).toBe(1);
+    expect(soloHtml).toContain('🖱');
+
+    const teams: TeamRankingEntry[] = [
+      {
+        teamKey: 'a|b',
+        members: [
+          { deviceId: 'a', nickname: '일피', score: 12000, weaponKind: 'shotgun', inputKind: 'mobile' },
+          { deviceId: 'b', nickname: '이피', score: 8000, weaponKind: 'revolver', inputKind: 'mouse' },
+        ],
+        teamScore: 20000,
+        waveReached: 7,
+        playedAt: 't2',
+      },
+    ];
+    const teamHtml = renderToStaticMarkup(
+      React.createElement(RankingTabs, { soloRankings: [], teamRankings: teams, activeTab: 'team', onChangeTab: () => {} })
+    );
+    expect(teamHtml).toContain('📱');
+    expect(teamHtml).toContain('🖱');
+    expect(teamHtml).toContain('12,000');
+    expect(teamHtml).toContain('8,000');
+    expect(teamHtml).toContain('샷건');
+    expect(teamHtml).toContain('리볼버');
   });
 });

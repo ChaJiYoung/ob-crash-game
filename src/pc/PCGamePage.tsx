@@ -826,6 +826,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               kills: p0Stats.kills,
               accuracy: p0Stats.accuracy,
               weaponKind: p0Stats.weaponKind,
+              inputKind: slotsRef.current.find((s) => s.slot === p0Slot)?.input ?? undefined,
               leftEarly: Boolean(p0Stats.coop?.leftEarly),
             },
             {
@@ -837,6 +838,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               kills: p1Stats.kills,
               accuracy: p1Stats.accuracy,
               weaponKind: p1Stats.weaponKind,
+              inputKind: slotsRef.current.find((s) => s.slot === p1Slot)?.input ?? undefined,
               leftEarly: Boolean(p1Stats.coop?.leftEarly),
             },
           ],
@@ -1766,6 +1768,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             highlightTeamKey={highlightTeamKey}
             highlightDeviceIds={highlightDeviceIds}
             coop={coopResult ?? undefined}
+            soloWeaponKind={engine.players.length === 1 ? engine.getPlayRunStats(0)?.weaponKind : undefined}
+            soloInputKind={engine.players.length === 1 ? presentations[0]?.inputKind : undefined}
             onRestart={() => pressScreenButton('restart')}
             onReturnToLobby={() => pressScreenButton('lobby')}
             hoveredAction={hoveredResultAction}

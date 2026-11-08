@@ -202,4 +202,39 @@ describe('Co-op Result Screen (P05-T04)', () => {
     expect(html).toContain('나감');
     expect(html).toContain('기록 없음');
   });
+
+  it('shows weapon and input kind per player (playtest-feedback P01-T01)', () => {
+    const solo = renderToStaticMarkup(
+      <ResultRankingModal
+        gamePhase="GAMEOVER"
+        score={100}
+        maxCombo={1}
+        waveReached={2}
+        rankings={[]}
+        soloWeaponKind="gatling"
+        soloInputKind="mouse"
+        onRestart={() => {}}
+        onReturnToLobby={() => {}}
+      />
+    );
+    expect(solo).toContain('solo-loadout');
+    expect(solo).toContain('개틀링');
+    expect(solo).toContain('🖱 마우스');
+
+    const base = { color: '#fff', score: 1, maxCombo: 1, kills: 1, accuracy: 1, leftEarly: false };
+    const coop: CoopResultInfo = {
+      players: [
+        { ...base, slotLabel: '1P', nickname: 'A', weaponKind: 'shotgun', inputKind: 'mobile' },
+        { ...base, slotLabel: '2P', nickname: 'B', weaponKind: 'revolver' },
+      ],
+      teamScore: 2,
+      isNewTeamBest: false,
+    };
+    const html = renderToStaticMarkup(
+      <ResultRankingModal gamePhase="VICTORY" score={1} maxCombo={1} waveReached={7} rankings={[]} coop={coop} onRestart={() => {}} onReturnToLobby={() => {}} />
+    );
+    expect(html).toContain('coop-result-input-0');
+    expect(html).toContain('📱 모바일');
+    expect(html).not.toContain('coop-result-input-1');
+  });
 });

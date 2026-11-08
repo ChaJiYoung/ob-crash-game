@@ -3,7 +3,7 @@ import type { PlayerIndex } from './engine/PlayerCombatState';
 import { indexToSlot, SlotPair } from './coopSlots';
 import { getOrCreateDeviceId } from '../shared/deviceIdentity';
 import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
-import type { ClientToServerMessage, PlayerSlot } from '../shared/types';
+import type { ClientToServerMessage, PlayerSlot, PlayRunStats } from '../shared/types';
 
 export type ScoreSubmitMessage = Extract<ClientToServerMessage, { type: 'GAME_SCORE_SUBMIT' }>;
 
@@ -23,20 +23,26 @@ export function buildScoreSubmissions(
   engine.players.forEach((_, i) => {
     const playerIdx = i as PlayerIndex;
     const slot = indexToSlot(map, playerIdx) ?? ((playerIdx + 1) as PlayerSlot);
-    const me = slots.find((s) => s.slot === slot)?.player;
+    const meSlot = slots.find((s) => s.slot === slot);
+    const me = meSlot?.player;
     const stats = engine.getPlayRunStats(playerIdx);
     if (!stats) return;
 
-    let finalStats = stats;
+    let finalStats: PlayRunStats = meSlot?.input ? { ...stats, inputKind: meSlot.input } : { ...stats };
     if (stats.coop) {
       const partnerSlot: PlayerSlot = slot === 1 ? 2 : 1;
-      const partner = slots.find((s) => s.slot === partnerSlot)?.player;
+      const partnerState = slots.find((s) => s.slot === partnerSlot);
+      const partner = partnerState?.player;
+      const partnerIdx = map[partnerSlot];
+      const partnerWeapon = partnerIdx !== undefined ? engine.getPlayRunStats(partnerIdx)?.weaponKind : undefined;
       finalStats = {
-        ...stats,
+        ...finalStats,
         coop: {
           ...stats.coop,
           partnerDeviceId: partner?.deviceId ?? '',
           partnerNickname: partner?.nickname ?? '',
+          ...(partnerWeapon ? { partnerWeaponKind: partnerWeapon } : {}),
+          ...(partnerState?.input ? { partnerInputKind: partnerState.input } : {}),
         },
       };
     }

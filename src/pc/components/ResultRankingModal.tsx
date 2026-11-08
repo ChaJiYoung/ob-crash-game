@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CoopBestEntry, GamePhase, PlayerProfile, RunRankingEntry, TeamRankingEntry, WeaponKind } from '../../shared/types';
-import { WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { CoopBestEntry, GamePhase, InputKind, PlayerProfile, RunRankingEntry, TeamRankingEntry, WeaponKind } from '../../shared/types';
+import { INPUT_KIND_ICON, INPUT_KIND_LABEL, WEAPON_RANKING_LABEL } from '../../shared/constants';
 import { RankingTabs, RankingTab } from './RankingTabs';
 
 export interface CoopResultPlayer {
@@ -13,7 +13,13 @@ export interface CoopResultPlayer {
   /** 0..1 */
   accuracy: number;
   weaponKind: WeaponKind;
+  inputKind?: InputKind;
   leftEarly: boolean;
+}
+
+/** "🖱 마우스" 형태. 값이 없으면 null. */
+export function formatInputKind(kind?: InputKind): string | null {
+  return kind ? `${INPUT_KIND_ICON[kind]} ${INPUT_KIND_LABEL[kind]}` : null;
 }
 
 export interface CoopResultInfo {
@@ -43,6 +49,9 @@ export interface ResultRankingModalProps {
   highlightDeviceIds?: string[];
   initialRankTab?: RankingTab;
   coop?: CoopResultInfo;
+  /** 1인 판 요약에 보일 무기·입력 방식. */
+  soloWeaponKind?: WeaponKind;
+  soloInputKind?: InputKind;
   onRestart: () => void;
   onReturnToLobby: () => void;
   hoveredAction?: 'restart' | 'lobby' | null;
@@ -122,6 +131,11 @@ const CoopResultSection: React.FC<{ coop: CoopResultInfo }> = ({ coop }) => {
               <div>처치 수: <strong style={{ color: '#fff' }}>{p.kills} KILL</strong></div>
               <div>명중률: <strong style={{ color: '#fff' }}>{Math.round(p.accuracy * 100)}%</strong></div>
               <div>선택 무기: <strong style={{ color: '#fff' }}>{WEAPON_RANKING_LABEL[p.weaponKind]}</strong></div>
+              {p.inputKind && (
+                <div data-testid={`coop-result-input-${idx}`}>
+                  입력: <strong style={{ color: '#fff' }}>{formatInputKind(p.inputKind)}</strong>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -194,6 +208,8 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   highlightDeviceIds,
   initialRankTab,
   coop,
+  soloWeaponKind,
+  soloInputKind,
   onRestart,
   onReturnToLobby,
   hoveredAction = null,
@@ -283,6 +299,13 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
               <div style={{ fontSize: '28px', fontWeight: 900, color: '#fbbf24', marginTop: '4px' }}>
                 {score}점
               </div>
+              {(soloWeaponKind || soloInputKind) && (
+                <div data-testid="solo-loadout" style={{ marginTop: '4px', fontSize: '12px', color: '#cbd5e1' }}>
+                  {[soloWeaponKind ? WEAPON_RANKING_LABEL[soloWeaponKind] : null, formatInputKind(soloInputKind)]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </div>
+              )}
               {breakdown && (breakdown.timeBonus > 0 || breakdown.precisionBonus > 0) && (
                 <div
                   data-testid="score-breakdown"

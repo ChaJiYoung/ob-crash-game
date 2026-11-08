@@ -99,4 +99,32 @@ describe('play run stats', () => {
     s = e.getPlayRunStats()!;
     expect([s.damageTaken, s.healedLives, s.itemsCollected]).toEqual([0, 0, 0]);
   });
+
+  it('records each reward card pick with wave and mid/clear round (playtest-feedback D09)', () => {
+    const pickFirstCard = (now: number) => {
+      const card = e.activeTargets.find((t) => t.rewardCardKind)!;
+      const c = e.computeTargetAimCoords(card);
+      e.shootAt(c.targetNormX, c.targetNormY, now, 'press');
+    };
+    const wave = e.currentWave;
+    e.activeTargets = [];
+    e.spawnWaveRewardCards(10_000, false);
+    pickFirstCard(11_000);
+    e.activeTargets = [];
+    e.spawnWaveRewardCards(20_000, true);
+    pickFirstCard(21_000);
+    const picks = e.getPlayer(0).cardPicks;
+    expect(picks.map((p) => p.midWave)).toEqual([true, false]);
+    // 클리어 카드를 고르면 다음 웨이브로 넘어가므로, 기록된 웨이브는 고른 시점의 값이어야 한다.
+    expect(picks.map((p) => p.wave)).toEqual([wave, wave]);
+    expect(picks.every((p) => p.auto === false && !!p.kind)).toBe(true);
+
+    e.gamePhase = 'GAMEOVER';
+    const stats = e.getPlayRunStats()!;
+    expect(stats.cardPicks).toEqual(picks);
+    expect(stats.cardPicks).not.toBe(picks);
+
+    e.startGame({ withWeaponSelect: false });
+    expect(e.getPlayer(0).cardPicks).toEqual([]);
+  });
 });

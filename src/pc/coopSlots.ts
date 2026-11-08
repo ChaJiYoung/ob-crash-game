@@ -1,7 +1,7 @@
-import type { PlayerProfile, PlayerSlot } from '../shared/types';
+import type { InputKind, PlayerProfile, PlayerSlot } from '../shared/types';
 import type { PlayerIndex } from './engine/PlayerCombatState';
 
-export type SlotInput = 'mobile' | 'mouse';
+export type SlotInput = InputKind;
 
 export interface SlotState {
   slot: PlayerSlot;

@@ -1,4 +1,4 @@
-import { ItemBuffKind, RewardCardKind, WeaponKind } from '../../shared/types';
+import { CardPickRecord, ItemBuffKind, RewardCardKind, WeaponKind } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
 
@@ -24,6 +24,8 @@ export class PlayerCombatState {
   public selectionDone = false;
   /** 가장 최근 선택 라운드에서 고른 항목(상태 상자용) */
   public lastPick: { weapon?: WeaponKind; card?: RewardCardKind; auto: boolean } | null = null;
+  /** 판 동안 고른 보상 카드(판 기록용, D09). */
+  public cardPicks: CardPickRecord[] = [];
   public isAway = false;
   /** 마지막 스킬 발동 시각(엔진 시계). reuseLockMs 안의 재요청은 거부해 스냅 한 번에 스킬이 두 번 나가지 않게 한다. */
   public lastSkillActivatedMs = -Infinity;
@@ -50,6 +52,7 @@ export class PlayerCombatState {
     this.luckyDropStacks = 0;
     this.selectionDone = false;
     this.lastPick = null;
+    this.cardPicks = [];
     this.isAway = false;
     this.awaySinceMs = null;
     this.lastSkillActivatedMs = -Infinity;

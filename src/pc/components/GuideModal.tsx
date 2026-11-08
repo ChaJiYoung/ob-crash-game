@@ -802,7 +802,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 </div>
                 <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
                   • <strong>30초 연결 보호:</strong> 모바일 컨트롤러 연결이 끊기면 30초 동안 '나감(AWAY)' 상태로 총이 숨겨지고 남은 플레이어가 게임을 계속 진행합니다. 30초 내에 재접속하면 기존 점수와 무기를 그대로 유지한 채 복귀합니다.<br />
-                  • <strong>팀 랭킹 명예의 전당:</strong> 2인팟 경기 결과는 솔로 랭킹을 침범하지 않으며, '팀 랭킹' 탭에 두 사람의 팀 합계 점수로 등록됩니다.
+                  • <strong>팀 랭킹 명예의 전당:</strong> 2인팟 경기 결과는 솔로 랭킹을 침범하지 않으며, '팀 랭킹' 탭에 두 사람의 팀 합계 점수로 등록됩니다. 각자의 점수·무기·입력 방식(🖱/📱)도 함께 보입니다.
                 </div>
               </div>
             </div>

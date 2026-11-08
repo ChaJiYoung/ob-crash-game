@@ -117,6 +117,23 @@ export interface CoopRunInfo {
   partnerNickname: string;
   /** 판이 끝날 때 이 플레이어가 이탈 상태였는가(D20). */
   leftEarly: boolean;
+  /** 옛 기록에는 없다. */
+  partnerWeaponKind?: WeaponKind;
+  partnerInputKind?: InputKind;
+}
+
+/** 플레이어 입력 장치. */
+export type InputKind = 'mobile' | 'mouse';
+
+/** 판 동안 고른 보상 카드 한 장. */
+export interface CardPickRecord {
+  /** 고른 시점의 웨이브 */
+  wave: number;
+  kind: RewardCardKind;
+  /** true: 킬 게이지 중간 카드, false: 웨이브 클리어 카드 */
+  midWave: boolean;
+  /** 이탈자 자동 선택(D20) */
+  auto: boolean;
 }
 
 /** 끝난 한 판의 통계. 서버가 data/play-records.jsonl에 저장한다. */
@@ -146,6 +163,10 @@ export interface PlayRunStats {
   /** 없으면 'solo'. */
   mode?: PlayMode;
   coop?: CoopRunInfo;
+  /** 없으면 옛 기록(표시 생략). */
+  inputKind?: InputKind;
+  /** 고른 순서대로. 옛 기록에는 없다. */
+  cardPicks?: CardPickRecord[];
 }
 
 /** 랭킹 한 줄(판 단위). 같은 사람이 여러 줄 나올 수 있다. */
@@ -156,11 +177,21 @@ export interface RunRankingEntry {
   waveReached: number;
   weaponKind: WeaponKind;
   playedAt: string;
+  inputKind?: InputKind;
+}
+
+export interface TeamRankingMember {
+  deviceId: string;
+  nickname: string;
+  /** 옛 기록에는 없다. */
+  score?: number;
+  weaponKind?: WeaponKind;
+  inputKind?: InputKind;
 }
 
 export interface TeamRankingEntry {
   teamKey: string; // 정렬한 deviceId 두 개를 '|'로
-  members: [{ deviceId: string; nickname: string }, { deviceId: string; nickname: string }]; // 그 최고 판의 1P, 2P 순서
+  members: [TeamRankingMember, TeamRankingMember]; // 그 최고 판의 1P, 2P 순서
   teamScore: number;
   waveReached: number;
   playedAt: string;

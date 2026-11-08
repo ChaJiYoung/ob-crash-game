@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { PlayRunStats, RunRankingEntry, TeamRankingEntry, WeaponKind } from '../src/shared/types';
+import { CardPickRecord, InputKind, PlayRunStats, RewardCardKind, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface PlayRecordInput {
@@ -13,6 +13,15 @@ export interface PlayRecordInput {
 
 const isCount = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const WEAPONS: readonly WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
+const INPUTS: readonly InputKind[] = ['mobile', 'mouse'];
+const REWARD_CARD_KINDS: readonly RewardCardKind[] = [
+  'weapon_level_up', 'rapid_reload', 'bar_repair', 'fever_boost', 'lucky_drop',
+  'damage_up', 'skill_cooldown', 'fever_extend', 'hit_zone_up',
+];
+const MAX_CARD_PICKS = 60;
+const isCardPick = (c: any): c is CardPickRecord =>
+  !!c && typeof c === 'object' && isCount(c.wave) && REWARD_CARD_KINDS.includes(c.kind) &&
+  typeof c.midWave === 'boolean' && typeof c.auto === 'boolean';
 const NUMBER_KEYS = ['waveReached', 'livesLeft', 'durationSec', 'totalScore', 'baseScore', 'timeBonus', 'precisionBonus', 'levelBonus', 'maxCombo', 'kills', 'accuracy', 'weaponLevel'] as const;
 const OPTIONAL_KEYS = ['damageTaken', 'healedLives', 'itemsCollected'] as const;
 const SHOT_KEYS = ['PERFECT', 'GREAT', 'GOOD', 'MISS'] as const;
@@ -31,6 +40,12 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   if (!Array.isArray(s.waves) || s.waves.length > 20) return false;
   if (!s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus))) return false;
 
+  if (s.inputKind !== undefined && !INPUTS.includes(s.inputKind)) return false;
+  if (s.cardPicks !== undefined) {
+    if (!Array.isArray(s.cardPicks) || s.cardPicks.length > MAX_CARD_PICKS) return false;
+    if (!s.cardPicks.every(isCardPick)) return false;
+  }
+
   if (s.mode !== undefined && s.mode !== 'solo' && s.mode !== 'coop') return false;
   if (s.mode === 'coop') {
     if (!s.coop || typeof s.coop !== 'object') return false;
@@ -40,6 +55,8 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
     if (typeof c.partnerDeviceId !== 'string' || c.partnerDeviceId.length > 64) return false;
     if (typeof c.partnerNickname !== 'string' || c.partnerNickname.length > 64) return false;
     if (typeof c.leftEarly !== 'boolean') return false;
+    if (c.partnerWeaponKind !== undefined && !WEAPONS.includes(c.partnerWeaponKind)) return false;
+    if (c.partnerInputKind !== undefined && !INPUTS.includes(c.partnerInputKind)) return false;
   } else {
     if (s.coop !== undefined) return false;
   }
@@ -86,8 +103,23 @@ function pickStats(s: PlayRunStats): PlayRunStats {
       partnerNickname: s.coop.partnerNickname,
       leftEarly: s.coop.leftEarly,
     };
+    if (s.coop.partnerWeaponKind) base.coop.partnerWeaponKind = s.coop.partnerWeaponKind;
+    if (s.coop.partnerInputKind) base.coop.partnerInputKind = s.coop.partnerInputKind;
+  }
+  if (s.inputKind) base.inputKind = s.inputKind;
+  if (s.cardPicks) {
+    base.cardPicks = s.cardPicks.map((c) => ({ wave: c.wave, kind: c.kind, midWave: c.midWave, auto: c.auto }));
   }
   return base;
+}
+
+/** 값이 없는 선택 필드는 키째 뺀다. */
+function compactMember(m: TeamRankingMember): TeamRankingMember {
+  const out: TeamRankingMember = { deviceId: m.deviceId, nickname: m.nickname };
+  if (m.score !== undefined) out.score = m.score;
+  if (m.weaponKind !== undefined) out.weaponKind = m.weaponKind;
+  if (m.inputKind !== undefined) out.inputKind = m.inputKind;
+  return out;
 }
 
 /** 끝난 판을 JSONL(한 줄에 JSON 하나)로 덧붙인다. 규칙 버전이 바뀌어도 파일은 지우지 않는다. */
@@ -124,7 +156,7 @@ export class PlayRecordStore {
           this.addToTeamTop({ deviceId: meta.deviceId, nickname: meta.nickname, playedAt: meta.playedAt, stats: r });
           continue;
         }
-        this.addToTop({ deviceId: meta.deviceId, nickname: meta.nickname, score: r.totalScore, waveReached: r.waveReached, weaponKind: r.weaponKind, playedAt: meta.playedAt });
+        this.addToTop({ deviceId: meta.deviceId, nickname: meta.nickname, score: r.totalScore, waveReached: r.waveReached, weaponKind: r.weaponKind, playedAt: meta.playedAt, ...(r.inputKind ? { inputKind: r.inputKind } : {}) });
       } catch {
         // 깨진 줄
       }
@@ -144,9 +176,15 @@ export class PlayRecordStore {
       return;
     }
     const coop = stats.coop;
-    const me = { deviceId, nickname };
-    const partner = { deviceId: coop.partnerDeviceId, nickname: coop.partnerNickname };
-    const members: [{ deviceId: string; nickname: string }, { deviceId: string; nickname: string }] =
+    const me = compactMember({ deviceId, nickname, score: stats.totalScore, weaponKind: stats.weaponKind, inputKind: stats.inputKind });
+    const partner = compactMember({
+      deviceId: coop.partnerDeviceId,
+      nickname: coop.partnerNickname,
+      score: coop.partnerScore,
+      weaponKind: coop.partnerWeaponKind,
+      inputKind: coop.partnerInputKind,
+    });
+    const members: [TeamRankingMember, TeamRankingMember] =
       coop.slot === 1 ? [me, partner] : [partner, me];
     const teamKey = [me.deviceId, partner.deviceId].sort().join('|');
 
@@ -206,6 +244,7 @@ export class PlayRecordStore {
             waveReached: record.stats.waveReached,
             weaponKind: record.stats.weaponKind,
             playedAt: record.playedAt,
+            ...(record.stats.inputKind ? { inputKind: record.stats.inputKind } : {}),
           });
         }
       }

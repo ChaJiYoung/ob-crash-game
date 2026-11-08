@@ -102,4 +102,54 @@ describe('play records', () => {
       expect(s.getTopRuns()).toEqual([]);
     });
   });
+
+  describe('input kind and card picks (playtest-feedback P01-T01)', () => {
+    it('validates inputKind, partner fields and cardPicks', () => {
+      expect(isValidPlayRunStats(stats({ inputKind: 'mouse' }))).toBe(true);
+      expect(isValidPlayRunStats({ ...stats(), inputKind: 'keyboard' })).toBe(false);
+      const pick = { wave: 4, kind: 'damage_up', midWave: true, auto: false };
+      expect(isValidPlayRunStats(stats({ cardPicks: [pick as any] }))).toBe(true);
+      expect(isValidPlayRunStats({ ...stats(), cardPicks: [{ ...pick, kind: 'nope' }] })).toBe(false);
+      expect(isValidPlayRunStats({ ...stats(), cardPicks: Array(61).fill(pick) })).toBe(false);
+      const coop = { slot: 1, teamScore: 3, partnerScore: 1, partnerDeviceId: 'p', partnerNickname: 'P', leftEarly: false };
+      expect(isValidPlayRunStats({ ...stats(), mode: 'coop', coop: { ...coop, partnerWeaponKind: 'shotgun', partnerInputKind: 'mobile' } })).toBe(true);
+      expect(isValidPlayRunStats({ ...stats(), mode: 'coop', coop: { ...coop, partnerWeaponKind: 'bazooka' } })).toBe(false);
+      expect(isValidPlayRunStats({ ...stats(), mode: 'coop', coop: { ...coop, partnerInputKind: 'pad' } })).toBe(false);
+    });
+
+    it('stores the new fields and puts the input icon on the solo board', () => {
+      const s = new PlayRecordStore(file);
+      s.append({ ...rec({ inputKind: 'mobile', cardPicks: [{ wave: 4, kind: 'damage_up', midWave: true, auto: false }] }), rulesetVersion: (s as any).rulesetVersion });
+      const line = JSON.parse(fs.readFileSync(file, 'utf-8').trim());
+      expect(line.inputKind).toBe('mobile');
+      expect(line.cardPicks).toEqual([{ wave: 4, kind: 'damage_up', midWave: true, auto: false }]);
+      expect(s.getTopRuns()[0].inputKind).toBe('mobile');
+      const reloaded = new PlayRecordStore(file);
+      expect(reloaded.getTopRuns()[0].inputKind).toBe('mobile');
+    });
+
+    it('old records without the new fields load with no inputKind key', () => {
+      const s = new PlayRecordStore(file);
+      s.append({ ...rec(), rulesetVersion: (s as any).rulesetVersion });
+      const line = JSON.parse(fs.readFileSync(file, 'utf-8').trim());
+      expect('inputKind' in line).toBe(false);
+      expect('cardPicks' in line).toBe(false);
+      expect('inputKind' in new PlayRecordStore(file).getTopRuns()[0]).toBe(false);
+    });
+
+    it('team board members carry each score, weapon and input', () => {
+      const s = new PlayRecordStore(file);
+      s.append({
+        ...rec({
+          mode: 'coop', totalScore: 12000, weaponKind: 'shotgun', inputKind: 'mobile',
+          coop: { slot: 2, teamScore: 20000, partnerScore: 8000, partnerDeviceId: 'd2', partnerNickname: '둘', leftEarly: false, partnerWeaponKind: 'revolver', partnerInputKind: 'mouse' },
+        }),
+        rulesetVersion: (s as any).rulesetVersion,
+      });
+      expect(s.getTopTeams()[0].members).toEqual([
+        { deviceId: 'd2', nickname: '둘', score: 8000, weaponKind: 'revolver', inputKind: 'mouse' },
+        { deviceId: 'd1', nickname: '두둥', score: 12000, weaponKind: 'shotgun', inputKind: 'mobile' },
+      ]);
+    });
+  });
 });

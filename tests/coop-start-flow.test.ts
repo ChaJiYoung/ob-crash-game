@@ -139,6 +139,7 @@ describe('Coop Start and Result Flow (P04-T05)', () => {
       expect(sub.mode).toBe('solo');
       expect(sub.stats?.mode).toBe('solo');
       expect(sub.stats?.coop).toBeUndefined();
+      expect(sub.stats?.inputKind).toBe('mouse');
     });
 
     it('creates 2 submission messages in coop mode with mode: coop, partner info cross-linked, and teamScore', () => {
@@ -191,6 +192,14 @@ describe('Coop Start and Result Flow (P04-T05)', () => {
 
       // Team scores match
       expect(sub1.stats?.coop?.teamScore).toBe(sub2.stats?.coop?.teamScore);
+
+      // Input kinds and partner weapon/input are cross-linked
+      expect(sub1.stats?.inputKind).toBe('mouse');
+      expect(sub2.stats?.inputKind).toBe('mobile');
+      expect(sub1.stats?.coop?.partnerInputKind).toBe('mobile');
+      expect(sub2.stats?.coop?.partnerInputKind).toBe('mouse');
+      expect(sub1.stats?.coop?.partnerWeaponKind).toBe(engine.getPlayRunStats(1)?.weaponKind);
+      expect(sub2.stats?.coop?.partnerWeaponKind).toBe(engine.getPlayRunStats(0)?.weaponKind);
     });
   });
 });
