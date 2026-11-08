@@ -131,4 +131,4 @@ Task: T02-background-foreground-and-pc-dedupe
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: f894283

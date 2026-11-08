@@ -6,6 +6,7 @@ import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
 import { SensorLiveness, SENSOR_STALE_MS } from './sensors/SensorLiveness';
+import { CONTROLLER_LIFECYCLE } from '../shared/controllerLifecycle';
 import { PlayerProfile, PlayerSlot, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { PLAYER_COLORS, WEAPON_CONSTANTS } from '../shared/constants';
 import { GAME_TUNING } from '../shared/gameTuning';
@@ -79,6 +80,28 @@ export const MobileControllerPage: React.FC = () => {
   const snapFreezeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [sensorEpoch, setSensorEpoch] = useState<number>(0);
   const sensorLivenessRef = useRef<SensorLiveness>(new SensorLiveness());
+
+  // Allowing the sensors zeroes the aim by itself (the PC then shows the crosshair). It waits for the first sensor reading,
+  // because right after the permission nothing has arrived yet and latestOrientationRef is still (0,0,0).
+  const autoZeroPendingRef = useRef<boolean>(false);
+  const autoZeroTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // handleCalibrateZero is declared further down, so it is reached through a ref.
+  const calibrateZeroRef = useRef<() => void>(() => {});
+  const runAutoZero = useCallback(() => {
+    if (!autoZeroPendingRef.current) return;
+    autoZeroPendingRef.current = false;
+    if (autoZeroTimerRef.current) {
+      clearTimeout(autoZeroTimerRef.current);
+      autoZeroTimerRef.current = null;
+    }
+    calibrateZeroRef.current();
+  }, []);
+  useEffect(
+    () => () => {
+      if (autoZeroTimerRef.current) clearTimeout(autoZeroTimerRef.current);
+    },
+    []
+  );
 
   // TEMP(sensor-debug): queue diagnostics while the socket is down (screen off) and flush once it is open again.
   const debugQueueRef = useRef<Array<{ tag: string; data?: Record<string, unknown>; ts: number }>>([]);
@@ -270,10 +293,38 @@ export const MobileControllerPage: React.FC = () => {
     document.addEventListener('visibilitychange', reviveIfDead);
     window.addEventListener('online', reviveIfDead);
 
+    // The screen turning off freezes this page's timers, so both signals go out at once and the server does the waiting.
+    // wall-clock time (not performance.now) because a sleeping phone can stop the monotonic clock.
+    let hiddenAtMs: number | null = null;
+    const onBackgroundSignals = () => {
+      const cur = wsRef.current;
+      const open = !!cur && cur.readyState === WebSocket.OPEN;
+      if (document.visibilityState === 'hidden') {
+        hiddenAtMs = Date.now();
+        if (open) {
+          cur!.send(JSON.stringify({ type: 'CONTROLLER_BACKGROUND', roomId, deviceId, slot: slotRef.current }));
+        }
+        return;
+      }
+      const hiddenForMs = hiddenAtMs === null ? 0 : Date.now() - hiddenAtMs;
+      hiddenAtMs = null;
+      // A closed socket is brought back by reviveIfDead and the normal AUTH_RESULT path.
+      if (!open) return;
+      cur!.send(JSON.stringify({ type: 'CONTROLLER_FOREGROUND', roomId, deviceId, slot: slotRef.current }));
+      if (hiddenForMs >= CONTROLLER_LIFECYCLE.FOREGROUND_RESUME_MIN_MS && stepRef.current === 'PAD') {
+        // The socket never closed, so the PC may have been told the phone left: repeat what a reconnect does.
+        // The AUTH_RESULT handler then sends the resume message, which keeps the zero as it is.
+        isReconnectOpenRef.current = true;
+        cur!.send(JSON.stringify({ type: 'DEVICE_CHECK', roomId, deviceId, slot: slotRef.current }));
+      }
+    };
+    document.addEventListener('visibilitychange', onBackgroundSignals);
+
     return () => {
       disposed = true;
       clearRetry();
       document.removeEventListener('visibilitychange', reviveIfDead);
+      document.removeEventListener('visibilitychange', onBackgroundSignals);
       window.removeEventListener('online', reviveIfDead);
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
       const current = wsRef.current;
@@ -371,6 +422,8 @@ export const MobileControllerPage: React.FC = () => {
         beta: e.beta || 0,
         gamma: e.gamma || 0,
       };
+      // Must run after the line above: the zero is taken from this very reading.
+      if (autoZeroPendingRef.current) runAutoZero();
     };
 
     const onMotion = (e: DeviceMotionEvent) => {
@@ -460,6 +513,10 @@ export const MobileControllerPage: React.FC = () => {
   const handlePermissionGranted = () => {
     setSensorsActive(true);
     setStep('PAD');
+    autoZeroPendingRef.current = true;
+    if (autoZeroTimerRef.current) clearTimeout(autoZeroTimerRef.current);
+    // Browsers without orientation events (desktop) would wait forever, so go ahead after a short while.
+    autoZeroTimerRef.current = setTimeout(runAutoZero, CONTROLLER_LIFECYCLE.AUTO_ZERO_FALLBACK_MS);
   };
 
   // 5. Zero Calibration
@@ -484,6 +541,7 @@ export const MobileControllerPage: React.FC = () => {
 
     setStep('PAD');
   }, [tracker, roomId, deviceId]);
+  calibrateZeroRef.current = handleCalibrateZero;
 
   const startCountdown = useCallback(
     (initialSec = 3) => {

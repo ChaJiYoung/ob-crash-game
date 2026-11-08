@@ -1,6 +1,6 @@
 # Task: T02 센서 권한 허용 직후 자동 영점
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비에서 폰의 초록 버튼(센서 권한 허용)을 누르면, 첫 센서 이벤트가 온 직후(최대 1초 대기) 폰이 `CALIBRATE_ZERO`를 PC에 보내서 PC 로비의 조준경이 뜨고 시작 준비 상태가 된다. 영점 버튼을 한 번 더 누를 필요가 없다.
@@ -85,6 +85,6 @@ Task: T02-auto-zero-on-grant
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

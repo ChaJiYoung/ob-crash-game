@@ -1,6 +1,6 @@
 # Task: T01 폰 화면 꺼짐/복귀 신호와 복귀 재연결 절차
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰 화면이 꺼지면 즉시 `CONTROLLER_BACKGROUND`를, 켜지면 즉시 `CONTROLLER_FOREGROUND`를 서버에 보낸다. 0.5초 이상 꺼져 있다 돌아오면 소켓이 열려 있어도 재연결할 때와 같은 절차(`DEVICE_CHECK` → `AUTH_RESULT` → `CALIBRATE_ZERO` `resume: true`)를 실행해 PC가 다시 연결 상태로 돌아온다.
@@ -94,6 +94,6 @@ Task: T01-phone-background-signals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

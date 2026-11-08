@@ -65,6 +65,59 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(cleanup).toContain('tracker.unlockAim()');
   });
 
+  describe('background signals', () => {
+    const start = source.indexOf('const onBackgroundSignals');
+    const end = source.indexOf("document.addEventListener('visibilitychange', onBackgroundSignals)");
+    const block = source.slice(start, end);
+
+    it('sends both signals right away and resumes after a long enough screen-off', () => {
+      expect(start).toBeGreaterThan(-1);
+      expect(end).toBeGreaterThan(start);
+      expect(block).toContain('CONTROLLER_BACKGROUND');
+      expect(block).toContain('CONTROLLER_FOREGROUND');
+      expect(block).toContain('FOREGROUND_RESUME_MIN_MS');
+      expect(block).toContain('hiddenAtMs');
+    });
+
+    it('uses no timers and wall-clock time, because a sleeping phone freezes timers and may stop performance.now', () => {
+      expect(block).not.toContain('setTimeout');
+      expect(block).toContain('Date.now()');
+      expect(block).not.toContain('performance.now');
+    });
+
+    it('pairs the reconnect flag with DEVICE_CHECK and never touches the zero itself', () => {
+      expect(block).toContain('isReconnectOpenRef.current = true');
+      expect(block).toContain("type: 'DEVICE_CHECK'");
+      expect(block).not.toMatch(/calibrateZero|CALIBRATE_ZERO/);
+    });
+  });
+
+  describe('auto zero on sensor permission', () => {
+    const grantStart = source.indexOf('const handlePermissionGranted');
+    const grantBlock = source.slice(grantStart, source.indexOf('};', grantStart));
+    const orientStart = source.indexOf('const onOrientation');
+    const orientBlock = source.slice(orientStart, source.indexOf('const onMotion', orientStart));
+
+    it('marks the zero as pending when the permission is granted, with a fallback timer', () => {
+      expect(grantStart).toBeGreaterThan(-1);
+      expect(grantBlock).toContain('autoZeroPendingRef.current = true');
+      expect(grantBlock).toContain('AUTO_ZERO_FALLBACK_MS');
+    });
+
+    it('takes the zero from the first reading: the reading is stored before the zero runs', () => {
+      expect(orientStart).toBeGreaterThan(-1);
+      const store = orientBlock.indexOf('latestOrientationRef.current =');
+      const run = orientBlock.indexOf('runAutoZero()');
+      expect(store).toBeGreaterThan(-1);
+      expect(run).toBeGreaterThan(store);
+    });
+
+    it('reaches handleCalibrateZero through a ref and clears the timer on unmount', () => {
+      expect(source).toContain('calibrateZeroRef.current = handleCalibrateZero');
+      expect(source).toMatch(/clearTimeout\(autoZeroTimerRef\.current\)/);
+    });
+  });
+
   it('does not expose a step setter on window', () => {
     expect(source).not.toContain('__setStep');
   });
