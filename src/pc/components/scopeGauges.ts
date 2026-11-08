@@ -61,6 +61,15 @@ export const SCOPE_GAUGE_COLORS = {
   feverActive: '#ef4444',
 } as const;
 
+/**
+ * 호 굵기(px). base = 평소, ready = 가득 참 펄스의 최대 굵기, halo = 가득 참일 때 뒤에 까는 반투명 빛번짐 호
+ * (2026-11-08-scope-gauge-visibility D01·D02. 조준경에는 CSS filter를 쓰지 않는다: hud-render-cost 테스트).
+ */
+export const SCOPE_GAUGE_STROKE = { base: 6, ready: 9, halo: 16 } as const;
+
+/** 스킬 스택 점: 반지름과 호 바깥으로 띄우는 거리. */
+export const SCOPE_SKILL_DOT = { radius: 4.5, orbitOffset: 11 } as const;
+
 /** 탄이 이 비율 미만이면 경고색. */
 export const LOW_AMMO_RATIO = 0.2;
 

@@ -1,6 +1,6 @@
 # Task: T01 게이지 굵기와 가득 참 글로우 펄스
 
-## Status: pending
+## Status: done
 
 ## Goal
 조준경 호 게이지(탄창·스킬·피버)를 6px로 굵히고, 스킬 가득·피버 준비 때 글로우 펄스로 눈에 띄게 한다.
@@ -54,6 +54,9 @@ Task: T01-thicker-gauges-and-ready-glow
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
+
+## 구현 메모
+- 계획의 `drop-shadow`·`brightness` 필터는 `tests/hud-render-cost.test.ts`(조준경 CSS filter 금지, 성능 가드)에 걸린다. 그래서 가득 참일 때 같은 색의 16px 반투명 호(`scope-gauge-halo`, 투명도 0.12↔0.5)를 뒤에 까는 방식으로 대체했다.

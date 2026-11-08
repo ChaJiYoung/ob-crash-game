@@ -12,4 +12,4 @@ Decisions: [2026-11-08-half-wave-card-and-coop-density](../decisions/2026-11-08-
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 절반 카드 + 2P 밀도 규칙과 문서·측정 | [P01](../phases/2026-11-08-half-wave-card-and-coop-density/P01-wave-rules/phase.md) |
-| P02 | `in_progress` | 조준경 게이지 굵기·반짝임 (decisions: 2026-11-08-scope-gauge-visibility) | [P02](../phases/2026-11-08-half-wave-card-and-coop-density/P02-scope-gauge-visibility/phase.md) |
+| P02 | `done` | 조준경 게이지 굵기·반짝임 (decisions: 2026-11-08-scope-gauge-visibility) | [P02](../phases/2026-11-08-half-wave-card-and-coop-density/P02-scope-gauge-visibility/phase.md) |

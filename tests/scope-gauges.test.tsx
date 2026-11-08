@@ -156,3 +156,33 @@ describe('scope gauge rendering of reload and fever (fever-ammo-and-aim-source D
     expect(fever).not.toContain('opacity:0.45');
   });
 });
+
+describe('scope gauge visibility (2026-11-08-scope-gauge-visibility)', () => {
+  const count = (html: string, cls: string) => (html.match(new RegExp(`class="${cls}"`, 'g')) || []).length;
+
+  it('draws the arcs 6px thick and the skill dots at radius 4.5', () => {
+    const html = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} gaugeSource={input()} />);
+    expect(html).toContain('stroke-width="6"');
+    expect(html).not.toContain('stroke-width="3"');
+    expect(html).toContain('r="4.5"');
+  });
+
+  it('pulses with a glow when the skill stock is full and fever is ready', () => {
+    const html = renderToStaticMarkup(
+      <CrosshairOverlay aimX={0} aimY={0} gaugeSource={input({ skillStock: 2, isFeverReady: true, feverGauge: 100 })} />
+    );
+    expect(count(html, 'scope-gauge-ready')).toBe(2);
+    expect(count(html, 'scope-gauge-halo')).toBe(2);
+    expect(html).toContain('stroke-width="16"');
+    expect(html).toContain('@keyframes scope-gauge-ready');
+  });
+
+  it('does not pulse while charging, and low ammo keeps its own warning blink', () => {
+    const charging = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} gaugeSource={input()} />);
+    expect(count(charging, 'scope-gauge-ready')).toBe(0);
+    expect(count(charging, 'scope-gauge-halo')).toBe(0);
+    const low = renderToStaticMarkup(<CrosshairOverlay aimX={0} aimY={0} gaugeSource={input({ ammo: 3 })} />);
+    expect(count(low, 'scope-gauge-warn')).toBe(1);
+    expect(count(low, 'scope-gauge-ready')).toBe(0);
+  });
+});

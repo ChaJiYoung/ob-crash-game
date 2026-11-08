@@ -9,6 +9,8 @@ import {
   filledArcRange,
   polarPoint,
   SCOPE_GAUGE_COLORS,
+  SCOPE_GAUGE_STROKE,
+  SCOPE_SKILL_DOT,
   ArcSpec,
 } from './scopeGauges';
 
@@ -143,15 +145,20 @@ const GaugeArc: React.FC<{ c: number; r: number; arc: ArcSpec; color: string; fr
   const filled = describeArc(c, c, r, a0, a1);
   return (
     <>
-      <path d={describeArc(c, c, r, arc.startDeg, arc.endDeg)} stroke={SCOPE_GAUGE_COLORS.track} strokeWidth={3} fill="none" strokeLinecap="round" />
+      <path d={describeArc(c, c, r, arc.startDeg, arc.endDeg)} stroke={SCOPE_GAUGE_COLORS.track} strokeWidth={SCOPE_GAUGE_STROKE.base} fill="none" strokeLinecap="round" />
+      {/* 가득 찼을 때 뒤에 깔리는 넓은 반투명 호(빛번짐). 조준경은 매 프레임 움직이므로 CSS filter 대신 이것을 쓴다. */}
+      {filled && arc.flash && (
+        <path d={filled} stroke={color} strokeWidth={SCOPE_GAUGE_STROKE.halo} fill="none" strokeLinecap="round" className="scope-gauge-halo" />
+      )}
       {filled && (
         <path
           d={filled}
           stroke={color}
-          strokeWidth={arc.flash ? 4 : 3}
+          strokeWidth={SCOPE_GAUGE_STROKE.base}
           fill="none"
           strokeLinecap="round"
-          className={arc.flash || arc.warn ? 'scope-gauge-flash' : undefined}
+          // 가득 참(스킬 스택 최대·피버 준비)은 자기 색 글로우 펄스, 탄 부족 경고는 깜빡임(scope-gauge-visibility D02·D03).
+          className={arc.flash ? 'scope-gauge-ready' : arc.warn ? 'scope-gauge-warn' : undefined}
         />
       )}
     </>
@@ -176,7 +183,7 @@ const ReloadArcFill: React.FC<{
     <path
       d={describeArc(c, c, r, arc.startDeg, arc.endDeg)}
       stroke={SCOPE_GAUGE_COLORS.reload}
-      strokeWidth={3}
+      strokeWidth={SCOPE_GAUGE_STROKE.base}
       fill="none"
       strokeLinecap="round"
       pathLength={1}
@@ -194,7 +201,8 @@ const ReloadArcFill: React.FC<{
 const ScopeGauges: React.FC<{ input: ScopeGaugeInput; sizePx: number; isPaused: boolean }> = ({ input, sizePx, isPaused }) => {
   const g = computeScopeGauges(input);
   const r = getScopeGaugeRadius(sizePx);
-  const size = r * 2 + 24;
+  // 점(궤도 r+11, 반지름 4.5)과 펄스 글로우가 잘리지 않게 여유를 둔다.
+  const size = r * 2 + 44;
   const c = size / 2;
   return (
     <svg width={size} height={size} data-testid="scope-gauges" style={{ position: 'absolute', pointerEvents: 'none' }} aria-hidden>
@@ -206,13 +214,13 @@ const ScopeGauges: React.FC<{ input: ScopeGaugeInput; sizePx: number; isPaused: 
       <GaugeArc c={c} r={r} arc={g.skill} color={SCOPE_GAUGE_COLORS.skill} fromEnd />
       <GaugeArc c={c} r={r} arc={g.fever} color={g.fever.active ? SCOPE_GAUGE_COLORS.feverActive : SCOPE_GAUGE_COLORS.fever} />
       {Array.from({ length: g.skillDots.total }, (_, i) => {
-        const [x, y] = polarPoint(c, c, r + 9, 215 + i * 22);
+        const [x, y] = polarPoint(c, c, r + SCOPE_SKILL_DOT.orbitOffset, 215 + i * 22);
         return (
           <circle
             key={i}
             cx={x}
             cy={y}
-            r={3}
+            r={SCOPE_SKILL_DOT.radius}
             fill={i < g.skillDots.filled ? SCOPE_GAUGE_COLORS.skill : SCOPE_GAUGE_COLORS.track}
             data-testid={i < g.skillDots.filled ? 'scope-skill-dot-on' : 'scope-skill-dot-off'}
           />
@@ -426,7 +434,7 @@ export const CrosshairOverlay = React.memo(
       >
         <div data-crosshair-variant={variant} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${menuScale})` }}>
         {/* Fixed keyframes (always mounted): crosshair-spin rotates the reticle rings (rotation only, no translate), reload-ring-fill uses pathLength=1. */}
-        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } } @keyframes scope-gauge-flash { from { opacity: 0.45; } to { opacity: 1; } } .scope-gauge-flash { animation: scope-gauge-flash 0.7s ease-in-out infinite alternate; } @media (prefers-reduced-motion: reduce) { .scope-gauge-flash { animation: none; } }`}</style>
+        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } } @keyframes scope-gauge-ready { from { stroke-width: 6px; } to { stroke-width: 9px; } } .scope-gauge-ready { animation: scope-gauge-ready 0.6s ease-in-out infinite alternate; } @keyframes scope-gauge-halo { from { opacity: 0.12; } to { opacity: 0.5; } } .scope-gauge-halo { animation: scope-gauge-halo 0.6s ease-in-out infinite alternate; } @keyframes scope-gauge-warn { from { opacity: 0.45; } to { opacity: 1; } } .scope-gauge-warn { animation: scope-gauge-warn 0.7s ease-in-out infinite alternate; } @media (prefers-reduced-motion: reduce) { .scope-gauge-ready { animation: none; stroke-width: 9px; } .scope-gauge-halo { animation: none; opacity: 0.35; } .scope-gauge-warn { animation: none; } }`}</style>
 
         {/* Reticle: dimmed while reloading (not during fever). The gauge arcs stay outside so they keep full brightness. */}
         <div
