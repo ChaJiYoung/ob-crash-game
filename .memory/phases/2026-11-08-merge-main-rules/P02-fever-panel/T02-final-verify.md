@@ -1,6 +1,6 @@
 # Task: T02 최종 검증과 메모리 정리
 
-## Status: pending
+## Status: done
 
 ## Goal
 병합 결과가 빌드·전체 테스트를 통과하는지 확인하고, 메모리 문서의 상태를 마무리한다.
@@ -39,6 +39,6 @@ Task: T02-final-verify
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과 (tsc 오류 없음, vitest 90파일·685개 통과, npm run build 성공)
+- commit: see git log

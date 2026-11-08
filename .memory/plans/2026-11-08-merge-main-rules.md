@@ -8,4 +8,4 @@
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | main 병합 + 충돌 해결(엔진 잠금·배너·HUD·문구 이식) + 폰 디바운스 제외 | [P01](../phases/2026-11-08-merge-main-rules/P01-merge-and-port/phase.md) |
-| P02 | `in_progress` | 2인용 패널(PlayerPanel)의 피버 표시에 배율 반영 + 최종 검증 | [P02](../phases/2026-11-08-merge-main-rules/P02-fever-panel/phase.md) |
+| P02 | `done` | 2인용 패널(PlayerPanel)의 피버 표시에 배율 반영 + 최종 검증 | [P02](../phases/2026-11-08-merge-main-rules/P02-fever-panel/phase.md) |
