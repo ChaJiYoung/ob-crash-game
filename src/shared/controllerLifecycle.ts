@@ -6,8 +6,8 @@ export const CONTROLLER_LIFECYCLE = {
   WATCH_INTERVAL_MS: 1000,
   /** 폰이 화면이 꺼졌다고 알린 뒤, 서버가 PC에 알리기 전에 기다리는 시간. 이보다 짧은 꺼짐은 무시한다. */
   BACKGROUND_NOTIFY_DELAY_MS: 1000,
-  /** 화면이 이만큼(ms) 이상 꺼져 있다 돌아오면 복귀 절차(DEVICE_CHECK 재전송)를 한다. 서버 알림 지연보다 짧아야 한다. */
-  FOREGROUND_RESUME_MIN_MS: 500,
+  /** 화면이 이만큼(ms) 넘게 꺼졌다 돌아오면 폰에 "게임으로 돌아가기" 버튼을 보여 준다. 서버 알림 지연과 같아야 한다. */
+  FOREGROUND_RESUME_MIN_MS: 1000,
   /** 센서 권한 허용 뒤 첫 센서 이벤트를 기다리는 최대 시간. 지나면 그대로 영점을 보낸다. */
   AUTO_ZERO_FALLBACK_MS: 1000,
 } as const;

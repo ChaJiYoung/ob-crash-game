@@ -1,6 +1,6 @@
 # Task: T02 폰: 자동 복귀 제거와 "게임으로 돌아가기" 버튼
 
-## Status: pending
+## Status: done
 
 ## Goal
 같은 페이지에서 화면이 1초 넘게 꺼졌다 돌아오면 패드 위에 "게임으로 돌아가기" 버튼을 덮어 보여 주고, 누르면 센서 권한 재요청 → 센서 재등록 → 첫 센서값에서 영점 → `CALIBRATE_ZERO` 전송으로 PC를 재개시킨다. 화면 복귀 시 자동 센서 재등록, 센서 워치독, 자동 `DEVICE_CHECK` 재전송은 없앤다.
@@ -106,6 +106,6 @@ Task: T02-phone-return-button
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

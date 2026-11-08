@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { requestSensorPermission } from '../sensors/SensorPermission';
 import { PlayerProfile } from '../../shared/types';
 
 export function validateNicknameInput(rawNickname: string): { valid: boolean; trimmed: string; error?: string } {
@@ -43,31 +44,11 @@ export const LoginAndPermissionGate: React.FC<LoginAndPermissionGateProps> = ({
   const handleRequestPermission = async () => {
     setIsRequestingPermission(true);
     try {
-      // Check for iOS 13+ DeviceOrientationEvent permission request
-      const orientationWithPermission = DeviceOrientationEvent as unknown as {
-        requestPermission?: () => Promise<'granted' | 'denied'>;
-      };
-      if (typeof orientationWithPermission.requestPermission === 'function') {
-        const response = await orientationWithPermission.requestPermission();
-        if (response !== 'granted') {
-          alert('모션 센서 권한이 허용되어야 권총 조준이 가능합니다.');
-          setIsRequestingPermission(false);
-          return;
-        }
+      const result = await requestSensorPermission();
+      if (result !== 'granted') {
+        alert('모션 센서 권한이 허용되어야 권총 조준이 가능합니다.');
+        return;
       }
-
-      // Check for iOS 13+ DeviceMotionEvent permission request
-      const motionWithPermission = DeviceMotionEvent as unknown as {
-        requestPermission?: () => Promise<'granted' | 'denied'>;
-      };
-      if (typeof motionWithPermission.requestPermission === 'function') {
-        await motionWithPermission.requestPermission().catch(() => {});
-      }
-
-      onPermissionGranted();
-    } catch (err) {
-      console.warn('Sensor permission error or desktop browser:', err);
-      // Fallback for Android or desktop browsers that do not require explicit prompt
       onPermissionGranted();
     } finally {
       setIsRequestingPermission(false);

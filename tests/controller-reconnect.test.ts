@@ -54,13 +54,12 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(source).not.toMatch(/alert\(\s*['"`]PC 호스트/);
   });
 
-  it('registers the sensor listeners again when the screen is back or the sensors stall', () => {
-    expect(source).toContain('sensorEpoch');
-    expect(source).toContain('SensorLiveness');
-    expect(source).toContain('SENSOR_STALE_MS');
-    // The sensor effect re-runs on sensorEpoch...
+  it('re-registers sensors only through the return button (no automatic revive or watchdog)', () => {
+    expect(source).not.toContain('SensorLiveness');
+    expect(source).not.toContain('SENSOR_STALE_MS');
+    expect(source).not.toContain('watchdog');
+    // the sensor effect still re-runs on sensorEpoch, and its cleanup releases the aim lock
     expect(source).toMatch(/\[sensorsActive,\s*sensorEpoch,/);
-    // ...and its cleanup releases the aim lock whose only release is the freeze timer.
     const cleanup = source.slice(source.indexOf("removeEventListener('deviceorientation'") - 400, source.indexOf("removeEventListener('deviceorientation'"));
     expect(cleanup).toContain('tracker.unlockAim()');
   });
@@ -85,10 +84,13 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
       expect(block).not.toContain('performance.now');
     });
 
-    it('pairs the reconnect flag with DEVICE_CHECK and never touches the zero itself', () => {
-      expect(block).toContain('isReconnectOpenRef.current = true');
-      expect(block).toContain("type: 'DEVICE_CHECK'");
+    it('asks for the return button instead of resuming by itself, and never touches the zero', () => {
+      expect(block).toContain('setNeedsReturn(true)');
+      expect(block).not.toContain("type: 'DEVICE_CHECK'");
+      expect(block).not.toContain('isReconnectOpenRef.current = true');
       expect(block).not.toMatch(/calibrateZero|CALIBRATE_ZERO/);
+      // the button check must run even when the socket is closed
+      expect(block.indexOf('setNeedsReturn(true)')).toBeLessThan(block.indexOf('if (!open) return;'));
     });
   });
 
@@ -132,12 +134,24 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(source).toContain('tracker.expireAimLock(performance.now())');
   });
 
-  it('keeps the zero when the sensors are revived', () => {
-    const start = source.indexOf('const onVisibility');
-    const end = source.indexOf("clearInterval(watchdog)");
-    expect(start).toBeGreaterThan(-1);
-    expect(end).toBeGreaterThan(start);
-    expect(source.slice(start, end)).not.toMatch(/calibrateZero|CALIBRATE_ZERO/);
+  describe('return to game button', () => {
+    const start = source.indexOf('const handleReturnToGame');
+    const block = source.slice(start, source.indexOf('}, [runAutoZero]);', start));
+
+    it('asks for sensor permission first, then re-registers sensors and zeroes on the next reading', () => {
+      expect(start).toBeGreaterThan(-1);
+      expect(block).toContain('requestSensorPermission()');
+      expect(block).toContain('setSensorEpoch(');
+      expect(block).toContain('autoZeroPendingRef.current = true');
+      expect(block).toContain('AUTO_ZERO_FALLBACK_MS');
+      expect(block.indexOf('requestSensorPermission()')).toBeLessThan(block.indexOf('setNeedsReturn(false)'));
+    });
+
+    it('keeps the button while the socket is down, and blocks the automatic resume meanwhile', () => {
+      expect(block.indexOf('readyState !== WebSocket.OPEN')).toBeLessThan(block.indexOf('requestSensorPermission()'));
+      expect(source).toContain("stepRef.current === 'PAD' && !needsReturnRef.current");
+      expect(source).toContain('<ReturnToGameOverlay onReturn={handleReturnToGame} />');
+    });
   });
 
   it('revives the socket when the screen comes back', () => {

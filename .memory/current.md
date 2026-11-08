@@ -4,12 +4,13 @@
 [폰 컨트롤러 수명주기 수정](./plans/2026-11-08-phone-lifecycle-fixes.md)
 
 ## Active Phase
-[P04 복귀 버튼 전환](./phases/2026-11-08-phone-lifecycle-fixes/P04-return-button/phase.md)
+[P05 실기기 검증과 정리](./phases/2026-11-08-phone-lifecycle-fixes/P05-verify-and-cleanup/phase.md)
 
 ## Active Task
-[T01 서버: 끊김 표시를 영점 신호로만 해제](./phases/2026-11-08-phone-lifecycle-fixes/P04-return-button/T01-server-lost-until-zero.md)
+[T01 실기기 통합 테스트와 로그 분석](./phases/2026-11-08-phone-lifecycle-fixes/P05-verify-and-cleanup/T01-device-test-and-analysis.md)
 
 ## Status
+- P04 완료(복귀 버튼 전환): 서버 `3e9e178`, 폰 버튼은 이번 커밋. tsc·vitest(738)·build 통과.
 - 실기기 테스트 결과 자동 복귀를 버튼 방식으로 바꾸기로 결정(`decisions/2026-11-08-return-button.md`). P04(복귀 버튼 전환) 추가, 실기기 검증은 P05로 이동.
 - 추가 커밋: `4514bc2`(리뷰 반영), `a7b5e09`(서버 판정 로그, 임시), `b5ae0a9`(PC 자동 재연결).
 - P01 완료(서버 프레임 끊김 감지, 백그라운드/포그라운드 신호, PC 중복 방어): `f894283`.
@@ -22,4 +23,4 @@
 - 그 이전 계획: `main 병합`은 전체 완료(육안 확인만 대기), 2인팟 QA 수정은 P04(3차 QA)가 리뷰어 진행 중.
 
 ## Next Step (IMPORTANT)
-P04-T01 청사진을 읽고 `server/ControllerWatch.ts`, `server/wsServer.ts`를 수정한다. 이어서 P04-T02(폰 버튼). P05-T01은 사용자 실기기 테스트라 거기서 멈춘다.
+P05-T01: 사용자에게 PC·폰 새로고침 후 실기기 테스트를 요청한다(화면 끄기 → 돌아가기 버튼 → 재개와 조준, 페이지 재로드 → 초록 버튼 → 재개). 결과와 `data/sensor-debug.log`로 분석한다.

@@ -4,7 +4,8 @@ import { GunGripTracker, EulerOrientation } from './sensors/GunGripTracker';
 import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
-import { SensorLiveness, SENSOR_STALE_MS } from './sensors/SensorLiveness';
+import { requestSensorPermission } from './sensors/SensorPermission';
+import { ReturnToGameOverlay } from './components/ReturnToGameOverlay';
 import { CONTROLLER_LIFECYCLE } from '../shared/controllerLifecycle';
 import { PlayerProfile, PlayerSlot, ServerToClientMessage, WeaponKind, WeaponLevel } from '../shared/types';
 import { PLAYER_COLORS, WEAPON_CONSTANTS } from '../shared/constants';
@@ -77,8 +78,11 @@ export const MobileControllerPage: React.FC = () => {
   const feverTriggeredRef = useRef<boolean>(false);
   const isCockedRef = useRef<boolean>(false);
   const snapFreezeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Bumped by the return button to tear the sensor effect down and register the listeners again.
   const [sensorEpoch, setSensorEpoch] = useState<number>(0);
-  const sensorLivenessRef = useRef<SensorLiveness>(new SensorLiveness());
+  // The screen was off long enough that the PC paused: the player must press "return to game" (it re-zeroes).
+  const [needsReturn, setNeedsReturn] = useState<boolean>(false);
+  const needsReturnRef = useRef<boolean>(false);
 
   // Allowing the sensors zeroes the aim by itself (the PC then shows the crosshair). It waits for the first sensor reading,
   // because right after the permission nothing has arrived yet and latestOrientationRef is still (0,0,0).
@@ -208,7 +212,8 @@ export const MobileControllerPage: React.FC = () => {
                 setPlayer(msg.player);
                 // The phone is already aimed (pad screen) and only its socket came back: tell the PC so a reloaded
                 // lobby can move on to the zeroing step. The phone's own zero is untouched.
-                if (isReconnectOpenRef.current && stepRef.current === 'PAD') {
+                // While the return button is up it owns the comeback (with a fresh zero), so do not resume here.
+                if (isReconnectOpenRef.current && stepRef.current === 'PAD' && !needsReturnRef.current) {
                   socket.send(
                     JSON.stringify({ type: 'CALIBRATE_ZERO', roomId, deviceId, resume: true, slot: slotRef.current })
                   );
@@ -298,6 +303,7 @@ export const MobileControllerPage: React.FC = () => {
     const onBackgroundSignals = () => {
       const cur = wsRef.current;
       const open = !!cur && cur.readyState === WebSocket.OPEN;
+      sendDebugRef.current('visibility', { state: document.visibilityState }); // TEMP(sensor-debug)
       if (document.visibilityState === 'hidden') {
         hiddenAtMs = Date.now();
         if (open) {
@@ -307,15 +313,14 @@ export const MobileControllerPage: React.FC = () => {
       }
       const hiddenForMs = hiddenAtMs === null ? 0 : Date.now() - hiddenAtMs;
       hiddenAtMs = null;
-      // A closed socket is brought back by reviveIfDead and the normal AUTH_RESULT path.
+      // Same threshold as the server's pause notice: if it is up, the PC is paused, so ask the player to come back.
+      if (hiddenForMs >= CONTROLLER_LIFECYCLE.FOREGROUND_RESUME_MIN_MS && stepRef.current === 'PAD') {
+        needsReturnRef.current = true;
+        setNeedsReturn(true);
+      }
+      // A closed socket is brought back by reviveIfDead.
       if (!open) return;
       cur!.send(JSON.stringify({ type: 'CONTROLLER_FOREGROUND', roomId, deviceId, slot: slotRef.current }));
-      if (hiddenForMs >= CONTROLLER_LIFECYCLE.FOREGROUND_RESUME_MIN_MS && stepRef.current === 'PAD') {
-        // The socket never closed, so the PC may have been told the phone left: repeat what a reconnect does.
-        // The AUTH_RESULT handler then sends the resume message, which keeps the zero as it is.
-        isReconnectOpenRef.current = true;
-        cur!.send(JSON.stringify({ type: 'DEVICE_CHECK', roomId, deviceId, slot: slotRef.current }));
-      }
     };
     document.addEventListener('visibilitychange', onBackgroundSignals);
 
@@ -393,16 +398,13 @@ export const MobileControllerPage: React.FC = () => {
   }, [roomId, deviceId, tracker]);
 
   // 4. Start Sensors after permission granted with lifecycle cleanup
-  // sensorEpoch is bumped to tear this effect down and register the listeners again (screen back on, sensor stalled).
+  // sensorEpoch is bumped by the return button to tear this effect down and register the listeners again.
   useEffect(() => {
     if (!sensorsActive) return;
 
-    // A fresh registration gets a new grace period before the watchdog may call the sensors stalled.
-    sensorLivenessRef.current.reset(performance.now());
     debugRegisteredAtRef.current = performance.now(); // TEMP(sensor-debug)
 
     const onOrientation = (e: DeviceOrientationEvent) => {
-      sensorLivenessRef.current.markEvent(performance.now());
       // TEMP(sensor-debug)
       {
         const t = performance.now();
@@ -478,37 +480,6 @@ export const MobileControllerPage: React.FC = () => {
     };
   }, [sensorsActive, sensorEpoch, tracker, flushSensorFrame]);
 
-  // Screen back on, or the sensors went quiet while the page is visible: register the listeners again.
-  // The zero is left alone on purpose, so the player can keep shooting from where the phone points.
-  useEffect(() => {
-    if (!sensorsActive) return;
-
-    const bump = () => setSensorEpoch((e) => e + 1);
-    const onVisibility = () => {
-      sendDebugRef.current('visibility', { state: document.visibilityState }); // TEMP(sensor-debug)
-      if (document.visibilityState === 'visible') {
-        sendDebugRef.current('reregister', { reason: 'visible', sinceLastEventMs: Math.round(sensorLivenessRef.current.elapsedMs(performance.now())) }); // TEMP(sensor-debug)
-        bump();
-      }
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-
-    // Re-registering resets the grace period, so a phone that never delivers events is retried once per SENSOR_STALE_MS.
-    const watchdog = setInterval(() => {
-      sendDebugRef.current(); // TEMP(sensor-debug): flush logs queued while the socket was down
-      if (document.visibilityState !== 'visible') return;
-      if (sensorLivenessRef.current.isStale(performance.now(), SENSOR_STALE_MS)) {
-        sendDebugRef.current('reregister', { reason: 'watchdog', sinceLastEventMs: Math.round(sensorLivenessRef.current.elapsedMs(performance.now())) }); // TEMP(sensor-debug)
-        bump();
-      }
-    }, 500);
-
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility);
-      clearInterval(watchdog);
-    };
-  }, [sensorsActive]);
-
   const handlePermissionGranted = () => {
     setSensorsActive(true);
     setStep('PAD');
@@ -541,6 +512,23 @@ export const MobileControllerPage: React.FC = () => {
     setStep('PAD');
   }, [tracker, roomId, deviceId]);
   calibrateZeroRef.current = handleCalibrateZero;
+
+  // Called straight from the button's onClick: iOS only grants sensor access inside the user's tap.
+  const handleReturnToGame = useCallback(async () => {
+    // Without a socket the zero cannot reach the PC: keep the button until the reconnect banner is gone.
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    const result = await requestSensorPermission();
+    if (result !== 'granted') {
+      alert('모션 센서 권한이 허용되어야 권총 조준이 가능합니다.');
+      return;
+    }
+    setSensorEpoch((e) => e + 1);
+    autoZeroPendingRef.current = true;
+    if (autoZeroTimerRef.current) clearTimeout(autoZeroTimerRef.current);
+    autoZeroTimerRef.current = setTimeout(runAutoZero, CONTROLLER_LIFECYCLE.AUTO_ZERO_FALLBACK_MS);
+    needsReturnRef.current = false;
+    setNeedsReturn(false);
+  }, [runAutoZero]);
 
   const startCountdown = useCallback(
     (initialSec = 3) => {
@@ -765,6 +753,8 @@ export const MobileControllerPage: React.FC = () => {
           onToggleStabilizedMode={handleToggleStabilizedMode}
         />
       )}
+
+      {step === 'PAD' && needsReturn && <ReturnToGameOverlay onReturn={handleReturnToGame} />}
 
       {countdownSec !== null && (
         <div
