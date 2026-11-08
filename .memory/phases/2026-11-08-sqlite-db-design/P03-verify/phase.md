@@ -9,4 +9,4 @@
 | T01 | `pending` | tsc·vitest·build, 실서버 DB 기록 스모크 확인, 브라우저 체크리스트 기록 | [T01](./T01-verify-db-recording.md) |
 
 ## Progress
-- done: 0/1 (active: -)
+- done: 0/1 (active: T01)

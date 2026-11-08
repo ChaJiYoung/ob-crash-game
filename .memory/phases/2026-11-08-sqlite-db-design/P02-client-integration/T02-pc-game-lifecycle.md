@@ -1,6 +1,6 @@
 # Task: T02 PC 판 생명주기 연동
 
-## Status: pending
+## Status: done
 
 ## Goal
 PC가 판 시작 때 `GAME_BEGIN`을 보내 `gameId`를 받고, 무기 선택 때 `WEAPON_CHOSEN`, 일시정지 메뉴에서 나갈 때 `GAME_ABANDON`을 보내며, 종료 제출에 `gameId`를 붙인다. 이 Task가 끝나면 P01 이후 끊겨 있던 실제 게임의 점수 기록이 다시 동작하고, 한 판이 DB에 시작부터 끝까지 남는다.
@@ -166,6 +166,6 @@ Task: T02-pc-game-lifecycle
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: `0832b03`

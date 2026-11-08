@@ -15,5 +15,5 @@
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 서버: DB 코어와 스키마, 두 스토어의 DB 전환, 판 생명주기 프로토콜(`GAME_BEGIN`/`WEAPON_CHOSEN`/`GAME_ABANDON`/`gameId` 제출) | [P01](../phases/2026-11-08-sqlite-db-design/P01-server-db-storage/phase.md) |
-| P02 | `in_progress` | 클라이언트: 엔진 웨이브별 피격·무기 선택 훅, PC 판 생명주기 연동, 마우스 닉네임 고정(D12) | [P02](../phases/2026-11-08-sqlite-db-design/P02-client-integration/phase.md) |
-| P03 | `pending` | 전체 검증(tsc·vitest·build)과 실제 서버로 DB 기록 확인 | [P03](../phases/2026-11-08-sqlite-db-design/P03-verify/phase.md) |
+| P02 | `done` | 클라이언트: 엔진 웨이브별 피격·무기 선택 훅, PC 판 생명주기 연동, 마우스 닉네임 고정(D12) | [P02](../phases/2026-11-08-sqlite-db-design/P02-client-integration/phase.md) |
+| P03 | `in_progress` | 전체 검증(tsc·vitest·build)과 실제 서버로 DB 기록 확인 | [P03](../phases/2026-11-08-sqlite-db-design/P03-verify/phase.md) |

@@ -1,6 +1,6 @@
 # Task: T01 엔진 웨이브별 피격 집계와 무기 선택 훅
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진이 (1) 웨이브를 클리어할 때 그 웨이브에서 입은 피해를 `waveClears[].damageTaken`으로 남기고, (2) 플레이어가 무기를 고르는 순간 외부에 알릴 콜백 `onWeaponChosen`을 부른다. (1)은 `PlayRunStats.waves[].damageTaken`으로 서버에 가서 `game_waves.damage_taken`이 되고(D06), (2)는 P02-T02에서 `WEAPON_CHOSEN` 전송에 쓰인다(D03).
@@ -98,6 +98,6 @@ Task: T01-engine-wave-damage-and-weapon-hook
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: `c1dfec4`

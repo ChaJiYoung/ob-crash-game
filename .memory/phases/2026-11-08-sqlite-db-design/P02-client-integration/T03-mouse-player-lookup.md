@@ -1,6 +1,6 @@
 # Task: T03 닉네임 고정과 변경 (마우스·폰), 마우스 슬롯 신원 기록
 
-## Status: pending
+## Status: done
 
 ## Goal
 마우스 슬롯을 고르면 PC 브라우저의 `deviceId`로 서버에 조회해, 이미 등록된 플레이어는 닉네임 입력 없이 바로 슬롯에 앉힌다. 서버는 마우스 슬롯의 `deviceId`를 세션(`localPlayers`)에 기록하고, `GAME_BEGIN`의 마우스 참가자를 이 값과 대조한다. 마우스와 폰 모두 "닉네임 변경" 버튼으로 닉네임을 바꿀 수 있다. 브라우저에 따로 저장하던 마우스 닉네임(`beer_crusher_mouse_nickname`)은 없앤다.
@@ -182,6 +182,6 @@ Task: T03-mouse-player-lookup
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: `444e35c`, 리뷰 반영 `8ebfcb5` (슬롯을 바꾼 뒤 늦게 온 마우스 등록 응답 무시, 문서 주석 위치)
