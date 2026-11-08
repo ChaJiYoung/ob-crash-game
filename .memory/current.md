@@ -1,20 +1,20 @@
 # Current Context
 
 ## Active Plan
-[main 병합 (규칙 수치·스킬 중복 방지·피버 표시)](./plans/2026-11-08-merge-main-rules.md)
+[폰 화면 꺼짐 후 조준 고정 수정](./plans/2026-11-08-controller-sensor-revive-after-screen-off.md)
 
 ## Active Phase
-없음 — main 병합 계획 완료 (P01·P02)
+[P01 센서 복구 코드 수정](./phases/2026-11-08-controller-sensor-revive-after-screen-off/P01-sensor-revive/phase.md)
 
 ## Active Task
-없음
+[T01 autoZeroFromLatest 원시값 기준 수정](./phases/2026-11-08-controller-sensor-revive-after-screen-off/P01-sensor-revive/T01-auto-zero-raw.md)
 
 ## Status
-- 전체 완료: tsc·vitest(685)·build 통과. 육안 확인(피버 배너, 폰 문구, 협동 보스 체감) 대기.
-- P02 T01 완료: PlayerPanel 피버 배율 줄 추가.
-- P01 T02 완료: 폰 스킬 디바운스 제거(D03). P01 끝.
-- P01 T01 완료: main 병합, 충돌 7개 해결, 타입체크·전체 테스트(684) 통과.
-- 계획 수립 완료. 이전 계획(2인팟 QA 수정)은 P03까지 완료, P04(3차 QA)는 리뷰어 진행 중.
+- 계획 수립 완료 (P01 5 Task, P02 3 Task). T01 구현 시작 준비 완료.
+- 범위 확장(D08, D09): P01에 T04(조준 잠금 자동 만료), T05(`__setStep` 제거) 추가.
+- 직전 계획 `main 병합`은 전체 완료, 육안 확인(피버 배너, 폰 문구, 협동 보스 체감)만 대기 중.
+- 그 이전 계획(2인팟 QA 수정)은 P04(3차 QA)가 리뷰어 진행 중으로 남아 있다.
 
 ## Next Step (IMPORTANT)
-실기기 확인 후 이전 계획(2인팟 QA 수정) P04(3차 QA)를 이어서 진행한다.
+T01 청사진을 읽고 `src/pc/input/PhoneAdapter.ts`의 `autoZeroFromLatest` 수정과 `tests/input-adapters.test.ts` 테스트 추가를 시작한다.
+P02-T02는 사용자의 실기기 테스트가 필요하므로, 거기서 멈추고 사용자에게 테스트를 요청한다.
