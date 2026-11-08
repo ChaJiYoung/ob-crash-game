@@ -32,6 +32,8 @@ export interface PlayerHudSnapshot {
   skillStock: number;
   maxSkillStock: number;
   skillCooldownRemainingMs: number;
+  /** 다음 스킬 스택이 차는 데 걸리는 전체 시간(조준경 링 게이지 비율용). */
+  skillCooldownTotalMs: number;
   /** 개인 버프(파워샷·와이드 등). 아이스 프리즈는 팀이라 HudSnapshot.activeBuffs에 남는다. */
   personalBuffs: ActiveBuffState[];
   isWideScopeActive: boolean;
@@ -109,6 +111,7 @@ export function buildHudSnapshot(
       skillStock: weaponState.skillStock,
       maxSkillStock: weaponState.maxSkillStock,
       skillCooldownRemainingMs: roundTo100Ms(weaponState.skillCooldownRemainingMs),
+      skillCooldownTotalMs: weaponState.skillCooldownTotalMs,
       personalBuffs,
       isWideScopeActive,
       isPowerShotActive,

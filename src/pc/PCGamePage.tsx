@@ -1532,6 +1532,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 playerColor={pres?.ringColorMode === 'player' ? pres.color : undefined}
                 nameTag={formatCrosshairNameTag(weaponKind, weaponLevel, pres?.slotLabel ?? null)}
                 hidden={playerSnap?.isAway ?? p.isAway}
+                gaugeSource={playerSnap}
               />
             );
           })}

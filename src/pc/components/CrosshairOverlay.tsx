@@ -2,6 +2,15 @@ import React, { useEffect, useLayoutEffect, useState, useRef, forwardRef, useImp
 import { WeaponKind, WeaponLevel } from '../../shared/types';
 import { aimToViewportPercent, aimToNdc, viewportRatioToAim } from '../aimMapping';
 import { clampToViewport } from '../overlayClamp';
+import {
+  ScopeGaugeInput,
+  computeScopeGauges,
+  describeArc,
+  filledArcRange,
+  polarPoint,
+  SCOPE_GAUGE_COLORS,
+  ArcSpec,
+} from './scopeGauges';
 
 export { aimToViewportPercent, aimToNdc, viewportRatioToAim };
 
@@ -200,6 +209,61 @@ const ReloadRing: React.FC<{
   );
 };
 
+/** 장전 링(반지름 약 sizePx/2+2, 두께 12) 바깥에 그린다. */
+export function getScopeGaugeRadius(sizePx: number): number {
+  return sizePx / 2 + 14;
+}
+
+const GaugeArc: React.FC<{ c: number; r: number; arc: ArcSpec; color: string; fromEnd?: boolean }> = ({ c, r, arc, color, fromEnd }) => {
+  const [a0, a1] = filledArcRange(arc, fromEnd);
+  const filled = describeArc(c, c, r, a0, a1);
+  return (
+    <>
+      <path d={describeArc(c, c, r, arc.startDeg, arc.endDeg)} stroke={SCOPE_GAUGE_COLORS.track} strokeWidth={3} fill="none" strokeLinecap="round" />
+      {filled && (
+        <path
+          d={filled}
+          stroke={color}
+          strokeWidth={arc.flash ? 4 : 3}
+          fill="none"
+          strokeLinecap="round"
+          className={arc.flash || arc.warn ? 'scope-gauge-flash' : undefined}
+        />
+      )}
+    </>
+  );
+};
+
+/** 조준경 링 게이지(playtest-feedback D08). */
+const ScopeGauges: React.FC<{ input: ScopeGaugeInput; sizePx: number }> = ({ input, sizePx }) => {
+  const g = computeScopeGauges(input);
+  const r = getScopeGaugeRadius(sizePx);
+  const size = r * 2 + 24;
+  const c = size / 2;
+  return (
+    <svg width={size} height={size} data-testid="scope-gauges" style={{ position: 'absolute', pointerEvents: 'none' }} aria-hidden>
+      {g.ammo && (
+        <GaugeArc c={c} r={r} arc={g.ammo} color={g.ammo.warn ? SCOPE_GAUGE_COLORS.warn : SCOPE_GAUGE_COLORS.ammo} />
+      )}
+      <GaugeArc c={c} r={r} arc={g.skill} color={SCOPE_GAUGE_COLORS.skill} fromEnd />
+      <GaugeArc c={c} r={r} arc={g.fever} color={SCOPE_GAUGE_COLORS.fever} />
+      {Array.from({ length: g.skillDots.total }, (_, i) => {
+        const [x, y] = polarPoint(c, c, r + 9, 215 + i * 22);
+        return (
+          <circle
+            key={i}
+            cx={x}
+            cy={y}
+            r={3}
+            fill={i < g.skillDots.filled ? SCOPE_GAUGE_COLORS.skill : SCOPE_GAUGE_COLORS.track}
+            data-testid={i < g.skillDots.filled ? 'scope-skill-dot-on' : 'scope-skill-dot-off'}
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
 export interface CrosshairOverlayHandle {
   updatePosition: (aimX: number, aimY: number, immediate?: boolean) => void;
   /** 발사 반동 연출(120ms). 부모 리렌더 없이 직접 호출한다. */
@@ -226,6 +290,11 @@ export interface CrosshairOverlayProps {
   playerColor?: string;
   nameTag?: string;
   hidden?: boolean;
+  /**
+   * 조준경 링 게이지 값(탄창·스킬·피버). 실전 십자선에만 넘긴다.
+   * HUD 스냅샷의 플레이어 객체를 그대로 넘기면 값이 같을 때 참조도 같아 memo가 유지된다.
+   */
+  gaugeSource?: ScopeGaugeInput;
   /** 'menu': 로비·결과 화면용. 이름표 없이 작고 반투명하게 그려 화면 글자를 가리지 않는다. */
   variant?: 'play' | 'menu';
 }
@@ -248,6 +317,7 @@ export const CrosshairOverlay = React.memo(
     nameTag,
     hidden = false,
     variant = 'play',
+    gaugeSource,
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const targetPosRef = useRef({ x: aimX, y: aimY });
@@ -403,7 +473,7 @@ export const CrosshairOverlay = React.memo(
       >
         <div data-crosshair-variant={variant} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${menuScale})` }}>
         {/* Fixed keyframes (always mounted): crosshair-spin rotates the reticle rings (rotation only, no translate), reload-ring-fill uses pathLength=1. */}
-        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }`}</style>
+        <style>{`@keyframes crosshair-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes reload-ring-fill { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } } @keyframes scope-gauge-flash { from { opacity: 0.45; } to { opacity: 1; } } .scope-gauge-flash { animation: scope-gauge-flash 0.7s ease-in-out infinite alternate; } @media (prefers-reduced-motion: reduce) { .scope-gauge-flash { animation: none; } }`}</style>
 
         {/* Reticle: dimmed while reloading. The ring stays outside so it keeps full brightness. */}
         <div
@@ -675,6 +745,7 @@ export const CrosshairOverlay = React.memo(
 
         {/* Reload progress ring: mounted only while reloading so the fill restarts from zero each time */}
         {ring.visible && <ReloadRing spec={ring} getRemainingMs={getReloadRemainingMs} isPaused={isPaused} />}
+        {!isMenu && gaugeSource && <ScopeGauges input={gaugeSource} sizePx={spec.sizePx} />}
         </div>
       </div>
     );

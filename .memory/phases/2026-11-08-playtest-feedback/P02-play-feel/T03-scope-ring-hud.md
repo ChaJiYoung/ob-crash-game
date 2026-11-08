@@ -1,6 +1,6 @@
 # Task: T03 조준경 링 게이지 (탄창·스킬·피버)
 
-## Status: pending
+## Status: done
 
 ## Goal
 게임 중 십자선 둘레에 얇은 원호 3개를 그린다. 위쪽은 남은 탄창, 왼쪽 아래는 스킬 충전과 스택 점, 오른쪽 아래는 피버 게이지다. 플레이어가 화면 아래 패널을 보지 않고도 상태를 안다. 시안: https://claude.ai/artifact/UcWFxoPyrcfMGzdagJmvkw (시안 1)
@@ -86,6 +86,6 @@ Task: T03-scope-ring-hud
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과 (tsc, vitest 761, build. 화면 육안 확인은 사용자)
 - commit: pending

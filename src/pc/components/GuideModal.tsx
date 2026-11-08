@@ -666,6 +666,9 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     • <strong>🔥 {GAME_TUNING.fever.durationMs / 1000}초 피버 버스트:</strong> PERFECT(+{GAME_TUNING.fever.perfectDelta}%) 및 몬스터 처치(+{GAME_TUNING.fever.killDelta}%) 충전 후 <strong>마우스 더블클릭</strong> ({GAME_TUNING.fever.durationMs / 1000}초간 무한 탄창 자동 연사 & 명중 점수 {GAME_TUNING.fever.scoreMult}배, 명중은 모두 GREAT 판정 & 대미지 {GAME_TUNING.judgment.feverDamage}배)<br />
                     • <strong>⏸ 일시정지:</strong> <strong>Esc 키</strong> 또는 상단 일시정지 버튼 (이어하기 / 다시시작)
                   </div>
+                  <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.7' }}>
+                    <strong>🎯 조준경 링 게이지:</strong> 십자선 둘레의 원호로 상태를 봅니다. <strong>위</strong>는 남은 탄창(20% 미만이면 노란색), <strong>왼쪽 아래</strong>는 스킬 충전(점은 스택), <strong>오른쪽 아래</strong>는 피버 게이지입니다. 가득 차면 반짝입니다.
+                  </div>
                 </div>
               </div>
             </div>

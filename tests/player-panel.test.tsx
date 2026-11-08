@@ -26,6 +26,7 @@ function createMockPlayerSnapshot(overrides: Partial<PlayerHudSnapshot> = {}): P
     skillStock: 1,
     maxSkillStock: 1,
     skillCooldownRemainingMs: 0,
+    skillCooldownTotalMs: 20000,
     personalBuffs: [],
     isWideScopeActive: false,
     isPowerShotActive: false,
