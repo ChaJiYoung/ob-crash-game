@@ -96,6 +96,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     };
   }, [engine]);
   const [lanIp, setLanIp] = useState<string>('');
+  const [isServerFull, setIsServerFull] = useState(false);
 
   const [slots, setSlots] = useState<SlotPair>(createInitialSlots);
   const slotsRef = useRef<SlotPair>(slots);
@@ -520,6 +521,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         const msg = JSON.parse(event.data) as ServerToClientMessage;
         switch (msg.type) {
           case 'ROOM_CREATED':
+            setIsServerFull(false);
             setRoomId(msg.roomId);
             saveRoomId(msg.roomId);
             if (msg.rankings) setTopRankings(msg.rankings);
@@ -751,6 +753,10 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             break;
 
           case 'ERROR':
+            if (msg.code === 'SERVER_FULL') {
+              setIsServerFull(true);
+              break;
+            }
             if (msg.code === 'GAME_BEGIN_REJECTED') {
               pendingBeginIdRef.current = null;
               console.warn('GAME_BEGIN rejected; this run will not be recorded', msg.message);
@@ -1417,6 +1423,28 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      {isServerFull && (
+        <div
+          data-testid="server-full-banner"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 20000,
+            padding: '10px 16px',
+            textAlign: 'center',
+            fontSize: '15px',
+            fontWeight: 800,
+            color: '#fef3c7',
+            background: 'rgba(180, 83, 9, 0.92)',
+            pointerEvents: 'none',
+            fontFamily: "'Noto Sans KR', sans-serif",
+          }}
+        >
+          👥 접속자가 많아요. 자리가 나면 자동으로 연결됩니다.
+        </div>
+      )}
       {/* 1. 3D WebGL Canvas */}
       <GameCanvas3D
         ref={canvasRef}

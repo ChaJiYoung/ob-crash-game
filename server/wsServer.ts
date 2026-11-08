@@ -9,6 +9,7 @@ import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
 import { ControllerWatch, watchKey, parseWatchKey } from './ControllerWatch';
 import { CONTROLLER_LIFECYCLE } from '../src/shared/controllerLifecycle';
+import { ConnectionGuard, CONNECTION_GUARD_DEFAULTS, isOriginAllowed, resolveClientIp } from './ConnectionGuard';
 
 export interface BeerCrusherServerInstance {
   server: http.Server;
@@ -53,6 +54,14 @@ export async function createBeerCrusherServer(options?: {
   watchIntervalMs?: number;
   /** 테스트용: 백그라운드 알림 대기(ms). 기본 CONTROLLER_LIFECYCLE.BACKGROUND_NOTIFY_DELAY_MS */
   backgroundNotifyDelayMs?: number;
+  /** IP당 동시 소켓 상한. 기본 CONNECTION_GUARD_DEFAULTS.maxPerIp(60) */
+  maxConnPerIp?: number;
+  /** 전체 동시 소켓 상한. 기본 CONNECTION_GUARD_DEFAULTS.maxTotal(300) */
+  maxConnTotal?: number;
+  /** 설정 시 이 Origin의 업그레이드만 허용. 미설정이면 검사 안 함(로컬 dev). */
+  allowedOrigin?: string;
+  /** true면 X-Forwarded-For로 클라이언트 IP 판별(Caddy 뒤에서만). 기본 false */
+  trustProxy?: boolean;
 }): Promise<BeerCrusherServerInstance> {
   const port = options?.port ?? 8787;
   const db = new GameDatabase(options?.dbPath);
@@ -60,6 +69,11 @@ export async function createBeerCrusherServer(options?: {
   const playRecordStore = new PlayRecordStore(db);
   const roomManager = new RoomManager();
   const watch = new ControllerWatch();
+  const guard = new ConnectionGuard({
+    maxPerIp: options?.maxConnPerIp ?? CONNECTION_GUARD_DEFAULTS.maxPerIp,
+    maxTotal: options?.maxConnTotal ?? CONNECTION_GUARD_DEFAULTS.maxTotal,
+  });
+  const trustProxy = options?.trustProxy ?? false;
 
   /** 방의 PC 소켓이 보낸 메시지인지 확인한다. 아니면 NOT_ROOM_HOST를 보내고 undefined. */
   const requireHost = (ws: WebSocket, roomId: unknown): RoomSession | undefined => {
@@ -112,9 +126,29 @@ export async function createBeerCrusherServer(options?: {
     res.end();
   });
 
-  const wss = new WebSocketServer({ server });
+  const wss = new WebSocketServer({
+    server,
+    maxPayload: CONNECTION_GUARD_DEFAULTS.maxPayloadBytes,
+    verifyClient: (info: { origin: string; req: http.IncomingMessage }) =>
+      isOriginAllowed(info.origin || undefined, options?.allowedOrigin),
+  });
 
-  wss.on('connection', (ws: WebSocket) => {
+  wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
+    const clientIp = resolveClientIp(req, trustProxy);
+    if (!guard.tryAcquire(clientIp)) {
+      sendJson(ws, {
+        type: 'ERROR',
+        code: 'SERVER_FULL',
+        message: 'Too many connections. Retrying automatically.',
+      });
+      ws.close(1013, 'SERVER_FULL');
+      return;
+    }
+    ws.once('close', () => guard.release(clientIp));
+    ws.on('error', (err) => {
+      console.warn('[BeerCrusherServer] Socket error:', err instanceof Error ? err.message : String(err));
+    });
+
     ws.on('message', (raw: string | Buffer) => {
       let msg: ClientToServerMessage;
       try {

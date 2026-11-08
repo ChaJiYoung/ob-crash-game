@@ -62,6 +62,7 @@ export const MobileControllerPage: React.FC = () => {
   });
 
   const [connectionState, setConnectionState] = useState<'CONNECTING' | 'CONNECTED' | 'RECONNECTING'>('CONNECTING');
+  const [isServerFull, setIsServerFull] = useState(false);
   const hasConnectedBeforeRef = useRef<boolean>(false);
   // True when the socket that just opened replaced an earlier one (the phone slept, the PC reloaded, ...).
   const isReconnectOpenRef = useRef<boolean>(false);
@@ -200,6 +201,7 @@ export const MobileControllerPage: React.FC = () => {
           const msg = JSON.parse(event.data) as ServerToClientMessage;
           switch (msg.type) {
             case 'AUTH_RESULT':
+              setIsServerFull(false);
               setIsNewUser(msg.isNewUser);
               if (msg.player) {
                 setPlayer(msg.player);
@@ -254,6 +256,11 @@ export const MobileControllerPage: React.FC = () => {
             }
 
             case 'ERROR':
+              if (msg.code === 'SERVER_FULL') {
+                setIsServerFull(true);
+                setConnectionState('RECONNECTING');
+                break;
+              }
               if (msg.code === 'SLOT_OCCUPIED') {
                 blockedRef.current = true;
                 setSlotError(`이미 다른 폰이 ${slotRef.current}P로 연결돼 있습니다. PC 화면의 다른 슬롯 QR을 찍어 주세요.`);
@@ -697,6 +704,7 @@ export const MobileControllerPage: React.FC = () => {
 
       {connectionState !== 'CONNECTED' && (
         <div
+          data-testid="connection-banner"
           style={{
             position: 'fixed',
             top: 0,
@@ -713,7 +721,7 @@ export const MobileControllerPage: React.FC = () => {
             fontFamily: "'Noto Sans KR', sans-serif",
           }}
         >
-          📡 PC와 다시 연결하는 중...
+          {isServerFull ? '👥 접속자가 많아요. 자리가 나면 자동으로 연결됩니다.' : '📡 PC와 다시 연결하는 중...'}
         </div>
       )}
 
