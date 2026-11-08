@@ -3,11 +3,11 @@
 ## Status: pending
 
 ## Goal
-`TEMP(sensor-debug)`가 붙은 임시 진단 코드를 모두 제거하고, T01에서 정한 `SENSOR_STALE_MS`를 반영한 뒤 `tsc`·전체 `vitest`·`build`를 통과시킨다.
+`TEMP(sensor-debug)`가 붙은 임시 진단 코드를 모두 제거하고, `tsc`·전체 `vitest`·`build`를 통과시킨다.
 
 ## Decision Summary
 - controller-sensor-revive D07: 확인이 끝나면 임시 로그는 제거한다.
-- 남기는 것: 센서 복구(`sensorEpoch`, `SensorLiveness`, 조준 잠금 만료), 서버 프레임 끊김 감지(`ControllerWatch`), 백그라운드/포그라운드 신호, 자동 영점. 제거하는 것은 진단용 로그뿐이다.
+- 남기는 것: 센서 재등록 장치(`sensorEpoch`, 버튼이 사용), 조준 잠금 만료, 돌아가기 버튼, 서버 프레임 끊김 감지(`ControllerWatch`), 백그라운드/포그라운드 신호, 자동 영점. 제거하는 것은 진단용 로그뿐이다.
 
 ## Implementation
 
@@ -27,15 +27,11 @@
   4. 서버의 `fs` import가 이 임시 코드 때문에 추가된 것이면 같이 제거한다. `path`는 기존 코드가 쓰므로 유지한다.
   5. `SensorLiveness.elapsedMs`가 로그 전용이 되어 사용처가 없어져도 테스트(`tests/sensor-liveness.test.ts`)가 있으므로 남긴다.
 
-### I02. 임계값 반영과 최종 검증
-
-- Related Files:
-  - `src/controller/sensors/SensorLiveness.ts` :: `SENSOR_STALE_MS` — T01에서 정한 값으로 갱신(변경 없으면 유지); modify
-  - `tests/sensor-liveness.test.ts` :: `SENSOR_STALE_MS`에 의존하는 단언 — 값이 바뀌면 상수를 import해서 쓰도록 맞춤; modify
+### I02. 최종 검증
 
 #### Details
-- `.memory/references/2026-11-08-phone-lifecycle-device-log.md`의 결론대로 `SENSOR_STALE_MS`를 갱신한다. 서버 쪽 `CONTROLLER_LIFECYCLE.FRAME_TIMEOUT_MS`(3000)·`BACKGROUND_NOTIFY_DELAY_MS`(1000)도 실기기 결과에서 조정이 필요하다고 나왔으면 같이 바꾼다(관련 테스트는 옵션으로 주입한 값을 쓰므로 영향이 없다).
-- 마지막에 전체 검증을 돌린다.
+- `SensorLiveness`·`SENSOR_STALE_MS`는 P04-T02에서 이미 삭제됐다. 서버 시간 상수(`CONTROLLER_LIFECYCLE`)는 T01 결과에서 조정이 필요할 때만 바꾼다.
+- 서버의 `traceLifecycle` 호출과 헬퍼도 `TEMP(sensor-debug)`이므로 같이 제거한다.
 
 ## Acceptance Criteria
 - [ ] `grep -rn "TEMP(sensor-debug)\|DEBUG_LOG" src server tests`가 출력 없음.

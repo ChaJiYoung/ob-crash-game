@@ -3,6 +3,9 @@
 - Date: 2026-11-08
 - Status: Confirmed
 
+
+> **대체됨(2026-11-08)**: 자동 복귀 부분은 [2026-11-08-return-button](./2026-11-08-return-button.md)의 "게임으로 돌아가기" 버튼 방식으로 바뀌었다. 아래 내용 중 자동 복귀·자동 센서 재등록·워치독은 더 이상 코드에 없다.
+
 ## D01. 증상과 원인
 - **Chosen**: 폰 화면이 꺼지거나 앱이 백그라운드로 가도 PC가 일시정지하지 않는다. 폰이 보내는 `visibilitychange(hidden)` 신호는 임시 진단 로그(`DEBUG_LOG`)로만 쓰이고 PC에 전달되지 않는다.
 - **Rationale**: 서버가 PC에 `CONTROLLER_DISCONNECTED`를 보내는 경우는 `ws.on('close')`와 슬롯 이동뿐이다(`server/wsServer.ts`). 실기기 로그에서 화면이 꺼진 뒤 센서 프레임이 멈췄지만 서버 소켓은 `ESTABLISHED`로 남아 있었다(폰 → 터널 → vite 프록시 → 서버 경로의 중간 경유지가 연결을 붙잡는 것으로 보임). 서버·PC에 하트비트가 없어 연결이 소리 없이 멈추면 감지할 방법이 없다.

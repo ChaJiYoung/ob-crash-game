@@ -3,6 +3,9 @@
 - Date: 2026-11-08
 - Status: Confirmed
 
+
+> **대체됨(2026-11-08)**: 자동 복귀 부분은 [2026-11-08-return-button](./2026-11-08-return-button.md)의 "게임으로 돌아가기" 버튼 방식으로 바뀌었다. 아래 내용 중 자동 복귀·자동 센서 재등록·워치독은 더 이상 코드에 없다.
+
 ## D01. 증상과 원인 가설
 - **Chosen**: 1P 폰 / 2P 마우스 상태에서 폰 화면이 꺼졌다 켜진 뒤 재연결되면, 발사는 되지만 십자선과 탄착점이 화면 정중앙(0,0)에 고정된다. 원인은 폰 쪽 `deviceorientation`/`devicemotion` 리스너가 화면 복귀 후 재개되지 않는 것으로 본다.
 - **Rationale**: `MobileControllerPage.tsx`의 `visibilitychange` 처리(`reviveIfDead`)는 WebSocket 재연결만 한다. 센서 리스너는 `sensorsActive`가 켜질 때 한 번만 등록되고 재등록 경로가 없다. 발사는 터치 기반이라 계속 되고 조준값만 멈추는 증상과 일치한다. PC 쪽 경로(`SENSOR_RELAY` → `PhoneAdapter` → `PlayerActionProcessor` → `onAim`)는 정상으로 확인했다. 실기기 검증은 아직 안 했다.
