@@ -31,6 +31,8 @@ export const MobileControllerPage: React.FC = () => {
 
   const [step, setStep] = useState<'LOGIN_GATE' | 'PAD'>('LOGIN_GATE');
   const [sensorsActive, setSensorsActive] = useState<boolean>(false);
+  const sensorsActiveRef = useRef<boolean>(false);
+  sensorsActiveRef.current = sensorsActive;
   const [roomId, setRoomId] = useState<string>('');
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
   const [player, setPlayer] = useState<PlayerProfile | undefined>();
@@ -557,7 +559,8 @@ export const MobileControllerPage: React.FC = () => {
       countdownSecRef.current = initialSec;
       skillSnapTriggeredRef.current = false;
       snapGraceUntilMsRef.current = performance.now() + (initialSec * 1000) + WEAPON_CONSTANTS.SNAP_GRACE_PERIOD_MS;
-      setStep('PAD');
+      // A freshly loaded page has no sensor permission yet: stay on the gate, the green button takes it to the pad.
+      if (sensorsActiveRef.current) setStep('PAD');
       setIsGameWaiting(false);
       triggerHaptic(60);
 
@@ -575,7 +578,8 @@ export const MobileControllerPage: React.FC = () => {
           }
           setCountdownSec(null);
           countdownSecRef.current = null;
-          handleCalibrateZero();
+          // Zeroing without sensors would tell the PC the phone is back while it cannot aim.
+          if (sensorsActiveRef.current) handleCalibrateZero();
           triggerHaptic([100, 50, 150]);
         }
       }, 1000);

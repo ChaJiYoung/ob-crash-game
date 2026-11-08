@@ -125,6 +125,13 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(source).not.toContain("'ZEROING'");
   });
 
+  it('a countdown does not skip the permission gate nor zero without sensors', () => {
+    const start = source.indexOf('const startCountdown = useCallback');
+    const block = source.slice(start, source.indexOf('startCountdownRef.current = ', start));
+    expect(block).toContain("if (sensorsActiveRef.current) setStep('PAD')");
+    expect(block).toContain('if (sensorsActiveRef.current) handleCalibrateZero()');
+  });
+
   it('does not expose a step setter on window', () => {
     expect(source).not.toContain('__setStep');
   });

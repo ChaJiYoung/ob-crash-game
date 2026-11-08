@@ -84,3 +84,15 @@ describe('decideDisconnectAction', () => {
   });
 });
 
+
+describe('PC resumes a returning phone only on its zero signal', () => {
+  it('CONTROLLER_PAIRED alone does not start the resume countdown', () => {
+    const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    const start = source.indexOf("case 'CONTROLLER_PAIRED':");
+    const block = source.slice(start, source.indexOf("case 'ZERO_CALIBRATED':", start));
+    expect(start).toBeGreaterThan(-1);
+    expect(block).not.toContain('onSlotReconnectedRef.current(');
+    const zero = source.slice(source.indexOf("case 'ZERO_CALIBRATED':"), source.indexOf("case 'LOCAL_PLAYER_REGISTERED':"));
+    expect(zero).toContain('onSlotReconnectedRef.current(slot)');
+  });
+});

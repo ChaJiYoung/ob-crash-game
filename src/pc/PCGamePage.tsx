@@ -531,7 +531,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                   })
             );
             soundSynth.unlockAudio();
-            onSlotReconnectedRef.current(slot);
+            // A phone that only re-attached (e.g. Safari reloaded the page after unlocking) has no sensors yet.
+            // The game resumes on ZERO_CALIBRATED, which the phone sends once its sensors are on.
             break;
           }
 
