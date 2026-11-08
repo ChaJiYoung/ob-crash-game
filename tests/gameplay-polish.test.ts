@@ -43,8 +43,8 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
     });
   });
 
-  describe('D04: Fever Burst Instant Ammo Refill & Reload Cancel', () => {
-    it('should instantly refill ammo to 100% and cancel reload when fever activates', () => {
+  describe('D04: Fever does not refill the magazine (fever-ammo-aim D01)', () => {
+    it('keeps an empty magazine empty and the reload running when fever activates', () => {
       const weaponSystem = engine.getPlayer(0).weaponSystem;
       weaponSystem.selectWeapon('shotgun', 1);
 
@@ -63,8 +63,9 @@ describe('Gameplay Polish Quality Package (P0~P2)', () => {
       expect(activated).toBe(true);
 
       const stateAfter = weaponSystem.getState();
-      expect(stateAfter.ammo).toBe(stateAfter.maxAmmo);
-      expect(stateAfter.isReloading).toBe(false);
+      expect(stateAfter.ammo).toBe(0);
+      expect(stateAfter.isReloading).toBe(true);
+      expect(stateAfter.reloadEndTimeMs).toBe(stateBefore.reloadEndTimeMs);
     });
   });
 

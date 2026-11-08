@@ -219,7 +219,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
 
     // After reload duration (2800ms for Lv.1 shotgun: 1400 x 2), automatic reload completes
     now += 2400; // Total 2900ms since reload start > 2800ms
-    const updateRes = weapon.update(now, false);
+    const updateRes = weapon.update(now);
     expect(updateRes.reloadedJustNow).toBe(true);
     expect(weapon.getState().ammo).toBe(maxAmmo);
     expect(weapon.getState().isReloading).toBe(false);

@@ -1000,7 +1000,6 @@ export class BeerCrusherEngine {
     const player = this.getPlayer(playerIndex);
     const activated = player.scoreManager.activateFever(nowMs);
     if (activated) {
-      player.weaponSystem.refillAmmoOnFever();
       this.prevFeverActive[playerIndex] = true;
       this.emit({ type: 'feverStarted', playerIndex, nowMs });
     }
@@ -1303,8 +1302,7 @@ export class BeerCrusherEngine {
         }
       }
 
-      const feverState = p.scoreManager.getState();
-      const { reloadedJustNow: pReloaded } = p.weaponSystem.update(nowMs, feverState.isFeverActive, dtSec * 1000);
+      const { reloadedJustNow: pReloaded } = p.weaponSystem.update(nowMs, dtSec * 1000);
       reloadedByPlayer.push(pReloaded);
       p.scoreManager.updateFeverTimer(nowMs);
 
@@ -2542,7 +2540,7 @@ export class BeerCrusherEngine {
         continue;
       }
       const feverActive = p.scoreManager.getState().isFeverActive;
-      const { reloadedJustNow } = p.weaponSystem.update(nowMs, feverActive, dtSec * 1000);
+      const { reloadedJustNow } = p.weaponSystem.update(nowMs, dtSec * 1000);
       reloadedByPlayer.push(reloadedJustNow);
       p.scoreManager.updateFeverTimer(nowMs);
     }

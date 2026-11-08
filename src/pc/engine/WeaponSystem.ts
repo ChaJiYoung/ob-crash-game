@@ -138,12 +138,6 @@ export class WeaponSystem {
     this.skillCooldownRemainingMs = 0;
   }
 
-  public refillAmmoOnFever(): void {
-    this.ammo = this.getMaxAmmo();
-    this.isReloading = false;
-    this.reloadEndTimeMs = 0;
-  }
-
   public setInfiniteAmmo(enabled: boolean): void {
     this.infiniteAmmo = enabled;
   }
@@ -179,7 +173,8 @@ export class WeaponSystem {
     this.lastFireTimeMs = nowMs;
 
     if (this.infiniteAmmo || isFeverActive) {
-      return { fired: true, ammo: this.getMaxAmmo(), isReloading: false };
+      // 총알은 줄지 않는다. 탄창 수와 장전 상태는 실제 값 그대로 돌려준다(피버가 탄창을 채우지 않는다).
+      return { fired: true, ammo: this.ammo, isReloading: this.isReloading };
     }
 
     this.ammo -= 1;
@@ -192,11 +187,7 @@ export class WeaponSystem {
     return { fired: true, ammo: this.ammo, isReloading: this.isReloading };
   }
 
-  public update(
-    nowMs: number,
-    isFeverActive: boolean = false,
-    deltaMs?: number
-  ): { reloadedJustNow: boolean } {
+  public update(nowMs: number, deltaMs?: number): { reloadedJustNow: boolean } {
     const dt = deltaMs !== undefined ? deltaMs : this.lastUpdateMs > 0 ? Math.max(0, nowMs - this.lastUpdateMs) : 0;
     this.lastUpdateMs = nowMs;
 
@@ -219,12 +210,7 @@ export class WeaponSystem {
       this.skillCooldownRemainingMs = 0;
     }
 
-    if (isFeverActive) {
-      this.isReloading = false;
-      this.ammo = this.getMaxAmmo();
-      return { reloadedJustNow: false };
-    }
-
+    // 피버 중에도 장전은 계속 진행된다(피버는 총알 소모만 면제하고 탄창·장전 상태는 건드리지 않는다).
     if (this.isReloading && nowMs >= this.reloadEndTimeMs) {
       this.ammo = this.getMaxAmmo();
       this.isReloading = false;

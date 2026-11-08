@@ -156,7 +156,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     const ws = new WeaponSystem('shotgun', 1);
     expect(ws.getState().skillStock).toBe(0);
 
-    ws.update(1000, false, 1000); // a recharge is in progress
+    ws.update(1000, 1000); // a recharge is in progress
     ws.addSkillStock(gain);
     expect(ws.getState().skillStock).toBe(1);
     expect(ws.getState().skillCooldownRemainingMs).toBeGreaterThan(0); // still charging toward the second
@@ -199,7 +199,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     // The first charge only arrives after a full cooldown (21s at Lv.1)
     expect(ws.consumeSkill(500)).toBe(false);
-    ws.update(21500, false, 21000);
+    ws.update(21500, 21000);
     expect(ws.getState().skillStock).toBe(1);
     expect(ws.getState().skillCooldownRemainingMs).toBe(21000); // the second charge starts charging
     ws.refillSkillInstant();
@@ -215,17 +215,17 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(ws.consumeSkill(1100)).toBe(false);
 
     // 2. Advance time by 10s -> 11s remaining
-    ws.update(11000, false, 10000);
+    ws.update(11000, 10000);
     expect(ws.getState().skillStock).toBe(0);
     expect(ws.getState().skillCooldownRemainingMs).toBe(11000);
 
     // Advance remaining 11s -> one charge is back, and the next one starts charging because the stock is below the max of 2
-    ws.update(22000, false, 11000);
+    ws.update(22000, 11000);
     expect(ws.getState().skillStock).toBe(1);
     expect(ws.getState().skillCooldownRemainingMs).toBe(21000);
 
     // 21s more -> the second charge arrives and the cooldown stops
-    ws.update(43000, false, 21000);
+    ws.update(43000, 21000);
     expect(ws.getState().skillStock).toBe(2);
     expect(ws.getState().skillCooldownRemainingMs).toBe(0);
 
