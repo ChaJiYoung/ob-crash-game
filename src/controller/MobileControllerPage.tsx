@@ -287,6 +287,7 @@ export const MobileControllerPage: React.FC = () => {
       return;
     }
 
+    tracker.expireAimLock(performance.now());
     const effective = tracker.getEffectiveAim(latestOrientationRef.current);
     const aim = effective.aim;
     const snapFire = snapFireRef.current;
@@ -360,7 +361,7 @@ export const MobileControllerPage: React.FC = () => {
           skillSnapTriggeredRef.current = true;
 
           // [손목 반동 흡수] 스킬 시전 시 에임을 350ms 동안 모니터 정면에 고정하여 천장으로 튀는 현상 방지
-          tracker.lockAim(latestOrientationRef.current);
+          tracker.lockAim(latestOrientationRef.current, performance.now());
           if (snapFreezeTimerRef.current) {
             clearTimeout(snapFreezeTimerRef.current);
           }

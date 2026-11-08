@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getOrCreateDeviceId, DEVICE_ID_STORAGE_KEY } from '../src/controller/sensors/DeviceIdentity';
-import { GunGripTracker, computeAdaptiveSmoothingAlpha } from '../src/controller/sensors/GunGripTracker';
+import { GunGripTracker, computeAdaptiveSmoothingAlpha, AIM_LOCK_MAX_MS } from '../src/controller/sensors/GunGripTracker';
 import { UnifiedTouchPadController } from '../src/controller/sensors/UnifiedTouchPad';
 
 describe('GunGripTracker & UnifiedTouchPadController', () => {
@@ -442,5 +442,56 @@ describe('GunGripTracker & UnifiedTouchPadController', () => {
     const aimStabilized = tracker.computeAim({ alpha: 170.2, beta: 5.1, gamma: -85 }, 0.92, 1016);
     expect(aimStabilized.aimX).toBeDefined();
     expect(aimStabilized.rawAimX).toBeDefined();
+  });
+});
+
+describe('GunGripTracker aim lock expiry', () => {
+  const zeroPose = { alpha: 180, beta: 0, gamma: -85 };
+  const targetPose = { alpha: 165, beta: 5, gamma: -85 };
+  const otherPose = { alpha: 140, beta: 35, gamma: -85 };
+  const makeTracker = () => {
+    const t = new GunGripTracker();
+    t.calibrateZero(zeroPose);
+    return t;
+  };
+
+  it('releases a timed lock only after AIM_LOCK_MAX_MS', () => {
+    const t = makeTracker();
+    t.lockAim(targetPose, 1000);
+    expect(t.expireAimLock(1000 + AIM_LOCK_MAX_MS)).toBe(false);
+    expect(t.isAimLocked()).toBe(true);
+    expect(t.expireAimLock(1000 + AIM_LOCK_MAX_MS + 1)).toBe(true);
+    expect(t.isAimLocked()).toBe(false);
+  });
+
+  it('never expires a lock taken without a timestamp', () => {
+    const t = makeTracker();
+    t.lockAim(targetPose);
+    expect(t.expireAimLock(999_999)).toBe(false);
+    expect(t.isAimLocked()).toBe(true);
+  });
+
+  it('does nothing after an explicit unlock', () => {
+    const t = makeTracker();
+    t.lockAim(targetPose, 1000);
+    t.unlockAim();
+    expect(t.expireAimLock(999_999)).toBe(false);
+  });
+
+  it('follows the live pose again once the lock expired', () => {
+    const t = makeTracker();
+    const locked = t.lockAim(targetPose, 1000);
+    t.expireAimLock(1000 + AIM_LOCK_MAX_MS + 1);
+    const eff = t.getEffectiveAim(otherPose);
+    expect(eff.isLocked).toBe(false);
+    expect(eff.aim.aimX).not.toBe(locked.aimX);
+  });
+
+  it('forgets the lock time when the zero is recalibrated', () => {
+    const t = makeTracker();
+    t.lockAim(targetPose, 1000);
+    t.calibrateZero(zeroPose);
+    expect(t.expireAimLock(999_999)).toBe(false);
+    expect(t.isAimLocked()).toBe(false);
   });
 });

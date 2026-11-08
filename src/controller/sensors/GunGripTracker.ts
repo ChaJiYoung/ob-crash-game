@@ -62,6 +62,9 @@ export interface MeasuredRangeBounds {
   sampleCount: number;
 }
 
+/** 조준 잠금이 이 시간(ms)을 넘기면 자동 해제한다. 정상 동결(350ms)보다 길어야 한다. */
+export const AIM_LOCK_MAX_MS = 600;
+
 export function shortestAngleDeltaDeg(fromDeg: number, toDeg: number): number {
   return ((toDeg - fromDeg + 540) % 360) - 180;
 }
@@ -77,6 +80,8 @@ export class GunGripTracker {
   private smoothedAimY = 0;
   private hasSmoothedSample = false;
   private lockedAim: AimResult | null = null;
+  /** lockAim에 시각을 넘겼을 때만 값이 있다. null이면 자동 만료하지 않는다. */
+  private lockedAtMs: number | null = null;
 
   // Adaptive 1€ Filter for Galaxy A series or user-selected stabilization
   private isStabilizedMode = false;
@@ -141,17 +146,33 @@ export class GunGripTracker {
     this.smoothedAimY = 0;
     this.hasSmoothedSample = false;
     this.lockedAim = null;
+    this.lockedAtMs = null;
     this.filterX.reset();
     this.filterY.reset();
   }
 
-  public lockAim(sample: EulerOrientation): AimResult {
+  public lockAim(sample: EulerOrientation, nowMs?: number): AimResult {
     this.lockedAim = this.computeAim(sample);
+    this.lockedAtMs = nowMs ?? null;
     return this.lockedAim;
   }
 
   public unlockAim(): void {
     this.lockedAim = null;
+    this.lockedAtMs = null;
+  }
+
+  /**
+   * 해제 타이머가 취소·정지돼도 조준이 영원히 고정되지 않도록, maxMs를 넘긴 잠금을 푼다.
+   * lockAim에 시각을 넘기지 않은 잠금은 만료되지 않는다. 풀었으면 true.
+   */
+  public expireAimLock(nowMs: number, maxMs: number = AIM_LOCK_MAX_MS): boolean {
+    if (this.lockedAim === null || this.lockedAtMs === null) return false;
+    if (nowMs - this.lockedAtMs > maxMs) {
+      this.unlockAim();
+      return true;
+    }
+    return false;
   }
 
   public isAimLocked(): boolean {

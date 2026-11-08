@@ -1,6 +1,6 @@
 # Task: T04 조준 잠금 자동 만료
 
-## Status: pending
+## Status: done
 
 ## Goal
 스킬 발동 시 걸리는 조준 잠금(`lockAim`)이 해제 타이머(`setTimeout`)가 취소·정지되더라도 `AIM_LOCK_MAX_MS` 뒤에는 저절로 풀리게 한다.
@@ -85,6 +85,6 @@ Task: T04-aim-lock-expiry
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

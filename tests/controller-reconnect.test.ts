@@ -65,6 +65,11 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     expect(cleanup).toContain('tracker.unlockAim()');
   });
 
+  it('times the aim lock so a lost freeze timer cannot pin the aim', () => {
+    expect(source).toMatch(/tracker\.lockAim\(latestOrientationRef\.current,\s*performance\.now\(\)\)/);
+    expect(source).toContain('tracker.expireAimLock(performance.now())');
+  });
+
   it('keeps the zero when the sensors are revived', () => {
     const start = source.indexOf('const onVisibility');
     const end = source.indexOf("clearInterval(watchdog)");
