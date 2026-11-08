@@ -13,6 +13,7 @@ import {
   getMouseIndex,
   applyControllerPaired,
   applyControllerUnsupported,
+  buildSandboxSlotMap,
   shouldShowLobbyCrosshair,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
@@ -271,5 +272,16 @@ describe('applyControllerUnsupported (미지원 폰 차단 P02-T03)', () => {
     expect(next[0].input).toBeNull();
     expect(next[1].input).toBe('mouse');
     expect(next[1].player?.deviceId).toBe('M');
+  });
+});
+
+describe('buildSandboxSlotMap (/sensor-test 직접 진입)', () => {
+  it('참여한 슬롯이 없으면 1P를 플레이어 0에 묶는다(폰이 붙기 전에도 매핑이 비지 않는다)', () => {
+    expect(buildSandboxSlotMap(createInitialSlots())).toEqual({ 1: 0 });
+  });
+
+  it('2P 슬롯으로 폰이 붙으면 그 슬롯이 플레이어 0을 조종한다', () => {
+    const slots = applyControllerPaired(createInitialSlots(), 2, makeProfile('X', 'xx'));
+    expect(buildSandboxSlotMap(slots)).toEqual({ 2: 0 });
   });
 });

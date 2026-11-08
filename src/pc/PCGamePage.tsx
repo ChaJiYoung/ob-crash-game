@@ -55,6 +55,7 @@ import {
   decideLobbyStart,
   applyControllerPaired,
   applyControllerUnsupported,
+  buildSandboxSlotMap,
   SlotPair,
   SlotInput,
 } from './coopSlots';
@@ -202,6 +203,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       engine.startSandboxMode();
     }
   }, [initialPhase, engine]);
+
+  // /sensor-test로 바로 들어오면 로비를 거치지 않아 슬롯→플레이어 매핑이 비어 있다. 폰이 붙을 때마다 맞춰 줘야
+  // 폰 조준·사격이 플레이어 0에 전달된다(마우스 보조 입력이 없으므로 이 매핑이 곧 유일한 조준 경로다).
+  useEffect(() => {
+    if (initialPhase !== 'SANDBOX' || gamePhase !== 'SANDBOX') return;
+    slotIndexMapRef.current = buildSandboxSlotMap(slots);
+  }, [initialPhase, gamePhase, slots]);
 
   const canvasRef = useRef<GameCanvas3DHandle>(null);
   const crosshairRefs = useRef<[React.RefObject<CrosshairOverlayHandle>, React.RefObject<CrosshairOverlayHandle>]>([

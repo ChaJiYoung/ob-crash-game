@@ -218,6 +218,16 @@ export function getMouseBinding(
   return getMouseIndex(slots, map);
 }
 
+/**
+ * 센서 테스트장(/sensor-test)처럼 로비를 거치지 않고 SANDBOX로 바로 들어온 화면의 슬롯→플레이어 매핑.
+ * 플레이어는 0번 하나뿐이고, 먼저 참여한 슬롯(없으면 1P)이 그 플레이어를 조종한다.
+ * 이 매핑이 비어 있으면 PhoneAdapter의 sink가 null이 되어 폰 조준·사격이 전달되지 않는다.
+ */
+export function buildSandboxSlotMap(slots: SlotPair): Partial<Record<PlayerSlot, PlayerIndex>> {
+  const slot = getJoinedSlots(slots)[0]?.slot ?? 1;
+  return { [slot]: 0 };
+}
+
 export type LobbyStartDecision =
   | { start: false; notice: string }
   | { start: true; playerCount: 1 | 2; map: Partial<Record<PlayerSlot, PlayerIndex>> };

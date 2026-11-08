@@ -56,6 +56,7 @@
 ### 자동 확인 방법과 환경 메모 (2026-11-08)
 - 격리 환경: 사용자의 서버(8787)·개발 서버(5173)·`data/`를 건드리지 않도록 임시 포트(서버 18787, 운영 빌드 미리보기 14173, 개발 서버 15173)와 임시 저장소로 돌렸고, 임시 설정 파일은 지웠다. 스크립트는 세션 임시 폴더(scratchpad)에 있고 저장소에는 넣지 않았다.
 - 헤드리스 Chromium은 센서 권한 요청에 `denied`를 돌려줘 기존 경고창("모션 센서 권한이 허용되어야...")이 먼저 뜬다. 컨텍스트에 `accelerometer/gyroscope/magnetometer` 권한을 줘야 판별 단계까지 간다. 이 Chromium은 `devicemotion`을 `rotationRate: {alpha:null, beta:null, gamma:null}`로 한 번 보내므로 "자이로 없는 폰"과 같은 경로(`NO_GYRO`)를 탄다.
+- 발견·수정(P04 최종 리뷰): 직접 `/sensor-test`로 들어오면 슬롯→플레이어 매핑이 비어 있어 폰 조준·사격이 전달되지 않았다(예전에는 마우스 보조 입력이 가렸을 뿐 원래 있던 문제). 마우스 보조 입력 폐기(D06)로 드러나 `buildSandboxSlotMap`과 `PCGamePage`의 SANDBOX 매핑 effect로 고쳤고, 폰 흉내 웹소켓으로 `/sensor-test`에서 폰 조준이 십자선을 움직이고 마우스는 영향 없음을 확인했다.
 - 발견(이번 범위 밖): 센서 테스트장(`/sensor-test`)의 엔진은 시작할 때 무한 탄창(`infiniteAmmo = true`)이지만 제어판 토글은 "탄창 제한 ON"으로 표시된다. 토글을 두 번 눌러야 실제로 탄창이 제한된다(기존 불일치).
 - 실기기로만 확인 가능한 항목(A·B·C·I·K·P와 G의 1분 관찰)은 사용자 확인이 필요하다. 특히 C(보급형 폰)가 결정 D01의 핵심 가정("`rotationRate`가 null로 온다")을 검증한다.
 
@@ -68,9 +69,9 @@
 - 임시 로그/디버그 코드를 넣었다면 모두 제거한다(`git diff`로 확인).
 
 ## Acceptance Criteria
-- [ ] 체크리스트 A~P에 결과가 기록되어 있다(보급형 폰이 없으면 C·D는 "미확인").
-- [ ] `tsc`·`vitest`·`build`가 통과한다.
-- [ ] 판별 규칙이 틀렸다면 후속 결정 사항이 `.memory/current.md`에 기록되어 있다.
+- [x] 체크리스트 A~P에 결과가 기록되어 있다(보급형 폰이 없으면 C·D는 "미확인").
+- [x] `tsc`·`vitest`·`build`가 통과한다.
+- [x] (해당 없음: 판별 규칙 검증은 실기기 C 대기) 판별 규칙이 틀렸다면 후속 결정 사항이 `.memory/current.md`에 기록되어 있다.
 
 ## Validation
 - `npx tsc --noEmit && npx vitest run && npm run build` — 모두 성공
@@ -91,4 +92,4 @@ Task: T01-verify-and-build
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과(자동 확인분. 실기기 항목은 위 표 참고)
-- commit: pending
+- commit: 0026864 (자동 확인분. 실기기 A·B·C·I·K·P는 사용자 확인 대기)
