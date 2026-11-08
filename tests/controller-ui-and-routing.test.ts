@@ -32,8 +32,8 @@ describe('Controller Login Validation & App Route Resolution', () => {
     expect(resolveRouteMode('/play', '?mode=test')).toBe('SANDBOX');
   });
 
-  it('should transition directly to PAD on permission granted (bypassing ZEROING guide)', () => {
-    let step: 'LOGIN_GATE' | 'ZEROING' | 'PAD' = 'LOGIN_GATE';
+  it('should transition directly to PAD on permission granted', () => {
+    let step: 'LOGIN_GATE' | 'PAD' = 'LOGIN_GATE';
     let sensorsActive = false;
 
     const handlePermissionGranted = () => {

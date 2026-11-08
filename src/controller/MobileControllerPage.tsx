@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { getOrCreateDeviceId } from './sensors/DeviceIdentity';
 import { GunGripTracker, EulerOrientation } from './sensors/GunGripTracker';
 import { LoginAndPermissionGate } from './components/LoginAndPermissionGate';
-import { ZeroingGuide } from './components/ZeroingGuide';
 import { GunGripPad } from './components/GunGripPad';
 import { triggerHaptic } from './sensors/HapticFeedback';
 import { SensorLiveness, SENSOR_STALE_MS } from './sensors/SensorLiveness';
@@ -29,7 +28,7 @@ export const MobileControllerPage: React.FC = () => {
   const [slotError, setSlotError] = useState<string | null>(null);
   const blockedRef = useRef<boolean>(false);
 
-  const [step, setStep] = useState<'LOGIN_GATE' | 'ZEROING' | 'PAD'>('LOGIN_GATE');
+  const [step, setStep] = useState<'LOGIN_GATE' | 'PAD'>('LOGIN_GATE');
   const [sensorsActive, setSensorsActive] = useState<boolean>(false);
   const [roomId, setRoomId] = useState<string>('');
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
@@ -59,7 +58,7 @@ export const MobileControllerPage: React.FC = () => {
   const hasConnectedBeforeRef = useRef<boolean>(false);
   // True when the socket that just opened replaced an earlier one (the phone slept, the PC reloaded, ...).
   const isReconnectOpenRef = useRef<boolean>(false);
-  const stepRef = useRef<'LOGIN_GATE' | 'ZEROING' | 'PAD'>('LOGIN_GATE');
+  const stepRef = useRef<'LOGIN_GATE' | 'PAD'>('LOGIN_GATE');
   stepRef.current = step;
   const wsRef = useRef<WebSocket | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -600,15 +599,6 @@ export const MobileControllerPage: React.FC = () => {
     }
   }, [tracker, roomId, deviceId]);
 
-  const handleStartRangeMeasure = () => {
-    tracker.startRangeMeasurement();
-  };
-
-  const handleFinishRangeMeasure = () => {
-    tracker.finishRangeMeasurement();
-    setStep('PAD');
-  };
-
   const handleRequestStartGame = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
       wsRef.current.send(
@@ -742,14 +732,6 @@ export const MobileControllerPage: React.FC = () => {
           player={player}
           onRegisterNickname={handleRegisterNickname}
           onPermissionGranted={handlePermissionGranted}
-        />
-      )}
-
-      {step === 'ZEROING' && (
-        <ZeroingGuide
-          onCalibrateZero={handleCalibrateZero}
-          onStartRangeMeasure={handleStartRangeMeasure}
-          onFinishRangeMeasure={handleFinishRangeMeasure}
         />
       )}
 

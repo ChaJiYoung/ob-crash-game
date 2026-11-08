@@ -1,6 +1,6 @@
 # Task: T01 개발 서버 자동 재시작과 폰 영점 안내 화면 정리
 
-## Status: pending
+## Status: done
 
 ## Goal
 (1) `npm run server`가 서버 코드 변경 시 자동으로 다시 시작되게 한다. (2) 어디서도 도달할 수 없는 폰 영점 안내 화면(`ZeroingGuide`)과 그 연결 코드를 제거한다. (3) README의 폰 연결 설명을 실제 흐름(허용 버튼 직후 자동 영점)에 맞춘다.
@@ -90,6 +90,6 @@ Task: T01-dev-watch-and-dead-zeroing
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

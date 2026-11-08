@@ -3,7 +3,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `in_progress 🔵` | 개발 서버 `tsx watch` 전환, 폰 영점 안내 화면 죽은 코드 제거, README 동기화 | [T01](./T01-dev-watch-and-dead-zeroing.md) |
+| T01 | `done ✅` | 개발 서버 `tsx watch` 전환, 폰 영점 안내 화면 죽은 코드 제거, README 동기화 | [T01](./T01-dev-watch-and-dead-zeroing.md) |
 
 ## Progress
-- done: 0/1 (active: T01, P02 완료 후 시작)
+- done: 1/1 (완료, Phase 단위 커밋)

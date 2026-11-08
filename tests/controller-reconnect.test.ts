@@ -118,6 +118,11 @@ describe('MobileControllerPage reconnect wiring (source guard)', () => {
     });
   });
 
+  it('has no unreachable zeroing guide screen (the phone goes straight to the pad and zeroes by itself)', () => {
+    expect(source).not.toContain('ZeroingGuide');
+    expect(source).not.toContain("'ZEROING'");
+  });
+
   it('does not expose a step setter on window', () => {
     expect(source).not.toContain('__setStep');
   });
