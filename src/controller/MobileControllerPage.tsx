@@ -152,7 +152,8 @@ export const MobileControllerPage: React.FC = () => {
 
     const connect = () => {
       clearRetry();
-      if (disposed) return;
+      // 미지원으로 차단된 폰은 이미 예약된 재시도가 있어도 다시 붙지 않는다(PC 로비에 되살아나는 것을 막는다).
+      if (disposed || blockedRef.current) return;
 
       let socket: WebSocket;
       try {
@@ -165,6 +166,11 @@ export const MobileControllerPage: React.FC = () => {
 
       socket.onopen = () => {
         if (wsRef.current !== socket) return;
+        // 연결 중에 차단이 결정됐다면 인증(DEVICE_CHECK)을 보내지 않고 닫는다.
+        if (blockedRef.current) {
+          socket.close();
+          return;
+        }
         attempt = 0;
         isReconnectOpenRef.current = hasConnectedBeforeRef.current;
         hasConnectedBeforeRef.current = true;
@@ -459,6 +465,7 @@ export const MobileControllerPage: React.FC = () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'DEVICE_UNSUPPORTED', roomId, deviceId, slot: slotRef.current, reason }));
     }
+    // 열린 소켓이 없으면 알릴 곳이 없다: 연결 중인 소켓은 onopen에서 닫히고, 이미 끊긴 경우는 서버의 close 처리가 슬롯을 비웠다.
     setUnsupportedReason(reason);
   };
 

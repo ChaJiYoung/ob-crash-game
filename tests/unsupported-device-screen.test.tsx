@@ -75,4 +75,15 @@ describe('MobileControllerPage 판별 연결 (소스 확인: 페이지가 훅과
     expect(reject).toContain('setUnsupportedReason(reason)');
     expect(source).toContain('<UnsupportedDeviceScreen reason={unsupportedReason} />');
   });
+
+  it('차단이 결정되면 예약된 재시도와 연결 중이던 소켓도 다시 붙지 않는다', () => {
+    const connectStart = source.indexOf('const connect = () =>');
+    const connectBlock = source.slice(connectStart, source.indexOf('wsRef.current = socket', connectStart));
+    expect(connectBlock).toContain('blockedRef.current');
+    const openStart = source.indexOf('socket.onopen = () =>');
+    const openBlock = source.slice(openStart, source.indexOf('type: \'DEVICE_CHECK\'', openStart));
+    // 인증(DEVICE_CHECK)을 보내기 전에 차단 여부를 본다.
+    expect(openBlock).toContain('blockedRef.current');
+    expect(openBlock).toContain('socket.close()');
+  });
 });
