@@ -14,7 +14,7 @@ describe('PlayerCombatState', () => {
     player.precisionBonusApplied = 100;
     player.levelBonusApplied = 200;
     player.waveTimeBonusTotal = 300;
-    player.waveClears.push({ wave: 1, seconds: 15, bonus: 100 });
+    player.waveClears.push({ wave: 1, seconds: 15, bonus: 100, damageTaken: 0 });
 
     player.reset();
 

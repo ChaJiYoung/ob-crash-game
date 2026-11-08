@@ -18,7 +18,7 @@ export class PlayerCombatState {
   public precisionBonusApplied = 0;
   public levelBonusApplied = 0;
   public waveTimeBonusTotal = 0;
-  public waveClears: { wave: number; seconds: number; bonus: number }[] = [];
+  public waveClears: { wave: number; seconds: number; bonus: number; damageTaken: number }[] = [];
   /** 이 플레이어에게 걸린 버프 만료 시각. 아이스 프리즈는 팀 효과라 모든 플레이어 맵에 같은 값으로 들어간다(P02-T01). */
   public buffUntilMs: Map<ItemBuffKind, number> = new Map();
   public selectionDone = false;

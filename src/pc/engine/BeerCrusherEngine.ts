@@ -374,6 +374,8 @@ export class BeerCrusherEngine {
   /** 판 전체 게임 시계. 일시정지와 카드 정지는 빠진다. */
   private playTimeSec = 0;
   private damageTaken = 0;
+  /** 현재 웨이브에서 입은 피해. 웨이브 클리어 기록에 넣은 뒤 0으로 돌린다. */
+  private waveDamageTaken = 0;
   private healedLives = 0;
   private bossSpawned = false;
   private lastSpawnTimeMs = 0;
@@ -523,6 +525,7 @@ export class BeerCrusherEngine {
     for (const p of this.players) p.reset();
     this.playTimeSec = 0;
     this.damageTaken = 0;
+    this.waveDamageTaken = 0;
     this.healedLives = 0;
     this.waveStartMs = null;
     this.lastWaveClear = null;
@@ -1442,7 +1445,9 @@ export class BeerCrusherEngine {
 
             breaches.push(target);
             const damage = target.isProjectile ? 1 : target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
-            this.damageTaken += Math.min(this.lives, damage);
+            const dealt = Math.min(this.lives, damage);
+            this.damageTaken += dealt;
+            this.waveDamageTaken += dealt;
             this.lives = Math.max(0, this.lives - damage);
 
             if (this.lives <= 0) {
@@ -1935,11 +1940,19 @@ export class BeerCrusherEngine {
     this.getPlayer(playerIndex).weaponSystem.selectWeapon(kind, level);
   }
 
+  /** 플레이어가 무기를 고른 순간(직접 선택·이탈자 자동 선택 모두) 불린다. PC가 서버에 WEAPON_CHOSEN을 보내는 데 쓴다. */
+  public onWeaponChosen: ((playerIndex: PlayerIndex, weaponKind: WeaponKind) => void) | null = null;
+
   private applySelection(target: ActiveTargetEntity, playerIndex: PlayerIndex, nowMs: number, auto = false): void {
     const player = this.getPlayer(playerIndex);
     if (target.weaponSelectKind) {
       player.weaponSystem.selectWeapon(target.weaponSelectKind, 1);
       player.lastPick = { weapon: target.weaponSelectKind, auto };
+      try {
+        this.onWeaponChosen?.(playerIndex, target.weaponSelectKind);
+      } catch (err) {
+        console.error('onWeaponChosen failed', err);
+      }
     } else if (target.rewardCardKind) {
       this.applyRewardCard(target.rewardCardKind, nowMs, playerIndex);
       player.lastPick = { card: target.rewardCardKind, auto };
@@ -2079,8 +2092,9 @@ export class BeerCrusherEngine {
     for (const p of this.players) {
       const paid = p.scoreManager.addBonusScore(bonus);
       p.waveTimeBonusTotal += paid;
-      p.waveClears.push({ wave: this.currentWave, seconds, bonus: paid });
+      p.waveClears.push({ wave: this.currentWave, seconds, bonus: paid, damageTaken: this.waveDamageTaken });
     }
+    this.waveDamageTaken = 0;
     this.lastWaveClear = { wave: this.currentWave, seconds, bonus, atMs: nowMs };
   }
 
