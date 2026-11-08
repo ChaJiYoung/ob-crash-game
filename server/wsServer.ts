@@ -99,6 +99,7 @@ export async function createBeerCrusherServer(options?: {
           watch.forget(key);
           continue;
         }
+        traceLifecycle('frame-loss-notify', { key }); // TEMP(sensor-debug)
         sendJson(session.pcSocket, {
           type: 'ERROR',
           code: 'CONTROLLER_DISCONNECTED',
@@ -114,6 +115,7 @@ export async function createBeerCrusherServer(options?: {
 
   // TEMP(sensor-debug): append one line to data/sensor-debug.log; removed in P02-T03.
   const writeSensorDebug = (line: string) => {
+    if (process.env.VITEST) return; // tests must not write into the real diagnostics file
     console.log('[sensor-debug]', line);
     try {
       const dir = path.resolve(process.cwd(), 'data');
@@ -123,6 +125,9 @@ export async function createBeerCrusherServer(options?: {
       // Diagnostics must never affect the game.
     }
   };
+  // TEMP(sensor-debug): server-side trace of the background / frame-loss decisions.
+  const traceLifecycle = (tag: string, data: Record<string, unknown>) =>
+    writeSensorDebug(`${new Date().toISOString()} server ${tag} ${JSON.stringify(data)}`);
   // TEMP(sensor-debug): per-second summary of the SENSOR_FRAME stream, so the log does not depend on the phone's socket.
   const frameStats = new Map<
     string,
@@ -208,6 +213,7 @@ export async function createBeerCrusherServer(options?: {
 
             // 폰이 다시 인증을 보냈다면 돌아온 것이다: 화면 꺼짐 상태와 끊김 표시를 지운다.
             // 이 뒤의 PC 복귀는 폰이 보내는 CALIBRATE_ZERO(resume)가 맡으므로, 다음 프레임이 복귀 알림을 또 보내지 않게 한다.
+            traceLifecycle('device-check', { key: watchKey(roomId, slot), wasLost: watch.isLost(watchKey(roomId, slot)) }); // TEMP(sensor-debug)
             clearBackground(watchKey(roomId, slot));
             watch.forget(watchKey(roomId, slot));
 
@@ -467,6 +473,7 @@ export async function createBeerCrusherServer(options?: {
                 const frameKey = watchKey(session.roomId, frameSlot);
                 const result = watch.onFrame(frameKey, Date.now());
                 if (result === 'recovered') {
+                  traceLifecycle('frame-recovered', { key: frameKey, stillBackgrounded: backgrounded.has(frameKey) }); // TEMP(sensor-debug)
                   if (backgrounded.has(frameKey)) watch.markLost(frameKey);
                   else notifyControllerBack(session, frameSlot);
                 }
@@ -490,8 +497,12 @@ export async function createBeerCrusherServer(options?: {
             // 슬롯은 메시지가 아니라 소켓 기준으로 찾고, 그 자리의 기기와 같을 때만 받는다.
             const session = roomManager.getRoom(msg.roomId);
             const slot = session ? roomManager.getControllerSlot(session, ws) : undefined;
-            if (!session || slot === undefined || session.controllers[slot]?.deviceId !== msg.deviceId) break;
+            if (!session || slot === undefined || session.controllers[slot]?.deviceId !== msg.deviceId) {
+              traceLifecycle('lifecycle-rejected', { type: msg.type, hasSession: !!session, slot: slot ?? null, deviceId: msg.deviceId }); // TEMP(sensor-debug)
+              break;
+            }
             const key = watchKey(session.roomId, slot);
+            traceLifecycle('lifecycle-received', { type: msg.type, key, tracked: watch.isLost(key) ? 'lost' : 'ok-or-untracked' }); // TEMP(sensor-debug)
 
             if (msg.type === 'CONTROLLER_FOREGROUND') {
               clearBackground(key);
@@ -505,9 +516,14 @@ export async function createBeerCrusherServer(options?: {
               try {
                 const current = roomManager.getRoom(session.roomId);
                 // 그 사이 소켓이 바뀌었거나 PC가 없으면 알릴 필요가 없다.
-                if (!current?.pcSocket || current.controllers[slot]?.socket !== ws) return;
+                if (!current?.pcSocket || current.controllers[slot]?.socket !== ws) {
+                  traceLifecycle('background-skipped', { key, hasPc: !!current?.pcSocket, sameSocket: current?.controllers[slot]?.socket === ws }); // TEMP(sensor-debug)
+                  return;
+                }
                 // 프레임 끊김 감지가 이미 알렸다면 다시 알리지 않는다.
-                if (watch.markLost(key)) {
+                const newlyLost = watch.markLost(key);
+                traceLifecycle('background-timer', { key, newlyLost, alreadyLost: watch.isLost(key) }); // TEMP(sensor-debug)
+                if (newlyLost) {
                   sendJson(current.pcSocket, {
                     type: 'ERROR',
                     code: 'CONTROLLER_DISCONNECTED',
@@ -717,6 +733,7 @@ export async function createBeerCrusherServer(options?: {
       if (roomId && role === 'CONTROLLER' && slot !== undefined) {
         const key = watchKey(roomId, slot);
         alreadyReported = watch.isLost(key);
+        traceLifecycle('socket-closed', { key, alreadyReported }); // TEMP(sensor-debug)
         watch.forget(key);
         clearBackground(key);
       }
