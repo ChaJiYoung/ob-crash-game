@@ -4,13 +4,13 @@
 [웨이브 절반 카드 · 2P 필드 밀도 · 조준경 게이지](./plans/2026-11-08-half-wave-card-and-coop-density.md)
 
 ## Active Phase
-[P01 웨이브 규칙](./phases/2026-11-08-half-wave-card-and-coop-density/P01-wave-rules/phase.md)
+[P02 조준경 게이지 가시성](./phases/2026-11-08-half-wave-card-and-coop-density/P02-scope-gauge-visibility/phase.md)
 
 ## Active Task
-[T02 2P 필드 밀도](./phases/2026-11-08-half-wave-card-and-coop-density/P01-wave-rules/T02-coop-field-density.md)
+[T01 게이지 굵기와 가득 참 글로우 펄스](./phases/2026-11-08-half-wave-card-and-coop-density/P02-scope-gauge-visibility/T01-thicker-gauges-and-ready-glow.md)
 
 ## Status
-- T01 완료. T02 시작
+- P01 완료(T01 d89d7b7, T02). P02-T01 시작
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 `src/shared/gameTuning.ts` playerCountRules 구현 시작
+P02-T01 청사진을 읽고 `src/pc/components/scopeGauges.ts` 구현 시작

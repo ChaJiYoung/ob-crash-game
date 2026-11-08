@@ -6,4 +6,4 @@
 | T01 | `pending` | 게이지 호 굵기 상향 + 가득 찼을 때 글로우 펄스 | [T01](./T01-thicker-gauges-and-ready-glow.md) |
 
 ## Progress
-- done: 0/1 (active: -)
+- done: 0/1 (active: T01)

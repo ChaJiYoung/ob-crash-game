@@ -51,6 +51,15 @@ describe('BeerCrusherEngine playerCountRules (P02-T02)', () => {
       expect(boss!.hp).toBe(expectedCoolerHp);
     });
 
+    it('scales field density: maxSimultaneous (ceil) and spawn interval (round)', () => {
+      const engine: any = new BeerCrusherEngine();
+      engine.startGame({ withWeaponSelect: false, playerCount: count });
+      expect(engine.waveDefinitions[1].maxSimultaneous).toBe(count === 1 ? 5 : 9);
+      expect(engine.waveDefinitions[7].maxSimultaneous).toBe(count === 1 ? 8 : 15);
+      expect(engine.waveDefinitions[7].spawnIntervalMs).toBe(count === 1 ? 600 : 360);
+      expect(engine.waveDefinitions[6].spawnIntervalMs).toBe(count === 1 ? 550 : 330);
+    });
+
     it('puts the mid-wave card at half the scaled wave and applies boss summon multipliers', () => {
       const engine: any = new BeerCrusherEngine();
       engine.startGame({ withWeaponSelect: false, playerCount: count });

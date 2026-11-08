@@ -1,6 +1,6 @@
 # Task: T02 2P 필드 밀도(동시 수 ×1.8, 스폰 간격 ×0.6)
 
-## Status: pending
+## Status: done
 
 ## Goal
 2P에서 필드에 동시에 나오는 일반 몬스터 수와 보충 속도를 늘려 화면 밀도를 높인다. 1P 동작은 바뀌지 않는다.
@@ -52,6 +52,6 @@ Task: T02-coop-field-density
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

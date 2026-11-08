@@ -157,6 +157,10 @@ export const GAME_TUNING = {
       bossHpMult: 1,
       summonCountMult: 1,
       spawnCountMult: 1,
+      /** 필드 동시 일반 몬스터 수 배율(올림). 2026-11-08-half-wave-card-and-coop-density D03. */
+      maxSimultaneousMult: 1,
+      /** 스폰 간격 배율(반올림). 같은 결정 D04. */
+      spawnIntervalMult: 1,
       /** null이면 끊긴 플레이어를 이탈 처리하지 않고 무기한 기다린다(지금 1인 동작). */
       disconnectGraceMs: null as number | null,
       selectLayout: { depthZ: -3.5, groupCentersX: [0] as readonly number[], spacingM: 1.85 },
@@ -166,6 +170,8 @@ export const GAME_TUNING = {
       bossHpMult: 2,
       summonCountMult: 2,
       spawnCountMult: 2,
+      maxSimultaneousMult: 1.8,
+      spawnIntervalMult: 0.6,
       disconnectGraceMs: 30000 as number | null,
       selectLayout: { depthZ: -5.5, groupCentersX: [-3.2, 3.2] as readonly number[], spacingM: 2.05 },
     },

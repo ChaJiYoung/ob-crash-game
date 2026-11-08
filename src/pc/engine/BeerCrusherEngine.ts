@@ -351,8 +351,8 @@ export class BeerCrusherEngine {
         {
           waveIndex: w.waveIndex,
           totalSpawns: Math.ceil(w.totalSpawns * spawnMult),
-          maxSimultaneous: w.maxSimultaneous,
-          spawnIntervalMs: w.spawnIntervalMs,
+          maxSimultaneous: Math.ceil(w.maxSimultaneous * this.rules.maxSimultaneousMult),
+          spawnIntervalMs: Math.round(w.spawnIntervalMs * this.rules.spawnIntervalMult),
           parTimeSec: w.parTimeSec,
           kinds: [...w.kinds] as TargetKind[],
           allowedItems: [],
