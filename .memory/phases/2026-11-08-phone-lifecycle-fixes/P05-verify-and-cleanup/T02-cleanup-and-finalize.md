@@ -53,7 +53,7 @@
 chore(debug): 센서 진단용 임시 로그 제거, 임계값 확정
 
 Plan: 2026-11-08-phone-lifecycle-fixes
-Phase: P04-verify-and-cleanup
+Phase: P05-verify-and-cleanup
 Task: T02-cleanup-and-finalize
 
 - DEBUG_LOG 타입·서버 핸들러·프레임 요약 로그·폰 로그 큐와 호출 제거

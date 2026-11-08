@@ -1,4 +1,4 @@
-# Phase: P04 실기기 검증과 정리
+# Phase: P05 실기기 검증과 정리
 
 ## Tasks
 | Task | Status | Summary | Blueprint |
@@ -7,4 +7,4 @@
 | T02 | `pending` | 임시 진단 코드 제거, 임계값 확정, 최종 검증 | [T02](./T02-cleanup-and-finalize.md) |
 
 ## Progress
-- done: 0/2 (active: T01, P03 완료 후 시작)
+- done: 0/2 (active: T01, P04 완료 후 시작)

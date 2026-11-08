@@ -55,7 +55,7 @@
 docs(memory): 폰 수명주기 수정 실기기 검증 결과 기록
 
 Plan: 2026-11-08-phone-lifecycle-fixes
-Phase: P04-verify-and-cleanup
+Phase: P05-verify-and-cleanup
 Task: T01-device-test-and-analysis
 
 - 시나리오별 결과와 로그 분석 결론 기록

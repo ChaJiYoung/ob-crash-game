@@ -10,7 +10,6 @@ import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
 import { ControllerWatch, watchKey, parseWatchKey } from './ControllerWatch';
 import { CONTROLLER_LIFECYCLE } from '../src/shared/controllerLifecycle';
-import type { RoomSession } from './RoomManager';
 
 export interface BeerCrusherServerInstance {
   server: http.Server;
@@ -63,30 +62,12 @@ export async function createBeerCrusherServer(options?: {
   const roomManager = new RoomManager();
   const watch = new ControllerWatch();
 
-  /** 프레임이 다시 오기 시작한 컨트롤러를 PC에 복귀시킨다(폰이 재연결할 때와 같은 알림). */
-  const notifyControllerBack = (session: RoomSession, slot: PlayerSlot) => {
-    const pc = session.pcSocket;
-    const seat = session.controllers[slot];
-    if (!pc || !seat) return;
-    const player = playerStore.findByDeviceId(seat.deviceId);
-    if (player) {
-      sendJson(pc, { type: 'CONTROLLER_PAIRED', roomId: session.roomId, player, slot });
-    }
-    sendJson(pc, { type: 'ZERO_CALIBRATED', roomId: session.roomId, deviceId: seat.deviceId, slot, resume: true });
-  };
-
   /** 폰이 "화면 꺼짐"을 알린 뒤 PC에 알리기까지 대기 중인 타이머. key = watchKey(roomId, slot) */
   const pendingBackground = new Map<string, ReturnType<typeof setTimeout>>();
-  /**
-   * 폰이 "화면 꺼짐"을 알리고 아직 "다시 켜짐"을 알리지 않은 자리.
-   * 숨겨진 폰이 느리게나마 프레임을 계속 보내도, 켜짐 신호 전에는 프레임을 복귀로 보지 않는다.
-   */
-  const backgrounded = new Set<string>();
   const clearBackground = (key: string) => {
     const timer = pendingBackground.get(key);
     if (timer) clearTimeout(timer);
     pendingBackground.delete(key);
-    backgrounded.delete(key);
   };
 
   const watchTimer = setInterval(() => {
@@ -388,6 +369,14 @@ export async function createBeerCrusherServer(options?: {
               return;
             }
             const session = roomManager.getRoom(roomId);
+            // 폰이 영점을 보냈다 = 돌아왔다(버튼 또는 초록 버튼). 끊김 표시를 풀고 다시 지켜본다.
+            const zeroSlot = session ? roomManager.getControllerSlot(session, ws) : undefined;
+            if (session && zeroSlot !== undefined) {
+              const key = watchKey(session.roomId, zeroSlot);
+              clearBackground(key);
+              const wasLost = watch.release(key, Date.now());
+              traceLifecycle('zero-release', { key, wasLost }); // TEMP(sensor-debug)
+            }
             if (session && session.pcSocket) {
               const slot = roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot);
               sendJson(session.pcSocket, {
@@ -470,13 +459,7 @@ export async function createBeerCrusherServer(options?: {
               // 슬롯은 메시지가 아니라 소켓 기준으로 찾는다(다른 슬롯 흉내 방지).
               const frameSlot = roomManager.getControllerSlot(session, ws);
               if (frameSlot !== undefined) {
-                const frameKey = watchKey(session.roomId, frameSlot);
-                const result = watch.onFrame(frameKey, Date.now());
-                if (result === 'recovered') {
-                  traceLifecycle('frame-recovered', { key: frameKey, stillBackgrounded: backgrounded.has(frameKey) }); // TEMP(sensor-debug)
-                  if (backgrounded.has(frameKey)) watch.markLost(frameKey);
-                  else notifyControllerBack(session, frameSlot);
-                }
+                watch.onFrame(watchKey(session.roomId, frameSlot), Date.now());
               }
             }
             if (session && session.pcSocket) {
@@ -508,7 +491,6 @@ export async function createBeerCrusherServer(options?: {
               clearBackground(key);
               break;
             }
-            backgrounded.add(key);
             if (pendingBackground.has(key)) break;
 
             const timer = setTimeout(() => {
@@ -776,7 +758,6 @@ export async function createBeerCrusherServer(options?: {
           clearInterval(watchTimer);
           for (const timer of pendingBackground.values()) clearTimeout(timer);
           pendingBackground.clear();
-          backgrounded.clear();
           return new Promise<void>((resClose) => {
             wss.close(() => {
               server.close(() => resClose());

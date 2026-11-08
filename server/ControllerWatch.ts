@@ -22,19 +22,27 @@ interface WatchEntry {
 export class ControllerWatch {
   private readonly entries = new Map<string, WatchEntry>();
 
-  /** 프레임을 받았을 때. 사라진 것으로 표시돼 있었다면 'recovered'. */
-  public onFrame(key: string, nowMs: number): 'ok' | 'recovered' {
+  /** 프레임을 받았을 때 마지막 수신 시각만 갱신한다. lost는 풀지 않는다(복귀는 release로만). */
+  public onFrame(key: string, nowMs: number): void {
     const entry = this.entries.get(key);
     if (!entry) {
       this.entries.set(key, { lastMs: nowMs, lost: false });
-      return 'ok';
+      return;
     }
     entry.lastMs = nowMs;
-    if (entry.lost) {
-      entry.lost = false;
-      return 'recovered';
+  }
+
+  /** 폰이 영점/재인증으로 돌아왔을 때: lost를 풀고 지금부터 다시 지켜본다. 이전에 lost였으면 true. */
+  public release(key: string, nowMs: number): boolean {
+    const entry = this.entries.get(key);
+    if (!entry) {
+      this.entries.set(key, { lastMs: nowMs, lost: false });
+      return false;
     }
-    return 'ok';
+    const wasLost = entry.lost;
+    entry.lost = false;
+    entry.lastMs = nowMs;
+    return wasLost;
   }
 
   /**

@@ -55,11 +55,13 @@ describe('server background signal', () => {
     await sleep(200);
     expect(h.pc.of('ZERO_CALIBRATED')).toHaveLength(0);
 
-    // once the screen is back, frames restore the controller
+    // screen back + frames are not enough: the phone must send its zero (return button)
     phone.ws.send(bg(h, 'phone-A', 'CONTROLLER_FOREGROUND'));
     phone.ws.send(sensorFrame(h.roomId, 'phone-A'));
+    await sleep(200);
+    expect(h.pc.of('ZERO_CALIBRATED')).toHaveLength(0);
+    phone.ws.send(JSON.stringify({ type: 'CALIBRATE_ZERO', roomId: h.roomId, deviceId: 'phone-A', slot: 1 }));
     await h.pc.waitFor(() => h!.pc.of('ZERO_CALIBRATED').length > 0);
-    expect(h.pc.of('ZERO_CALIBRATED')[0].resume).toBe(true);
   });
 
   it('does not report a phone that never sent a frame, nor treat its first frame as a comeback', async () => {

@@ -13,44 +13,40 @@ describe('ControllerWatch', () => {
     expect(w.check(1000 + T + 2)).toEqual([]);
   });
 
-  it('reports recovery on the first frame after a loss, then goes back to ok', () => {
+  it('frames do not undo a reported loss; only release does, and watching starts again', () => {
     const w = new ControllerWatch();
     w.onFrame('R:1', 0);
     w.check(T + 1);
-    expect(w.onFrame('R:1', T + 2)).toBe('recovered');
-    expect(w.onFrame('R:1', T + 3)).toBe('ok');
-    // and it can be lost again later
-    expect(w.check(T + 3 + T + 1)).toEqual(['R:1']);
+    w.onFrame('R:1', T + 2); // a hidden phone trickling frames
+    expect(w.isLost('R:1')).toBe(true);
+    expect(w.check(T * 5)).toEqual([]); // not reported again either
+
+    expect(w.release('R:1', T * 5)).toBe(true);
+    expect(w.isLost('R:1')).toBe(false);
+    expect(w.check(T * 6)).toEqual([]);
+    expect(w.check(T * 6 + 1)).toEqual(['R:1']);
   });
 
-  it('markLost flags once and stops the timeout from reporting the same loss', () => {
+  it('release on a live or untracked controller reports false and starts watching', () => {
+    const w = new ControllerWatch();
+    w.onFrame('R:1', 0);
+    expect(w.release('R:1', 10)).toBe(false);
+    expect(w.release('R:2', 10)).toBe(false);
+    expect(w.check(10 + T + 1).sort()).toEqual(['R:1', 'R:2']);
+  });
+
+  it('markLost flags a tracked controller once and stops the timeout from reporting it', () => {
     const w = new ControllerWatch();
     w.onFrame('R:1', 0);
     expect(w.markLost('R:1')).toBe(true);
     expect(w.markLost('R:1')).toBe(false);
     expect(w.check(T * 10)).toEqual([]);
-    expect(w.onFrame('R:1', T * 10)).toBe('recovered');
   });
 
-  it('does not track a controller that never sent a frame, so it is never reported as coming back', () => {
+  it('does not track a controller that never sent a frame', () => {
     const w = new ControllerWatch();
     expect(w.markLost('R:2')).toBe(false);
     expect(w.isLost('R:2')).toBe(false);
-    expect(w.onFrame('R:2', 5)).toBe('ok');
-  });
-
-  it('isLost is true from the moment a loss was reported until the next frame or forget', () => {
-    const w = new ControllerWatch();
-    w.onFrame('R:1', 0);
-    expect(w.isLost('R:1')).toBe(false);
-    w.check(T + 1);
-    expect(w.isLost('R:1')).toBe(true);
-    w.onFrame('R:1', T + 2);
-    expect(w.isLost('R:1')).toBe(false);
-    w.markLost('R:1');
-    expect(w.isLost('R:1')).toBe(true);
-    w.forget('R:1');
-    expect(w.isLost('R:1')).toBe(false);
   });
 
   it('forget stops tracking', () => {
@@ -58,7 +54,7 @@ describe('ControllerWatch', () => {
     w.onFrame('R:1', 0);
     w.forget('R:1');
     expect(w.check(T * 10)).toEqual([]);
-    expect(w.onFrame('R:1', T * 10)).toBe('ok');
+    expect(w.isLost('R:1')).toBe(false);
   });
 
   it('tracks controllers independently and honours an explicit timeout', () => {

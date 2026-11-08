@@ -9,24 +9,30 @@ describe('server frame-loss detection', () => {
     h = undefined;
   });
 
-  it('tells the PC once when frames stop, and again restores the controller when they resume', async () => {
+  it('tells the PC once when frames stop; frames alone never bring it back, the zero signal does', async () => {
     h = await startHarness({ controllerFrameTimeoutMs: 300, watchIntervalMs: 50 });
     const phone = await h.phone('phone-A', 1);
 
     phone.ws.send(sensorFrame(h.roomId, 'phone-A'));
     await h.pc.waitFor(() => h!.pc.of('SENSOR_RELAY').length > 0);
-
     await h.pc.waitFor(() => h!.pc.disconnects(1).length > 0, 2000);
-    await sleep(500);
-    expect(h.pc.disconnects(1)).toHaveLength(1);
 
     const pairedBefore = h.pc.of('CONTROLLER_PAIRED').length;
-    phone.ws.send(sensorFrame(h.roomId, 'phone-A'));
+    for (let i = 0; i < 6; i++) {
+      phone.ws.send(sensorFrame(h.roomId, 'phone-A'));
+      await sleep(100);
+    }
+    expect(h.pc.disconnects(1)).toHaveLength(1);
+    expect(h.pc.of('ZERO_CALIBRATED')).toHaveLength(0);
+    expect(h.pc.of('CONTROLLER_PAIRED')).toHaveLength(pairedBefore);
+
+    // the return button sends a plain zero
+    phone.ws.send(JSON.stringify({ type: 'CALIBRATE_ZERO', roomId: h.roomId, deviceId: 'phone-A', slot: 1 }));
     await h.pc.waitFor(() => h!.pc.of('ZERO_CALIBRATED').length > 0);
-    expect(h.pc.of('CONTROLLER_PAIRED').length).toBe(pairedBefore + 1);
-    const zero = h.pc.of('ZERO_CALIBRATED')[0];
-    expect(zero.slot).toBe(1);
-    expect(zero.resume).toBe(true);
+    expect(h.pc.of('ZERO_CALIBRATED')[0].resume).toBeUndefined();
+
+    // watched again from now on
+    await h.pc.waitFor(() => h!.pc.disconnects(1).length === 2, 2000);
   });
 
   it('does not report a controller that keeps sending frames', async () => {
