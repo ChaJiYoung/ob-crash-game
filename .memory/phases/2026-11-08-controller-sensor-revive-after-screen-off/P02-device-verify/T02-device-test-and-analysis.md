@@ -1,6 +1,6 @@
 # Task: T02 실기기 테스트와 로그 분석
 
-## Status: pending
+## Status: superseded (2026-11-08-phone-lifecycle-fixes P04로 흡수)
 
 ## Goal
 사용자가 실기기로 재현 시나리오를 테스트하고, `data/sensor-debug.log`를 읽어 (1) 원인 가설이 맞는지 (2) 재등록 후 조준이 복구되는지 (3) 워치독 임계값 `SENSOR_STALE_MS`를 얼마로 할지 결정한다.

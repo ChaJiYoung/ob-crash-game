@@ -1,6 +1,6 @@
 # Task: T03 임시 로그 제거와 마무리
 
-## Status: pending
+## Status: superseded (2026-11-08-phone-lifecycle-fixes P04로 흡수)
 
 ## Goal
 P02-T01에서 넣은 임시 디버그 코드를 모두 제거하고, T02에서 정한 `SENSOR_STALE_MS`를 반영한 뒤 전체 검증을 통과시킨다.
