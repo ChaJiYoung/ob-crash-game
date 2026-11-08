@@ -53,6 +53,23 @@ export async function createBeerCrusherServer(options?: {
   const playRecordStore = new PlayRecordStore(recordPath);
   const roomManager = new RoomManager();
 
+  // TEMP(sensor-debug): append one line to data/sensor-debug.log; removed in P02-T03.
+  const writeSensorDebug = (line: string) => {
+    console.log('[sensor-debug]', line);
+    try {
+      const dir = path.resolve(process.cwd(), 'data');
+      fs.mkdirSync(dir, { recursive: true });
+      fs.appendFileSync(path.join(dir, 'sensor-debug.log'), `${line}\n`);
+    } catch {
+      // Diagnostics must never affect the game.
+    }
+  };
+  // TEMP(sensor-debug): per-second summary of the SENSOR_FRAME stream, so the log does not depend on the phone's socket.
+  const frameStats = new Map<
+    string,
+    { start: number; count: number; minX: number; maxX: number; minY: number; maxY: number; minYaw: number; maxYaw: number }
+  >();
+
   const server = http.createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -354,6 +371,30 @@ export async function createBeerCrusherServer(options?: {
           }
 
           case 'SENSOR_FRAME': {
+            // TEMP(sensor-debug)
+            {
+              const now = Date.now();
+              const p = msg.payload;
+              let s = frameStats.get(msg.deviceId);
+              if (!s) {
+                s = { start: now, count: 0, minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minYaw: Infinity, maxYaw: -Infinity };
+                frameStats.set(msg.deviceId, s);
+              }
+              s.count += 1;
+              s.minX = Math.min(s.minX, p.aimX);
+              s.maxX = Math.max(s.maxX, p.aimX);
+              s.minY = Math.min(s.minY, p.aimY);
+              s.maxY = Math.max(s.maxY, p.aimY);
+              s.minYaw = Math.min(s.minYaw, p.yawDeg);
+              s.maxYaw = Math.max(s.maxYaw, p.yawDeg);
+              if (now - s.start >= 1000) {
+                const f = (n: number) => Math.round(n * 1000) / 1000;
+                writeSensorDebug(
+                  `${new Date(now).toISOString()} ${msg.deviceId} frames ${JSON.stringify({ n: s.count, aimX: [f(s.minX), f(s.maxX)], aimY: [f(s.minY), f(s.maxY)], yaw: [f(s.minYaw), f(s.maxYaw)] })}`
+                );
+                frameStats.delete(msg.deviceId);
+              }
+            }
             const session = roomManager.getRoom(msg.roomId);
             if (session && session.pcSocket) {
               const slot = roomManager.getControllerSlot(session, ws) ?? normalizeSlot(msg.slot);
@@ -371,14 +412,7 @@ export async function createBeerCrusherServer(options?: {
           // TEMP(sensor-debug): phone sensor diagnostics, written to data/sensor-debug.log. Removed in P02-T03.
           case 'DEBUG_LOG': {
             const line = `${new Date(msg.ts).toISOString()} ${msg.deviceId} ${msg.tag} ${JSON.stringify(msg.data ?? {})}`;
-            console.log('[sensor-debug]', line);
-            try {
-              const dir = path.resolve(process.cwd(), 'data');
-              fs.mkdirSync(dir, { recursive: true });
-              fs.appendFileSync(path.join(dir, 'sensor-debug.log'), `${line}\n`);
-            } catch {
-              // Diagnostics must never affect the game.
-            }
+            writeSensorDebug(line);
             break;
           }
 
