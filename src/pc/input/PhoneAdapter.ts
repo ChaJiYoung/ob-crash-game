@@ -55,6 +55,8 @@ export class PhoneAdapter {
   public readonly slot: PlayerSlot;
   public zeroOffset: ZeroOffset = { offsetX: 0, offsetY: 0 };
   public latestAim = { aimX: 0, aimY: 0 };
+  /** 영점·감도 적용 전 페이로드 조준값(invertY 반영). 영점은 이 좌표계여야 한다. */
+  private latestPayloadAim = { x: 0, y: 0 };
 
   private lastRapidFireHold = false;
   private lastIsCocked = false;
@@ -83,6 +85,7 @@ export class PhoneAdapter {
     const tuning = this.opts.getTuning();
     const { aimX, aimY, rawAimX, rawAimY } = applyZeroAndTuning(p, this.zeroOffset, tuning);
     this.latestAim = { aimX, aimY };
+    this.latestPayloadAim = { x: p.aimX, y: tuning.invertY ? -p.aimY : p.aimY };
 
     const sink = this.opts.sink();
 
@@ -138,8 +141,8 @@ export class PhoneAdapter {
 
   public autoZeroFromLatest(): void {
     this.zeroOffset = {
-      offsetX: this.latestAim.aimX,
-      offsetY: this.latestAim.aimY,
+      offsetX: this.latestPayloadAim.x,
+      offsetY: this.latestPayloadAim.y,
     };
   }
 

@@ -204,6 +204,60 @@ describe('Input Adapters (P01-T05)', () => {
       ]);
     });
 
+    describe('autoZeroFromLatest', () => {
+      const makeAdapter = (tuning: SensorTuningConfig) =>
+        new PhoneAdapter({
+          sink: () => mockSink,
+          send: (m) => sentMessages.push(m),
+          roomId: () => 'room-test',
+          getTuning: () => tuning,
+          now: () => currentTime,
+        });
+
+      const lastAim = () => {
+        const aims = signals.filter((s) => s.type === 'aim') as Array<{ aimX: number; aimY: number }>;
+        return aims[aims.length - 1];
+      };
+
+      it('yields (0,0) for the same input after every call, even with sensitivity != 1', () => {
+        const adapter = makeAdapter(makeTuning({ sensitivityX: 1.5, sensitivityY: 1.5 }));
+
+        adapter.onSensorFrame(makePayload({ aimX: 0.5, aimY: 0.4 }));
+        adapter.autoZeroFromLatest();
+        adapter.onSensorFrame(makePayload({ aimX: 0.5, aimY: 0.4 }));
+        expect(lastAim().aimX).toBeCloseTo(0);
+        expect(lastAim().aimY).toBeCloseTo(0);
+
+        adapter.onSensorFrame(makePayload({ aimX: 0.8, aimY: 0.2 }));
+        adapter.autoZeroFromLatest();
+        adapter.onSensorFrame(makePayload({ aimX: 0.8, aimY: 0.2 }));
+        expect(lastAim().aimX).toBeCloseTo(0);
+        expect(lastAim().aimY).toBeCloseTo(0);
+      });
+
+      it('handles invertY', () => {
+        const adapter = makeAdapter(makeTuning({ sensitivityY: 1.5, invertY: true }));
+        adapter.onSensorFrame(makePayload({ aimY: 0.4 }));
+        adapter.autoZeroFromLatest();
+        adapter.onSensorFrame(makePayload({ aimY: 0.4 }));
+        expect(lastAim().aimY).toBeCloseTo(0);
+      });
+
+      it('keeps the zero at (0,0) when no frame has arrived', () => {
+        const adapter = makeAdapter(makeTuning());
+        adapter.autoZeroFromLatest();
+        expect(adapter.zeroOffset).toEqual({ offsetX: 0, offsetY: 0 });
+      });
+
+      it('moves relative to the new zero afterwards', () => {
+        const adapter = makeAdapter(makeTuning({ sensitivityX: 2 }));
+        adapter.onSensorFrame(makePayload({ aimX: 0.3 }));
+        adapter.autoZeroFromLatest();
+        adapter.onSensorFrame(makePayload({ aimX: 0.4 }));
+        expect(lastAim().aimX).toBeCloseTo(0.2);
+      });
+    });
+
     it('syncFeedback sends FEVER_STATUS_SYNC on change and SKILL_STATE_SYNC throttled 150ms', () => {
       const adapter = new PhoneAdapter({
         sink: () => mockSink,

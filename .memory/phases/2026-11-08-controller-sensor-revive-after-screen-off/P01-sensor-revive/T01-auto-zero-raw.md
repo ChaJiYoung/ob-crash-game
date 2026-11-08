@@ -1,6 +1,6 @@
 # Task: T01 autoZeroFromLatest 원시값 기준 수정
 
-## Status: pending
+## Status: done
 
 ## Goal
 `PhoneAdapter.autoZeroFromLatest()`를 몇 번 호출해도 호출 직후 같은 센서값이 들어오면 조준이 (0,0)이 되도록 고친다. 지금은 이미 영점·감도가 적용된 `latestAim`을 새 영점으로 저장해서, 두 번째 호출부터 어긋난다.
@@ -71,6 +71,6 @@ Task: T01-auto-zero-raw
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
