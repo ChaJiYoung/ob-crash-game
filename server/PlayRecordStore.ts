@@ -49,11 +49,16 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   if (s.outcome !== 'GAMEOVER' && s.outcome !== 'VICTORY') return false;
   if (!WEAPONS.includes(s.weaponKind)) return false;
   if (!NUMBER_KEYS.every((k) => isCount(s[k]))) return false;
+  // DB 제약(CHECK)과 맞춘다: weapon_level 1..4 정수, accuracy 0..1 비율
+  if (!Number.isInteger(s.weaponLevel) || s.weaponLevel < 1 || s.weaponLevel > 4) return false;
+  if (s.accuracy > 1) return false;
   if (!OPTIONAL_KEYS.every((k) => s[k] === undefined || isCount(s[k]))) return false;
   if (!s.shots || !SHOT_KEYS.every((k) => isCount(s.shots[k]))) return false;
   if (!s.cardStacks || !CARD_KEYS.every((k) => isCount(s.cardStacks[k]))) return false;
   if (!Array.isArray(s.waves) || s.waves.length > 20) return false;
   if (!s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus) && (w.damageTaken === undefined || isCount(w.damageTaken)))) return false;
+  // game_waves UNIQUE(game_id, wave_num)
+  if (new Set(s.waves.map((w: any) => w.wave)).size !== s.waves.length) return false;
 
   if (s.inputKind !== undefined && !INPUTS.includes(s.inputKind)) return false;
   if (s.cardPicks !== undefined) {

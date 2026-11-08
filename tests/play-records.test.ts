@@ -112,6 +112,15 @@ describe('play records (DB)', () => {
     expect(isValidPlayRunStats({ ...stats(), damageTaken: -1 })).toBe(false);
   });
 
+  it('rejects values the DB constraints would refuse', () => {
+    for (const bad of [{ weaponLevel: 0 }, { weaponLevel: 5 }, { weaponLevel: 2.5 }, { accuracy: 1.5 }]) {
+      expect(isValidPlayRunStats({ ...stats(), ...bad })).toBe(false);
+    }
+    expect(isValidPlayRunStats(stats({ accuracy: 1, weaponLevel: 4 }))).toBe(true);
+    expect(isValidPlayRunStats(stats({ accuracy: 0, weaponLevel: 1 }))).toBe(true);
+    expect(isValidPlayRunStats(stats({ waves: [{ wave: 1, seconds: 1, bonus: 0 }, { wave: 1, seconds: 2, bonus: 0 }] }))).toBe(false);
+  });
+
   it('validates wave damageTaken', () => {
     expect(isValidPlayRunStats(stats({ waves: [{ wave: 1, seconds: 1, bonus: 0, damageTaken: -1 }] }))).toBe(false);
     expect(isValidPlayRunStats(stats({ waves: [{ wave: 1, seconds: 1, bonus: 0 }] }))).toBe(true);

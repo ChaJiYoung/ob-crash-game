@@ -268,12 +268,12 @@ export type ClientToServerMessage =
       skillCooldownTotalMs: number;
       slot?: PlayerSlot;
     }
-  /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
   /** 무기 선택 화면이 뜨는 순간(PCGamePage.handleStartGame) PC가 보낸다. beginId는 응답을 짝짓는 PC 쪽 임의 문자열. */
   | { type: 'GAME_BEGIN'; roomId: string; beginId: string; mode: PlayMode; players: GameBeginPlayer[] }
   | { type: 'WEAPON_CHOSEN'; roomId: string; gameId: number; slot: PlayerSlot; weaponKind: WeaponKind }
   /** 일시정지 메뉴의 "로비로"/"다시시작". */
   | { type: 'GAME_ABANDON'; roomId: string; gameId: number }
+  /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; gameId?: number; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number; mode?: PlayMode }
   | { type: 'REGISTER_LOCAL_PLAYER'; roomId: string; deviceId: string; nickname: string; slot: PlayerSlot }
   | {

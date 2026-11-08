@@ -108,6 +108,15 @@ describe('game lifecycle over the websocket', () => {
     expect(game(gameId).status).toBe('playing');
   });
 
+  it('answers INVALID_STATS, not INTERNAL_ERROR, for stats the DB would refuse', async () => {
+    await h.phone('dev1', 1);
+    const gameId = await beginGame(h.pc, h.roomId, 'solo', solo());
+    submit(gameId, 100, { stats: stats({ totalScore: 100, weaponLevel: 5 as any }) });
+    await waitError(h.pc, 'INVALID_STATS');
+    expect(errors(h.pc, 'INTERNAL_ERROR')).toHaveLength(0);
+    expect(game(gameId).status).toBe('playing');
+  });
+
   it('accepts a submit with the earlier gameId after the PC reconnects to the same room', async () => {
     await h.phone('dev1', 1);
     const gameId = await beginGame(h.pc, h.roomId, 'solo', solo());
