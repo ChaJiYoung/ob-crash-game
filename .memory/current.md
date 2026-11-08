@@ -4,16 +4,16 @@
 [SQLite DB 전환 (게임-플레이어 중심 스키마)](./plans/2026-11-08-sqlite-db-design.md)
 
 ## Active Phase
-[P01 서버 DB 저장소 전환](./phases/2026-11-08-sqlite-db-design/P01-server-db-storage/phase.md)
+[P02 클라이언트 연동](./phases/2026-11-08-sqlite-db-design/P02-client-integration/phase.md)
 
 ## Active Task
-[T01 GameDatabase와 스키마](./phases/2026-11-08-sqlite-db-design/P01-server-db-storage/T01-game-database-and-schema.md)
+[T01 엔진 웨이브별 피격 집계와 무기 선택 훅](./phases/2026-11-08-sqlite-db-design/P02-client-integration/T01-engine-wave-damage-and-weapon-hook.md)
 
 ## Status
-- T01 구현 시작 준비 완료
-- 결정 문서: [2026-11-08-sqlite-db-design](./decisions/2026-11-08-sqlite-db-design.md) (D04는 계획 단계에서 "명시적 신호로만 abandoned"로 수정됨)
-- 주의: P01 완료 ~ P02-T02 완료 사이에는 실제 게임 점수가 기록되지 않는다(PC가 아직 `GAME_BEGIN`을 안 보냄). 의도된 중간 상태다.
-- 이전 계획 [미지원 폰 차단](./plans/2026-11-08-unsupported-phone-block.md)은 구현 완료, 실기기 확인(P04-T01 체크리스트 A·B·C·I·K·P)만 남아 있다.
+- 진행 방식: 코디네이터(Opus)가 Phase마다 Orca Sonnet 워커에게 구현을 맡기고, Phase가 끝나면 코드 리뷰 후 다음 Phase로 넘긴다. `.memory` 상태는 코디네이터만 갱신한다.
+- P01 완료: T01 `c111b53`, T02 `d48d21e`, 리뷰 반영 `b205943`. tsc 0 오류, vitest 839 통과 + 기존 실패 1건(docs-sync 'monster studio info cards', 커밋 d8e8904의 html 삭제 때문, 범위 밖).
+- 주의: 지금은 실제 게임 점수가 기록되지 않는다(PC가 아직 `GAME_BEGIN`을 안 보냄). P02-T02에서 연결된다.
+- 결정 문서: [2026-11-08-sqlite-db-design](./decisions/2026-11-08-sqlite-db-design.md)
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `npm install better-sqlite3@^12`로 의존성을 설치한 뒤 `server/db/schema.ts`부터 구현 시작
+P02 워커가 T01(`src/pc/engine/BeerCrusherEngine.ts`의 웨이브별 피격 집계·`onWeaponChosen`)부터 T03까지 순서대로 구현

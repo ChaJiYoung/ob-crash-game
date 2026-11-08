@@ -1,6 +1,6 @@
 # Task: T01 GameDatabase와 스키마
 
-## Status: pending
+## Status: done
 
 ## Goal
 서버가 쓸 SQLite 연결 관리자 `GameDatabase`와 5개 테이블 스키마를 만든다. 아직 어떤 스토어도 이것을 쓰지 않지만, 스키마 제약(CHECK·UNIQUE·FK)을 이 Task의 테스트로 단독 검증한다. 다음 Task(T02)가 이 위에 두 스토어를 올린다.
@@ -209,6 +209,6 @@ Task: T01-game-database-and-schema
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: `c111b53`

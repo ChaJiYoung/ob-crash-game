@@ -11,4 +11,4 @@ PC와 엔진이 P01의 서버 프로토콜을 실제로 사용한다. 이 Phase�
 | T03 | `pending` | 닉네임 고정과 변경: 마우스 `LOOKUP_LOCAL_PLAYER`·세션 `localPlayers`·`GAME_BEGIN` 마우스 검증, 마우스·폰 "닉네임 변경" | [T03](./T03-mouse-player-lookup.md) |
 
 ## Progress
-- done: 0/3 (active: -)
+- done: 0/3 (active: T01)

@@ -1,6 +1,6 @@
 # Task: T02 스토어 DB 전환과 판 생명주기 서버 프로토콜
 
-## Status: pending
+## Status: done
 
 ## Goal
 `PlayerStore`와 `PlayRecordStore`를 JSON/JSONL에서 `GameDatabase`로 바꾸고, 서버가 판 생명주기 메시지(`GAME_BEGIN`, `WEAPON_CHOSEN`, `GAME_ABANDON`, `gameId`가 붙은 `GAME_SCORE_SUBMIT`)를 처리하게 한다. 끝나면 웹소켓 테스트만으로 "판 시작 → 무기 → 제출 → 랭킹/프로필" 전체가 DB 위에서 검증된다.
@@ -325,6 +325,6 @@ Task: T02-stores-and-game-lifecycle-server
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: `d48d21e`, 리뷰 반영 `b205943` (통계 검증을 DB 제약과 맞춤, 문서 주석 위치)
