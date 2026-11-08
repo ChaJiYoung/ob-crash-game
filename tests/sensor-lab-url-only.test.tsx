@@ -42,6 +42,8 @@ describe('센서 테스트장은 주소(/sensor-test)로만 들어간다', () =>
     expect(html).not.toContain('모듈 테스트');
   });
 
+  // 소스 문자열 단언: HUD·PCGamePage는 훅과 3D 캔버스에 의존해 renderToStaticMarkup으로 그릴 수 없어, 제거된 심볼이
+  // 되살아나지 않는지만 문자열로 확인한다(렌더가 가능한 로비·오버레이는 위·아래에서 실제 마크업으로 검증).
   it('인게임 HUD와 페어링 화면에 센서 랩 버튼 코드가 남아 있지 않다', () => {
     expect(read('src/pc/components/ArcadeOverlayHUD.tsx')).not.toContain('onOpenSensorLab');
     expect(read('src/pc/components/ArcadeOverlayHUD.tsx')).not.toContain('센서 연구소');
@@ -137,6 +139,7 @@ describe('mergeSensorFrameMetrics (센서 랩 모달 흔들림 수정)', () => {
   it('PCGamePage는 센서 프레임 지표를 병합 헬퍼로만 갱신한다', () => {
     const page = read('src/pc/PCGamePage.tsx');
     expect(page).toContain('mergeSensorFrameMetrics(prev');
-    expect(page).not.toMatch(/setSensorLiveMetrics\(\{\s*rawAimX/);
+    // setSensorLiveMetrics에 객체를 직접 넘기는 형태(줄바꿈 포함)는 상태를 통째로 교체해 렌더 지표를 지운다.
+    expect(page).not.toMatch(/setSensorLiveMetrics\(\s*\{/);
   });
 });
