@@ -19,7 +19,7 @@
 | P01 | `done` | PC: 테스트장/랩 버튼 3곳 제거(랩 열기는 `/sensor-test`에만 남김) + 센서 랩 모달 흔들림 수정 | [P01](../phases/2026-11-08-unsupported-phone-block/P01-hide-lab-and-fix-flicker/phase.md) |
 | P02 | `done` | 미지원 폰 차단: 센서 판별 코어 → 서버 메시지 → PC 안내 → 폰 차단 화면 | [P02](../phases/2026-11-08-unsupported-phone-block/P02-unsupported-phone-block/phase.md) |
 | P03 | `done` | 플레이 수정: 마우스 보조 입력 폐기, 피버·탄창 분리, 조준경 장전·피버 호 | [P03](../phases/2026-11-08-unsupported-phone-block/P03-fever-ammo-aim/phase.md) |
-| P04 | `in_progress` | 실기기 검증(운영 빌드)과 최종 빌드 | [P04](../phases/2026-11-08-unsupported-phone-block/P04-real-device-verify/phase.md) |
+| P04 | `done` (자동 확인분, 실기기 A·B·C·I·K·P 대기) | 실기기 검증(운영 빌드)과 최종 빌드 | [P04](../phases/2026-11-08-unsupported-phone-block/P04-real-device-verify/phase.md) |
 
 ## 참고
 - 이 계획은 안정화 프리셋/필터(`OneEuroFilter`, `PhoneAdapter` 튜닝, 랩 모달 프리셋 UI)를 건드리지 않는다(D06, D09).
