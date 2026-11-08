@@ -1,17 +1,17 @@
 # Current Context
 
 ## Active Plan
-[웨이브 절반 카드 · 2P 필드 밀도 · 조준경 게이지](./plans/2026-11-08-half-wave-card-and-coop-density.md)
+[WebGL 컨텍스트 손실·차단 대응](./plans/2026-11-09-webgl-context-loss.md)
 
 ## Active Phase
-[P02 조준경 게이지 가시성](./phases/2026-11-08-half-wave-card-and-coop-density/P02-scope-gauge-visibility/phase.md)
+[P01 컨텍스트 가드](./phases/2026-11-09-webgl-context-loss/P01-context-guard/phase.md)
 
 ## Active Task
-[없음 (계획 전체 완료) — 마지막: T01 게이지 굵기와 가득 참 글로우 펄스](./phases/2026-11-08-half-wave-card-and-coop-density/P02-scope-gauge-visibility/T01-thicker-gauges-and-ready-glow.md)
+[T01 컨텍스트 손실 감시·안내 오버레이·정리 시 반납](./phases/2026-11-09-webgl-context-loss/P01-context-guard/T01-context-guard-and-overlay.md)
 
 ## Status
-- 계획 전체 완료. P01-T01 d89d7b7, P01-T02 82b9017, P02-T01 (이번 커밋). tsc 0 오류, vitest 108 파일 878 테스트 통과.
-- 1인 봇 클리어율 하락(중간 카드 약 2장→1장) 기록: decisions 측정 절. 수치 조정은 사용자 결정 대기.
+- T01 구현 시작 준비 완료
+- 직전 계획 `2026-11-08-half-wave-card-and-coop-density` 전체 완료(d89d7b7, 82b9017, 6cc7cc4). 1인 클리어율 하락 보정은 사용자 결정 대기.
 
 ## Next Step (IMPORTANT)
-실기기에서 2P 프레임·밀도와 조준경 가시성 확인. 1인 난이도 보정 여부 결정.
+T01 청사진을 읽고 `src/pc/three/webglContextGuard.ts` 파일 구현 시작
