@@ -14,4 +14,4 @@
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done` | 기록에 입력 방식·카드 선택 저장, 랭킹·결과 화면 표시 | [P01](../phases/2026-11-08-playtest-feedback/P01-records-and-ranking/phase.md) |
-| P02 | `in_progress` | 로비 마우스 십자선, 카드 빈도 시뮬레이션 테스트, 조준경 링 게이지 | [P02](../phases/2026-11-08-playtest-feedback/P02-play-feel/phase.md) |
+| P02 | `done` | 로비 마우스 십자선, 카드 빈도 시뮬레이션 테스트, 조준경 링 게이지 | [P02](../phases/2026-11-08-playtest-feedback/P02-play-feel/phase.md) |
