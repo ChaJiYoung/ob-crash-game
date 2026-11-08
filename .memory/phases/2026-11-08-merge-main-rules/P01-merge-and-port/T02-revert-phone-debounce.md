@@ -1,6 +1,6 @@
 # Task: T02 폰 스킬 디바운스 되돌리기
 
-## Status: pending
+## Status: done
 
 ## Goal
 T01 병합으로 자동으로 들어온 폰 쪽 스킬 신호 400ms 디바운스(`shouldSendSkillSnap`, `lastSkillSnapMsRef`)와 `GAME_TUNING.skillInput.snapDebounceMs`를 제거해, 결정 D03(엔진 잠금만 사용)과 일치시킨다.
@@ -50,6 +50,6 @@ Task: T02-revert-phone-debounce
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: see git log

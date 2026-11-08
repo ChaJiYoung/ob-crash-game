@@ -9,8 +9,8 @@
 export const RANKING_RULESET_VERSION = 5;
 
 export const GAME_TUNING = {
-  /** 스킬 입력: 폰 스냅 재감지 대기(ms), 엔진 스킬 재발동 잠금(ms). 한 번 젖힐 때 두 번 나가는 것을 막는다. */
-  skillInput: { snapDebounceMs: 400, reuseLockMs: 500 },
+  /** 스킬 입력: 엔진 스킬 재발동 잠금(ms, 플레이어별). 한 번 젖힐 때 두 번 나가는 것을 막는다. */
+  skillInput: { reuseLockMs: 500 },
   /** durationMs: 피버 지속 시간, scoreMult: 피버 중 명중 점수 배율. */
   fever: { killDelta: 4, perfectDelta: 2, cardBoostGain: 50, durationMs: 4000, scoreMult: 1.5 },
   /** feverDamage: 피버 중 모든 명중(등급은 GREAT 고정)에 쓰는 판정 배율. */

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { WEAPON_CONSTANTS } from '../../shared/constants';
-import { GAME_TUNING } from '../../shared/gameTuning';
 import { OneEuroFilter, OneEuroFilterConfig, SENSOR_PRESETS } from './OneEuroFilter';
 
 export interface EulerOrientation {
@@ -349,9 +348,4 @@ export class GunGripTracker {
     }
     return false;
   }
-}
-
-/** 스킬 신호 디바운스. 스냅 사격 감지(110ms)와 별개로, 스킬은 snapDebounceMs 안에 한 번만 보낸다. */
-export function shouldSendSkillSnap(nowMs: number, lastSkillSnapMs: number): boolean {
-  return nowMs - lastSkillSnapMs >= GAME_TUNING.skillInput.snapDebounceMs;
 }
