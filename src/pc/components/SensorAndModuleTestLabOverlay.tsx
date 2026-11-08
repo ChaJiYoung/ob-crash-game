@@ -51,6 +51,8 @@ export interface SensorAndModuleTestLabOverlayProps {
   onResetZeroCenter: () => void;
   onStartRealGame: () => void;
   onExitToLobby: () => void;
+  /** SANDBOX(/sensor-test)에서만 렌더되므로 이 버튼도 주소로 들어온 사람에게만 보인다. */
+  onOpenSensorLab?: () => void;
 }
 
 export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverlayProps> = ({
@@ -85,6 +87,7 @@ export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverl
   onResetZeroCenter,
   onStartRealGame,
   onExitToLobby,
+  onOpenSensorLab,
 }) => {
   const radarDotLeft = Math.max(5, Math.min(95, 50 + diagnostics.aimX * 45));
   const radarDotTop = Math.max(5, Math.min(95, 50 - diagnostics.aimY * 45));
@@ -162,6 +165,24 @@ export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverl
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {onOpenSensorLab && (
+            <button
+              data-testid="open-sensor-lab"
+              onClick={onOpenSensorLab}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '10px',
+                border: '1px solid #34d399',
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#34d399',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              📊 센서 랩
+            </button>
+          )}
           <button
             onClick={onSpawnFivePointTargets}
             style={{

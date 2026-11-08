@@ -1,6 +1,6 @@
 # Task: T01 센서 테스트장 숨기기 + 센서 랩 모달 흔들림 수정
 
-## Status: pending
+## Status: done
 
 ## Goal
 일반 사용자 화면(로비·인게임 HUD·페어링 우상단)에서 "영점·센서 & 모듈 테스트장"과 "모바일 센서 진단 & 안정화 랩" 진입 버튼을 없애고, `/sensor-test` 주소로만 테스트장을 열 수 있게 한다. 동시에 폰을 연결했을 때 센서 랩 모달이 높이가 커졌다 작아지는 문제를 고친다. 둘 다 `PCGamePage.tsx`와 `MobileSensorLabModal.tsx` 주변이라 한 Task로 묶는다.
@@ -105,6 +105,6 @@ Task: T01-sensor-lab-url-only
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

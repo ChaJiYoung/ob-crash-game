@@ -175,7 +175,6 @@ export interface ArcadeOverlayHUDProps {
   presentations: PlayerPresentation[];
   team: { livesTitle: string };
   onOpenGuide?: () => void;
-  onOpenSensorLab?: () => void;
   onPause?: () => void;
 }
 
@@ -222,7 +221,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   presentations,
   team,
   onOpenGuide,
-  onOpenSensorLab,
   onPause,
 }) => {
   const teamBuffs = activeBuffs.filter((b) => b.kind === 'ice_freeze');
@@ -443,27 +441,6 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
                 }}
               >
                 <span>📖</span> 가이드
-              </button>
-            )}
-
-            {onOpenSensorLab && (
-              <button
-                onClick={onOpenSensorLab}
-                style={{
-                  background: 'rgba(17, 24, 39, 0.92)',
-                  border: '1px solid rgba(56, 189, 248, 0.4)',
-                  borderRadius: '10px',
-                  padding: '8px 14px',
-                  color: '#38bdf8',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <span>🧪</span> 센서 연구소
               </button>
             )}
 

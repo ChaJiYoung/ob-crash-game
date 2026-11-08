@@ -23,6 +23,7 @@ import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './compone
 import {
   MobileSensorLabModal,
   loadSavedTuningConfig,
+  mergeSensorFrameMetrics,
   saveTuningConfig,
   SensorLiveMetrics,
   SensorTuningConfig,
@@ -649,19 +650,22 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                     lastSnapFireAt: p.snapFire ? Date.now() : prev.lastSnapFireAt,
                   }));
 
-                  setSensorLiveMetrics({
-                    rawAimX: frameResult.rawAimX,
-                    rawAimY: frameResult.rawAimY,
-                    aimX: frameResult.aimX,
-                    aimY: frameResult.aimY,
-                    yawDeg: p.yawDeg,
-                    pitchDeg: p.pitchDeg,
-                    rollDeg: p.rollDeg,
-                    packetHz: packetCountRef.current * 4 || 60,
-                    jitterRms: currentJitterRms,
-                    isCocked: p.isCocked,
-                    lastSnapAt: p.snapFire ? Date.now() : undefined,
-                  });
+                  setSensorLiveMetrics((prev) =>
+                    mergeSensorFrameMetrics(prev, {
+                      rawAimX: frameResult.rawAimX,
+                      rawAimY: frameResult.rawAimY,
+                      aimX: frameResult.aimX,
+                      aimY: frameResult.aimY,
+                      yawDeg: p.yawDeg,
+                      pitchDeg: p.pitchDeg,
+                      rollDeg: p.rollDeg,
+                      packetHz: packetCountRef.current * 4 || 60,
+                      jitterRms: currentJitterRms,
+                      isCocked: p.isCocked,
+                      // 스냅이 아닐 때는 일부러 undefined로 덮어쓴다(키를 생략하면 이전 값이 남는다).
+                      lastSnapAt: p.snapFire ? Date.now() : undefined,
+                    })
+                  );
                 }
               }
             } else {
@@ -1209,15 +1213,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     phoneAdaptersRef.current[soloSlot]?.autoZeroFromLatest();
   }, []);
 
-  const handleStartSandbox = useCallback(() => {
-    setIsGuideOpen(false);
-    const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
-    slotIndexMapRef.current = { [soloSlot]: 0 };
-    engine.startSandboxMode();
-    syncProcessors();
-    setPhase('SANDBOX');
-  }, [engine, syncProcessors]);
-
   const handleStartTutorial = useCallback(() => {
     setIsGuideOpen(false);
     const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
@@ -1501,7 +1496,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             presentations={presentations}
             team={teamPresentation}
             onOpenGuide={handleOpenGuide}
-            onOpenSensorLab={handleOpenSensorLab}
             onPause={gamePhase === 'PLAYING' ? () => handleOpenPause('USER') : undefined}
           />
           {engine.players.map((p, i) => {
@@ -1579,6 +1573,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         <>
           <SensorAndModuleTestLabOverlay
             roomId={roomId}
+            onOpenSensorLab={handleOpenSensorLab}
             lanIp={lanIp}
             pairedPlayer={pairedPlayer}
             diagnostics={diagnostics}
@@ -1674,7 +1669,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onStart={() => pressScreenButton('start')}
             onOpenGuide={handleOpenGuide}
             onStartTutorial={handleStartTutorial}
-            onStartSandbox={handleStartSandbox}
             onRenewRoom={handleRenewRoom}
           />
           {slots.some(shouldShowLobbyCrosshair) && (
@@ -1815,33 +1809,6 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         isOpen={isGuideOpen}
         onClose={handleCloseGuide}
       />
-
-      {/* Top-Right Quick Sensor Lab Floating Button in PAIRING / ZEROING */}
-      {(gamePhase === 'PAIRING' || gamePhase === 'ZEROING') && (
-        <button
-          onClick={handleOpenSensorLab}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            zIndex: 110,
-            background: 'rgba(17, 24, 39, 0.92)',
-            border: '1px solid rgba(16, 185, 129, 0.7)',
-            borderRadius: '12px',
-            padding: '8px 18px',
-            color: '#34d399',
-            fontSize: '14px',
-            fontWeight: 900,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span>🎯</span>
-          <span>모바일 센서 진단 & 안정화 랩</span>
-        </button>
-      )}
 
       {/* 6. Mobile Sensor Lab & Stabilizer Modal */}
       <MobileSensorLabModal

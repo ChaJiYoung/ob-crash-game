@@ -32,7 +32,6 @@ export interface QRPairingModalProps {
   onStart: () => void;
   onOpenGuide?: () => void;
   onStartTutorial?: () => void;
-  onStartSandbox?: () => void;
   onRenewRoom?: () => void;
 }
 
@@ -382,7 +381,6 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   onStart,
   onOpenGuide,
   onStartTutorial,
-  onStartSandbox,
   onRenewRoom,
 }) => {
   const joinedCount = getJoinedSlots(slots).length;
@@ -602,30 +600,6 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                 </div>
               )}
             </div>
-
-            {onStartSandbox && (
-              <button
-                onClick={onStartSandbox}
-                style={{
-                  width: '100%',
-                  padding: '11px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(56, 189, 248, 0.4)',
-                  background: 'rgba(56, 189, 248, 0.1)',
-                  color: '#38bdf8',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.15s',
-                }}
-              >
-                🎯 영점·센서 & 모듈 테스트장 (실시간 각도·몬스터·피버 시험)
-              </button>
-            )}
 
             {(onStartTutorial || onOpenGuide) && (
               <div style={{ display: 'flex', gap: '10px' }}>

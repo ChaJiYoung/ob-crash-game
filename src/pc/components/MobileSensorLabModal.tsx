@@ -27,6 +27,18 @@ export interface SensorLiveMetrics {
   textures?: number;
 }
 
+/** 센서 프레임이 채우는 필드. 렌더 성능 지표(fps/drawCalls/geometries/textures)는 포함하지 않는다. */
+export type SensorFrameMetrics = Omit<SensorLiveMetrics, 'fps' | 'drawCalls' | 'geometries' | 'textures'>;
+
+/**
+ * 센서 프레임 지표를 이전 지표 위에 얹는다. 렌더 성능 지표는 지우지 않는다.
+ * 상태를 통째로 교체하면 렌더 지표가 잠깐 사라졌다 돌아와, 모달의 "렌더 성능"·"GPU 메모리" 줄이
+ * 켜졌다 꺼지며 높이가 흔들린다. 프레임에 명시한 키(예: 값이 undefined인 lastSnapAt)는 그대로 덮어쓴다.
+ */
+export function mergeSensorFrameMetrics(prev: SensorLiveMetrics, frame: SensorFrameMetrics): SensorLiveMetrics {
+  return { ...prev, ...frame };
+}
+
 export interface MobileSensorLabModalProps {
   isOpen: boolean;
   onClose: () => void;
