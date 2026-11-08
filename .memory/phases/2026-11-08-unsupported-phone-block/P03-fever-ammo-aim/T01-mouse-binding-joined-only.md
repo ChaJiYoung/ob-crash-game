@@ -1,6 +1,6 @@
 # Task: T01 마우스 보조 입력 폐기
 
-## Status: pending
+## Status: done
 
 ## Goal
 폰으로 혼자 플레이할 때 마우스를 움직이거나 클릭해도 조준경·사격에 영향이 없게 한다. 마우스는 로비에서 마우스로 참여한 슬롯(`input === 'mouse'`)만 조종한다.
@@ -77,6 +77,6 @@ Task: T01-mouse-binding-joined-only
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -158,7 +158,7 @@ export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverl
               </span>
             ) : (
               <span style={{ color: '#94a3b8', marginLeft: '8px' }}>
-                (🖱️ PC 마우스 또는 스마트폰 연결)
+                (📱 조준하려면 스마트폰을 연결하세요)
               </span>
             )}
           </div>

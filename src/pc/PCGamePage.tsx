@@ -282,7 +282,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const mouseAdapterRef = useRef<MouseAdapter | null>(null);
   if (!mouseAdapterRef.current) {
     mouseAdapterRef.current = new MouseAdapter(
-      () => processorFor(getMouseBinding(slotsRef.current, slotIndexMapRef.current, engine.players.length) ?? undefined),
+      () => processorFor(getMouseBinding(slotsRef.current, slotIndexMapRef.current) ?? undefined),
       WEAPON_CONSTANTS.FEVER_DOUBLE_TAP_MS
     );
   }

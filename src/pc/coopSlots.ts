@@ -207,19 +207,15 @@ export function getMouseIndex(
 
 /**
  * 마우스 어댑터가 어느 플레이어 처리부를 조종할지 결정.
- * - 마우스 슬롯이 있으면 그 플레이어.
- * - 없으면 플레이어가 1명일 때 보조 입력으로 플레이어 0 (기존 1인 폰 판에서 마우스도 쓸 수 있던 동작 유지).
- * - 그 외(폰 2대 등)는 null (게임 중 마우스 사격 비활성, HTML 버튼 클릭은 영향 없음).
+ * 마우스로 참여한 슬롯이 있으면 그 플레이어, 없으면 null(게임 중 마우스 조준·사격·우클릭 스킬 비활성).
+ * 폰 혼자일 때 마우스를 보조 입력으로 플레이어 0에 묶던 동작은 폐기했다: 폰이 조준 신호를 보내는 동안
+ * 마우스를 움직이면 같은 조준점을 두 입력이 번갈아 덮어썼다. HTML 버튼 클릭은 이 경로를 쓰지 않아 영향이 없다.
  */
 export function getMouseBinding(
   slots: SlotPair,
-  map: Partial<Record<PlayerSlot, PlayerIndex>>,
-  playerCount: number
+  map: Partial<Record<PlayerSlot, PlayerIndex>>
 ): PlayerIndex | null {
-  const mouseIndex = getMouseIndex(slots, map);
-  if (mouseIndex !== null) return mouseIndex;
-  if (playerCount === 1) return 0;
-  return null;
+  return getMouseIndex(slots, map);
 }
 
 export type LobbyStartDecision =

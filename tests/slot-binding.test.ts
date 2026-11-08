@@ -26,13 +26,42 @@ const mockProfile = (deviceId: string, nickname: string): PlayerProfile => ({
 
 describe('Slot Binding to Player Action Processors (P04-T04)', () => {
   describe('getMouseBinding', () => {
-    it('handles 1P phone alone -> player 0 (fallback for 1-player phone game)', () => {
+    it('handles 1P phone alone -> null (the mouse no longer steals the phone aim)', () => {
       let slots = createInitialSlots();
       slots = chooseSlotInput(slots, 1, 'mobile').slots;
       slots = updateSlot(slots, 1, { player: mockProfile('d1', 'P1'), isConnected: true });
       const map = buildSlotIndexMap(slots); // { 1: 0 }
-      const binding = getMouseBinding(slots, map, 1);
-      expect(binding).toBe(0);
+      const binding = getMouseBinding(slots, map);
+      expect(binding).toBeNull();
+    });
+
+    it('a solo phone game ignores mouse move, click and right-click (adapter sends nothing)', () => {
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 1, 'mobile').slots;
+      slots = updateSlot(slots, 1, { player: mockProfile('d1', 'P1'), isConnected: true });
+      const map = buildSlotIndexMap(slots);
+      const binding = getMouseBinding(slots, map);
+      const send = vi.fn();
+      const mouseAdapter = new MouseAdapter(() => (binding !== null ? ({ send } as never) : null));
+      mouseAdapter.onMove(0.4, 0.4);
+      mouseAdapter.onLeftDown();
+      mouseAdapter.onLeftUp();
+      mouseAdapter.onRightClick();
+      expect(send).not.toHaveBeenCalled();
+    });
+
+    it('handles no joined slot at all -> null', () => {
+      const slots = createInitialSlots();
+      expect(getMouseBinding(slots, buildSlotIndexMap(slots))).toBeNull();
+    });
+
+    it('with a mouse slot and a phone slot, only the mouse slot is bound', () => {
+      let slots = createInitialSlots();
+      slots = chooseSlotInput(slots, 1, 'mobile').slots;
+      slots = updateSlot(slots, 1, { player: mockProfile('d1', 'P1'), isConnected: true });
+      slots = chooseSlotInput(slots, 2, 'mouse').slots;
+      slots = updateSlot(slots, 2, { player: mockProfile('dm', 'Mouse') });
+      expect(getMouseBinding(slots, buildSlotIndexMap(slots))).toBe(1);
     });
 
     it('handles 1P mouse alone -> player 0', () => {
@@ -40,7 +69,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       slots = chooseSlotInput(slots, 1, 'mouse').slots;
       slots = updateSlot(slots, 1, { player: mockProfile('dm', 'Mouse') });
       const map = buildSlotIndexMap(slots); // { 1: 0 }
-      const binding = getMouseBinding(slots, map, 1);
+      const binding = getMouseBinding(slots, map);
       expect(binding).toBe(0);
     });
 
@@ -51,7 +80,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       slots = chooseSlotInput(slots, 2, 'mouse').slots;
       slots = updateSlot(slots, 2, { player: mockProfile('dm', 'Mouse') });
       const map = buildSlotIndexMap(slots); // { 1: 0, 2: 1 }
-      const binding = getMouseBinding(slots, map, 2);
+      const binding = getMouseBinding(slots, map);
       expect(binding).toBe(1);
     });
 
@@ -62,7 +91,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       slots = chooseSlotInput(slots, 2, 'mobile').slots;
       slots = updateSlot(slots, 2, { player: mockProfile('d2', 'P2'), isConnected: true });
       const map = buildSlotIndexMap(slots); // { 1: 0, 2: 1 }
-      const binding = getMouseBinding(slots, map, 2);
+      const binding = getMouseBinding(slots, map);
       expect(binding).toBe(0);
     });
 
@@ -73,7 +102,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       slots = chooseSlotInput(slots, 2, 'mobile').slots;
       slots = updateSlot(slots, 2, { player: mockProfile('d2', 'P2'), isConnected: true });
       const map = buildSlotIndexMap(slots); // { 1: 0, 2: 1 }
-      const binding = getMouseBinding(slots, map, 2);
+      const binding = getMouseBinding(slots, map);
       expect(binding).toBeNull();
     });
   });
@@ -242,7 +271,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
         { slot: 2, input: 'mobile', player: mockProfile('d2', 'P2'), isConnected: true, isZeroCalibrated: true, isAway: false },
       ];
       const map = buildSlotIndexMap(slots);
-      expect(getMouseBinding(slots, map, 2)).toBeNull();
+      expect(getMouseBinding(slots, map)).toBeNull();
 
       // HTML click still calls pressScreenButton directly
       pressScreenButton('restart');
@@ -280,7 +309,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       slots = chooseSlotInput(slots, 2, 'mouse').slots;
       slots = updateSlot(slots, 2, { player: mockProfile('dm', 'Mouse') });
       const map = buildSlotIndexMap(slots);
-      const binding = getMouseBinding(slots, map, 2);
+      const binding = getMouseBinding(slots, map);
       expect(binding).toBe(1);
 
       const mouseAdapter = new MouseAdapter(() => (binding !== null ? processors[binding] : null));
@@ -319,7 +348,7 @@ describe('Slot Binding to Player Action Processors (P04-T04)', () => {
       slots = chooseSlotInput(slots, 2, 'mobile').slots;
       slots = updateSlot(slots, 2, { player: mockProfile('d2', 'P2'), isConnected: true });
       const map = buildSlotIndexMap(slots);
-      const binding = getMouseBinding(slots, map, 2);
+      const binding = getMouseBinding(slots, map);
       expect(binding).toBeNull();
 
       const mouseAdapter = new MouseAdapter(() => (binding !== null ? processors[binding] : null));
