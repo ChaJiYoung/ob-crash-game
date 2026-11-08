@@ -1,17 +1,19 @@
 # Current Context
 
 ## Active Plan
-[WebGL 컨텍스트 손실·차단 대응](./plans/2026-11-09-webgl-context-loss.md)
+[Oracle Cloud Free VM 배포 (oracle-vm-deployment)](./plans/2026-11-08-oracle-vm-deployment.md)
 
 ## Active Phase
-[P01 컨텍스트 가드](./phases/2026-11-09-webgl-context-loss/P01-context-guard/phase.md)
+[P01 오라클 Always Free VM 배포 구축 (oracle-deployment)](./phases/2026-11-08-oracle-vm-deployment/P01-oracle-deployment/phase.md)
 
 ## Active Task
-[없음 (계획 전체 완료) — 마지막: T01 컨텍스트 손실 감시·안내 오버레이·정리 시 반납](./phases/2026-11-09-webgl-context-loss/P01-context-guard/T01-context-guard-and-overlay.md)
+[없음 (계획 전체 완료) — 마지막: T03 오라클 Always Free 배포 가이드 문서화 및 README 갱신](./phases/2026-11-08-oracle-vm-deployment/P01-oracle-deployment/T03-oracle-deployment-runbook.md)
 
 ## Status
-- 계획 `2026-11-09-webgl-context-loss` 전체 완료: T01 ad24cc4. tsc 0 오류, vitest 111 파일·888 테스트 통과, build 성공.
-- 직전 계획 `2026-11-08-half-wave-card-and-coop-density` 전체 완료(d89d7b7, 82b9017, 6cc7cc4). 1인 클리어율 하락 보정은 사용자 결정 대기.
+- T01 완료 (`fafd327`): 서버 접속 가드 & SERVER_FULL 배너
+- T02 완료 (`41accab`): Docker & Caddy 컨테이너 인프라 & 스모크 테스트 통과
+- T03 완료 (`db1081c`): 오라클 Always Free 완결 배포 가이드 문서화 & README 갱신
+- **🎉 오라클 Always Free 배포 계획의 모든 Task 완료!**
 
 ## Next Step (IMPORTANT)
-Chrome 완전 재시작 후 실행 확인. 개발 콘솔에서 `loseContext()`로 손실 안내 수동 확인. 1인 클리어율 보정 여부 결정.
+다음 기능 구현 시 새 계획 수립 또는 추가 작업 지시 대기

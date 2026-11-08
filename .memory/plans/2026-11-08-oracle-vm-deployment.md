@@ -11,10 +11,4 @@ Decisions: [2026-11-08-oracle-vm-deployment](../decisions/2026-11-08-oracle-vm-d
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `pending` | WebSocket 접속 가드(크기·IP당/전체 상한·Origin·프록시 IP) + SERVER_FULL 안내 배너 | [P01](../phases/2026-11-08-oracle-vm-deployment/P01-server-hardening/phase.md) |
-| P02 | `pending` | Dockerfile·Caddyfile·compose·.env.example·.dockerignore + 로컬 스모크 테스트 스크립트 | [P02](../phases/2026-11-08-oracle-vm-deployment/P02-container-infra/phase.md) |
-| P03 | `pending` | 오라클 Always Free 배포·재시작·백업·트러블슈팅 가이드 + README 갱신 | [P03](../phases/2026-11-08-oracle-vm-deployment/P03-deployment-guide/phase.md) |
-
-## Order Rationale
-- P01을 먼저 하는 이유: P02의 compose가 `ALLOWED_ORIGIN`/`TRUST_PROXY`/`WS_MAX_CONN_*` 환경변수를 주입하고, P02 스모크 테스트가 "잘못된 Origin 거절"을 검증하므로 서버 기능이 먼저 있어야 한다.
-- P03 가이드는 P02의 실제 파일명·환경변수·스모크 스크립트 명령을 그대로 인용하므로 마지막.
+| P01 | `done ✅` | 오라클 Always Free VM 배포 구축 (서버 방어 + 컨테이너 인프라 + 배포 가이드) | [P01](../phases/2026-11-08-oracle-vm-deployment/P01-oracle-deployment/phase.md) |
