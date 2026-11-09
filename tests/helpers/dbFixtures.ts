@@ -82,7 +82,7 @@ export function playSolo(
 /** 협동 판(slot1=a, slot2=b)을 만들고 둘 다 제출한다. teamScore는 두 점수의 합이 아니어도 된다. */
 export function playCoop(
   env: Env,
-  o: { a: string; b: string; teamScore: number; scoreA?: number; scoreB?: number; at?: number; roomId?: string; rv?: number; submitB?: boolean },
+  o: { a: string; b: string; teamScore: number; scoreA?: number; scoreB?: number; at?: number; roomId?: string; rv?: number; submitB?: boolean; outcome?: PlayRunStats['outcome'] },
 ): number {
   const at = o.at ?? ++seq;
   const roomId = o.roomId ?? `R${++seq}`;
@@ -101,13 +101,13 @@ export function playCoop(
   const nick = (id: string) => `닉_${id}`.slice(0, 10);
   const r1 = env.records.submitResult({
     gameId, roomId, playerId: o.a, submittedAt: iso(at),
-    stats: coopStats(1, o.teamScore, scoreA, { id: o.b, nickname: nick(o.b) }),
+    stats: coopStats(1, o.teamScore, scoreA, { id: o.b, nickname: nick(o.b) }, o.outcome ? { outcome: o.outcome } : {}),
   });
   if (!r1.ok) throw new Error(`playCoop submit A failed: ${r1.reason}`);
   if (o.submitB !== false) {
     const r2 = env.records.submitResult({
       gameId, roomId, playerId: o.b, submittedAt: iso(at + 0.001),
-      stats: coopStats(2, o.teamScore, scoreB, { id: o.a, nickname: nick(o.a) }),
+      stats: coopStats(2, o.teamScore, scoreB, { id: o.a, nickname: nick(o.a) }, o.outcome ? { outcome: o.outcome } : {}),
     });
     if (!r2.ok) throw new Error(`playCoop submit B failed: ${r2.reason}`);
   }

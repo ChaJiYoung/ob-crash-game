@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { WebSocket } from 'ws';
 import { createBeerCrusherServer, BeerCrusherServerInstance } from '../server/wsServer';
 import { ServerToClientMessage } from '../src/shared/types';
-import { coopStats, makeEnv, playCoop, register } from './helpers/dbFixtures';
+import { coopStats, makeEnv, playCoop, playSolo, register } from './helpers/dbFixtures';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 describe('team rankings (P03-T04)', () => {
@@ -107,5 +107,35 @@ describe('team rankings (P03-T04)', () => {
 
       ws.close();
     });
+  });
+});
+
+describe('ranking outcome (clear vs death)', () => {
+  it('getTopRuns reports VICTORY and GAMEOVER separately even at the same wave', () => {
+    const env = makeEnv();
+    register(env, 'dev_A', 'dev_B');
+    playSolo(env, { playerId: 'dev_A', score: 900, at: 1, over: { outcome: 'VICTORY', waveReached: 7 } });
+    playSolo(env, { playerId: 'dev_B', score: 800, at: 2, over: { outcome: 'GAMEOVER', waveReached: 7 } });
+    const runs = env.records.getTopRuns(5);
+    expect(runs.map((r) => [r.deviceId, r.outcome, r.waveReached])).toEqual([
+      ['dev_A', 'VICTORY', 7],
+      ['dev_B', 'GAMEOVER', 7],
+    ]);
+    env.db.close();
+  });
+
+  it('getTopTeams uses the outcome of the team best-score game, not of any game', () => {
+    const env = makeEnv();
+    register(env, 'dev_A', 'dev_B');
+    playCoop(env, { a: 'dev_A', b: 'dev_B', teamScore: 500, at: 1, outcome: 'VICTORY' });
+    playCoop(env, { a: 'dev_A', b: 'dev_B', teamScore: 900, at: 2, outcome: 'GAMEOVER' });
+    const teams = env.records.getTopTeams(5);
+    expect(teams).toHaveLength(1);
+    expect(teams[0].teamScore).toBe(900);
+    expect(teams[0].outcome).toBe('GAMEOVER');
+
+    playCoop(env, { a: 'dev_A', b: 'dev_B', teamScore: 1200, at: 3, outcome: 'VICTORY' });
+    expect(env.records.getTopTeams(5)[0].outcome).toBe('VICTORY');
+    env.db.close();
   });
 });

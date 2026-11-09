@@ -1,6 +1,6 @@
 # Task: T01 랭킹 outcome 노출 + 클리어 글자 표시
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비와 결과 화면의 랭킹(솔로·팀)에서, 최종 웨이브를 깨 클리어한 기록은 `W7` 대신 금색 "CLEAR"로, 7웨이브에서 죽은 기록은 지금처럼 회색 `W7`로 보인다.
@@ -79,6 +79,6 @@ Task: T01-ranking-outcome-and-clear-label
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-ranking-outcome-and-clear-label"

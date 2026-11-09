@@ -179,4 +179,55 @@ describe('RankingTabs Component and Pure Helpers (P05-T07)', () => {
     expect(teamHtml).toContain('샷건');
     expect(teamHtml).toContain('리볼버');
   });
+
+  it('shows CLEAR (gold, text only) for cleared runs and W{n} for deaths or missing outcome', () => {
+    const base = { weaponKind: 'shotgun' as const, playedAt: '2026-11-07T10:00:00Z' };
+    const solo: RunRankingEntry[] = [
+      { deviceId: 'a', nickname: '클리어맨', score: 30000, waveReached: 7, outcome: 'VICTORY', ...base },
+      { deviceId: 'b', nickname: '7웨이브사망', score: 20000, waveReached: 7, outcome: 'GAMEOVER', ...base },
+      { deviceId: 'c', nickname: '옛기록', score: 10000, waveReached: 5, ...base },
+    ];
+    const html = renderToStaticMarkup(
+      React.createElement(RankingTabs, { soloRankings: solo, teamRankings: [], activeTab: 'solo', onChangeTab: () => {} })
+    );
+    expect(html.match(/data-testid="ranking-wave-clear"/g)).toHaveLength(1);
+    expect(html.match(/data-testid="ranking-wave-dead"/g)).toHaveLength(2);
+    expect(html).toContain('CLEAR');
+    expect(html).toContain('W7');
+    expect(html).toContain('W5');
+    // CLEAR 칸은 글자만이다(탭 제목의 🏆는 별개).
+    expect(html).toContain('>CLEAR</div>');
+  });
+
+  it('shows CLEAR on team entries too', () => {
+    const teams: TeamRankingEntry[] = [
+      {
+        teamKey: 'a|b',
+        members: [
+          { deviceId: 'a', nickname: '가' },
+          { deviceId: 'b', nickname: '나' },
+        ],
+        teamScore: 50000,
+        waveReached: 7,
+        playedAt: '2026-11-07T12:00:00Z',
+        outcome: 'VICTORY',
+      },
+      {
+        teamKey: 'c|d',
+        members: [
+          { deviceId: 'c', nickname: '다' },
+          { deviceId: 'd', nickname: '라' },
+        ],
+        teamScore: 40000,
+        waveReached: 7,
+        playedAt: '2026-11-07T12:05:00Z',
+        outcome: 'GAMEOVER',
+      },
+    ];
+    const html = renderToStaticMarkup(
+      React.createElement(RankingTabs, { soloRankings: [], teamRankings: teams, activeTab: 'team', onChangeTab: () => {} })
+    );
+    expect(html.match(/data-testid="ranking-wave-clear"/g)).toHaveLength(1);
+    expect(html.match(/data-testid="ranking-wave-dead"/g)).toHaveLength(1);
+  });
 });

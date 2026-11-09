@@ -145,9 +145,12 @@ export interface CardPickRecord {
   auto: boolean;
 }
 
+/** 한 판의 결과: 사망(GAMEOVER)과 클리어(VICTORY). */
+export type RunOutcome = 'GAMEOVER' | 'VICTORY';
+
 /** 끝난 한 판의 통계. 서버가 SQLite DB(data/game.db)에 저장한다. */
 export interface PlayRunStats {
-  outcome: 'GAMEOVER' | 'VICTORY';
+  outcome: RunOutcome;
   waveReached: number;
   livesLeft: number;
   durationSec: number;
@@ -187,6 +190,8 @@ export interface RunRankingEntry {
   weaponKind: WeaponKind;
   playedAt: string;
   inputKind?: InputKind;
+  /** 클리어(VICTORY)인지 사망(GAMEOVER)인지. 없으면 사망으로 본다(옛 데이터·옛 클라이언트). */
+  outcome?: RunOutcome;
 }
 
 export interface TeamRankingMember {
@@ -204,6 +209,8 @@ export interface TeamRankingEntry {
   teamScore: number;
   waveReached: number;
   playedAt: string;
+  /** 팀 최고점 판의 결과. 없으면 사망으로 본다. */
+  outcome?: RunOutcome;
 }
 
 export interface CoopBestEntry {

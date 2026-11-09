@@ -1,5 +1,5 @@
 import { GameDatabase } from './db/GameDatabase';
-import { CardPickRecord, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../src/shared/types';
+import { CardPickRecord, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface BeginGameInput {
@@ -101,6 +101,7 @@ interface RunRow {
   weapon_kind: WeaponKind;
   ended_at: string;
   input_kind: InputKind | null;
+  outcome: RunOutcome | null;
 }
 
 interface TeamGameRow {
@@ -108,6 +109,7 @@ interface TeamGameRow {
   team_key: string;
   total_score: number;
   wave_reached: number;
+  outcome: RunOutcome | null;
   ended_at: string;
 }
 
@@ -277,7 +279,7 @@ export class PlayRecordStore {
   public getTopRuns(limit = 5): RunRankingEntry[] {
     const rows = this.db.conn
       .prepare(
-        `SELECT gp.player_id, p.nickname, g.total_score, g.wave_reached, gp.weapon_kind, g.ended_at, gp.input_kind
+        `SELECT gp.player_id, p.nickname, g.total_score, g.wave_reached, g.outcome, gp.weapon_kind, g.ended_at, gp.input_kind
          FROM games g JOIN game_players gp ON gp.game_id = g.id JOIN players p ON p.id = gp.player_id
          WHERE g.mode = 'solo' AND g.status = 'finished' AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL
          ORDER BY g.total_score DESC, g.ended_at ASC LIMIT @limit`,
@@ -291,6 +293,7 @@ export class PlayRecordStore {
       weaponKind: r.weapon_kind,
       playedAt: r.ended_at,
       ...(r.input_kind ? { inputKind: r.input_kind } : {}),
+      ...(r.outcome ? { outcome: r.outcome } : {}),
     }));
   }
 
@@ -298,10 +301,10 @@ export class PlayRecordStore {
     const games = this.db.conn
       .prepare(
         `WITH ranked AS (
-           SELECT g.id, g.team_key, g.total_score, g.wave_reached, g.ended_at,
+           SELECT g.id, g.team_key, g.total_score, g.wave_reached, g.outcome, g.ended_at,
                   ROW_NUMBER() OVER (PARTITION BY g.team_key ORDER BY g.total_score DESC, g.ended_at ASC) AS rn
            FROM games g WHERE g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv)
-         SELECT id, team_key, total_score, wave_reached, ended_at FROM ranked WHERE rn = 1
+         SELECT id, team_key, total_score, wave_reached, outcome, ended_at FROM ranked WHERE rn = 1
          ORDER BY total_score DESC, ended_at ASC LIMIT @limit`,
       )
       .all({ rv: this.rulesetVersion, limit }) as TeamGameRow[];
@@ -327,6 +330,7 @@ export class PlayRecordStore {
         teamScore: g.total_score,
         waveReached: g.wave_reached,
         playedAt: g.ended_at,
+        ...(g.outcome ? { outcome: g.outcome } : {}),
       });
     }
     return out;

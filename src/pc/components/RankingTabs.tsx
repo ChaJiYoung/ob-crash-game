@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { InputKind, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../../shared/types';
+import { InputKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../../shared/types';
 import { INPUT_KIND_ICON, INPUT_KIND_LABEL, WEAPON_RANKING_LABEL } from '../../shared/constants';
 
 /** 입력 장치 아이콘. 옛 기록(값 없음)은 아무것도 그리지 않는다. */
@@ -9,6 +9,18 @@ export const InputKindIcon: React.FC<{ kind?: InputKind }> = ({ kind }) =>
       {INPUT_KIND_ICON[kind]}
     </span>
   ) : null;
+
+/** 랭킹 항목의 웨이브 칸. 클리어는 금색 "CLEAR"(글자만), 사망(또는 옛 기록)은 회색 "W{n}". */
+export const WaveLabel: React.FC<{ waveReached: number; outcome?: RunOutcome }> = ({ waveReached, outcome }) =>
+  outcome === 'VICTORY' ? (
+    <div data-testid="ranking-wave-clear" style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 800 }}>
+      CLEAR
+    </div>
+  ) : (
+    <div data-testid="ranking-wave-dead" style={{ fontSize: '10px', color: '#64748b' }}>
+      W{waveReached}
+    </div>
+  );
 
 /** 팀 멤버 한 줄: 아이콘 닉네임 · 무기 · 점수. 없는 값은 그 조각만 생략한다. */
 export function formatTeamMemberDetail(m: TeamRankingMember): string {
@@ -212,7 +224,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
                     <div style={{ fontWeight: 800, color: compact ? '#f59e0b' : '#38bdf8' }}>
                       {compact ? entry.score.toLocaleString() : `${entry.score}점`}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>W{entry.waveReached}</div>
+                    <WaveLabel waveReached={entry.waveReached} outcome={entry.outcome} />
                   </div>
                 </div>
               );
@@ -310,7 +322,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
                     <div style={{ fontWeight: 800, color: compact ? '#f59e0b' : '#38bdf8' }}>
                       {compact ? entry.teamScore.toLocaleString() : `${entry.teamScore.toLocaleString()}점`}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>W{entry.waveReached}</div>
+                    <WaveLabel waveReached={entry.waveReached} outcome={entry.outcome} />
                   </div>
                 </div>
               );
