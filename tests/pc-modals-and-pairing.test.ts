@@ -1,3 +1,4 @@
+import { readGuideSource } from './helpers/guideSource';
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import fs from 'node:fs';
@@ -173,11 +174,12 @@ describe('lobby controls hint', () => {
     for (const f of [
       'src/pc/components/ArcadeOverlayHUD.tsx',
       'src/pc/components/TutorialGuideOverlay.tsx',
-      'src/pc/components/GuideModal.tsx',
     ]) {
       const src = fs.readFileSync(f, 'utf8');
       expect(src).not.toMatch(/\[Space|Space 키|Space로|R 키|R키/);
     }
+    // 가이드는 GuideModal.tsx와 guide/ 폴더에 나뉘어 있으므로 합친 소스로 검사한다.
+    expect(readGuideSource()).not.toMatch(/\[Space|Space 키|Space로|R 키|R키/);
   });
 });
 
@@ -212,7 +214,7 @@ describe('lobby tutorial and guide buttons', () => {
   });
 
   it('the guide modal no longer has its own tutorial button', () => {
-    const src = fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8');
+    const src = readGuideSource();
     expect(src).not.toContain('showTutorialButton');
     expect(src).not.toContain('튜토리얼 플레이');
   });

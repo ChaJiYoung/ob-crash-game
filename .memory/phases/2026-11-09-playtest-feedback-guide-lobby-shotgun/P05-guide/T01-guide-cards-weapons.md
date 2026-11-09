@@ -1,6 +1,6 @@
 # Task: T01 가이드 카드 공통 컴포넌트와 무기 탭 카드화
 
-## Status: pending
+## Status: done
 
 ## Goal
 가이드 모달의 줄글 불릿을 "카드"로 바꾸는 공통 부품(`GuideCard`, `StatChip`, `StatBar`, 접기)과 한 줄 요약 데이터(`guideText.ts`)를 만들고, 첫 탭인 무기·스킬 탭을 카드로 바꾼다. 샷건의 새 평타 퍼짐·스킬 설명은 튜닝 값에서 계산해 보여 준다(D11, D12). 나머지 탭은 T02가 같은 부품으로 바꾼다.
@@ -129,6 +129,6 @@ Task: T01-guide-cards-weapons
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-guide-cards-weapons"

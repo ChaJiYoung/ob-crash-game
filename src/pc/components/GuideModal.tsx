@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TARGET_SPECS, ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS, REWARD_CARD_SPECS } from '../../shared/constants';
 import { TargetKind, ItemBuffKind } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
+import { WeaponsTab } from './guide/WeaponsTab';
 
 /** 중간 카드가 나오는 웨이브. 가이드 문구가 웨이브 표와 어긋나지 않게 표에서 만든다. */
 const MID_CARD_TEXT = GAME_TUNING.waves
@@ -15,38 +16,6 @@ export interface GuideModalProps {
 }
 
 type TabType = 'weapons' | 'monsters' | 'cards' | 'items' | 'coop';
-
-type WeaponKindKey = 'shotgun' | 'revolver' | 'gatling';
-
-/** 무기 도감의 "성능" 줄을 무기 표(`WEAPON_ARCHETYPE_SPECS`, GAME_TUNING 반영)에서 만든다. 수치를 조정해도 안내가 어긋나지 않는다. */
-function levelSeries(byLevel: Record<1 | 2 | 3 | 4, number>): string {
-  return ([1, 2, 3, 4] as const).map((l) => byLevel[l]).join(' / ');
-}
-
-function weaponPerformanceText(kind: WeaponKindKey): string {
-  const lv = WEAPON_ARCHETYPE_SPECS[kind].levels;
-  const levels = [1, 2, 3, 4] as const;
-  return levels
-    .map((l) => {
-      const spec = lv[l];
-      const label = l === 4 ? 'MAX' : `Lv.${l}`;
-      const parts: string[] = [];
-      if (kind === 'shotgun') {
-        parts.push(`${spec.damagePerHit.toFixed(2)}×${spec.pelletCount}=${(spec.damagePerHit * spec.pelletCount).toFixed(2)} DMG`);
-        if (spec.knockbackM > 0) parts.push(`${spec.knockbackM}m 넉백`);
-        if (spec.slowDurationMs > 0) parts.push('둔화');
-      } else if (kind === 'revolver') {
-        parts.push(`${spec.damagePerHit.toFixed(2)} DMG`);
-        if (spec.pierceCount > 0) {
-          parts.push(`${spec.pierceCount}체 관통(관통 피해 ${Math.round(spec.pierceDamageRatio * 100)}%)`);
-        }
-      } else {
-        parts.push(`${spec.damagePerHit.toFixed(2)} DMG`, `${spec.maxAmmo}발`, `${spec.fireIntervalMs}ms`);
-      }
-      return `${label}(${parts.join(', ')})`;
-    })
-    .join(' ➔ ');
-}
 
 const MONSTER_DETAILS: Record<
   TargetKind,
@@ -335,168 +304,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
           }}
         >
           {/* TAB 1: 3 WEAPONS & SKILLS */}
-          {activeTab === 'weapons' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Accuracy Damage Multiplier & No-Miss Arcade Banner */}
-              <div
-                style={{
-                  background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.18), rgba(56, 189, 248, 0.18))',
-                  border: '1.5px solid #fbbf24',
-                  borderRadius: '16px',
-                  padding: '16px 20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                }}
-              >
-                <div style={{ fontSize: '16px', fontWeight: 900, color: '#fbbf24' }}>
-                  🎯 명중 정밀도 데미지 배율 & 노-미스(No-Miss) 아케이드 판정
-                </div>
-                <div style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: '1.6' }}>
-                  • <strong>PERFECT (오차 25% 이내):</strong> <strong>{GAME_TUNING.judgment.perfectDamage.toFixed(1)}배 데미지</strong> 폭딜 (+{Math.round(150 * GAME_TUNING.score.scale)} PTS & 피버 +{GAME_TUNING.fever.perfectDelta}% 충전)<br />
-                  • <strong>GREAT (오차 55% 이내):</strong> <strong>{GAME_TUNING.judgment.greatDamage.toFixed(1)}배 정타 데미지</strong> (+{Math.round(100 * GAME_TUNING.score.scale)} PTS) — 샷건·리볼버는 1레벨에서 기본 캔(1HP)을 원샷으로 제압합니다.<br />
-                  • <strong>GOOD (오차 100% 이내):</strong> <strong>{GAME_TUNING.judgment.goodDamage.toFixed(1)}배 스침 데미지</strong> (+{Math.round(50 * GAME_TUNING.score.scale)} PTS) — 스쳐 살아남은 캔은 머리 위에 잔여 체력바가 즉시 표시됩니다.<br />
-                  • <strong>웨이브 시간 보너스:</strong> 웨이브마다 정해진 기준 시간 안에 끝내면 웨이브당 최대 {GAME_TUNING.score.timeBonus.maxPerWave}점(보스 웨이브는 {GAME_TUNING.score.timeBonus.maxPerWave * GAME_TUNING.score.timeBonus.bossWaveWeight}점)을 받고, 기준 시간의 {GAME_TUNING.score.timeBonus.zeroAtParMult}배에서 0점이 될 때까지 줄어듭니다. 보스를 살려 두고 부하만 잡으며 시간을 끌면 시간 보너스가 줄어듭니다.<br />
-                  • <strong>정밀도 보너스:</strong> 클리어하면 한 판 동안의 판정 비율(PERFECT 100% · GREAT 50% · GOOD 20% 가중, MISS 포함)에 따라 최대 약 {GAME_TUNING.score.precisionBonus.k.toLocaleString()}점이 더해집니다. 많이 쏘는 것보다 정확히 맞히는 것이 랭킹에 유리합니다.<br />
-                  • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {GAME_TUNING.fire.reloadScale.toFixed(1)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
-                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르세요.
-                </div>
-              </div>
-
-              {/* Shotgun */}
-              <div
-                style={{
-                  background: 'rgba(239, 68, 68, 0.08)',
-                  border: '1.5px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '28px' }}>🪠</span>
-                    <div>
-                      <span style={{ fontSize: '18px', fontWeight: 900, color: '#ef4444' }}>
-                        맥주관 뚫어뻥 샷건 (Shotgun)
-                      </span>
-                      <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px' }}>
-                        넓은 명중 범위 & 한 발 강한 화력
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      background: '#ef4444',
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      fontSize: '11px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    넓은 범위 산탄
-                  </span>
-                </div>
-                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  • <strong>외형 진화:</strong> 리얼 고무 벨 뚫어뻥 장착 ➔ Lv.2 듀얼 고압관 ➔ Lv.3 호박색 맥주관 순환 ➔ Lv.4 쿼드 배럴 + 둔화 파동<br />
-                  • <strong>성능:</strong> {weaponPerformanceText('shotgun')}<br />
-                  • <strong>퍼짐:</strong> 십자선 주변 몬스터 {levelSeries(GAME_TUNING.shotgunSpread.extraTargetsByLevel)}마리(Lv.1 / 2 / 3 / MAX)에게도 주 대상 피해의 {([1, 2, 3, 4] as const).map((l) => Math.round(GAME_TUNING.shotgunSpread.damageRatioByLevel[l] * 100)).join(' / ')}%가 함께 들어갑니다(보스는 제외).<br />
-                  • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 방어선에 가까운 몬스터 {levelSeries(GAME_TUNING.skills.plunger.stickMaxByLevel)}마리(Lv.1 / 2 / 3 / MAX)에 뚫어뻥이 박혀 {levelSeries(Object.fromEntries(([1, 2, 3, 4] as const).map((l) => [l, GAME_TUNING.skills.plunger.stunMsByLevel[l] / 1000])) as Record<1 | 2 | 3 | 4, number>)}초 기절하고, 기절이 끝나는 순간 터져 {levelSeries(GAME_TUNING.skills.plunger.blastDamageByLevel)} 피해를 줍니다(박힌 몬스터에게만). 기절해 있는 동안 평타로 마무리하세요! 보스는 박히지 않고 피해({levelSeries(GAME_TUNING.skills.plunger.bossDamageByLevel)})만 즉시 받습니다.
-                </div>
-              </div>
-
-              {/* Revolver */}
-              <div
-                style={{
-                  background: 'rgba(245, 158, 11, 0.08)',
-                  border: '1.5px solid rgba(245, 158, 11, 0.4)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '28px' }}>🍾</span>
-                    <div>
-                      <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>
-                        황금 병따개 리볼버 (Revolver)
-                      </span>
-                      <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px' }}>
-                        초정밀 일직선 관통탄 & 부채꼴 칼날
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      background: '#f59e0b',
-                      color: '#111827',
-                      fontWeight: 800,
-                      fontSize: '11px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    일직선 관통
-                  </span>
-                </div>
-                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  • <strong>외형 진화:</strong> 병따개 해머 & 실린더 ➔ Lv.2 롱배럴 ➔ Lv.3 시안 네온 레이저 스코프 ➔ Lv.4 4각 머즐 브레이크<br />
-                  • <strong>성능:</strong> {weaponPerformanceText('revolver')}<br />
-                  • <strong>⚡ 전용 액티브 스킬 [오프너 참격]:</strong> 총구를 위로 '휙!' 젖히면 황금 칼날이 부채꼴로 곧게 날아가 닿은 몬스터를 베고 날아오는 포탄도 벱니다. 칼날 {levelSeries(GAME_TUNING.skills.blade.countByLevel)}개, 관통 {levelSeries(GAME_TUNING.skills.blade.pierceByLevel)}마리. 칼날 하나의 피해는 평타 한 발과 같습니다.
-                </div>
-              </div>
-
-              {/* Gatling */}
-              <div
-                style={{
-                  background: 'rgba(6, 182, 212, 0.08)',
-                  border: '1.5px solid rgba(6, 182, 212, 0.4)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '28px' }}>🍺</span>
-                    <div>
-                      <span style={{ fontSize: '18px', fontWeight: 900, color: '#06b6d4' }}>
-                        탄산 탭 개틀링 (Gatling)
-                      </span>
-                      <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px' }}>
-                        초고속 탄산 기포 난사 & 거품 해일
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      background: '#06b6d4',
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      fontSize: '11px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    초고속 연사
-                  </span>
-                </div>
-                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  • <strong>외형 진화:</strong> 6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크<br />
-                  • <strong>성능:</strong> {weaponPerformanceText('gatling')}<br />
-                  • <strong>⚡ 전용 액티브 스킬 [거품 해일]:</strong> 작은 거품이 필드 전체로 쓸고 나가며 닿은 몬스터를 {levelSeries(GAME_TUNING.skills.foam.knockbackMByLevel)}m 뒤로 밀어내고 둔화시킵니다. 밀어내기 전용이라 피해는 낮고, 레벨이 오를수록 거품이 많아집니다.
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'weapons' && <WeaponsTab />}
 
           {/* TAB 2: MONSTERS & GIMMICKS */}
           {activeTab === 'monsters' && (

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { readGuideSource } from './helpers/guideSource';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 import { WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
 
@@ -64,13 +65,11 @@ describe('player-facing text matches the final spec', () => {
   });
 
   it('guide modal and tutorial overlay read fever and judgment numbers from GAME_TUNING', () => {
-    for (const file of ['GuideModal.tsx', 'TutorialGuideOverlay.tsx']) {
-      const src = fs.readFileSync(path.join('src/pc/components', file), 'utf8');
-      expect(src).toContain('GAME_TUNING.fever.killDelta');
-    }
-    expect(fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8')).toContain('GAME_TUNING.judgment.perfectDamage');
+    expect(readGuideSource()).toContain('GAME_TUNING.fever.killDelta');
+    expect(fs.readFileSync('src/pc/components/TutorialGuideOverlay.tsx', 'utf8')).toContain('GAME_TUNING.fever.killDelta');
+    expect(readGuideSource()).toContain('GAME_TUNING.judgment.perfectDamage');
     // Weapon stat lines are generated from the spec table, not hard-coded
-    expect(fs.readFileSync('src/pc/components/GuideModal.tsx', 'utf8')).toContain("weaponPerformanceText('gatling')");
+    expect(readGuideSource()).toContain('weaponPerformanceText(k)');
   });
 
   it('the weapon guide tables match WEAPON_ARCHETYPE_SPECS (fire interval, magazine, reload, skill cooldown)', () => {
@@ -158,7 +157,7 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
   });
 
   it('keeps the in-game guide numbers tied to GAME_TUNING instead of hard-coded text', () => {
-    const guide = read('src/pc/components/GuideModal.tsx');
+    const guide = readGuideSource();
     expect(guide).toContain('GAME_TUNING.boss.summonCountByStep');
     expect(guide).toContain('GAME_TUNING.boss.minionDrop.minRadiusM');
     expect(guide).toContain('GAME_TUNING.score.timeBonus.maxPerWave');
@@ -196,7 +195,7 @@ describe('wave time bonus and boss summon rules are documented with the tuned nu
     }
     expect(read('docs/비어 크러셔 요구사항 분석서.md')).toContain('보스가 살아 있는 동안에도 일반 몬스터가 계속 나오고');
     expect(read('docs/비어 크러셔 상세설계서.md')).toContain('보스가 살아 있는 동안 일반 몬스터는');
-    const guide = read('src/pc/components/GuideModal.tsx');
+    const guide = readGuideSource();
     expect(guide).toContain('GAME_TUNING.boss.encounterStartRatio');
     expect(guide).toContain('MID_CARD_TEXT');
     expect(pct).toBe('50%');
