@@ -194,6 +194,8 @@ async function main() {
     process.exit(1);
   } else {
     console.log('🎉 All smoke tests passed successfully!');
+    // 열린 소켓·타이머가 남아 프로세스가 끝나지 않는 것을 막는다 (deploy.sh 가 이 스크립트를 기다린다).
+    process.exit(0);
   }
 }
 

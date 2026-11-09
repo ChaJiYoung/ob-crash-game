@@ -1,6 +1,6 @@
 # Task: T02 운영용 compose와 amd64 이미지 빌드·push 스크립트
 
-## Status: pending
+## Status: done
 
 ## Goal
 VM이 소스 없이 이미지만으로 기동할 수 있도록 `image:`만 참조하는 운영용 compose(`deploy/azure/docker-compose.yml`)를 만들고, 로컬에서 `linux/amd64` 이미지 2개(`ob-crash-backend`, `ob-crash-web`)를 빌드해 GHCR에 push하는 `scripts/azure/build-push.sh`를 만든다. 로컬에서 같은 compose로 기동해 `deploy-smoke.mjs` 6개 항목이 통과해야 한다. 오라클용 compose(`deploy/oracle/docker-compose.yml`, T01에서 이동)는 건드리지 않는다.
@@ -127,6 +127,6 @@ Task: T02-prod-compose-and-image-build
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

@@ -9,3 +9,7 @@ data/
 .memory/.blocked-*
 .env
 .smoke-data/
+
+# Azure 스크립트 로컬 설정 / 백업 파일
+scripts/azure/config.local.sh
+backups/

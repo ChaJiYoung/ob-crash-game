@@ -16,7 +16,7 @@ Decisions: [2026-11-09-azure-vm-deployment](../decisions/2026-11-09-azure-vm-dep
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `pending` | 오라클 파일을 `deploy/oracle`로 이동(레거시 표시) + 운영용 compose(image 참조)와 로컬 amd64 빌드·GHCR push 스크립트 | [P01](../phases/2026-11-09-azure-vm-deployment/P01-image-pipeline/phase.md) |
-| P02 | `pending` | Azure 인프라 스크립트(프로비저닝·cloud-init·VM 시작/중지·내 IP 허용) | [P02](../phases/2026-11-09-azure-vm-deployment/P02-azure-infra-scripts/phase.md) |
+| P01 | `done ✅` | 오라클 파일을 `deploy/oracle`로 이동(레거시 표시) + 운영용 compose(image 참조)와 로컬 amd64 빌드·GHCR push 스크립트 | [P01](../phases/2026-11-09-azure-vm-deployment/P01-image-pipeline/phase.md) |
+| P02 | `in_progress 🔵` | Azure 인프라 스크립트(프로비저닝·cloud-init·VM 시작/중지·내 IP 허용) | [P02](../phases/2026-11-09-azure-vm-deployment/P02-azure-infra-scripts/phase.md) |
 | P03 | `pending` | 배포 스크립트(deploy.sh)와 SQLite 백업 스크립트(backup.sh) | [P03](../phases/2026-11-09-azure-vm-deployment/P03-deploy-and-backup/phase.md) |
 | P04 | `pending` | 실제 Azure 배포 검증(사용자 확인 게이트)과 Azure 가이드·README | [P04](../phases/2026-11-09-azure-vm-deployment/P04-live-deploy-and-guide/phase.md) |
