@@ -56,10 +56,12 @@ export function getLobbyNextAction(slots: SlotPair, gate: StartGate): LobbyNextA
 
   const hasPhone = chosen.some((s) => s.input === 'mobile');
   const hasMouse = chosen.some((s) => s.input === 'mouse');
-  const defs = hasPhone ? PHONE_STEPS : MOUSE_STEPS;
   const labelOf = (s: SlotState) => (chosen.length === 2 ? `${s.slot}P: ` : '');
 
   const target = chosen.filter((s) => !isSlotReady(s)).sort((a, b) => a.slot - b.slot)[0];
+  // 단계 줄은 지금 기준이 되는 슬롯의 입력에 맞춘다(폰+마우스를 섞어도 큰 문장과 단계 줄이 어긋나지 않게).
+  // 전원 준비 완료면 폰이 하나라도 있을 때 폰 단계(쏴서 시작)를 보여 준다.
+  const defs = target ? (target.input === 'mobile' ? PHONE_STEPS : MOUSE_STEPS) : hasPhone ? PHONE_STEPS : MOUSE_STEPS;
 
   if (!target) {
     // 입력을 고른 모든 슬롯이 준비 완료

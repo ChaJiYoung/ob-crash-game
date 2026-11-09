@@ -14,6 +14,8 @@ export interface TutorialRoundState {
 /** 샷건 폭발 후 다음 라운드까지, 리볼버·게틀링 스킬 사용 후 다음 라운드까지 기다리는 시간(ms). 연출을 보여 주기 위한 지연이다. */
 export const TUTORIAL_BLAST_ADVANCE_DELAY_MS = 500;
 export const TUTORIAL_SKILL_ADVANCE_DELAY_MS = 1200;
+/** 일시정지 중일 때 통과를 다시 확인하는 간격(ms). */
+export const TUTORIAL_PAUSE_RECHECK_MS = 200;
 
 export class TutorialDirector {
   public step: TutorialStep = 1;
@@ -105,10 +107,17 @@ export class TutorialDirector {
     if (this.advanceTimer) return;
     this.skillPhase = 'done';
     this.emitRound();
-    this.advanceTimer = setTimeout(() => {
-      this.advanceTimer = undefined;
-      this.advanceSkillRound();
-    }, delayMs);
+    this.advanceTimer = setTimeout(() => this.fireRoundAdvance(), delayMs);
+  }
+
+  /** 타이머는 실시간이라 엔진 일시정지를 모른다. 일시정지(가이드·메뉴) 중에는 넘기지 않고 풀릴 때까지 다시 기다린다. */
+  private fireRoundAdvance(): void {
+    if (this.engine.isPaused) {
+      this.advanceTimer = setTimeout(() => this.fireRoundAdvance(), TUTORIAL_PAUSE_RECHECK_MS);
+      return;
+    }
+    this.advanceTimer = undefined;
+    this.advanceSkillRound();
   }
 
   private advanceSkillRound(): void {
@@ -244,10 +253,14 @@ export class TutorialDirector {
       case 'skillUsed': {
         if (this.step === 3 && e.playerIndex === 0 && this.skillPhase === 'ready') {
           if (this.skillRound === 0) {
+            if (!this.engine.activeTargets.some((t) => t.plungerBlast)) {
+              // 박힐 몬스터가 없었다(착지 전 등): 폭발 장면 없이 넘기지 않고 스킬을 채워 다시 써 보게 한다.
+              this.engine.getPlayer(0).weaponSystem.refillSkillInstant();
+              return;
+            }
             // 샷건: 박힌 몬스터가 터지는 것까지 보고 넘어간다.
             this.skillPhase = 'awaitingBlast';
             this.emitRound();
-            this.maybeFinishShotgunRound(); // 박힌 몬스터가 없으면(교착 방지) 바로 예약
           } else {
             this.scheduleRoundAdvance(TUTORIAL_SKILL_ADVANCE_DELAY_MS);
           }

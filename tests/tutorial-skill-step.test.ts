@@ -6,6 +6,7 @@ import {
   TutorialDirector,
   TUTORIAL_BLAST_ADVANCE_DELAY_MS,
   TUTORIAL_SKILL_ADVANCE_DELAY_MS,
+  TUTORIAL_PAUSE_RECHECK_MS,
 } from '../src/pc/tutorial/TutorialDirector';
 import { TutorialGuideOverlay } from '../src/pc/components/TutorialGuideOverlay';
 import { WEAPON_ONE_LINER } from '../src/shared/guideText';
@@ -116,6 +117,28 @@ describe('tutorial skill step (step 3) is three weapon rounds', () => {
     expect(director.step).toBe(3);
     expect(director.skillRound).toBe(0);
     expect(engine.activeTargets.length).toBe(5);
+  });
+
+  it('does not advance while the game is paused (e.g. the guide is open) and advances after resume', () => {
+    const { engine, director } = toSkillStep();
+    engine.triggerWeaponSkill(1000);
+    engine.update(1000 + 2000, 0.016); // 폭발 -> 500ms 뒤 통과 예약
+    engine.setPaused(true, 3000);
+    vi.advanceTimersByTime(TUTORIAL_BLAST_ADVANCE_DELAY_MS + 1000);
+    expect(director.skillRound).toBe(0); // 일시정지 중에는 넘어가지 않는다
+    expect(weapon(engine).weaponKind).toBe('shotgun');
+    engine.setPaused(false, 4000);
+    vi.advanceTimersByTime(TUTORIAL_PAUSE_RECHECK_MS);
+    expect(director.skillRound).toBe(1);
+  });
+
+  it('a shotgun skill that sticks nothing keeps the round open and refills the skill', () => {
+    const { engine, director } = toSkillStep();
+    engine.activeTargets = []; // 박을 몬스터가 없다(착지 전 등)
+    expect(engine.triggerWeaponSkill(1000).activated).toBe(true);
+    expect(director.skillRound).toBe(0);
+    expect(director.skillPhase).toBe('ready');
+    expect(weapon(engine).skillStock).toBeGreaterThan(0);
   });
 
   it('stop() cancels a pending round change', () => {

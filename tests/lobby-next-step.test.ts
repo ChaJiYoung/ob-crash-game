@@ -104,4 +104,15 @@ describe('getLobbyNextAction', () => {
     slots = updateSlot(slots, 2, { player: profile('p2'), isConnected: true });
     expect(act(slots).headline).toBe('1P: 폰으로 QR을 스캔하세요');
   });
+
+  it('mixed phone + mouse: the step row follows the slot that is being waited on', () => {
+    // 1P 폰 준비 완료 + 2P 마우스 닉네임 대기 -> 마우스 단계 줄(닉네임 입력 / 클릭으로 시작)과 같은 말을 한다.
+    let slots = chooseSlotInput(createInitialSlots(), 1, 'mobile').slots;
+    slots = updateSlot(slots, 1, { player: profile('p1'), isConnected: true, isZeroCalibrated: true });
+    slots = chooseSlotInput(slots, 2, 'mouse').slots;
+    const a = act(slots);
+    expect(a.headline).toBe('2P: 닉네임을 입력하세요');
+    expect(a.steps.map((s) => s.id)).toEqual(['connect', 'start']);
+    expect(activeId(slots)).toBe('connect');
+  });
 });
