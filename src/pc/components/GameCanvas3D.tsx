@@ -4,6 +4,7 @@ import { computeRenderPixelRatio } from '../three/renderBudget';
 import { attachContextLossGuard, ContextLossGuard } from '../three/webglContextGuard';
 import { WebGLErrorOverlay, WebGLErrorReason } from './WebGLErrorOverlay';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
+import { isPlungerBlastImminent } from '../three/plungerWarning';
 import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
 import {
@@ -133,7 +134,8 @@ export interface GunPresentationSpec {
 
 export interface GameCanvas3DHandle {
   setAim: (aimX: number, aimY: number, immediate?: boolean, playerIndex?: PlayerIndex) => void;
-  triggerSkillEffect?: (kind: WeaponKind, playerIndex?: PlayerIndex) => void;
+  /** affected: 엔진이 돌려준 스킬 대상(샷건은 박힌 몬스터 + 보스). 없으면 화면의 착지 몬스터 전부(튜토리얼·센서랩 호환). */
+  triggerSkillEffect?: (kind: WeaponKind, playerIndex?: PlayerIndex, affected?: readonly ActiveTargetEntity[]) => void;
   /** 사격 직후 동기로 호출한다. 렌더 루프가 죽은 대상의 메시를 지우기 전에 폭발을 보장하기 위해서다. */
   playShotFx: (result: EngineShootResult, aim?: { aimX: number; aimY: number }) => void;
 }
@@ -315,9 +317,9 @@ export const GameCanvas3D = React.memo(
             gunAimsRef.current[pIdx].current = { aimX: nextX, aimY: nextY };
           }
         },
-        triggerSkillEffect(kind: WeaponKind, playerIndex: PlayerIndex = 0) {
+        triggerSkillEffect(kind: WeaponKind, playerIndex: PlayerIndex = 0, affected?: readonly ActiveTargetEntity[]) {
           if (!particlesRef.current) return;
-          const skillTargets = engine.activeTargets
+          const skillTargets = (affected ?? engine.activeTargets)
             .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetLanded(t, performance.now()));
           const monsterPositions = skillTargets.map(
             (t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z)
@@ -591,6 +593,11 @@ export const GameCanvas3D = React.memo(
           playTargetBurst(particles, soundSynth, ev.target, pos, ev.killed, canSound);
           if (ev.target.isProjectile && canSound) soundSynth.playInterceptSound();
           if (ev.source === 'blade') particles.spawnSlashMark(pos);
+          if (ev.source === 'plunger') {
+            // 박힌 뚫어뻥이 터지는 순간(또는 폭발 전에 평타로 죽은 경우의 연출만).
+            particles.spawnPlungerBlast(pos);
+            if (canSound || ev.killed) soundSynth.playPlungerBlastSound();
+          }
         }
 
         for (const ev of engine.drainHanmacBlastEvents()) {
@@ -748,6 +755,7 @@ export const GameCanvas3D = React.memo(
               stuckPlungerCount: target.stuckPlungerCount ?? 0,
               isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
               isGuarding: Boolean(target.isGuarding),
+              plungerBlastImminent: isPlungerBlastImminent(target.plungerBlast, target.stunUntilMs, time),
             });
           }
 

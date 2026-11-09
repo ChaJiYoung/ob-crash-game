@@ -3,7 +3,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `pending` | 봇 80판 측정, D08 규칙으로 비율·폭발 피해 조정, 기록 문서 작성 | [T01](./T01-bot-measure-and-tune.md) |
+| T01 | `in_progress 🔵` | 봇 80판 측정, D08 규칙으로 비율·폭발 피해 조정, 기록 문서 작성 | [T01](./T01-bot-measure-and-tune.md) |
 
 ## Progress
 - done: 0/1 (active: T01)

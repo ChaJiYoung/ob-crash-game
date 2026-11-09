@@ -481,6 +481,25 @@ export class SoundSynthesizer {
     osc.stop(now + 0.3);
   }
 
+  /** 박힌 뚫어뻥이 터질 때: 짧고 가벼운 "뽕". 한맥 폭발음(톱니파 240→45Hz)과 구분되도록 삼각파 320→90Hz. */
+  public playPlungerBlastSound(): void {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(90, now + 0.18);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.22);
+  }
+
   /** 체력이 줄었을 때 나는 둔탁한 짧은 소리. */
   public playPlayerHitSound(): void {
     const ctx = this.ensureContext();

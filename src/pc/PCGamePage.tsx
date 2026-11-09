@@ -470,7 +470,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         },
         onSkill: (res) => {
           soundSynth.playSkillActivation(res.weaponKind);
-          canvasRef.current?.triggerSkillEffect?.(res.weaponKind, pIdx);
+          canvasRef.current?.triggerSkillEffect?.(res.weaponKind, pIdx, res.affectedTargets);
         },
         onFeverStarted: (_idx) => {
           soundSynth.playFeverStart();

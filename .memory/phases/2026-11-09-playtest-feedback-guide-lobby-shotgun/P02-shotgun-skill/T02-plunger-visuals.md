@@ -1,6 +1,6 @@
 # Task: T02 샷건 스킬 연출 (박힌 몬스터만, 폭발, 폭발 직전 진동)
 
-## Status: pending
+## Status: done
 
 ## Goal
 스킬 연출을 엔진 결과에 맞춘다: 뚫어뻥이 **박힌 몬스터에게만** 날아가고, 기절이 끝나면 폭발 연출(파편·소리)이 나오며, 폭발 직전 0.5초는 박힌 뚫어뻥이 더 세게 떨려 "곧 터진다"가 보이게 한다(D01, D16 연출). 엔진은 P02-T01에서 끝났다.
@@ -87,6 +87,6 @@ Task: T02-plunger-visuals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T02-plunger-visuals"

@@ -899,6 +899,8 @@ export interface TargetAnimationOptions {
   stuckPlungerCount?: number;
   isBossSummoning?: boolean;
   isGuarding?: boolean;
+  /** 박힌 뚫어뻥이 곧 터진다(남은 500ms 이하): 더 세게 떨린다. */
+  plungerBlastImminent?: boolean;
 }
 
 const FROST_TINT_COLOR = new THREE.Color(0x93c5fd);
@@ -934,7 +936,8 @@ export function updateTargetAnimation3D(
     plungerStuckGroup.visible = isStunned;
     if (isStunned) {
       // Wiggling vibration animation
-      plungerStuckGroup.rotation.z = Math.sin(elapsedSec * 45) * 0.12;
+      const imminent = Boolean(options?.plungerBlastImminent);
+      plungerStuckGroup.rotation.z = Math.sin(elapsedSec * (imminent ? 90 : 45)) * (imminent ? 0.25 : 0.12);
     }
   }
 

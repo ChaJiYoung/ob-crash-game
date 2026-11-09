@@ -745,6 +745,13 @@ export class ParticleEffects3D {
     this.spawnHitEffect(position, '#dc2626', 14);
   }
 
+  /** 박힌 뚫어뻥이 터지는 순간: 호박색·빨강·흰 파편. */
+  public spawnPlungerBlast(position: THREE.Vector3): void {
+    this.spawnHitEffect(position, '#fbbf24', 24);
+    this.spawnHitEffect(position, '#ef4444', 14);
+    this.spawnHitEffect(position, '#ffffff', 10);
+  }
+
   /** 보스가 터지는 큰 폭발: 금색·흰색 파편과 유리 조각을 한꺼번에 뿜는다. */
   public spawnBossDefeatBurst(position: THREE.Vector3): void {
     this.spawnHitEffect(position, '#fbbf24', 30);

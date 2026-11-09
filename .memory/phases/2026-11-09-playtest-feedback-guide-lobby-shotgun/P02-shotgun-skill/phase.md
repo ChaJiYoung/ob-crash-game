@@ -4,7 +4,7 @@
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | T01 | `done ✅` | `GAME_TUNING.skills.plunger` 신설·표 덮어쓰기, 박힘 선택·기절·폭발 엔진, 이벤트, 일시정지 안전 | [T01](./T01-plunger-engine.md) |
-| T02 | `in_progress 🔵` | 박힌 몬스터만 향하는 뚫어뻥 연출, 폭발 FX·사운드, 폭발 직전 진동 | [T02](./T02-plunger-visuals.md) |
+| T02 | `done ✅` | 박힌 몬스터만 향하는 뚫어뻥 연출, 폭발 FX·사운드, 폭발 직전 진동 | [T02](./T02-plunger-visuals.md) |
 
 ## Progress
-- done: 1/2 (active: T02)
+- done: 2/2 (phase complete)
