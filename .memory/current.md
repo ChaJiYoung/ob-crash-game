@@ -1,19 +1,18 @@
 # Current Context
 
 ## Active Plan
-[Oracle Cloud Free VM 배포 (oracle-vm-deployment)](./plans/2026-11-08-oracle-vm-deployment.md)
+[Azure VM 배포](./plans/2026-11-09-azure-vm-deployment.md)
 
 ## Active Phase
-[P01 오라클 Always Free VM 배포 구축 (oracle-deployment)](./phases/2026-11-08-oracle-vm-deployment/P01-oracle-deployment/phase.md)
+[P01 이미지 파이프라인](./phases/2026-11-09-azure-vm-deployment/P01-image-pipeline/phase.md)
 
 ## Active Task
-[없음 (계획 전체 완료) — 마지막: T03 오라클 Always Free 배포 가이드 문서화 및 README 갱신](./phases/2026-11-08-oracle-vm-deployment/P01-oracle-deployment/T03-oracle-deployment-runbook.md)
+[T01 오라클 전용 파일을 deploy/oracle로 이동(레거시 표시)](./phases/2026-11-09-azure-vm-deployment/P01-image-pipeline/T01-move-oracle-to-legacy.md)
 
 ## Status
-- T01 완료 (`fafd327`): 서버 접속 가드 & SERVER_FULL 배너
-- T02 완료 (`41accab`): Docker & Caddy 컨테이너 인프라 & 스모크 테스트 통과
-- T03 완료 (`db1081c`): 오라클 Always Free 완결 배포 가이드 문서화 & README 갱신
-- **🎉 오라클 Always Free 배포 계획의 모든 Task 완료!**
+- 결정 문서(D01~D12)와 계획 작성 완료. `feature/deployment` 병합(fast-forward) 완료, 병합 후 tsc 오류 0·vitest 113 파일 899 테스트 통과.
+- 코드 작업 전에 결정·계획 문서를 `docs(memory)` 커밋으로 먼저 커밋(T01 착수 전, T02 I00은 그때 수행했으면 생략).
 
 ## Next Step (IMPORTANT)
-다음 기능 구현 시 새 계획 수립 또는 추가 작업 지시 대기
+`docs(memory)` 커밋 → T01(`git mv`로 compose·.env.example·오라클 가이드를 deploy/oracle로 이동, build context `../..`·`DATA_DIR ../../data`·`.env` 경로 보정) → T02(`config.sh`, `deploy/azure/docker-compose.yml`, `build-push.sh`, 테스트).
+주의: P04에서만 Azure 리소스 생성·GHCR push를 한다(사용자 확인 게이트 G0~G3).
