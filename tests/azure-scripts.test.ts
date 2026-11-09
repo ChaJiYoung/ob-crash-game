@@ -48,6 +48,43 @@ describe('provision.sh --dry-run', () => {
     for (const l of other) expect(l).not.toContain('--destination-port-ranges 22');
   });
 
+  it('VNet·서브넷 이름을 지정해 기존 네트워크를 재사용하지 않는다', () => {
+    expect(out).toContain('--vnet-name ob-crash-vnet');
+    expect(out).toContain('--subnet ob-crash-subnet');
+    expect(out).toContain('--vnet-address-prefix 10.77.0.0/24');
+  });
+
+  it('모든 az 호출이 구독 ID 로 고정된다', () => {
+    const azLines = out.split('\n').filter((l) => l.startsWith('[dry-run] az '));
+    expect(azLines.length).toBeGreaterThan(5);
+    for (const l of azLines) expect(l, l).toContain('--subscription <SUBSCRIPTION_ID>');
+  });
+
+  it('자동 종료를 NSG 규칙보다 먼저 건다 (중간 실패 시에도 과금이 하루 안에 끝남)', () => {
+    const iCreate = out.indexOf('az vm create');
+    const iShut = out.indexOf('az vm auto-shutdown');
+    const iRule = out.indexOf('az network nsg rule create');
+    expect(iCreate).toBeGreaterThan(-1);
+    expect(iShut).toBeGreaterThan(iCreate);
+    expect(iRule).toBeGreaterThan(iShut);
+    expect(out).toContain('az resource tag');
+  });
+
+  it('--resume 은 VM 을 다시 만들지 않고 자동 종료·규칙만 적용한다', () => {
+    const rr = bash([script('provision.sh'), '--dry-run', '--resume']);
+    expect(rr.status, rr.stderr).toBe(0);
+    expect(rr.stdout).not.toContain('az vm create');
+    expect(rr.stdout).toContain('az vm auto-shutdown');
+    expect(rr.stdout).toContain('-n allow-ssh');
+  });
+
+  it('실패 시 VM 을 중지하는 ERR 트랩이 있다', () => {
+    const src = fs.readFileSync(script('provision.sh'), 'utf8');
+    expect(src).toMatch(/set -Eeuo pipefail/);
+    expect(src).toMatch(/trap on_fail ERR/);
+    expect(src).toMatch(/vm deallocate/);
+  });
+
   it('dry-run 은 성공/완료 문구를 내지 않는다', () => {
     expect(r.stderr).toContain('아무것도 만들지 않았습니다');
     expect(r.stderr).not.toContain('완료. 주소');
@@ -73,6 +110,22 @@ describe('vm.sh', () => {
   it('인자가 없거나 알 수 없으면 64 로 종료한다', () => {
     expect(bash([script('vm.sh')]).status).toBe(64);
     expect(bash([script('vm.sh'), 'bogus']).status).toBe(64);
+  });
+});
+
+describe('lib.sh', () => {
+  it('ssh 는 비대화형(BatchMode)이다', () => {
+    const lib = fs.readFileSync(script('lib.sh'), 'utf8');
+    expect(lib).toContain('BatchMode=yes');
+  });
+});
+
+describe('.dockerignore', () => {
+  it('하위 경로의 .env·백업·DB·로컬 설정을 빌드 컨텍스트에서 뺀다', () => {
+    const d = fs.readFileSync(path.join(ROOT, '.dockerignore'), 'utf8');
+    for (const e of ['**/.env', 'backups', '*.db', 'scripts/azure/config.local.sh']) {
+      expect(d.split('\n')).toContain(e);
+    }
   });
 });
 

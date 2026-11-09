@@ -13,14 +13,14 @@ run() {
   "$@"
 }
 
-SSH_OPTS=(-i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=15)
+SSH_OPTS=(-i "${SSH_KEY_PATH}" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=15)
 
 ssh_run() { ssh "${SSH_OPTS[@]}" "${AZ_ADMIN_USER}@${AZ_FQDN}" "$@"; }
 
 # 켠 직후에는 SSH 가 아직 안 열려 있을 수 있어 최대 180초 기다린다.
 wait_for_ssh() {
   local i
-  for i in $(seq 1 36); do
+  for i in $(seq 1 36); do   # 36 x 5초 = 180초
     if ssh_run true 2>/dev/null; then return 0; fi
     sleep 5
   done

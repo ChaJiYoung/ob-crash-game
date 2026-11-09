@@ -88,15 +88,17 @@ remote "docker image prune -f >/dev/null"
 
 # 7. 헬스 대기 (첫 배포에서는 Let's Encrypt 인증서 발급 때문에 늦을 수 있다)
 if [ "${DRY_RUN}" = "1" ]; then
-  echo "[dry-run] curl -fsS https://${AZ_FQDN}/health (최대 120초, 5초 간격)"
+  echo "[dry-run] curl -fsS https://${AZ_FQDN}/health (최대 120초, 첫 배포는 300초, 5초 간격)"
 else
   ok=0
-  for _ in $(seq 1 24); do
+  tries=24                                   # 24 x 5초 = 120초
+  [ "${PREV_TAG}" = "(없음)" ] && tries=60   # 첫 배포: 이미지 pull + 인증서 발급 + 1GB RAM 이라 300초까지 기다린다
+  for _ in $(seq 1 "${tries}"); do
     if curl -fsS --max-time 5 "https://${AZ_FQDN}/health" >/dev/null 2>&1; then ok=1; break; fi
     sleep 5
   done
   if [ "${ok}" -ne 1 ]; then
-    log "120초 안에 /health 가 응답하지 않았습니다. web 로그:"
+    log "/health 가 제때 응답하지 않았습니다. web 로그:"
     remote "cd ${REMOTE_DIR} && docker compose logs --tail 50 web" >&2 || true
     exit 4
   fi

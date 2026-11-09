@@ -5,6 +5,13 @@ dist
 data
 .smoke-data
 .env
+**/.env
+backups
+*.db
+*.db-wal
+*.db-shm
+scripts/azure/config.local.sh
+deploy
 .memory
 .agents
 .claude
@@ -14,4 +21,3 @@ coverage
 *.log
 docs/screens
 Dockerfile.*
-docker-compose.yml
