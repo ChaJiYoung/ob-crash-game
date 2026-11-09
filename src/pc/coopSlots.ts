@@ -26,6 +26,11 @@ export function createInitialSlots(): SlotPair {
   ];
 }
 
+/** 로비가 열릴 때의 슬롯: 1P는 firstInput으로 미리 선택, 2P는 비어 있다. */
+export function createLobbySlots(firstInput: SlotInput): SlotPair {
+  return chooseSlotInput(createInitialSlots(), 1, firstInput).slots;
+}
+
 /** 입력 선택. 다른 슬롯이 이미 마우스면 마우스 선택을 거절한다. 같은 입력 재선택은 그대로. 입력을 바꾸면 player/isZeroCalibrated 초기화. */
 export function chooseSlotInput(
   slots: SlotPair,

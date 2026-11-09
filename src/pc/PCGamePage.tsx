@@ -18,6 +18,7 @@ import { GuideModal } from './components/GuideModal';
 import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { PlayerPanel } from './components/PlayerPanel';
 import { buildTeamKey } from './components/RankingTabs';
+import { loadLastInput, saveLastInput } from './lobbyInputMemory';
 import { TutorialDirector } from './tutorial/TutorialDirector';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import {
@@ -42,7 +43,7 @@ import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './pla
 import { buildDebugSnapshot } from './debug/debugSnapshot';
 
 import {
-  createInitialSlots,
+  createLobbySlots,
   chooseSlotInput,
   updateSlot,
   getJoinedSlots,
@@ -98,7 +99,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [lanIp, setLanIp] = useState<string>('');
   const [isServerFull, setIsServerFull] = useState(false);
 
-  const [slots, setSlots] = useState<SlotPair>(createInitialSlots);
+  const [slots, setSlots] = useState<SlotPair>(() => createLobbySlots(loadLastInput()));
   const slotsRef = useRef<SlotPair>(slots);
   slotsRef.current = slots;
   const [mouseNicknameError, setMouseNicknameError] = useState<string | null>(null);
@@ -529,7 +530,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             if (msg.lanIp) setLanIp(msg.lanIp);
             // 서버가 재시작되면 localPlayers가 비므로, 마우스 슬롯을 다시 조회해 서버 기록을 복구한다.
             for (const seat of slotsRef.current) {
-              if (seat.input === 'mouse' && seat.player && wsRef.current?.readyState === WebSocket.OPEN) {
+              // 기억해 둔 마우스 1P는 아직 player가 없어도 조회해야 등록된 기기가 바로 준비 완료가 된다.
+              if (seat.input === 'mouse' && wsRef.current?.readyState === WebSocket.OPEN) {
                 wsRef.current.send(JSON.stringify({ type: 'LOOKUP_LOCAL_PLAYER', roomId: msg.roomId, deviceId: getOrCreateDeviceId(), slot: seat.slot }));
               }
             }
@@ -1346,6 +1348,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     if (res.rejected) return;
     const changedToMouse = input === 'mouse' && slotsRef.current.find((s) => s.slot === slot)?.input !== 'mouse';
     setSlots(res.slots);
+    if (slot === 1 && input !== null) saveLastInput(input);
     if (changedToMouse) sendLookupLocalPlayer(slot);
   }, [sendLookupLocalPlayer]);
 
@@ -1381,11 +1384,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       if (next[1].input === 'mouse') {
         next = chooseSlotInput(next, 2, null).slots;
       }
+      // 로비가 다시 열릴 때 1P는 마지막에 쓴 입력 방식으로 미리 선택된다(비어 있을 때만).
+      if (next[0].input === null) {
+        next = chooseSlotInput(next, 1, loadLastInput()).slots;
+      }
       return next;
     });
+    // 기억한 입력이 마우스면 서버 조회가 필요하다(업데이트 함수 밖에서 보낸다: StrictMode 이중 호출 방지).
+    if (loadLastInput() === 'mouse' && slotsRef.current[0].input !== 'mobile') sendLookupLocalPlayer(1);
     setPhase('PAIRING');
     setCoopResult(null);
-  }, [engine, syncProcessors]);
+  }, [engine, syncProcessors, sendLookupLocalPlayer]);
   handleReturnToLobbyRef.current = handleReturnToLobby;
 
   // Leaving from the pause menu drops this run's score (no submitScore), like restart does.

@@ -1,6 +1,6 @@
 # Task: T01 로비 1P 입력 방식 기억·기본값
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비가 열릴 때 1P 슬롯이 **마지막에 쓴 입력 방식**(기록이 없으면 모바일)으로 미리 선택되어 QR이 바로 보이게 한다. 2P는 항상 비어 있다. 판이 끝나 "로비로" 돌아올 때도 같은 기본값이 다시 적용된다(D09).
@@ -84,6 +84,6 @@ Task: T01-default-input-memory
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-default-input-memory"
