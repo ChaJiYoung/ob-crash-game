@@ -1,6 +1,6 @@
 # Task: T01 배너 플레이어별 뱃지 (lobbyGuide 구조 재편)
 
-## Status: pending
+## Status: done
 
 ## Goal
 상단 배너(`lobby-next-step`)가 1P 줄/2P 줄로 나뉘어 플레이어마다 3단계 뱃지(폰: QR 스캔 › 영점 조정 › 쏴서 시작, 마우스: 닉네임 입력 › 클릭으로 시작)를 보여 주고, 주황 큰 문장(`lobby-next-headline`)과 detail은 사라진다. 1P가 준비 완료이고 2P가 폰 미연결이면 2P 줄 라벨이 "2P (선택)"이 된다.
@@ -116,6 +116,6 @@ Task: T01-banner-per-player-badges
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-banner-per-player-badges"

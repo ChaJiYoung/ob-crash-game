@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { QRPairingModal } from '../src/pc/components/QRPairingModal';
 import {
   createInitialSlots,
+  createLobbySlots,
   chooseSlotInput,
   updateSlot,
   getStartGate,
@@ -165,8 +166,8 @@ describe('lobby slot cards UI (P04-T03)', () => {
     expect(html).toContain('게임 시작');
   });
 
-  it('shows the next-step banner with the active step for a mobile 1P lobby', () => {
-    const slots = chooseSlotInput(createInitialSlots(), 1, 'mobile').slots;
+  it('shows the per-player next-step banner for the default mobile lobby', () => {
+    const slots = createLobbySlots('mobile');
     const html = renderToStaticMarkup(
       <QRPairingModal
         roomId="TEST_ROOM"
@@ -180,7 +181,8 @@ describe('lobby slot cards UI (P04-T03)', () => {
       />
     );
     expect(html).toContain('data-testid="lobby-next-step"');
-    expect(html).toContain('data-testid="lobby-step-connect" data-state="active"');
-    expect(html).toContain('폰으로 QR을 스캔하세요');
+    expect(html).toContain('data-testid="lobby-step-1-connect" data-state="active"');
+    expect(html).toContain('data-testid="lobby-step-2-connect" data-state="active"');
+    expect(html).not.toContain('lobby-next-headline');
   });
 });

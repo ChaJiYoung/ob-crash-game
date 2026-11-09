@@ -487,7 +487,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         </div>
 
         {/* 지금 할 일 배너 */}
-        <LobbyNextStepBanner action={getLobbyNextAction(slots, startGate)} />
+        <LobbyNextStepBanner action={getLobbyNextAction(slots)} />
 
         {/* 1P / 2P Slot Cards */}
         <div style={{ display: 'flex', gap: '20px', width: '100%', marginBottom: '24px' }}>

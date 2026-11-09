@@ -1,5 +1,6 @@
+import type { PlayerSlot } from '../shared/types';
 import { isSlotReady } from './coopSlots';
-import type { SlotPair, SlotState, StartGate } from './coopSlots';
+import type { SlotPair, SlotState } from './coopSlots';
 
 export type LobbyStepId = 'choose' | 'connect' | 'zero' | 'start';
 export type LobbyStepState = 'done' | 'active' | 'todo';
@@ -8,15 +9,19 @@ export interface LobbyStep {
   label: string;
   state: LobbyStepState;
 }
-export interface LobbyNextAction {
-  /** 단계 줄(좌→우). 폰이 있으면 [QR 스캔, 영점 조정, 쏴서 시작], 마우스만이면 [닉네임 입력, 클릭으로 시작]. 아무도 고르지 않았으면 [입력 방식 선택]만. */
+/** 배너의 한 줄: 플레이어(슬롯) 하나의 단계 뱃지. */
+export interface LobbySlotRow {
+  slot: PlayerSlot;
+  /** "1P" / "2P" / "2P (선택)" */
+  label: string;
+  /** 1P 준비 완료 + 2P 폰 미연결이면 true(2P 없이도 시작할 수 있다). */
+  optional: boolean;
+  /** 폰이면 [QR 스캔, 영점 조정, 쏴서 시작], 마우스면 [닉네임 입력, 클릭으로 시작]. */
   steps: LobbyStep[];
-  /** 큰 글씨 한 문장. */
-  headline: string;
-  /** 작은 보조 문장(선택). */
-  detail?: string;
-  /** 시작 가능한가(= StartGate.canStart). */
-  ready: boolean;
+}
+export interface LobbyNextAction {
+  /** 입력을 고른 슬롯마다 한 줄(번호 순). 아무도 안 골랐으면 1P 줄 하나(입력 방식 선택 단계). */
+  rows: LobbySlotRow[];
 }
 
 const PHONE_STEPS: { id: LobbyStepId; label: string }[] = [
@@ -37,73 +42,50 @@ function withStates(defs: { id: LobbyStepId; label: string }[], active: LobbySte
   }));
 }
 
+/** 그 슬롯이 지금 어느 단계를 하고 있는가. 폰 연결이 끊긴 슬롯은 영점 단계에 머문다. */
+function activeStepOf(s: SlotState): LobbyStepId {
+  if (s.input === 'mobile') {
+    if (!s.player) return 'connect';
+    if (!s.isConnected || !s.isZeroCalibrated) return 'zero';
+    return 'start';
+  }
+  return s.player ? 'start' : 'connect';
+}
+
 /**
- * 로비에서 "지금 할 일"을 슬롯 상태에서 계산한다(새 서버 데이터 없음).
- * 입력을 고른 슬롯 중 아직 준비되지 않은 가장 앞 슬롯(번호 순)이 기준이다.
- * 폰을 고르고 아직 접속 전인 슬롯은 StartGate.waitingSlots(참여한 슬롯만 본다)에 없으므로 슬롯을 직접 본다.
+ * 2P가 폰 연결 전이고 1P가 이미 준비 완료면 2P는 "선택 사항"이다(2P 없이 1인 시작 가능).
+ * 1P 슬롯은 항상 false. 배너 라벨과 2P 카드 상태 글자가 같은 조건을 쓴다.
  */
-export function getLobbyNextAction(slots: SlotPair, gate: StartGate): LobbyNextAction {
-  const chosen: SlotState[] = slots.filter((s) => s.input !== null);
+export function isOptionalSlot(slots: SlotPair, slot: PlayerSlot): boolean {
+  return slot === 2 && slots[1].input === 'mobile' && !slots[1].player && isSlotReady(slots[0]);
+}
+
+/** 로비 배너: 입력을 고른 플레이어마다 3단계(마우스는 2단계) 뱃지 줄을 계산한다(새 서버 데이터 없음). */
+export function getLobbyNextAction(slots: SlotPair): LobbyNextAction {
+  const chosen: SlotState[] = slots.filter((s) => s.input !== null).sort((a, b) => a.slot - b.slot);
 
   if (chosen.length === 0) {
     return {
-      steps: [{ id: 'choose', label: '입력 방식 선택', state: 'active' }],
-      headline: '1P 입력 방식을 선택하세요',
-      detail: '📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용',
-      ready: false,
+      rows: [
+        {
+          slot: 1,
+          label: '1P',
+          optional: false,
+          steps: [{ id: 'choose', label: '입력 방식 선택', state: 'active' }],
+        },
+      ],
     };
   }
 
-  const hasPhone = chosen.some((s) => s.input === 'mobile');
-  const hasMouse = chosen.some((s) => s.input === 'mouse');
-  const labelOf = (s: SlotState) => (chosen.length === 2 ? `${s.slot}P: ` : '');
-
-  const target = chosen.filter((s) => !isSlotReady(s)).sort((a, b) => a.slot - b.slot)[0];
-  // 단계 줄은 지금 기준이 되는 슬롯의 입력에 맞춘다(폰+마우스를 섞어도 큰 문장과 단계 줄이 어긋나지 않게).
-  // 전원 준비 완료면 폰이 하나라도 있을 때 폰 단계(쏴서 시작)를 보여 준다.
-  const defs = target ? (target.input === 'mobile' ? PHONE_STEPS : MOUSE_STEPS) : hasPhone ? PHONE_STEPS : MOUSE_STEPS;
-
-  if (!target) {
-    // 입력을 고른 모든 슬롯이 준비 완료
-    const ready = gate.canStart;
-    return {
-      steps: withStates(defs, 'start'),
-      headline: hasPhone ? '준비 완료! 화면 가운데를 쏘면 시작합니다' : '준비 완료! ▶ 게임 시작 버튼을 누르세요',
-      detail: hasPhone && hasMouse ? '마우스 슬롯은 ▶ 게임 시작 버튼으로도 시작합니다' : undefined,
-      ready,
-    };
-  }
-
-  const prefix = labelOf(target);
-  if (target.input === 'mobile') {
-    if (!target.player) {
-      return {
-        steps: withStates(defs, 'connect'),
-        headline: `${prefix}폰으로 QR을 스캔하세요`,
-        detail: '카메라로 QR을 비추면 컨트롤러가 열립니다',
-        ready: false,
-      };
-    }
-    if (!target.isConnected) {
-      return {
-        steps: withStates(defs, 'zero'),
-        headline: `${prefix}폰 연결이 끊겼어요. 다시 연결해 주세요`,
-        ready: false,
-      };
-    }
-    return {
-      steps: withStates(defs, 'zero'),
-      headline: `${prefix}폰을 화면 쪽으로 들고 영점을 맞추세요`,
-      detail: '폰 화면의 안내에 따라 모니터 가운데를 겨누세요',
-      ready: false,
-    };
-  }
-
-  // 마우스 슬롯: 닉네임 입력 대기
   return {
-    steps: withStates(defs, 'connect'),
-    headline: `${prefix}닉네임을 입력하세요`,
-    detail: '2~10자, 입력하면 바로 준비 완료',
-    ready: false,
+    rows: chosen.map((s) => {
+      const optional = isOptionalSlot(slots, s.slot);
+      return {
+        slot: s.slot,
+        label: `${s.slot}P${optional ? ' (선택)' : ''}`,
+        optional,
+        steps: withStates(s.input === 'mobile' ? PHONE_STEPS : MOUSE_STEPS, activeStepOf(s)),
+      };
+    }),
   };
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { PLAYER_COLORS } from '../../shared/constants';
 import type { LobbyNextAction, LobbyStepState } from '../lobbyGuide';
 
 export interface LobbyNextStepBannerProps {
@@ -11,7 +12,7 @@ const STATE_STYLE: Record<LobbyStepState, { color: string; border: string; bg: s
   todo: { color: '#64748b', border: 'rgba(100, 116, 139, 0.4)', bg: 'transparent' },
 };
 
-/** 로비 위쪽의 "지금 할 일" 배너: 단계 줄과 큰 글씨 한 문장. 한 줄 높이에 가깝게 유지한다. */
+/** 로비 위쪽의 "지금 할 일" 배너: 플레이어(1P/2P)마다 한 줄씩 단계 뱃지를 보여 준다. */
 export const LobbyNextStepBanner: React.FC<LobbyNextStepBannerProps> = ({ action }) => (
   <div
     data-testid="lobby-next-step"
@@ -24,43 +25,59 @@ export const LobbyNextStepBanner: React.FC<LobbyNextStepBannerProps> = ({ action
       background: 'rgba(15, 23, 42, 0.65)',
       border: '1px solid rgba(255, 255, 255, 0.1)',
       display: 'flex',
-      alignItems: 'center',
-      gap: '16px',
-      flexWrap: 'wrap',
+      flexDirection: 'column',
+      alignItems: 'stretch',
+      gap: '6px',
     }}
   >
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      {action.steps.map((step, i) => {
-        const st = STATE_STYLE[step.state];
-        return (
-          <React.Fragment key={step.id}>
-            {i > 0 && <span style={{ color: '#475569', fontWeight: 900 }}>›</span>}
-            <span
-              data-testid={`lobby-step-${step.id}`}
-              data-state={step.state}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '999px',
-                border: `1.5px solid ${st.border}`,
-                background: st.bg,
-                color: st.color,
-                fontSize: '12px',
-                fontWeight: step.state === 'active' ? 900 : 700,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {step.state === 'done' ? '✓ ' : `${i + 1}. `}
-              {step.label}
-            </span>
-          </React.Fragment>
-        );
-      })}
-    </div>
-    <div style={{ flex: 1, minWidth: '240px' }}>
-      <div data-testid="lobby-next-headline" style={{ fontSize: '17px', fontWeight: 900, color: '#fbbf24' }}>
-        {action.headline}
+    {action.rows.map((row) => (
+      <div
+        key={row.slot}
+        data-testid={`lobby-row-${row.slot}`}
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}
+      >
+        <span
+          style={{
+            minWidth: '64px',
+            textAlign: 'center',
+            padding: '3px 10px',
+            borderRadius: '999px',
+            fontSize: '12px',
+            fontWeight: 900,
+            color: '#ffffff',
+            backgroundColor: PLAYER_COLORS[row.slot],
+            opacity: row.optional ? 0.7 : 1,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {row.label}
+        </span>
+        {row.steps.map((step, i) => {
+          const st = STATE_STYLE[step.state];
+          return (
+            <React.Fragment key={step.id}>
+              {i > 0 && <span style={{ color: '#475569', fontWeight: 900 }}>›</span>}
+              <span
+                data-testid={`lobby-step-${row.slot}-${step.id}`}
+                data-state={step.state}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                  border: `1.5px solid ${st.border}`,
+                  background: st.bg,
+                  color: st.color,
+                  fontSize: '12px',
+                  fontWeight: step.state === 'active' ? 900 : 700,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {step.state === 'done' ? '✓ ' : `${i + 1}. `}
+                {step.label}
+              </span>
+            </React.Fragment>
+          );
+        })}
       </div>
-      {action.detail && <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>{action.detail}</div>}
-    </div>
+    ))}
   </div>
 );
