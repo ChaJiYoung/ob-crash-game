@@ -164,4 +164,23 @@ describe('lobby slot cards UI (P04-T03)', () => {
     expect(html).toContain('data-shootable="start"');
     expect(html).toContain('게임 시작');
   });
+
+  it('shows the next-step banner with the active step for a mobile 1P lobby', () => {
+    const slots = chooseSlotInput(createInitialSlots(), 1, 'mobile').slots;
+    const html = renderToStaticMarkup(
+      <QRPairingModal
+        roomId="TEST_ROOM"
+        slots={slots}
+        startGate={getStartGate(slots)}
+        topRankings={[]}
+        onEditMouseNickname={() => {}}
+        onChooseInput={() => {}}
+        onSubmitMouseNickname={() => {}}
+        onStart={() => {}}
+      />
+    );
+    expect(html).toContain('data-testid="lobby-next-step"');
+    expect(html).toContain('data-testid="lobby-step-connect" data-state="active"');
+    expect(html).toContain('폰으로 QR을 스캔하세요');
+  });
 });

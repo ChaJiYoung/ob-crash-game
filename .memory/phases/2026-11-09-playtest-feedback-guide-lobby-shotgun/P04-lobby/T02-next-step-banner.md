@@ -1,6 +1,6 @@
 # Task: T02 로비 "지금 할 일" 배너와 단계 표시
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비 위쪽에 ①~③ 단계 줄과 "지금 할 일" 한 문장을 크게 보여서, 처음 온 사람이 무엇을 해야 하는지 바로 알게 한다. 문장과 강조 단계는 슬롯 상태에서 **순수 함수로 계산**한다(D10).
@@ -96,6 +96,6 @@ Task: T02-next-step-banner
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T02-next-step-banner"

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { PlayerSlot, RunRankingEntry, TeamRankingEntry } from '../../shared/types';
 import { PLAYER_COLORS, WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { LobbyNextStepBanner } from './LobbyNextStepBanner';
+import { getLobbyNextAction } from '../lobbyGuide';
 import { SlotPair, SlotState, SlotInput, StartGate, isSlotJoined, isSlotReady, getJoinedSlots } from '../coopSlots';
 import { RankingTabs, RankingTab, getDefaultRankTab } from './RankingTabs';
 
@@ -483,6 +485,9 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
             플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.
           </div>
         </div>
+
+        {/* 지금 할 일 배너 */}
+        <LobbyNextStepBanner action={getLobbyNextAction(slots, startGate)} />
 
         {/* 1P / 2P Slot Cards */}
         <div style={{ display: 'flex', gap: '20px', width: '100%', marginBottom: '24px' }}>
