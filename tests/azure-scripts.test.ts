@@ -115,3 +115,60 @@ describe('config.sh (azure)', () => {
     for (const n of [vm, pip, nsg]) expect(n.startsWith('ob-crash-')).toBe(true);
   });
 });
+
+describe('deploy.sh --dry-run', () => {
+  it('--skip-build 는 빌드·push 없이 pull → up → 헬스 → 스모크 순서로 계획한다', () => {
+    const r = bash([script('deploy.sh'), '--dry-run', '--skip-build', '--tag', 'abc1234']);
+    expect(r.status, r.stderr).toBe(0);
+    const out = r.stdout;
+    expect(out).not.toContain('build-push.sh');
+    const order = ['az vm start', 'cloud-init status --wait', 'docker-compose.yml', 'cat > /opt/ob-crash/.env', 'docker compose pull', 'docker compose up -d', '/health', 'deploy-smoke.mjs'];
+    let last = -1;
+    for (const needle of order) {
+      const i = out.indexOf(needle);
+      expect(i, `${needle} 가 출력에 없음`).toBeGreaterThan(-1);
+      expect(i, `${needle} 의 순서가 틀림`).toBeGreaterThan(last);
+      last = i;
+    }
+    expect(r.stderr).toContain('abc1234');
+    expect(r.stderr).toContain('아무것도 실행하지 않았습니다');
+  });
+
+  it('빌드 포함 시 build-push.sh 에 같은 태그를 넘긴다', () => {
+    const r = bash([script('deploy.sh'), '--dry-run', '--tag', 'abc1234']);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toMatch(/build-push\.sh --tag abc1234/);
+    expect(r.stdout.indexOf('build-push.sh')).toBeLessThan(r.stdout.indexOf('az vm start'));
+  });
+
+  it('GHCR 거부 시 공개 전환 안내와 종료 코드 3 경로가 있다', () => {
+    const src = fs.readFileSync(script('deploy.sh'), 'utf8');
+    expect(src).toMatch(/denied\|unauthorized/);
+    expect(src).toContain('Change visibility');
+    expect(src).toMatch(/exit 3/);
+  });
+});
+
+describe('backup.sh --dry-run', () => {
+  const r = bash([script('backup.sh'), '--dry-run']);
+  it('SQLite backup() API 로 백업하고 scp 로 내려받는다', () => {
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain('db.backup(');
+    expect(r.stdout).toContain('docker compose exec -T backend node -e');
+    expect(r.stdout).toMatch(/scp azureuser@.*backup-\d{14}\.db/);
+    expect(r.stdout).toContain("-mtime +7 -delete");
+  });
+  it('game.db 를 cp 로 직접 복사하지 않는다', () => {
+    const src = fs.readFileSync(script('backup.sh'), 'utf8');
+    expect(src).not.toMatch(/\bcp\b[^\n]*game\.db/);
+    expect(src).not.toMatch(/scp[^\n]*game\.db(?!['"])/);
+  });
+});
+
+describe('.gitignore', () => {
+  it('백업·로컬 설정은 추적하지 않는다', () => {
+    const g = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+    expect(g).toMatch(/^backups\/$/m);
+    expect(g).toContain('scripts/azure/config.local.sh');
+  });
+});

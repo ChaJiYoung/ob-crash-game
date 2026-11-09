@@ -36,3 +36,30 @@ my_ip() {
   fi
   echo "${ip}"
 }
+
+# 원격 실행. dry-run 이면 명령만 출력한다 (stdin 은 무시).
+remote() {
+  if [ "${DRY_RUN}" = "1" ]; then
+    echo "[dry-run] ssh ${AZ_ADMIN_USER}@${AZ_FQDN}: $*"
+    return 0
+  fi
+  ssh_run "$@"
+}
+
+# 로컬 파일을 VM 으로 복사. $1=로컬 경로, $2=원격 경로
+scp_to() {
+  if [ "${DRY_RUN}" = "1" ]; then
+    echo "[dry-run] scp $1 -> ${AZ_ADMIN_USER}@${AZ_FQDN}:$2"
+    return 0
+  fi
+  scp "${SSH_OPTS[@]}" "$1" "${AZ_ADMIN_USER}@${AZ_FQDN}:$2"
+}
+
+# VM 에서 로컬로 복사. $1=원격 경로, $2=로컬 경로
+scp_from() {
+  if [ "${DRY_RUN}" = "1" ]; then
+    echo "[dry-run] scp ${AZ_ADMIN_USER}@${AZ_FQDN}:$1 -> $2"
+    return 0
+  fi
+  scp "${SSH_OPTS[@]}" "${AZ_ADMIN_USER}@${AZ_FQDN}:$1" "$2"
+}

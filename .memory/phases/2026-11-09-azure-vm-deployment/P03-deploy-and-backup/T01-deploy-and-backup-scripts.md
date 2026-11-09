@@ -1,6 +1,6 @@
 # Task: T01 배포·백업 스크립트
 
-## Status: pending
+## Status: done
 
 ## Goal
 `scripts/azure/deploy.sh` 한 줄로 이미지 빌드·push → VM 시작 → 운영 compose 전달 → `pull && up -d` → `/health` 대기 → 스모크 점검까지 수행하고, 특정 태그로 롤백할 수 있게 한다. `scripts/azure/backup.sh`는 SQLite 온라인 백업을 VM에서 만들어 사용자 PC로 내려받는다. 이 Task는 스크립트와 dry-run 테스트까지이며 실제 VM 호출은 P04에서 한다.
@@ -58,7 +58,7 @@
      ```bash
      ssh_run "cd $REMOTE_DIR && docker compose exec -T backend node -e \"const D=require('better-sqlite3');const db=new D('data/game.db');db.backup('data/backup-'+process.argv[1]+'.db').then(()=>{db.close();console.log('ok')}).catch(e=>{console.error(e);process.exit(1)})\" $STAMP"
      ```
-     **실행 형태 확인 필요**: 프로젝트가 `"type": "module"`이라 `node -e`의 `require` 허용 여부를 P04에서 실제로 확인하고, 안 되면 `--input-type=commonjs`를 추가한다(확정 후 이 문서·스크립트에 반영).
+     **실행 형태 확인됨(2026-11-09, 로컬 Node 24 + 이 저장소의 `"type": "module"` package.json)**: `node -e`의 `require`와 `process.argv[1]` 인자 전달이 동작하고 백업 파일 `PRAGMA integrity_check`가 `ok`. 컨테이너(node:24)에서의 동작은 P04에서 최종 확인.
   4. 내려받기: `scp ... :$REMOTE_DIR/data/backup-$STAMP.db "$OUT/"`.
   5. 무결성 확인: `sqlite3`가 있으면 `sqlite3 "$OUT/backup-$STAMP.db" 'PRAGMA integrity_check'` 출력이 `ok`여야 하고, 없으면 파일 크기가 0보다 큰지만 확인.
   6. 원격 정리: `find $REMOTE_DIR/data -name 'backup-*.db' -mtime +7 -delete` (7일 초과분만).
@@ -103,6 +103,6 @@ Task: T01-deploy-and-backup-scripts
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
