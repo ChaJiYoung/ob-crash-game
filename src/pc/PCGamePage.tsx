@@ -45,6 +45,7 @@ import { buildDebugSnapshot } from './debug/debugSnapshot';
 import {
   createLobbySlots,
   applyLobbyReturnDefaults,
+  resolveStartRoster,
   chooseSlotInput,
   updateSlot,
   getJoinedSlots,
@@ -59,6 +60,7 @@ import {
   applyControllerUnsupported,
   buildSandboxSlotMap,
   SlotPair,
+  type StartRoster,
   SlotInput,
 } from './coopSlots';
 import { buildGameBegin, buildScoreSubmissions } from './scoreSubmission';
@@ -114,6 +116,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     []
   );
   const pendingPlayerCountRef = useRef<1 | 2>(1);
+  /** 시작을 눌러 카운트다운에 들어간 뒤 판이 시작될 때까지 고정하는 인원수·매핑(그 사이 2P가 붙어도 어긋나지 않게). */
+  const lockedStartRef = useRef<StartRoster | null>(null);
   const startGate = useMemo(() => getStartGate(slots), [slots]);
 
   // 호환용 파생값
@@ -421,6 +425,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
     pendingPlayerCountRef.current = decision.playerCount;
     slotIndexMapRef.current = decision.map;
+    lockedStartRef.current = { playerCount: decision.playerCount, map: decision.map };
 
     const hasPhone = slotsRef.current.some((s) => s.input === 'mobile' && s.player);
     if (hasPhone) {
@@ -442,12 +447,18 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const syncProcessors = useCallback(() => {
     const isLobby = gamePhaseRef.current === 'PAIRING' || gamePhaseRef.current === 'ZEROING';
-    if (isLobby) {
-      slotIndexMapRef.current = buildSlotIndexMap(slotsRef.current);
+    // 로비에서는 카운트다운이 도는 동안에만 확정한 로스터를 쓴다(시작을 시도했지만 카운트다운이 안 돈 경우의 낡은 잠금을 무시).
+    const lobbyRoster = isLobby
+      ? resolveStartRoster(
+          countdownTimerRef.current ? lockedStartRef.current : null,
+          slotsRef.current,
+          Math.max(1, getJoinedSlots(slotsRef.current).length) as 1 | 2
+        )
+      : null;
+    if (lobbyRoster) {
+      slotIndexMapRef.current = lobbyRoster.map;
     }
-    const targetCount = isLobby
-      ? Math.max(1, getJoinedSlots(slotsRef.current).length)
-      : engine.players.length;
+    const targetCount = lobbyRoster ? lobbyRoster.playerCount : engine.players.length;
 
     processorsRef.current.forEach((p) => p.stopAll());
     processorsRef.current = [];
@@ -848,6 +859,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       if (retryTimer) clearTimeout(retryTimer);
       processorsRef.current.forEach((p) => p.stopAll());
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+      lockedStartRef.current = null;
       const current = wsRef.current;
       wsRef.current = null;
       current?.close();
@@ -984,9 +996,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const handleStartGame = useCallback((opts?: { sameRoster?: boolean }) => {
     processorsRef.current.forEach((p) => p.stopAll());
     skillGraceUntilRef.current = performance.now() + 1500;
-    const playerCount = opts?.sameRoster ? (engine.players.length as 1 | 2) : pendingPlayerCountRef.current;
+    let playerCount = engine.players.length as 1 | 2;
     if (!opts?.sameRoster) {
-      slotIndexMapRef.current = buildSlotIndexMap(slotsRef.current);
+      const roster = resolveStartRoster(lockedStartRef.current, slotsRef.current, pendingPlayerCountRef.current);
+      lockedStartRef.current = null;
+      playerCount = roster.playerCount;
+      slotIndexMapRef.current = roster.map;
     }
     engine.startGame({ withWeaponSelect: true, playerCount });
     const map = slotIndexMapRef.current;
@@ -1217,6 +1232,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
     gameIdRef.current = null;
     pendingBeginIdRef.current = null;
+    lockedStartRef.current = null;
     if (countdownTimerRef.current) {
       clearInterval(countdownTimerRef.current);
       countdownTimerRef.current = null;
@@ -1397,6 +1413,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
     gameIdRef.current = null;
     pendingBeginIdRef.current = null;
+    lockedStartRef.current = null;
     if (countdownTimerRef.current) {
       clearInterval(countdownTimerRef.current);
       countdownTimerRef.current = null;

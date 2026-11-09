@@ -17,6 +17,8 @@ import {
   shouldShowLobbyCrosshair,
   createLobbySlots,
   applyLobbyReturnDefaults,
+  resolveStartRoster,
+  decideLobbyStart,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
 
@@ -366,5 +368,34 @@ describe('lobby default 2P survives a phone moving between slots', () => {
   it('an unsupported phone clears its slot on purpose (so the player can pick another input)', () => {
     const slots = applyControllerUnsupported(createLobbySlots('mobile'), 2);
     expect(slots[1].input).toBeNull();
+  });
+});
+
+describe('resolveStartRoster (카운트다운 중 2P가 붙어도 어긋나지 않게)', () => {
+  const ready1P = () => {
+    let slots = applyControllerPaired(createLobbySlots('mobile'), 1, makeProfile('P1', 'p1'));
+    slots = updateSlot(slots, 1, { isZeroCalibrated: true });
+    return slots;
+  };
+
+  it('uses the roster locked at start even if 2P pairs during the countdown', () => {
+    const slots = ready1P();
+    const decision = decideLobbyStart(slots);
+    expect(decision.start).toBe(true);
+    if (!decision.start) return;
+    const locked = { playerCount: decision.playerCount, map: decision.map };
+
+    // 카운트다운 3초 사이에 2P 폰이 접속(CONTROLLER_PAIRED)했다
+    const later = applyControllerPaired(slots, 2, makeProfile('P2', 'p2'));
+    expect(buildSlotIndexMap(later)).toEqual({ 1: 0, 2: 1 }); // 다시 계산하면 어긋나는 값
+
+    const roster = resolveStartRoster(locked, later, 1);
+    expect(roster.playerCount).toBe(1);
+    expect(roster.map).toEqual({ 1: 0 });
+  });
+
+  it('falls back to the slots when nothing is locked', () => {
+    const slots = applyControllerPaired(ready1P(), 2, makeProfile('P2', 'p2'));
+    expect(resolveStartRoster(null, slots, 2)).toEqual({ playerCount: 2, map: { 1: 0, 2: 1 } });
   });
 });

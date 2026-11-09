@@ -274,3 +274,22 @@ export function decideLobbyStart(slots: SlotPair): LobbyStartDecision {
     map,
   };
 }
+
+export interface StartRoster {
+  playerCount: 1 | 2;
+  map: Partial<Record<PlayerSlot, PlayerIndex>>;
+}
+
+/**
+ * 시작할 때의 인원수와 슬롯→플레이어 매핑.
+ * 시작을 눌러 카운트다운에 들어가면 그 순간의 로스터(locked)를 판이 시작될 때까지 유지한다:
+ * 카운트다운 3초 사이에 2P 폰이 붙어도(슬롯에 player가 생겨도) 엔진은 확정한 인원수로 시작하므로,
+ * 매핑을 다시 계산하면 "엔진 1명 + 매핑 2명"으로 어긋난다. locked가 없으면 슬롯에서 계산한다.
+ */
+export function resolveStartRoster(
+  locked: StartRoster | null,
+  slots: SlotPair,
+  fallbackCount: 1 | 2
+): StartRoster {
+  return locked ?? { playerCount: fallbackCount, map: buildSlotIndexMap(slots) };
+}

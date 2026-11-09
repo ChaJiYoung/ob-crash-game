@@ -6,6 +6,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // 기본은 vite 기본 포트. 다른 포트면 CAPTURE_URL=https://127.0.0.1:5199 처럼 넘긴다.
 const BASE_URL = process.env.CAPTURE_URL ?? 'https://127.0.0.1:5173';
+// 가짜 폰이 붙을 WS 서버. 페이지가 보는 서버와 같아야 방 코드가 맞는다.
+const WS_URL = process.env.CAPTURE_WS ?? 'ws://localhost:8787';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -37,7 +39,7 @@ async function captureLobbyScreens() {
   console.log('Found PC Room ID:', roomId);
 
   if (roomId) {
-    const ws = new WebSocket('ws://localhost:8787');
+    const ws = new WebSocket(WS_URL);
     await new Promise((res, rej) => {
       ws.on('open', res);
       ws.on('error', rej);
@@ -75,6 +77,8 @@ async function captureLobbyScreens() {
     if (await rankingPanel.count()) {
       await rankingPanel.screenshot({ path: path.join(screensDir, 'play-ranking-clear-marker.png') });
       console.log('Captured play-ranking-clear-marker.png');
+    } else {
+      console.warn('Ranking panel not found ([role="tablist"]): play-ranking-clear-marker.png was NOT captured');
     }
 
     ws.close();

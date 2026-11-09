@@ -10,8 +10,8 @@
 없음 — 마지막: [P04-T01 로비·결과 랭킹 캡처 재촬영](./phases/2026-11-10-lobby-2p-default-mobile/P04-docs-captures/T01-recapture-lobby-and-ranking.md)
 
 ## Status
-- P01~P04 구현·커밋 완료 + 코드리뷰(Sonnet 서브에이전트) 지적 반영 커밋. 전체 테스트 1033개, tsc 통과.
-- 리뷰 #6(옛 NULL outcome 테스트)은 DB 제약(finished는 outcome NOT NULL)으로 도달 불가라 제외. #3은 카드 "연결 끊김"을 player 있을 때만 보이게 해 배너와 맞춤.
+- P01~P04 구현·커밋 완료 + 1·2차 코드리뷰(Sonnet 서브에이전트) 지적 반영. 2차 중간 지적(카운트다운 중 2P 접속 시 인원수·매핑 불일치)은 `lockedStartRef`/`resolveStartRoster`로 고정. 전체 테스트 1035개, tsc 통과.
+- 3차 리뷰는 이 고정 로직 영역만 좁혀서 진행.
 
 ## Next Step (IMPORTANT)
 사람이 직접 확인: 로비 배너·시작 버튼·2P (선택) 표시, 랭킹 CLEAR 표기. 필요 시 PR 생성.
