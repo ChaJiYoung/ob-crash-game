@@ -51,7 +51,7 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
   });
 
   it("fires 'hold' shots at a fixed per-weapon interval that does not change with the weapon level", () => {
-    expect(GAME_TUNING.fire.holdIntervalMsByWeapon).toEqual({ shotgun: 250, revolver: 200, gatling: 67 });
+    expect(GAME_TUNING.fire.holdIntervalMsByWeapon).toEqual({ shotgun: 250, revolver: 200, gatling: 57 });
     for (const w of ['shotgun', 'revolver', 'gatling'] as const) {
       const ws = new WeaponSystem(w, 1);
       const fixed = GAME_TUNING.fire.holdIntervalMsByWeapon[w];
