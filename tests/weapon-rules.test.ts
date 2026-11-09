@@ -50,12 +50,15 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     expect(damageOf('revolver', 'hold', true)).toBeCloseTo(feverPress, 5);
   });
 
-  it("fires 'hold' shots at the same interval as 'press' shots (no hold speed-up since 2026-11-09)", () => {
-    expect(GAME_TUNING.fire.holdIntervalScaleByWeapon).toEqual({ shotgun: 1.0, revolver: 1.0, gatling: 1.0 });
-    for (const w of ['shotgun', 'revolver', 'gatling'] as const) {
+  it("fires 'hold' shots at the press interval for shotgun and revolver, and faster for the gatling (x0.85)", () => {
+    expect(GAME_TUNING.fire.holdIntervalScaleByWeapon).toEqual({ shotgun: 1.0, revolver: 1.0, gatling: 0.85 });
+    for (const w of ['shotgun', 'revolver'] as const) {
       const ws = new WeaponSystem(w, 1);
       expect(ws.getFireIntervalMs('hold')).toBe(ws.getFireIntervalMs('press'));
     }
+    const gat = new WeaponSystem('gatling', 1);
+    expect(gat.getFireIntervalMs('hold')).toBe(Math.round(gat.getFireIntervalMs('press') * 0.85));
+    expect(gat.getFireIntervalMs('hold')).toBeLessThan(gat.getFireIntervalMs('press'));
     const ws = new WeaponSystem('shotgun', 1);
     const press = ws.getFireIntervalMs('press');
     const hold = ws.getFireIntervalMs('hold');

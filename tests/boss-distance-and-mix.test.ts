@@ -10,8 +10,8 @@ describe('boss distance and wave mix', () => {
     expect(GAME_TUNING.boss.minionDrop.maxRadiusM).toBe(18);
   });
 
-  it('gatling magazines are 30-50', () => {
-    expect(GAME_TUNING.maxAmmoByWeapon.gatling).toEqual({ 1: 30, 2: 35, 3: 40, 4: 50 });
+  it('gatling magazines are 35-50', () => {
+    expect(GAME_TUNING.maxAmmoByWeapon.gatling).toEqual({ 1: 35, 2: 40, 3: 45, 4: 50 });
   });
 
   it('obi share falls in waves 2, 3 and 5', () => {
