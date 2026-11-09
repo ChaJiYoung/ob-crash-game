@@ -1,3 +1,5 @@
+# 레거시: 오라클 VM에서 소스를 직접 빌드하는 구성. 현재 운영 경로는 deploy/azure (이미지 기반).
+# 실행: docker compose -f deploy/oracle/docker-compose.yml up -d --build  (.env는 이 폴더에 둔다)
 x-logging: &default-logging
   driver: json-file
   options:
@@ -7,7 +9,7 @@ x-logging: &default-logging
 services:
   backend:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile.backend
     restart: unless-stopped
     init: true
@@ -19,7 +21,7 @@ services:
       WS_MAX_CONN_PER_IP: "${WS_MAX_CONN_PER_IP:-60}"
       WS_MAX_CONN_TOTAL: "${WS_MAX_CONN_TOTAL:-300}"
     volumes:
-      - ${DATA_DIR:-./data}:/app/data
+      - ${DATA_DIR:-../../data}:/app/data
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 15s
@@ -30,7 +32,7 @@ services:
 
   web:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile.frontend
     restart: unless-stopped
     ports:

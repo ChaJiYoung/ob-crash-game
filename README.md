@@ -20,7 +20,7 @@ PC 모니터는 실사 펍 HDRI 환경과 PBR 맥주 모델·네온 라인·아�
 | [**👾 몬스터 도감 설명서**](./docs/몬스터_도감_설명서.md) | 실물 PBR 맥주 몬스터 5종 + 보스, 몬스터별 특색, 7웨이브·보스전 3회, 적 처치 아이템 드롭 | 플레이어·아티스트 |
 | [**🎯 튜토리얼 & 훈련장 가이드**](./docs/튜토리얼_훈련장_가이드.md) | 정면 영점 교정, 4단계 인터랙티브 튜토리얼, 샌드박스 테스트 랩 및 모듈 제어판 | 신규 플레이어 |
 | [**📸 구동화면 쇼케이스**](./docs/구동화면_쇼케이스.md) | PC 대기실, 모바일 컨트롤러 3단계, 인게임 전투, 랭킹 모달 라이브 스크린샷 갤러리 | 전체 |
-| [**☁️ 오라클 클라우드 배포 가이드**](./docs/오라클_클라우드_무료_배포_가이드.md) | OCI Always Free VM + DuckDNS + Caddy 자동 SSL 도커 배포 절차 | 엔지니어·운영자 |
+| [**☁️ 오라클 클라우드 배포 가이드 (레거시)**](./deploy/oracle/오라클_클라우드_무료_배포_가이드.md) | OCI Always Free VM + DuckDNS + Caddy 자동 SSL 도커 배포 절차 | 엔지니어·운영자 |
 
 ---
 
@@ -126,14 +126,16 @@ npm run dev
   * 💡 로컬 전용(오프라인)으로 작업할 때는 `npm run dev:vite`를 사용하세요.
 
 ### 3. Docker Compose 실행 (운영/배포 환경)
+> 현재 운영은 Azure(`deploy/azure/`)입니다. 아래는 오라클/자체 서버에서 소스를 직접 빌드하는 레거시 구성입니다.
+
 오라클 클라우드 Always Free 또는 자체 서버에서 도커 기반으로 영구 배포할 때 사용합니다:
 ```bash
-cp .env.example .env
-# .env 파일에서 DOMAIN 설정 (예: DOMAIN=my-game.duckdns.org)
-docker compose up -d --build
+cp deploy/oracle/.env.example deploy/oracle/.env
+# deploy/oracle/.env 파일에서 DOMAIN 설정 (예: DOMAIN=my-game.duckdns.org)
+docker compose -f deploy/oracle/docker-compose.yml up -d --build
 ```
 * Caddy 웹서버가 Let's Encrypt 정식 SSL 발급, SPA 라우팅, 웹소켓 리버스 프록시, 검색엔진 차단(noindex)을 자동 처리합니다.
-* 자세한 무료 배포 절차는 [☁️ 오라클 클라우드 배포 가이드](./docs/오라클_클라우드_무료_배포_가이드.md)를 참고하세요.
+* 자세한 무료 배포 절차는 [☁️ 오라클 클라우드 배포 가이드](./deploy/oracle/오라클_클라우드_무료_배포_가이드.md)를 참고하세요.
 
 ---
 

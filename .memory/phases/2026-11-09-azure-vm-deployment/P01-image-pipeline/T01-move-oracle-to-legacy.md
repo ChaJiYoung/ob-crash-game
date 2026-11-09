@@ -1,6 +1,6 @@
 # Task: T01 오라클 전용 파일을 deploy/oracle로 이동(레거시 표시)
 
-## Status: pending
+## Status: done
 
 ## Goal
 오라클 전용 파일(루트 `docker-compose.yml`, `.env.example`, 오라클 가이드)을 `deploy/oracle/`로 옮겨 `deploy/azure/`와 짝을 맞추고, 현재 운영 경로는 Azure임을 문서에 표시한다. Docker·Caddy 공유 파일은 옮기지 않는다. 이동 후에도 오라클 compose가 **저장소 루트를 빌드 컨텍스트로** 정상 해석되고, `./data`·`.env` 경로가 조용히 바뀌지 않아야 한다.
@@ -69,6 +69,6 @@ Task: T01-move-oracle-to-legacy
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
