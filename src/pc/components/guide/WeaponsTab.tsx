@@ -48,7 +48,7 @@ export const WeaponsTab: React.FC = () => (
                   • <strong>웨이브 시간 보너스:</strong> 웨이브마다 정해진 기준 시간 안에 끝내면 웨이브당 최대 {GAME_TUNING.score.timeBonus.maxPerWave}점(보스 웨이브는 {GAME_TUNING.score.timeBonus.maxPerWave * GAME_TUNING.score.timeBonus.bossWaveWeight}점)을 받고, 기준 시간의 {GAME_TUNING.score.timeBonus.zeroAtParMult}배에서 0점이 될 때까지 줄어듭니다. 보스를 살려 두고 부하만 잡으며 시간을 끌면 시간 보너스가 줄어듭니다.<br />
                   • <strong>정밀도 보너스:</strong> 클리어하면 한 판 동안의 판정 비율(PERFECT 100% · GREAT 50% · GOOD 20% 가중, MISS 포함)에 따라 최대 약 {GAME_TUNING.score.precisionBonus.k.toLocaleString()}점이 더해집니다. 많이 쏘는 것보다 정확히 맞히는 것이 랭킹에 유리합니다.<br />
                   • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {GAME_TUNING.fire.reloadScale.toFixed(1)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
-                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘는 연사는 피해가 줄어듭니다(샷건·리볼버 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.shotgun * 100)}%, 개틀링 {Math.round(GAME_TUNING.fire.holdDamageByWeapon.gatling * 100)}%). 한 발씩 정확히 누르세요.
+                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘면 자동 연사되며, 피해 감소 없이 탭 사격과 같은 피해가 들어갑니다(발사 간격만 짧아집니다).
                 </div>
       </div>
     </details>

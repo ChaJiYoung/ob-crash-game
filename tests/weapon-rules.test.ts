@@ -35,7 +35,8 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     return 100 - t.hp;
   };
 
-  it("deals 0.6x (gatling 0.85x) damage for 'hold' versus 'press'", () => {
+  it("deals the same damage for 'hold' versus 'press' (no hold penalty since 2026-11-09)", () => {
+    expect(GAME_TUNING.fire.holdDamageByWeapon).toEqual({ shotgun: 1.0, revolver: 1.0, gatling: 1.0 });
     for (const w of ['shotgun', 'revolver', 'gatling'] as const) {
       const press = damageOf(w, 'press');
       const hold = damageOf(w, 'hold');
