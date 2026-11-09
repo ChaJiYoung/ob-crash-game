@@ -118,6 +118,26 @@ describe('vm.sh', () => {
     expect(r.stdout).toContain('az vm start');
   });
 
+  it('autoshutdown off 는 --off, HH:MM(한국 시각)은 UTC 로 변환한다', () => {
+    const off = bash([script('vm.sh'), 'autoshutdown', 'off', '--dry-run']);
+    expect(off.status, off.stderr).toBe(0);
+    expect(off.stdout).toContain('az vm auto-shutdown');
+    expect(off.stdout).toContain('--off');
+    const cases: Array<[string, string]> = [['23:30', '1430'], ['00:00', '1500'], ['09:00', '0000'], ['18:45', '0945']];
+    for (const [kst, utc] of cases) {
+      const r = bash([script('vm.sh'), 'autoshutdown', kst, '--dry-run']);
+      expect(r.status, `${kst}: ${r.stderr}`).toBe(0);
+      expect(r.stdout, kst).toContain(`--time ${utc}`);
+    }
+  });
+
+  it('autoshutdown 에 잘못된 값을 주면 64 로 종료한다', () => {
+    for (const bad of ['24:00', '9:00', 'tomorrow', '']) {
+      const args = bad ? [script('vm.sh'), 'autoshutdown', bad, '--dry-run'] : [script('vm.sh'), 'autoshutdown', '--dry-run'];
+      expect(bash(args).status, bad).toBe(64);
+    }
+  });
+
   it('인자가 없거나 알 수 없으면 64 로 종료한다', () => {
     expect(bash([script('vm.sh')]).status).toBe(64);
     expect(bash([script('vm.sh'), 'bogus']).status).toBe(64);

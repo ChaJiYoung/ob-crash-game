@@ -42,7 +42,7 @@
 | **VM을 중지(deallocate)했을 때** | IP + 디스크만 | **약 $6.05** |
 
 - **쓰지 않을 때는 반드시 중지하세요.** `scripts/azure/vm.sh stop`
-- 깜빡해도 **매일 한국 시각 24:00에 자동 종료**됩니다(Azure 자동 종료 설정).
+- 처음 설정에서는 깜빡해도 **매일 한국 시각 24:00에 자동 종료**됩니다. 계속 켜 두기로 했다면 `vm.sh autoshutdown off`로 끌 수 있고, 그러면 직접 stop하기 전까지 과금됩니다.
 - 데이터 전송료와 디스크 "마운트" 항목(월 약 $0.35)은 위 합계에 포함하지 않았습니다.
 - 예산 알림은 스크립트로 만들지 않았습니다. 비용 권한이 있는 분이 포털의 **비용 관리 → 예산**에서 직접 설정하세요.
 
@@ -177,7 +177,14 @@ scripts/azure/vm.sh ssh       # VM에 접속
 
 - `stop`은 내부적으로 `az vm deallocate`를 씁니다. **`az vm stop`이나 VM 안에서 `poweroff`는 쓰지 마세요.** 할당이 유지되어 컴퓨트 요금이 계속 나옵니다. 포털에서도 상태가 `중지됨(할당 취소됨)`이어야 과금이 멈춘 것입니다.
 - 켜면 컨테이너는 `restart: unless-stopped`로 자동으로 올라오고, IP·도메인·인증서·DB는 그대로입니다. (검증: 중지 후 시작 29초 만에 `/health` 응답)
-- 매일 24:00(한국 시각)에 자동 종료됩니다. 꺼진 뒤에는 `vm.sh start`로 다시 켜면 됩니다. 자정을 넘겨 쓰는 행사라면 시각을 바꾸거나 끄세요. 바꾸려면 `scripts/azure/config.local.sh`에 `AZ_AUTOSHUTDOWN_UTC=HHMM`(UTC)을 적고 `az vm auto-shutdown`을 직접 실행하세요.
+- 처음 `provision.sh`는 매일 24:00(한국 시각) **자동 종료**를 겁니다. 꺼진 뒤에는 `vm.sh start`로 다시 켜야 하고, **자동으로 켜 주는 기능은 없습니다**(Azure에는 VM을 정해진 시각에 켜 주는 기본 기능이 없습니다).
+- 자동 종료 시각을 바꾸거나 끌 수 있습니다.
+
+```bash
+scripts/azure/vm.sh autoshutdown 23:30    # 매일 한국 시각 23:30에 종료
+scripts/azure/vm.sh autoshutdown off      # 끄기 (계속 켜 둠. 월 약 $14.6, 안 쓰면 직접 stop)
+scripts/azure/vm.sh status                # AutoShutdown 상태도 함께 표시
+```
 
 ### 업데이트와 롤백
 

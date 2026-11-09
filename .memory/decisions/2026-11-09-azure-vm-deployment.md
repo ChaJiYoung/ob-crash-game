@@ -87,3 +87,9 @@
 | D07 유휴 회수·DuckDNS 크론 | 폐기 (Azure엔 유휴 회수 없음, 고정 IP) |
 | D09~D13, D15~D19 | 승계 |
 | D14 접속 상한·Origin 검사 | 승계 (`ALLOWED_ORIGIN`은 Azure FQDN) |
+
+## D13. 운영 방식 변경 — 일단 계속 켜 둠 (2026-11-09, 사용자 결정)
+- **Chosen**: 자동 종료(D11)를 끄고 VM을 계속 켜 둔다(`vm.sh autoshutdown off`). 시각 지정 자동 시작/종료 운영(Azure Automation, launchd)은 도입하지 않는다. 필요해지면 다시 정한다.
+- **Rationale**: 사용자가 "일단 계속 켜놓자"를 선택. 월 약 $14.6(중지 시 $6.05)을 감수한다. Azure에는 VM을 정해진 시각에 켜 주는 기본 기능이 없어 자동 시작이 필요하면 별도 구성이 필요하다.
+- **도구**: `vm.sh autoshutdown <off|HH:MM(KST)>` 추가, `vm.sh status`가 자동 종료 상태를 표시.
+- **참고(안전)**: 같은 날 `az` 기본 구독이 다른 계정(타 조직 구독)으로 바뀐 것을 발견. 모든 Azure 스크립트가 `--subscription`으로 구독을 고정하고 시작 시 구독 이름+ID를 검증하므로 영향 없음.
