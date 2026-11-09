@@ -44,6 +44,8 @@ scp_from "${REMOTE_DIR}/data/${FILE}" "${OUT}/${FILE}"
 if [ "${DRY_RUN}" != "1" ]; then
   if command -v sqlite3 >/dev/null 2>&1; then
     result="$(sqlite3 "${OUT}/${FILE}" 'PRAGMA integrity_check')"
+    # 백업 파일은 WAL 모드로 저장돼 있어 열기만 해도 -shm/-wal 이 생긴다. 검사 후 빈 보조 파일을 정리한다.
+    rm -f "${OUT}/${FILE}-shm" "${OUT}/${FILE}-wal"
     [ "${result}" = "ok" ] || die "백업 파일 무결성 검사 실패: ${result}" 5
     log "무결성 검사 ok"
   else

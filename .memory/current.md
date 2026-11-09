@@ -7,11 +7,12 @@
 [P04 실배포 검증과 가이드](./phases/2026-11-09-azure-vm-deployment/P04-live-deploy-and-guide/phase.md)
 
 ## Active Task
-[T01 실제 Azure 배포 검증](./phases/2026-11-09-azure-vm-deployment/P04-live-deploy-and-guide/T01-live-deploy-verification.md)
+[T02 Azure 배포 가이드와 README](./phases/2026-11-09-azure-vm-deployment/P04-live-deploy-and-guide/T02-azure-guide-and-readme.md)
 
 ## Status
-- P01~P03 완료(스크립트 전부 dry-run·테스트 검증, `node -e` require/백업 무결성은 로컬에서 확인). Azure 리소스는 아직 만들지 않음.
-- 사용자 지시: 모든 Task 진행, 막히면 질문, **배포 스크립트(provision/build-push/deploy) 실행 전에 Opus 5.5 검토를 받을 것.** GHCR 공개 전환·폰 실기기 확인은 사용자 조작 필요.
+- P01~P03 완료, P04-T01(실배포) 완료: Azure에 실제 배포·스모크 6/6·롤백·백업·중지/재시작(29초 복구) 검증. VM은 `deallocated`로 마무리.
+- 미확인: 폰에서 한 판 완료·랭킹 저장, 자동 종료(KST 24:00) 실동작.
+- 사용자 지시: 모든 Task 진행, 막히면 질문, 배포 스크립트 실행 전 Opus 5.5 검토(완료).
 
 ## Next Step (IMPORTANT)
-P04-T01: (1) Opus 5.5 에이전트에게 provision.sh/build-push.sh/deploy.sh/cloud-init.yml/compose 검토 요청 → 지적 반영 → (2) `provision.sh --yes` → (3) build-push → 사용자가 GHCR 패키지 Public 전환 → (4) deploy → 스모크 → 사용자 폰 확인 → (5) stop/start/백업 검증 → VM 중지 상태로 마무리.
+P04-T02: `docs/Azure_VM_배포_가이드.md` 작성(phase.md의 실배포 결과·발견한 문제 반영), README 표·배포 절 갱신, 오라클 가이드 배너에 Azure 가이드 링크 추가. `npm test`(docs-sync 포함) 통과 확인 후 계획 전체 완료 처리.

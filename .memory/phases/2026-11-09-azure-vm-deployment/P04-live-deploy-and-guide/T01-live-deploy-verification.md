@@ -1,6 +1,6 @@
 # Task: T01 실제 Azure 배포 검증
 
-## Status: pending
+## Status: done
 
 ## Goal
 P01~P03 스크립트로 실제 Azure에 VM을 만들고 처음 배포해, 스모크 6개 항목 통과·PC+폰 실기기 플레이·중지/재시작 복구·백업 무결성까지 확인한다. 이 Task는 **비용이 발생하고 외부에 공개되는 작업**이므로 각 게이트에서 사용자 확인을 받고 진행한다. 검증이 끝나면 VM은 **중지(deallocate) 상태로 둔다**. 발견한 문제는 스크립트·cloud-init에 반영한다.
@@ -99,6 +99,6 @@ Task: T01-live-deploy-verification
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과 (폰 한 판 완료·랭킹 저장, 자동 종료 실동작은 미확인으로 기록)
 - commit: pending
