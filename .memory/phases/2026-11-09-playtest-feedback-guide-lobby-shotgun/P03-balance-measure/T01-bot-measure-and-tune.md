@@ -1,6 +1,6 @@
 # Task: T01 샷건 균형 봇 측정·튜닝
 
-## Status: pending
+## Status: done
 
 ## Goal
 P01·P02로 바뀐 샷건이 "게틀링보다 강하고 리볼버보다 약한" 서열에 들어오는지 봇 80판으로 측정하고, 안 맞으면 D08 규칙대로 수치를 조정해 최종값을 확정·기록한다(D08).
@@ -78,6 +78,6 @@ Task: T01-bot-measure-and-tune
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료 (I01 측정 통과, 값 변경 없음 — 시작값 유지, 조정 0회)
+- [x] 검증 통과 (npm test 119 파일 968 테스트, npx tsc --noEmit 오류 없음)
+- commit: git log --grep "Task: T01-bot-measure-and-tune" (사용자가 커밋)
