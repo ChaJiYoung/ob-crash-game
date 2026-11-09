@@ -30,6 +30,12 @@ const mk = (
 let engine: BeerCrusherEngine;
 let now = 1000;
 
+/** 샷건 한 발 피해(GREAT, 배율 1.0) = 펠릿 수 x 펠릿당 피해. 값은 무기 표에서 읽는다(튜닝을 바꿔도 테스트가 따라온다). */
+const shot = (level: WeaponLevel) => {
+  const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[level];
+  return spec.pelletCount * spec.damagePerHit;
+};
+
 const selectShotgun = (level: WeaponLevel) => {
   engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', level);
   engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
@@ -67,8 +73,8 @@ describe('shotgun spread tuning', () => {
     expect(GAME_TUNING.weaponDamageScale.shotgun).toBe(1.0);
   });
 
-  it('one full hit is 1.05 / 1.60 / 2.50 / 3.60 (pellets x damage per pellet)', () => {
-    const expected = { 1: 1.05, 2: 1.6, 3: 2.5, 4: 3.6 } as const;
+  it('one full hit is 1.02 / 1.32 / 1.65 / 2.46 (pellets x damage per pellet, 2026-11-09 attack-power rebalance)', () => {
+    const expected = { 1: 1.02, 2: 1.32, 3: 1.65, 4: 2.46 } as const;
     ([1, 2, 3, 4] as const).forEach((l) => {
       const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[l];
       expect(spec.pelletCount * spec.damagePerHit).toBeCloseTo(expected[l], 5);
@@ -103,9 +109,9 @@ describe('shotgun spread hits', () => {
 
     const r = shootCenter(primary);
     expect(r.grade).toBe('PERFECT');
-    const primaryDamage = 5 * 0.5 * GAME_TUNING.judgment.perfectDamage; // 5.0
+    const primaryDamage = shot(3) * GAME_TUNING.judgment.perfectDamage;
     expect(primary.hp).toBeCloseTo(99 - primaryDamage, 3);
-    const extra = primaryDamage * 0.2; // 1.0
+    const extra = primaryDamage * 0.2;
     [n1, n2, n3].forEach((t) => expect(t.hp).toBeCloseTo(99 - extra, 3));
     expect(n4.hp).toBe(99);
     expect(r.hitTargets).toEqual([primary, n1, n2, n3]);
@@ -117,7 +123,7 @@ describe('shotgun spread hits', () => {
     const ns = [mk('hanmac', 0.04), mk('hanmac', -0.07), mk('hanmac', 0.1)];
     engine.activeTargets = [primary, ...ns];
     shootCenter(primary);
-    const primaryDamage = 3 * 0.35 * GAME_TUNING.judgment.perfectDamage;
+    const primaryDamage = shot(1) * GAME_TUNING.judgment.perfectDamage;
     expect(ns[0].hp).toBeCloseTo(99 - primaryDamage * 0.1, 3);
     expect(ns[1].hp).toBeCloseTo(99 - primaryDamage * 0.1, 3);
     expect(ns[2].hp).toBe(99);
@@ -158,9 +164,9 @@ describe('shotgun spread hits', () => {
     engine.activeTargets = [boss, minion];
     const r = shootCenter(boss);
     expect(r.hitTargets).toEqual([boss, minion]);
-    const primaryDamage = 4 * 0.4 * GAME_TUNING.judgment.perfectDamage * GAME_TUNING.boss.damageScaleByWeapon.shotgun;
+    const primaryDamage = shot(2) * GAME_TUNING.judgment.perfectDamage * GAME_TUNING.boss.damageScaleByWeapon.shotgun;
     expect(boss.hp).toBeCloseTo(99 - primaryDamage, 3);
-    expect(minion.hp).toBeCloseTo(99 - 4 * 0.4 * GAME_TUNING.judgment.perfectDamage * 0.15, 3);
+    expect(minion.hp).toBeCloseTo(99 - shot(2) * GAME_TUNING.judgment.perfectDamage * 0.15, 3);
   });
 
   it('no spread when the primary is an item', () => {
@@ -175,7 +181,7 @@ describe('shotgun spread hits', () => {
   it('a killed neighbour counts as a kill and emits targetKilled', () => {
     selectShotgun(3);
     const primary = mk('hanmac', 0);
-    const weak = mk('pilgood', 0.05, { hp: 1, maxHp: 1 });
+    const weak = mk('pilgood', 0.05, { hp: 0.5, maxHp: 0.5 });
     engine.activeTargets = [primary, weak];
     const killed: string[] = [];
     engine.addEventListener((e) => {
@@ -183,7 +189,7 @@ describe('shotgun spread hits', () => {
     });
     const before = engine.getPlayer(0).totalKills;
     shootCenter(primary);
-    // 5.0 * 0.2 = 1.0 >= 1HP
+    // shot(3) x 2.0(PERFECT) x 0.2 = 0.66 >= 0.5HP
     expect(engine.activeTargets).not.toContain(weak);
     expect(killed).toContain(weak.id);
     expect(engine.getPlayer(0).totalKills).toBe(before + 1);
@@ -196,7 +202,7 @@ describe('shotgun spread hits', () => {
     engine.activeTargets = [primary, n];
     shootCenter(primary, 'hold');
     const hold = GAME_TUNING.fire.holdDamageByWeapon.shotgun;
-    const primaryDamage = 5 * 0.5 * GAME_TUNING.judgment.perfectDamage * hold;
+    const primaryDamage = shot(3) * GAME_TUNING.judgment.perfectDamage * hold;
     expect(primary.hp).toBeCloseTo(99 - primaryDamage, 3);
     expect(n.hp).toBeCloseTo(99 - primaryDamage * 0.2, 3);
   });
