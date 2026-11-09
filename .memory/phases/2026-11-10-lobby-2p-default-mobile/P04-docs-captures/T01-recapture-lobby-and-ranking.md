@@ -1,6 +1,6 @@
 # Task: T01 로비·결과 랭킹 캡처 재촬영
 
-## Status: pending
+## Status: done
 
 ## Goal
 이번 계획(2P 기본 모바일, 플레이어별 배너, 시작 버튼 문구, 랭킹 CLEAR)으로 틀려진 문서 캡처를 새 화면으로 교체하고, 문서가 가리키는 이미지가 모두 존재하는지 확인한다.
@@ -30,6 +30,11 @@
 - 촬영 후 이미지를 `Read`로 열어 한글 깨짐·카드/배너 잘림을 눈으로 확인한다(WebGL 컨텍스트 손실 시 재시도).
 - 문서 캡션: 로비는 "플레이어별 단계 뱃지, 2P는 연결하지 않아도 1인 시작" 설명, 랭킹은 "클리어는 CLEAR, 사망은 W{n}" 설명을 추가. 문서가 참조하는 이미지가 전부 존재하는지 `tests/docs-screens-exist.test.ts`로 확인(없으면 이 Task에서 만들지 말고 `npm test` 결과로만 판단).
 
+## 실행 결과 메모 (구현 중 확정)
+- `play-result-ranking.png`(결과 화면)을 만드는 촬영 코드가 없어 **재촬영하지 않고 그대로 둔다**. 대신 랭킹 패널만 찍은 새 이미지 `docs/screens/play-ranking-clear-marker.png`를 추가하고 `docs/구동화면_쇼케이스.md`에서 참조한다(CLEAR·W7 구분 설명 포함).
+- 촬영용 기록은 임시 폴더를 작업 디렉터리로 띄운 서버(`data/game.db`가 아닌 임시 DB)에 심었다. 5173 포트의 vite는 다른 프로젝트 것이라 건드리지 않고, 이 프로젝트 vite는 5199로 띄웠다. 그래서 `scripts/capture-lobby.mjs`에 `CAPTURE_URL` 환경변수를 추가했다.
+- `screen-01-pc-lobby-qr.png`는 "1P 접속·영점 대기 + 2P QR 대기", `screen-01b-pc-lobby-paired.png`는 "1P 준비 완료 + 2P (선택)"로 파일명 의미에 맞춰 찍었다.
+
 ## Acceptance Criteria
 - [ ] 로비 3장이 새 화면(플레이어별 뱃지, 버튼 문구, 2P QR/(선택))이고, 결과/랭킹 캡처에 CLEAR가 보인다
 - [ ] 이미지를 육안으로 확인했고 잘림·깨짐이 없다
@@ -54,6 +59,6 @@ Task: T01-recapture-lobby-and-ranking
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-recapture-lobby-and-ranking"
