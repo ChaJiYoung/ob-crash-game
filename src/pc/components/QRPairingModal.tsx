@@ -645,17 +645,21 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               <div style={{ display: 'flex', gap: '10px' }}>
                 {onStartTutorial && (
                   <button
-                    onClick={onStartTutorial}
+                    type="button"
+                    data-testid="lobby-tutorial-button"
+                    data-enabled={startView.enabled}
+                    disabled={!startView.enabled}
+                    onClick={startView.enabled ? onStartTutorial : undefined}
                     style={{
                       flex: 1,
                       padding: '11px 8px',
                       borderRadius: '12px',
-                      border: '1px solid rgba(56, 189, 248, 0.4)',
-                      background: 'rgba(56, 189, 248, 0.1)',
-                      color: '#38bdf8',
+                      border: startView.enabled ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(148, 163, 184, 0.25)',
+                      background: startView.enabled ? 'rgba(56, 189, 248, 0.1)' : 'rgba(30, 41, 59, 0.5)',
+                      color: startView.enabled ? '#38bdf8' : '#94a3b8',
                       fontSize: '13px',
                       fontWeight: 800,
-                      cursor: 'pointer',
+                      cursor: startView.enabled ? 'pointer' : 'not-allowed',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -663,7 +667,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                       transition: 'all 0.15s',
                     }}
                   >
-                    🎓 튜토리얼 시작
+                    {startView.enabled ? '🎓 튜토리얼 시작' : '🎓 튜토리얼 시작 (기기 연결 후 가능)'}
                   </button>
                 )}
                 {onOpenGuide && (

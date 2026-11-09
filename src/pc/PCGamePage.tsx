@@ -1352,6 +1352,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     setPhase('PAIRING');
   }, [engine, syncProcessors]);
 
+  /** 튜토리얼 수료 화면의 "실전 배틀 시작": 튜토리얼을 먼저 정리해 단계를 PAIRING으로 돌린 뒤 로비 시작 흐름을 탄다.
+   *  (setPhase는 단계 ref를 즉시 갱신한다. 정리 없이 시작하면 startCountdownAndGame이 단계 검사에 걸려 폰 연결 상태에서 무반응이었다.) */
+  const handleStartRealGameFromTutorial = useCallback(() => {
+    handleExitTutorial();
+    pressScreenButton('start');
+  }, [handleExitTutorial, pressScreenButton]);
+
   const handleRenewRoom = useCallback(() => {
     clearSavedRoomId();
     window.location.reload();
@@ -1696,7 +1703,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
             skillRound={tutorialRound.round}
             skillPhase={tutorialRound.phase}
-            onStartRealGame={() => pressScreenButton('start')}
+            onStartRealGame={handleStartRealGameFromTutorial}
             onExitToLobby={handleExitTutorial}
           />
           {hudState.players.map((s, i) => (

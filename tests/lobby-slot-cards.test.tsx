@@ -232,4 +232,42 @@ describe('lobby slot cards UI (P04-T03)', () => {
     });
     expect(render(paired)).toContain('● 연결 끊김');
   });
+
+  describe('tutorial button follows the start button', () => {
+    const render = (slots: ReturnType<typeof createLobbySlots>) =>
+      renderToStaticMarkup(
+        <QRPairingModal
+          roomId="TEST_ROOM"
+          slots={slots}
+          startGate={getStartGate(slots)}
+          topRankings={[]}
+          onEditMouseNickname={() => {}}
+          onChooseInput={() => {}}
+          onSubmitMouseNickname={() => {}}
+          onStart={() => {}}
+          onStartTutorial={() => {}}
+          onOpenGuide={() => {}}
+        />
+      );
+    const profile = (id: string) => ({ deviceId: id, nickname: id, bestScore: 0, totalGames: 0, lastPlayedAt: '2026-11-07T00:00:00.000Z' });
+
+    it('is disabled with a reason while nobody is connected', () => {
+      const html = render(createLobbySlots('mobile'));
+      expect(html).toContain('data-testid="lobby-tutorial-button" data-enabled="false"');
+      expect(html).toContain('튜토리얼 시작 (기기 연결 후 가능)');
+    });
+
+    it('is enabled once the start button is enabled, even with 2P not connected', () => {
+      const slots = updateSlot(createLobbySlots('mobile'), 1, { player: profile('p1'), isConnected: true, isZeroCalibrated: true });
+      const html = render(slots);
+      expect(html).toContain('data-testid="lobby-tutorial-button" data-enabled="true"');
+      expect(html).not.toContain('(기기 연결 후 가능)');
+    });
+
+    it('is disabled again while a joined 2P is still zeroing', () => {
+      let slots = updateSlot(createLobbySlots('mobile'), 1, { player: profile('p1'), isConnected: true, isZeroCalibrated: true });
+      slots = updateSlot(slots, 2, { player: profile('p2'), isConnected: true });
+      expect(render(slots)).toContain('data-testid="lobby-tutorial-button" data-enabled="false"');
+    });
+  });
 });

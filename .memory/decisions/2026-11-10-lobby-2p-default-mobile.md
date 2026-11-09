@@ -50,3 +50,11 @@
 ## D11. 문서 캡처 재촬영을 이번 계획에 포함
 - **Chosen**: 모든 UI 변경(P01~P03) 뒤에 마지막 Phase로 로비 3장(`screen-01-pc-lobby.png`, `screen-01-pc-lobby-qr.png`, `screen-01b-pc-lobby-paired.png`)과 결과 랭킹 화면(`play-result-ranking.png`)을 다시 찍는다. 기존 `scripts/capture-lobby.mjs`를 쓴다.
 - **Rationale**: 로비 배너·시작 버튼·2P 카드와 랭킹 표기가 바뀌어 문서의 기존 캡처가 틀려진다. 브라우저는 `--use-angle=metal`(프로젝트 메모리 규칙).
+
+## D12. 튜토리얼 시작 버튼은 시작 버튼이 활성일 때만 활성
+- **Chosen**: 로비의 "🎓 튜토리얼 시작" 버튼은 자리를 유지한 채, 시작 버튼이 비활성(`!getStartButtonView().enabled`)이면 `disabled` + 회색 + 글자 "🎓 튜토리얼 시작 (기기 연결 후 가능)". 시작 버튼이 활성(예: 1P 준비 + 2P 미연결)이면 같이 활성.
+- **Rationale**: 튜토리얼은 `getSoloSlot`로 조작 슬롯을 하나 잡는데 아무도 연결 안 했으면 조준 입력을 줄 기기가 없다. 버튼이 사라지면 어디 있는지 알기 어렵고, 비활성+사유 문구가 가장 분명하다.
+
+## D13. 튜토리얼 수료 화면의 "실전 배틀 시작"을 폰에서도 동작하게 수정
+- **Chosen**: 튜토리얼의 `onStartRealGame`이 먼저 튜토리얼을 정리(`handleExitTutorial`, 단계를 PAIRING으로 되돌림)한 뒤 로비 시작(`pressScreenButton('start')`)을 부른다.
+- **Rationale**: 기존엔 `tryStartFromLobby`→`startCountdownAndGame`이 단계가 PAIRING/ZEROING이 아니면(튜토리얼 중엔 TUTORIAL) 조용히 반환해 폰 연결 상태에선 아무 일도 안 일어났다(마우스만이면 `handleStartGame`을 바로 불러 동작). `setPhase`는 ref를 즉시 갱신하므로 정리 직후 같은 흐름에서 시작해도 단계 검사를 통과한다. 센서 랩(SANDBOX)의 같은 버튼은 로비를 거치지 않는 별도 화면이라 이번 범위 밖.
