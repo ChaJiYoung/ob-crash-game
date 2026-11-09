@@ -1,6 +1,6 @@
 # Task: T01 샷건 스킬 엔진 재설계 (박힘 → 기절 → 폭발)
 
-## Status: pending
+## Status: done
 
 ## Goal
 샷건 스킬 "사방 뚫어뻥 폭풍"을 "방어선에 가까운 일반 몬스터 최대 4/5/6/8마리에 박혀 2.0/2.2/2.5/3.0초 기절한 뒤, 기절이 끝나는 순간 0.7/0.8/0.9/1.0 피해로 터진다"로 바꾼다. 보스는 즉시 피해만 받는다. 스킬 수치는 `GAME_TUNING.skills.plunger`로 옮긴다(D01~D04, D14, D16).
@@ -135,6 +135,6 @@ Task: T01-plunger-engine
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-plunger-engine"

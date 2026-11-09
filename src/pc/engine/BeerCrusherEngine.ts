@@ -60,6 +60,8 @@ export interface ActiveTargetEntity {
   dropLandAtMs?: number;
   // Roguelike & Gimmick extensions
   stunUntilMs?: number;
+  /** 샷건 스킬 뚫어뻥이 박혀 있다. stunUntilMs가 되면 터져 damage를 준다(시전 시점에 고정). */
+  plungerBlast?: { damage: number; ownerIndex: PlayerIndex };
   slowUntilMs?: number;
   slowRatio?: number;
   stuckPlungerCount?: number;
@@ -158,7 +160,7 @@ export type BossClearEvent =
   | { type: 'defeated'; x: number; z: number; y: number }
   | { type: 'cascade'; target: ActiveTargetEntity };
 
-export type SkillHitSource = 'blade' | 'foam' | 'blast';
+export type SkillHitSource = 'blade' | 'foam' | 'blast' | 'plunger';
 
 export interface PassiveCardStack {
   kind: RewardCardKind;
@@ -1287,6 +1289,7 @@ export class BeerCrusherEngine {
     this.updateBossMovement(nowMs);
     this.advanceSkillBlades(nowMs, dtSec);
     this.advanceSkillFoam(nowMs, dtSec);
+    this.advancePlungerBlasts(nowMs);
     if (this.bossClearUntilMs > 0) {
       return { breaches: [], phaseChanged: false, reloadedJustNow: false, reloadedByPlayer: this.players.map(() => false) };
     }
@@ -1780,6 +1783,12 @@ export class BeerCrusherEngine {
   }
 
   private handleMonsterKilled(target: ActiveTargetEntity, nowMs: number, killerIndex: PlayerIndex = 0): void {
+    // 박힌 채 폭발 전에 죽으면 폭발 피해는 없고 연출 이벤트만 낸다(D16).
+    if (target.plungerBlast && (target.stunUntilMs ?? 0) > nowMs) {
+      this.pushSkillHitEvent({ source: 'plunger', target, killed: true, ownerIndex: target.plungerBlast.ownerIndex });
+      target.plungerBlast = undefined;
+      target.stuckPlungerCount = 0;
+    }
     if (this.gamePhase === 'VICTORY' || this.gamePhase === 'GAMEOVER') {
       return;
     }
@@ -2701,6 +2710,22 @@ export class BeerCrusherEngine {
     }
   }
 
+  /** 기절이 끝난 박힌 몬스터를 터뜨린다. 폭발 시각 = stunUntilMs(일시정지·카드 선택 때 freezeTimers가 함께 밀어 준다). */
+  private advancePlungerBlasts(nowMs: number): void {
+    // applySkillDamage가 목록을 splice하고 분열병이 추가되므로 복사본을 순회한다.
+    for (const t of [...this.activeTargets]) {
+      if (!t.plungerBlast) continue;
+      if ((t.stunUntilMs ?? 0) > nowMs) continue;
+      // 먼저 비워야 죽을 때 handleMonsterKilled의 "박힌 채 죽음" 연출이 중복으로 나가지 않는다.
+      const blast = t.plungerBlast;
+      t.plungerBlast = undefined;
+      t.stuckPlungerCount = 0;
+      const killed = this.applySkillDamage(t, blast.damage, nowMs, blast.ownerIndex);
+      this.pushSkillHitEvent({ source: 'plunger', target: t, killed, ownerIndex: blast.ownerIndex });
+      this.emit({ type: 'plungerBlasted', playerIndex: blast.ownerIndex, target: t, killed, nowMs });
+    }
+  }
+
   private advanceSkillBlades(nowMs: number, dtSec: number): void {
     if (this.activeSkillBlades.length === 0) return;
     const { speedMps, halfWidthM } = GAME_TUNING.skills.blade;
@@ -2792,16 +2817,22 @@ export class BeerCrusherEngine {
     );
 
     if (weaponKind === 'shotgun') {
-      // 1. 사방 뚫어뻥 폭풍: All active monsters take skill damage and get stunned
-      for (let i = activeMonsters.length - 1; i >= 0; i--) {
-        const monster = activeMonsters[i];
-        if (monster.kind !== 'boss') {
-          monster.stunUntilMs = nowMs + levelSpec.skillStunMs;
-          monster.stuckPlungerCount = 2;
-        }
-        affectedTargets.push(monster);
-
-        this.applySkillDamage(monster, this.getSkillDamage(monster, levelSpec, playerIndex), nowMs, playerIndex);
+      // 1. 사방 뚫어뻥 폭풍: 방어선에 가까운 일반 몬스터부터 skillStickMax마리에 박히고, 기절이 끝나면 터진다(즉시 피해 없음).
+      const blastDamage = Number((levelSpec.skillDamage * player.weaponSystem.getDamageBonusMultiplier()).toFixed(3));
+      const stuck = activeMonsters
+        .filter((m) => m.kind !== 'boss' && !(m.plungerBlast !== undefined && (m.stunUntilMs ?? 0) > nowMs))
+        .sort((a, b) => a.radiusM - b.radiusM)
+        .slice(0, levelSpec.skillStickMax);
+      for (const m of stuck) {
+        m.stunUntilMs = nowMs + levelSpec.skillStunMs;
+        m.stuckPlungerCount = 2;
+        m.plungerBlast = { damage: blastDamage, ownerIndex: playerIndex };
+        affectedTargets.push(m);
+      }
+      // 보스는 박히지 않고 즉시 피해만 받는다.
+      for (const boss of activeMonsters.filter((m) => m.kind === 'boss')) {
+        affectedTargets.push(boss);
+        this.applySkillDamage(boss, this.getSkillDamage(boss, levelSpec, playerIndex), nowMs, playerIndex);
         if (this.bossClearUntilMs > 0) break;
       }
       return {

@@ -193,9 +193,9 @@ export const STAGE_CONSTANTS = {
 
 /**
  * 기본 무기 표. maxAmmo·reloadDurationMs·skillCooldownMs(·fireIntervalMs·damagePerHit)는 아래 applyWeaponTuning이
- * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다(리볼버 skillDamage·skillBossDamage, 개틀링 skillDamage·skillBossDamage·skillKnockbackM도 덮어쓴다). 난이도는 gameTuning.ts에서 조정한다.
+ * GAME_TUNING 값으로 덮어쓰므로 이 표의 해당 값은 직접 쓰이지 않는다(리볼버 skillDamage·skillBossDamage, 개틀링 skillDamage·skillBossDamage·skillKnockbackM, 샷건 skillDamage·skillBossDamage·skillStunMs·skillPlungerCount도 덮어쓴다). 난이도는 gameTuning.ts에서 조정한다.
  */
-type BaseWeaponLevelSpec = Omit<WeaponLevelSpec, 'skillBladeCount' | 'skillBladePierce' | 'skillFoamCount'>;
+type BaseWeaponLevelSpec = Omit<WeaponLevelSpec, 'skillBladeCount' | 'skillBladePierce' | 'skillFoamCount' | 'skillStickMax'>;
 type BaseWeaponArchetypeSpec = Omit<WeaponArchetypeSpec, 'levels'> & { levels: Record<WeaponLevel, BaseWeaponLevelSpec> };
 
 const BASE_WEAPON_ARCHETYPE_SPECS: Record<WeaponKind, BaseWeaponArchetypeSpec> = {
@@ -516,6 +516,15 @@ function applyWeaponTuning(
         skillBladeCount: kind === 'revolver' ? blade.countByLevel[lv] : 0,
         skillBladePierce: kind === 'revolver' ? blade.pierceByLevel[lv] : 0,
         skillFoamCount: kind === 'gatling' ? foam.countByLevel[lv] : 0,
+        skillStickMax: kind === 'shotgun' ? GAME_TUNING.skills.plunger.stickMaxByLevel[lv] : 0,
+        ...(kind === 'shotgun'
+          ? {
+              skillDamage: GAME_TUNING.skills.plunger.blastDamageByLevel[lv],
+              skillBossDamage: GAME_TUNING.skills.plunger.bossDamageByLevel[lv],
+              skillStunMs: GAME_TUNING.skills.plunger.stunMsByLevel[lv],
+              skillPlungerCount: GAME_TUNING.skills.plunger.visualCountByLevel[lv],
+            }
+          : {}),
         ...(kind === 'revolver' ? { skillDamage: damagePerHit, skillBossDamage: blade.bossDamageByLevel[lv] } : {}),
         ...(kind === 'gatling'
           ? { skillDamage: foam.damageByLevel[lv], skillBossDamage: foam.bossDamageByLevel[lv], skillKnockbackM: foam.knockbackMByLevel[lv] }

@@ -38,6 +38,8 @@ export interface WeaponLevelSpec {
   skillBladeCount: number;
   skillBladePierce: number;
   skillPlungerCount: number;
+  /** 샷건 스킬이 한 번에 박는 최대 일반 몬스터 수. 다른 무기는 0. */
+  skillStickMax: number;
   skillCooldownMs: number;
   maxSkillStock: number;
 }

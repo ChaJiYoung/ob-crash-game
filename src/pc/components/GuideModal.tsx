@@ -404,7 +404,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                   • <strong>외형 진화:</strong> 리얼 고무 벨 뚫어뻥 장착 ➔ Lv.2 듀얼 고압관 ➔ Lv.3 호박색 맥주관 순환 ➔ Lv.4 쿼드 배럴 + 둔화 파동<br />
                   • <strong>성능:</strong> {weaponPerformanceText('shotgun')}<br />
                   • <strong>퍼짐:</strong> 십자선 주변 몬스터 {levelSeries(GAME_TUNING.shotgunSpread.extraTargetsByLevel)}마리(Lv.1 / 2 / 3 / MAX)에게도 주 대상 피해의 {([1, 2, 3, 4] as const).map((l) => Math.round(GAME_TUNING.shotgunSpread.damageRatioByLevel[l] * 100)).join(' / ')}%가 함께 들어갑니다(보스는 제외).<br />
-                  • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 화면 8방향에서 12~22개의 미니 뚫어뻥이 포물선으로 날아가 몬스터를 1.0~2.0초간 부착 기절(Stun)시킵니다! (빗나간 탄은 바닥에서 통통 튕김) 보스에게는 피해만 줍니다.
+                  • <strong>⚡ 전용 액티브 스킬 [사방 뚫어뻥 폭풍]:</strong> 총구를 위로 '휙!' 젖히면 방어선에 가까운 몬스터 {levelSeries(GAME_TUNING.skills.plunger.stickMaxByLevel)}마리(Lv.1 / 2 / 3 / MAX)에 뚫어뻥이 박혀 {levelSeries(Object.fromEntries(([1, 2, 3, 4] as const).map((l) => [l, GAME_TUNING.skills.plunger.stunMsByLevel[l] / 1000])) as Record<1 | 2 | 3 | 4, number>)}초 기절하고, 기절이 끝나는 순간 터져 {levelSeries(GAME_TUNING.skills.plunger.blastDamageByLevel)} 피해를 줍니다(박힌 몬스터에게만). 기절해 있는 동안 평타로 마무리하세요! 보스는 박히지 않고 피해({levelSeries(GAME_TUNING.skills.plunger.bossDamageByLevel)})만 즉시 받습니다.
                 </div>
               </div>
 

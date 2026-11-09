@@ -197,6 +197,9 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       (e2 as any).updateGuards(UP);
       expect(t2.isGuarding).toBe(true);
       expect(e2.triggerWeaponSkill(UP).activated).toBe(true);
+      // 방패를 올려도 스킬은 뚫고 박힌다(기절하면 방패가 내려가고, 기절이 끝나면 터져 피해를 준다).
+      expect(t2.plungerBlast).toBeDefined();
+      e2.update(UP + 5000, 0.016);
       expect(t2.hp).toBeLessThan(2);
     });
 
@@ -292,7 +295,9 @@ describe('monster traits (gameplay-polish P04-T02)', () => {
       engine.activeTargets = [b];
       engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 4);
       engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
+      b.hp = 0.5; // 폭발 피해(Lv4 1.0)로 죽는 체력
       expect(engine.triggerWeaponSkill(1000).activated).toBe(true);
+      engine.update(1000 + 3000, 0.016); // 기절(Lv4 3.0초)이 끝나면 터진다
       expect(engine.activeTargets.filter((t) => t.isSplitChild).length).toBe(2);
     });
 

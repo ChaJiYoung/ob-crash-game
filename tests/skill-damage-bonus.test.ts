@@ -16,7 +16,7 @@ function setup() {
 }
 
 describe('the damage card applies to skill damage', () => {
-  it('shotgun skill: normal 0.5 and boss 4, raised by +30%', () => {
+  it('shotgun skill: blast 0.7 (when the stun ends) and boss 4 (immediate), raised by +30%', () => {
     const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[1];
     const e = setup();
     e.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
@@ -25,6 +25,8 @@ describe('the damage card applies to skill damage', () => {
     const b = mk('boss', 100, 'b');
     e.activeTargets = [m, b];
     e.triggerWeaponSkill(1000);
+    expect(m.hp).toBe(10); // 박히는 순간에는 피해가 없다
+    e.update(1000 + spec.skillStunMs, 0.016); // 기절이 끝나면 터진다
     expect(m.hp).toBeCloseTo(10 - spec.skillDamage, 5);
     expect(b.hp).toBeCloseTo(100 - spec.skillBossDamage, 5);
 
@@ -36,6 +38,7 @@ describe('the damage card applies to skill damage', () => {
     const b2 = mk('boss', 100, 'b');
     e2.activeTargets = [m2, b2];
     e2.triggerWeaponSkill(1000);
+    e2.update(1000 + spec.skillStunMs, 0.016);
     expect(m2.hp).toBeCloseTo(10 - spec.skillDamage * 1.3, 3);
     expect(b2.hp).toBeCloseTo(100 - spec.skillBossDamage * 1.3, 3);
   });
@@ -48,6 +51,7 @@ describe('the damage card applies to skill damage', () => {
     e.activeTargets = [m];
     const before = (e as any).killedInWave;
     e.triggerWeaponSkill(1000);
+    e.update(1000 + WEAPON_ARCHETYPE_SPECS.shotgun.levels[4].skillStunMs, 0.016);
     expect((e as any).killedInWave).toBe(before + 1);
     expect(e.activeTargets).not.toContain(m);
   });

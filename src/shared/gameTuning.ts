@@ -70,6 +70,18 @@ export const GAME_TUNING = {
       speedMps: 40,
       startRadiusM: 3,
     },
+    /**
+     * 샷건 '사방 뚫어뻥 폭풍'(2026-11-09 D01~D04). 방어선에 가까운 일반 몬스터부터 stickMax마리에 박혀 기절하고,
+     * 기절이 끝나는 순간 터져 blastDamage를 준다(박힌 몬스터에게만). 보스는 박히지 않고 bossDamage를 즉시 받는다.
+     */
+    plunger: {
+      stickMaxByLevel: { 1: 4, 2: 5, 3: 6, 4: 8 },
+      stunMsByLevel: { 1: 2000, 2: 2200, 3: 2500, 4: 3000 },
+      blastDamageByLevel: { 1: 0.7, 2: 0.8, 3: 0.9, 4: 1.0 },
+      bossDamageByLevel: { 1: 4, 2: 5, 3: 6, 4: 6 },
+      /** 화면에 그리는 뚫어뻥 수(피해와 무관). */
+      visualCountByLevel: { 1: 12, 2: 15, 3: 18, 4: 22 },
+    },
     /** 개틀링 '거품 해일'. 밀어내기 전용이라 피해는 낮다. 거품 수(countByLevel)는 화면에만 쓰인다. */
     foam: {
       knockbackMByLevel: { 1: 3, 2: 3.5, 3: 4, 4: 5 },

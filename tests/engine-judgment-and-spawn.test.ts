@@ -617,14 +617,15 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     };
     engine.activeTargets = [m1, m2];
 
-    // 1. Shotgun skill: 사방 뚫어뻥 폭풍 (AoE 0.5 DMG + 1000ms Stun)
+    // 1. Shotgun skill: 사방 뚫어뻥 폭풍 (박힘 + 2000ms 기절 후 폭발 0.7 DMG, 즉시 피해 없음)
     engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const sgSkill = engine.triggerWeaponSkill(1000);
     expect(sgSkill.activated).toBe(true);
     expect(sgSkill.weaponKind).toBe('shotgun');
-    expect(m1.hp).toBe(3.5); // 4.0 - 0.5
-    expect(m1.stunUntilMs).toBe(2000); // 1000 + 1000ms stun
+    expect(m1.hp).toBe(4); // 박히는 순간에는 피해가 없다
+    expect(m1.stunUntilMs).toBe(3000); // 1000 + 2000ms stun
+    expect(m1.plungerBlast?.damage).toBe(0.7);
     expect(m1.stuckPlungerCount).toBe(2);
 
     // Stunned target has 0 movement speed during update

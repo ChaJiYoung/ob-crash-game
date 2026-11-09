@@ -102,8 +102,12 @@ describe('boss minion drop (score-differentiation P02-T02)', () => {
       engine.getPlayer(0).weaponSystem.refillSkillInstant();
       const res = engine.triggerWeaponSkill(1000 + 100);
       expect(res.activated).toBe(true);
+      // 착지 전 부하는 박히지 않는다. 착지한 몬스터는 박혀서 기절한다(즉시 피해 없음).
       expect(m.hp).toBe(m.maxHp);
-      expect(engine.activeTargets.find((t: any) => t.id === 'second').hp).toBeLessThan(5);
+      expect(m.plungerBlast).toBeUndefined();
+      expect(m.stunUntilMs).toBeUndefined();
+      const second = engine.activeTargets.find((t: any) => t.id === 'second') as any;
+      expect(second.plungerBlast).toBeDefined();
     });
 
     it('shifts its landing time when the game clock is frozen', () => {

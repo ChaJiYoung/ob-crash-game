@@ -7,13 +7,13 @@
 [P02 샷건 스킬 재설계](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/phase.md)
 
 ## Active Task
-[T01 샷건 스킬 엔진 재설계 (박힘 → 기절 → 폭발)](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/T01-plunger-engine.md)
+[T02 샷건 스킬 연출 (박힌 몬스터만, 폭발, 폭발 직전 진동)](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/T02-plunger-visuals.md)
 
 ## Status
-- P01 완료(T01 추가 명중, T02 퍼짐 연출). P02-T01 시작 준비 완료
+- P02-T01 완료(박힘·기절·폭발 엔진). P02-T02 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `GAME_TUNING.skills.plunger`와 엔진 `runWeaponSkill` 샷건 분기, `advancePlungerBlasts` 구현
+T02 청사진을 읽고 `triggerSkillEffect`가 affectedTargets만 쓰게 하고 `spawnPlungerBlast`·`playPlungerBlastSound` 추가
 
 ## 실행 메모
 - 사용자 지시: P1~P3, P4~P6 끝날 때마다 Opus 5.5 리뷰. P03·P07 같은 단순 작업은 Orca CLI로 Gemini 3.8 Flash(high)에 위임.

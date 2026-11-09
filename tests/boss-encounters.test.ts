@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
 import { GAME_TUNING } from '../src/shared/gameTuning';
-import { STAGE_CONSTANTS } from '../src/shared/constants';
+import { STAGE_CONSTANTS, WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
 import { buildHudSnapshot } from '../src/pc/hudSnapshot';
 
 /** Runs the engine until the mini-wave is exhausted: pretend all spawns happened and the field is clear. */
@@ -186,8 +186,10 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     engine.triggerWeaponSkill(1000);
-    expect(m.stunUntilMs).toBe(2000);
+    expect(m.stunUntilMs).toBe(1000 + WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].skillStunMs);
     expect(m.stuckPlungerCount).toBe(2);
+    expect(m.plungerBlast).toBeDefined(); // 박혀 있다가 기절이 끝나면 터진다(즉시 피해 없음)
+    expect(m.hp).toBe(3);
   });
 
   it('boss hit zone is 0.6x of an equivalent normal monster zone', () => {
