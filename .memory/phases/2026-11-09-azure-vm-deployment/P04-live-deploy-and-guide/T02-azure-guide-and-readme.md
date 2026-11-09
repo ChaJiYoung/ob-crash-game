@@ -1,6 +1,6 @@
 # Task: T02 Azure 배포 가이드와 README
 
-## Status: pending
+## Status: done
 
 ## Goal
 초보자가 Azure 계정 확인부터 VM 생성, 첫 배포, 매일 켜고 끄기, 업데이트·롤백, 백업, 트러블슈팅까지 따라 할 수 있는 `docs/Azure_VM_배포_가이드.md`를 작성하고 README에 연결한다. 내용은 P04-T01 실배포 결과(실측 단가, 발견한 문제)를 반영한다. 오라클 가이드는 그대로 둔다.
@@ -66,6 +66,6 @@ Task: T02-azure-guide-and-readme
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
