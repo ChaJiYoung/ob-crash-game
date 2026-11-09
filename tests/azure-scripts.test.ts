@@ -149,6 +149,10 @@ describe('cloud-init.yml', () => {
     expect(y).toMatch(/systemctl,\s*enable,\s*--now,\s*docker/);
     expect(y).toContain('/opt/ob-crash/data');
   });
+  it('ASCII 만 쓴다 (az vm create --custom-data 가 비라틴 문자에서 실패함)', () => {
+    // eslint-disable-next-line no-control-regex
+    expect(/[^\x00-\x7F]/.test(y)).toBe(false);
+  });
   it('관리자 사용자 이름이 config.sh 와 같다', () => {
     const cfg = fs.readFileSync(script('config.sh'), 'utf8');
     const user = /AZ_ADMIN_USER="([^"]+)"/.exec(cfg)![1];

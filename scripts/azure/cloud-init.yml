@@ -1,5 +1,6 @@
 #cloud-config
-# 첫 부팅 때 한 번 실행된다. azureuser 는 scripts/azure/config.sh 의 AZ_ADMIN_USER 와 같아야 한다.
+# Runs once on first boot. "azureuser" must match AZ_ADMIN_USER in scripts/azure/config.sh.
+# Keep this file ASCII-only: az vm create fails to encode non-latin-1 characters in --custom-data.
 package_update: true
 packages:
   - docker.io
@@ -7,7 +8,7 @@ packages:
   - ca-certificates
   - curl
 runcmd:
-  # 1GB RAM 안전망: 2GB 스왑
+  # 2GB swap as a safety net for the 1GB RAM VM
   - [ bash, -c, "fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab" ]
   - [ systemctl, enable, --now, docker ]
   - [ usermod, -aG, docker, azureuser ]
