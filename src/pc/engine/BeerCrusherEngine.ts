@@ -2715,6 +2715,11 @@ export class BeerCrusherEngine {
     // applySkillDamage가 목록을 splice하고 분열병이 추가되므로 복사본을 순회한다.
     for (const t of [...this.activeTargets]) {
       if (!t.plungerBlast) continue;
+      // 같은 틱에 다른 원인으로 이미 죽어 목록에서 빠졌다면(복사본이라 아직 보인다) 폭발 이벤트를 또 내지 않는다.
+      if (!this.activeTargets.includes(t)) {
+        t.plungerBlast = undefined;
+        continue;
+      }
       if ((t.stunUntilMs ?? 0) > nowMs) continue;
       // 먼저 비워야 죽을 때 handleMonsterKilled의 "박힌 채 죽음" 연출이 중복으로 나가지 않는다.
       const blast = t.plungerBlast;

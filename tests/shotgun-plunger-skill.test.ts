@@ -201,4 +201,27 @@ describe('plunger skill: stick, stun, blast', () => {
     engine.update(NOW + 2000, 0.016);
     expect(engine.getPlayer(0).totalKills).toBe(before + 1);
   });
+
+  it('a stuck monster that left the field in the same tick gets no second blast event', () => {
+    const a = mk('a', 10);
+    const b = mk('b', 11);
+    engine.activeTargets = [a, b];
+    castShotgun(1);
+    // a가 터지는 도중 b가 다른 원인으로 목록에서 사라진다(복사본 순회 중이라 b는 아직 순회 대상이다).
+    const original = (engine as any).applySkillDamage.bind(engine);
+    (engine as any).applySkillDamage = (t: ActiveTargetEntity, ...rest: unknown[]) => {
+      if (t === a) engine.activeTargets = engine.activeTargets.filter((x) => x !== b);
+      return original(t, ...rest);
+    };
+    expect(b.plungerBlast).toBeDefined();
+    const events: string[] = [];
+    engine.addEventListener((e) => {
+      if (e.type === 'plungerBlasted') events.push(e.target.id);
+    });
+    engine.drainSkillHitEvents();
+    engine.update(NOW + 2000, 0.016);
+    expect(events).toEqual(['a']);
+    expect(engine.drainSkillHitEvents().filter((h) => h.target === b)).toHaveLength(0);
+    expect(b.plungerBlast).toBeUndefined();
+  });
 });

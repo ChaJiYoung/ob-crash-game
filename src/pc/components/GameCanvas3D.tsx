@@ -596,7 +596,7 @@ export const GameCanvas3D = React.memo(
           if (ev.source === 'plunger') {
             // 박힌 뚫어뻥이 터지는 순간(또는 폭발 전에 평타로 죽은 경우의 연출만).
             particles.spawnPlungerBlast(pos);
-            if (canSound || ev.killed) soundSynth.playPlungerBlastSound();
+            if (canSound) soundSynth.playPlungerBlastSound(); // 여러 마리가 한꺼번에 터져도 소리는 70ms에 한 번
           }
         }
 
