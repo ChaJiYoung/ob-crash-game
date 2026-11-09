@@ -15,6 +15,8 @@ import {
   applyControllerUnsupported,
   buildSandboxSlotMap,
   shouldShowLobbyCrosshair,
+  createLobbySlots,
+  applyLobbyReturnDefaults,
 } from '../src/pc/coopSlots';
 import { PlayerProfile } from '../src/shared/types';
 
@@ -283,5 +285,45 @@ describe('buildSandboxSlotMap (/sensor-test 직접 진입)', () => {
   it('2P 슬롯으로 폰이 붙으면 그 슬롯이 플레이어 0을 조종한다', () => {
     const slots = applyControllerPaired(createInitialSlots(), 2, makeProfile('X', 'xx'));
     expect(buildSandboxSlotMap(slots)).toEqual({ 2: 0 });
+  });
+});
+
+describe('applyLobbyReturnDefaults', () => {
+  it('fills an empty 2P with mobile and 1P with the remembered input', () => {
+    const out = applyLobbyReturnDefaults(createInitialSlots(), 'mobile');
+    expect(out[0].input).toBe('mobile');
+    expect(out[1].input).toBe('mobile');
+  });
+
+  it('clears both mouse slots, then refills 1P with firstInput and 2P with mobile', () => {
+    let slots = chooseSlotInput(createInitialSlots(), 1, 'mouse').slots;
+    slots = updateSlot(slots, 1, { player: makeProfile('M', 'mm') });
+    const out = applyLobbyReturnDefaults(slots, 'mouse');
+    expect(out[0].input).toBe('mouse');
+    expect(out[0].player).toBeUndefined();
+    expect(out[1].input).toBe('mobile');
+
+    let two = chooseSlotInput(createInitialSlots(), 2, 'mouse').slots;
+    two = updateSlot(two, 2, { player: makeProfile('N', 'nn') });
+    const out2 = applyLobbyReturnDefaults(two, 'mobile');
+    expect(out2[1].input).toBe('mobile');
+    expect(out2[1].player).toBeUndefined();
+  });
+
+  it('keeps a paired phone slot untouched', () => {
+    const paired = applyControllerPaired(createLobbySlots('mobile'), 2, makeProfile('P', 'pp'));
+    const slots = updateSlot(paired, 2, { isZeroCalibrated: true });
+    const out = applyLobbyReturnDefaults(slots, 'mobile');
+    expect(out[1].input).toBe('mobile');
+    expect(out[1].player?.deviceId).toBe('P');
+    expect(out[1].isZeroCalibrated).toBe(true);
+  });
+
+  it('an unpaired default 2P does not block a solo start', () => {
+    let slots = createLobbySlots('mobile');
+    slots = updateSlot(applyControllerPaired(slots, 1, makeProfile('A', 'aa')), 1, { isZeroCalibrated: true });
+    const gate = getStartGate(slots);
+    expect(gate.canStart).toBe(true);
+    expect(gate.playerCount).toBe(1);
   });
 });

@@ -44,6 +44,7 @@ import { buildDebugSnapshot } from './debug/debugSnapshot';
 
 import {
   createLobbySlots,
+  applyLobbyReturnDefaults,
   chooseSlotInput,
   updateSlot,
   getJoinedSlots,
@@ -1378,20 +1379,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     processorsRef.current.forEach((p) => p.stopAll());
     engine.gamePhase = 'PAIRING';
     syncProcessors();
-    setSlots((prev) => {
-      let next = prev;
-      if (next[0].input === 'mouse') {
-        next = chooseSlotInput(next, 1, null).slots;
-      }
-      if (next[1].input === 'mouse') {
-        next = chooseSlotInput(next, 2, null).slots;
-      }
-      // 로비가 다시 열릴 때 1P는 마지막에 쓴 입력 방식으로 미리 선택된다(비어 있을 때만).
-      if (next[0].input === null) {
-        next = chooseSlotInput(next, 1, loadLastInput()).slots;
-      }
-      return next;
-    });
+    // 로비가 다시 열릴 때: 마우스 슬롯은 비우고, 1P는 마지막 입력 방식, 2P는 모바일로 미리 선택한다.
+    setSlots((prev) => applyLobbyReturnDefaults(prev, loadLastInput()));
     // 기억한 입력이 마우스면 서버 조회가 필요하다(업데이트 함수 밖에서 보낸다: StrictMode 이중 호출 방지).
     if (loadLastInput() === 'mouse' && slotsRef.current[0].input !== 'mobile') sendLookupLocalPlayer(1);
     setPhase('PAIRING');

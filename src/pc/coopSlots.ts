@@ -26,9 +26,26 @@ export function createInitialSlots(): SlotPair {
   ];
 }
 
-/** 로비가 열릴 때의 슬롯: 1P는 firstInput으로 미리 선택, 2P는 비어 있다. */
+/** 로비가 열릴 때의 슬롯: 1P는 firstInput으로, 2P는 항상 mobile(미연결)로 미리 선택한다. */
 export function createLobbySlots(firstInput: SlotInput): SlotPair {
-  return chooseSlotInput(createInitialSlots(), 1, firstInput).slots;
+  const withFirst = chooseSlotInput(createInitialSlots(), 1, firstInput).slots;
+  return chooseSlotInput(withFirst, 2, 'mobile').slots;
+}
+
+/**
+ * 판을 마치고 로비로 돌아올 때 슬롯을 로비 초기 규칙으로 되돌린다.
+ * - 마우스 슬롯(1P·2P)은 입력을 비운다(마우스 닉네임은 로비에서 다시 확정).
+ * - 1P 입력이 비었으면 firstInput으로 채운다.
+ * - 2P 입력이 비었으면 'mobile'로 채운다.
+ * 이미 폰으로 연결된 슬롯(mobile + player)은 건드리지 않는다.
+ */
+export function applyLobbyReturnDefaults(slots: SlotPair, firstInput: SlotInput): SlotPair {
+  let next = slots;
+  if (next[0].input === 'mouse') next = chooseSlotInput(next, 1, null).slots;
+  if (next[1].input === 'mouse') next = chooseSlotInput(next, 2, null).slots;
+  if (next[0].input === null) next = chooseSlotInput(next, 1, firstInput).slots;
+  if (next[1].input === null) next = chooseSlotInput(next, 2, 'mobile').slots;
+  return next;
 }
 
 /** 입력 선택. 다른 슬롯이 이미 마우스면 마우스 선택을 거절한다. 같은 입력 재선택은 그대로. 입력을 바꾸면 player/isZeroCalibrated 초기화. */

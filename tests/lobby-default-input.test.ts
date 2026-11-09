@@ -47,14 +47,16 @@ describe('lobby input memory (1P)', () => {
 });
 
 describe('createLobbySlots', () => {
-  it('preselects 1P and leaves 2P empty', () => {
+  it('preselects 1P and preselects 2P as an unpaired mobile', () => {
     const mobile = createLobbySlots('mobile');
     expect(mobile[0].input).toBe('mobile');
-    expect(mobile[1].input).toBeNull();
+    expect(mobile[1].input).toBe('mobile');
+    expect(mobile[1].player).toBeUndefined();
+    expect(mobile[1].isZeroCalibrated).toBe(false);
     expect(mobile[0].isZeroCalibrated).toBe(false);
     const mouse = createLobbySlots('mouse');
     expect(mouse[0].input).toBe('mouse');
-    expect(mouse[1].input).toBeNull();
+    expect(mouse[1].input).toBe('mobile');
     expect(chooseSlotInput(mouse, 2, 'mouse').rejected).toBe('MOUSE_TAKEN');
   });
 
@@ -64,7 +66,7 @@ describe('createLobbySlots', () => {
     expect(s[1].input).toBeNull();
   });
 
-  it('a mobile 1P lobby shows the QR area and only one empty slot card', () => {
+  it('a mobile lobby shows two QR areas and no empty slot card', () => {
     const slots = createLobbySlots('mobile');
     const html = renderToStaticMarkup(
       React.createElement(QRPairingModal, {
@@ -79,7 +81,7 @@ describe('createLobbySlots', () => {
       })
     );
     // QR 이미지는 비동기로 만들어져서 정적 렌더에는 '생성 중' 문구가 보인다.
-    expect(html.includes('Slot 1 QR Code') || html.includes('QR 생성 중')).toBe(true);
-    expect(html.match(/비어 있음/g)).toHaveLength(1);
+    expect(html.match(/Slot \d QR Code|QR 생성 중/g)).toHaveLength(2);
+    expect(html.includes('비어 있음')).toBe(false);
   });
 });
