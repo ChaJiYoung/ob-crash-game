@@ -1,6 +1,6 @@
 # Task: T02 가이드 나머지 탭 카드화와 문서 동기화
 
-## Status: pending
+## Status: done
 
 ## Goal
 몬스터·카드·아이템·협동 탭도 T01의 `GuideCard`로 바꿔 모든 탭이 "아이콘 + 한 줄 요약 + 수치 칩 + 접기" 형태가 되게 하고, `GuideModal.tsx`는 탭 라우터만 남긴다. README·문서의 가이드 설명을 새 구조에 맞춘다(D11).
@@ -82,6 +82,6 @@ Task: T02-guide-cards-rest-and-docs
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T02-guide-cards-rest-and-docs"

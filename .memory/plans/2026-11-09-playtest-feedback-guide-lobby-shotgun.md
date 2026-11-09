@@ -17,8 +17,8 @@
 | P02 | `done ✅` | 샷건 스킬 재설계: 박힘→기절→폭발, `GAME_TUNING.skills.plunger`, 연출 | [P02](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/phase.md) |
 | P03 | `done ✅` | 균형 측정·튜닝: 봇 80판으로 서열 확인, 값 조정 | [P03](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P03-balance-measure/phase.md) |
 | P04 | `done ✅` | 로비: 1P 입력 방식 기억·기본값, "지금 할 일" 배너 | [P04](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P04-lobby/phase.md) |
-| P05 | `in_progress` | 가이드 모달 카드화(한 줄 요약·칩·접기), 문구는 튜닝 값에서 계산 | [P05](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P05-guide/phase.md) |
-| P06 | `pending` | 튜토리얼 3단계 무기 3라운드(샷건·리볼버·게틀링 스킬 체험) | [P06](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P06-tutorial/phase.md) |
+| P05 | `done ✅` | 가이드 모달 카드화(한 줄 요약·칩·접기), 문구는 튜닝 값에서 계산 | [P05](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P05-guide/phase.md) |
+| P06 | `in_progress` | 튜토리얼 3단계 무기 3라운드(샷건·리볼버·게틀링 스킬 체험) | [P06](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P06-tutorial/phase.md) |
 | P07 | `pending` | 문서 캡처 재촬영·교체, README 참조 점검 | [P07](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P07-docs-captures/phase.md) |
 
 ## 순서의 이유

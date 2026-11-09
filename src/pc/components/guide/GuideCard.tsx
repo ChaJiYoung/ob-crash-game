@@ -147,3 +147,25 @@ export const GuideCard: React.FC<GuideCardProps> = ({
     )}
   </div>
 );
+
+/** 이미지가 있으면 보여 주고, 로드에 실패하면 숨겨서 뒤의 이모지가 보이게 한다. */
+export const GuideThumb: React.FC<{ src?: string; alt: string; fallback: string; size?: number }> = ({
+  src,
+  alt,
+  fallback,
+  size = 56,
+}) => (
+  <span style={{ position: 'relative', display: 'inline-flex', width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+    <span style={{ fontSize: `${Math.round(size * 0.6)}px`, lineHeight: 1 }}>{fallback}</span>
+    {src && (
+      <img
+        src={src}
+        alt={alt}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = 'none';
+        }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+      />
+    )}
+  </span>
+);

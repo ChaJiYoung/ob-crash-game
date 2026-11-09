@@ -7,6 +7,11 @@ import { weaponStatBars, weaponSkillDetailText, shotgunSpreadText } from '../src
 import { WEAPON_ONE_LINER, WEAPON_SKILL_ONE_LINER } from '../src/shared/guideText';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 import { GuideModal } from '../src/pc/components/GuideModal';
+import { MonstersTab } from '../src/pc/components/guide/MonstersTab';
+import { CardsTab } from '../src/pc/components/guide/CardsTab';
+import { ItemsTab } from '../src/pc/components/guide/ItemsTab';
+import { CoopTab } from '../src/pc/components/guide/CoopTab';
+import { TARGET_SPECS, ITEM_BUFF_SPECS, REWARD_CARD_SPECS } from '../src/shared/constants';
 
 describe('GuideCard', () => {
   const render = (props: Partial<React.ComponentProps<typeof GuideCard>> = {}) =>
@@ -106,5 +111,44 @@ describe('GuideModal', () => {
     expect(renderToStaticMarkup(<GuideModal isOpen={false} onClose={() => {}} />)).toBe('');
     const html = renderToStaticMarkup(<GuideModal isOpen onClose={() => {}} />);
     expect(html).toContain('data-testid="weapon-card-shotgun"');
+  });
+});
+
+describe('the other guide tabs', () => {
+  it('MonstersTab: every monster card has the HP chip and keeps tips inside the folded details', () => {
+    const html = renderToStaticMarkup(<MonstersTab />);
+    (Object.keys(TARGET_SPECS) as (keyof typeof TARGET_SPECS)[]).forEach((k) => {
+      expect(html).toContain(`data-testid="monster-card-${k}"`);
+      expect(html).toContain(`${TARGET_SPECS[k].maxHp}HP`);
+      expect(html).toContain(TARGET_SPECS[k].displayName);
+    });
+    expect(html).toContain('data-testid="gimmicks"');
+    expect(html).not.toMatch(/<details[^>]*\sopen/);
+    // 팁은 접힌 details 안에만 있다
+    const tipIdx = html.indexOf('💡');
+    expect(html.lastIndexOf('<details', tipIdx)).toBeGreaterThan(-1);
+  });
+
+  it('CardsTab: all nine reward cards are listed and the mid-wave text is in the rules block', () => {
+    const html = renderToStaticMarkup(<CardsTab />);
+    Object.values(REWARD_CARD_SPECS).forEach((c) => expect(html).toContain(c.nameKo));
+    expect(Object.keys(REWARD_CARD_SPECS)).toHaveLength(9);
+    expect(html).toContain('4·6웨이브');
+    expect(html).toContain('data-testid="controls-card"');
+  });
+
+  it('ItemsTab: each item has its one-line effect outside the fold', () => {
+    const html = renderToStaticMarkup(<ItemsTab />);
+    Object.values(ITEM_BUFF_SPECS).forEach((spec) => {
+      const i = html.indexOf(spec.description);
+      expect(i).toBeGreaterThan(-1);
+    });
+  });
+
+  it('CoopTab: three cards with a one-line summary each', () => {
+    const html = renderToStaticMarkup(<CoopTab />);
+    ['coop-lobby-card', 'coop-rules-card', 'coop-grace-card'].forEach((id) => {
+      expect(html).toContain(`data-testid="${id}-oneliner"`);
+    });
   });
 });
