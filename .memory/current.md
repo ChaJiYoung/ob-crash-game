@@ -10,7 +10,7 @@
 없음 (계획 전체 완료) — 마지막: [T02 Azure 배포 가이드와 README](./phases/2026-11-09-azure-vm-deployment/P04-live-deploy-and-guide/T02-azure-guide-and-readme.md)
 
 ## Status
-- 계획 전체 완료(P01~P04). Azure VM 실배포·스모크 6/6·롤백·백업·중지/재시작(29초 복구) 검증, 가이드 `docs/Azure_VM_배포_가이드.md` 작성. VM은 `deallocated`(월 약 $6.05).
+- 계획 전체 완료(P01~P04). Azure VM 실배포·스모크 6/6·롤백·백업·중지/재시작(29초 복구) 검증, 가이드 `docs/Azure_VM_배포_가이드.md` 작성. VM은 `deallocated`(월 약 $6.05). 식별 값은 `scripts/azure/config.local.sh`로 분리, push 전 이력 정리 완료. 현재 배포 태그 `2243203`.
 - 미확인: 폰에서 한 판 완료·랭킹 저장, 자동 종료(KST 24:00) 실동작, 가이드의 리소스 삭제 절차(실행해 본 적 없음).
 
 ## Next Step (IMPORTANT)
