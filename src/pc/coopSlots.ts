@@ -97,6 +97,8 @@ export function applyControllerPaired(
   let next = slots;
   if (slots[other - 1].player?.deviceId === player.deviceId) {
     next = chooseSlotInput(next, other, null).slots;
+    // 2P에서 폰이 1P로 옮겨 가도 2P는 기본값(미연결 모바일)으로 남긴다. 1P는 입력 선택 화면으로 돌아간다.
+    if (other === 2) next = chooseSlotInput(next, 2, 'mobile').slots;
   }
   return updateSlot(chooseSlotInput(next, slot, 'mobile').slots, slot, {
     player,
@@ -108,6 +110,7 @@ export function applyControllerPaired(
  * CONTROLLER_UNSUPPORTED 반영(로비 전용): 그 슬롯의 입력·프로필·영점 상태를 비워 처음 상태로 돌린다.
  * isConnected는 건드리지 않는다: 뒤따르는 CONTROLLER_DISCONNECTED 처리가 맞춘다.
  * 입력(input)까지 null로 비워야 로비가 "폰 대기 중" 카드에 머물지 않고 입력 선택 화면으로 돌아간다.
+ * 2P도 일부러 기본 모바일로 되돌리지 않는다: 지원하지 않는 기기였으니 다른 입력(마우스)을 고를 수 있어야 한다.
  */
 export function applyControllerUnsupported(slots: SlotPair, slot: PlayerSlot): SlotPair {
   return chooseSlotInput(slots, slot, null).slots;

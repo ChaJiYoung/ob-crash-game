@@ -85,12 +85,13 @@ const SlotCard: React.FC<SlotCardProps> = ({
   let statusColor = '#64748b';
 
   if (input === 'mobile') {
-    if (!isConnected) {
+    // 플레이어 등록 전(QR만 열었다 닫은 경우)에는 "끊김"이 아니라 아직 연결 대기다(배너 단계와 맞춘다).
+    if (!isConnected && player) {
       statusText = '● 연결 끊김';
       statusColor = '#f87171';
     } else if (!player) {
       statusText = optional ? '● 스마트폰 연결 대기 (선택)' : '● 스마트폰 연결 대기 중…';
-      statusColor = optional ? '#64748b' : '#f59e0b';
+      statusColor = optional ? '#94a3b8' : '#f59e0b';
     } else if (!isZeroCalibrated) {
       statusText = '● 영점 조절 필요';
       statusColor = '#f59e0b';

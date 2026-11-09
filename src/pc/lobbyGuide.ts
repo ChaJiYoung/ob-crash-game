@@ -103,7 +103,7 @@ export interface StartButtonView {
  */
 export function getStartButtonView(slots: SlotPair, gate: StartGate): StartButtonView {
   if (!gate.canStart) {
-    const detail = gate.playerCount === 0 ? '플레이어를 연결하세요' : `${gate.message}…`;
+    const detail = gate.playerCount === 0 ? '플레이어를 연결하세요' : `${gate.message ?? '준비 중'}…`;
     return { enabled: false, icon: '⏳', label: `게임 시작 (${detail})` };
   }
   // 폰을 고르고 아직 QR을 안 찍은 슬롯은 게이트가 무시한다 -> 그 슬롯 없이 혼자 시작한다.

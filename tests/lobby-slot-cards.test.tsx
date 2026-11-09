@@ -209,4 +209,27 @@ describe('lobby slot cards UI (P04-T03)', () => {
     expect(html).toContain('data-testid="lobby-step-2-connect" data-state="active"');
     expect(html).not.toContain('lobby-next-headline');
   });
+
+  it('a player-less 2P that lost its socket still reads as waiting, a paired one reads as dropped', () => {
+    const render = (slots: ReturnType<typeof createLobbySlots>) =>
+      renderToStaticMarkup(
+        <QRPairingModal
+          roomId="TEST_ROOM"
+          slots={slots}
+          startGate={getStartGate(slots)}
+          topRankings={[]}
+          onEditMouseNickname={() => {}}
+          onChooseInput={() => {}}
+          onSubmitMouseNickname={() => {}}
+          onStart={() => {}}
+        />
+      );
+    const unregistered = updateSlot(createLobbySlots('mobile'), 2, { isConnected: false });
+    expect(render(unregistered)).not.toContain('● 연결 끊김');
+    const paired = updateSlot(createLobbySlots('mobile'), 2, {
+      isConnected: false,
+      player: { deviceId: 'p2', nickname: '폰2', bestScore: 0, totalGames: 0, lastPlayedAt: '2026-11-07T00:00:00.000Z' },
+    });
+    expect(render(paired)).toContain('● 연결 끊김');
+  });
 });

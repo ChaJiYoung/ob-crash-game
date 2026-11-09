@@ -9,7 +9,7 @@ export interface LobbyNextStepBannerProps {
 const STATE_STYLE: Record<LobbyStepState, { color: string; border: string; bg: string }> = {
   done: { color: '#4ade80', border: 'rgba(74, 222, 128, 0.5)', bg: 'rgba(74, 222, 128, 0.08)' },
   active: { color: '#fbbf24', border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.16)' },
-  todo: { color: '#64748b', border: 'rgba(100, 116, 139, 0.4)', bg: 'transparent' },
+  todo: { color: '#94a3b8', border: 'rgba(148, 163, 184, 0.4)', bg: 'transparent' },
 };
 
 /** 로비 위쪽의 "지금 할 일" 배너: 플레이어(1P/2P)마다 한 줄씩 단계 뱃지를 보여 준다. */

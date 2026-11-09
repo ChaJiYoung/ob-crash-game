@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialSlots, createLobbySlots, chooseSlotInput, updateSlot, getStartGate } from '../src/pc/coopSlots';
+import { createInitialSlots, createLobbySlots, chooseSlotInput, updateSlot, getStartGate, decideLobbyStart } from '../src/pc/coopSlots';
 import type { SlotPair } from '../src/pc/coopSlots';
 import { getStartButtonView } from '../src/pc/lobbyGuide';
 import type { PlayerProfile } from '../src/shared/types';
@@ -59,5 +59,35 @@ describe('getStartButtonView', () => {
   it('two ready players with a phone: shoot the center', () => {
     const slots = readyPhone(readyMouse(createInitialSlots(), 1, 'm1'), 2, 'p2');
     expect(view(slots)).toEqual({ enabled: true, icon: '▶', label: '게임 시작 (화면 가운데를 쏘세요)' });
+  });
+
+  it('1P phone paired but not zeroed + 2P unscanned: disabled, 1P preparing', () => {
+    let slots = createLobbySlots('mobile');
+    slots = updateSlot(slots, 1, { player: profile('p1'), isConnected: true });
+    expect(view(slots)).toEqual({ enabled: false, icon: '⏳', label: '게임 시작 (1P 준비 중…)' });
+  });
+
+  it('a dropped phone connection keeps the button disabled', () => {
+    let slots = readyPhone(createInitialSlots(), 1, 'p1');
+    slots = updateSlot(slots, 1, { isConnected: false });
+    expect(view(slots).enabled).toBe(false);
+  });
+
+  it('the button is enabled exactly when decideLobbyStart would start (never diverges)', () => {
+    const inputs = [null, 'mobile', 'mouse'] as const;
+    const states = [
+      {},
+      { player: profile('x') },
+      { player: profile('x'), isConnected: true },
+      { player: profile('x'), isConnected: true, isZeroCalibrated: true },
+      { player: profile('x'), isConnected: false, isZeroCalibrated: true },
+    ];
+    for (const i1 of inputs) for (const i2 of inputs) for (const p1 of states) for (const p2 of states) {
+      let slots = createInitialSlots();
+      slots = updateSlot(chooseSlotInput(slots, 1, i1).slots, 1, p1);
+      if (i2 === 'mouse' && i1 === 'mouse') continue; // 마우스는 한 슬롯만
+      slots = updateSlot(chooseSlotInput(slots, 2, i2).slots, 2, p2);
+      expect(view(slots).enabled, JSON.stringify(slots)).toBe(decideLobbyStart(slots).start);
+    }
   });
 });

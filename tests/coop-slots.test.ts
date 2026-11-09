@@ -212,7 +212,8 @@ describe('applyControllerPaired (P03-T01)', () => {
     let slots = applyControllerPaired(createInitialSlots(), 2, X);
     slots = applyControllerPaired(slots, 1, X);
     expect(slots[0].player?.deviceId).toBe('X');
-    expect(slots[1].input).toBeNull();
+    // 2P는 비워지되 기본값(미연결 모바일)으로 남는다. 1P는 입력 선택 화면으로 돌아간다(아래).
+    expect(slots[1].input).toBe('mobile');
     expect(slots[1].player).toBeUndefined();
     slots = applyControllerPaired(slots, 2, X);
     expect(slots[1].player?.deviceId).toBe('X');
@@ -325,5 +326,45 @@ describe('applyLobbyReturnDefaults', () => {
     const gate = getStartGate(slots);
     expect(gate.canStart).toBe(true);
     expect(gate.playerCount).toBe(1);
+  });
+
+  it('is idempotent (safe under a double-invoked state updater)', () => {
+    let slots = chooseSlotInput(createInitialSlots(), 1, 'mouse').slots;
+    slots = updateSlot(slots, 1, { player: makeProfile('M', 'mm') });
+    const once = applyLobbyReturnDefaults(slots, 'mouse');
+    expect(applyLobbyReturnDefaults(once, 'mouse')).toEqual(once);
+  });
+
+  it('keeps a paired 1P phone while a mouse 2P is cleared back to mobile', () => {
+    let slots = applyControllerPaired(createLobbySlots('mobile'), 1, makeProfile('P1', 'p1'));
+    slots = updateSlot(slots, 1, { isZeroCalibrated: true });
+    slots = updateSlot(chooseSlotInput(slots, 2, 'mouse').slots, 2, { player: makeProfile('M2', 'm2') });
+    const out = applyLobbyReturnDefaults(slots, 'mobile');
+    expect(out[0].player?.deviceId).toBe('P1');
+    expect(out[0].isZeroCalibrated).toBe(true);
+    expect(out[1].input).toBe('mobile');
+    expect(out[1].player).toBeUndefined();
+  });
+});
+
+describe('lobby default 2P survives a phone moving between slots', () => {
+  it('2P phone re-scanned as 1P: 2P goes back to an unpaired mobile slot, not an empty one', () => {
+    const slots0 = applyControllerPaired(createLobbySlots('mobile'), 2, makeProfile('X', 'xx'));
+    const slots = applyControllerPaired(slots0, 1, makeProfile('X', 'xx'));
+    expect(slots[0].player?.deviceId).toBe('X');
+    expect(slots[1].input).toBe('mobile');
+    expect(slots[1].player).toBeUndefined();
+  });
+
+  it('1P phone re-scanned as 2P: 1P is cleared to the input-choice screen (unchanged behavior)', () => {
+    const slots0 = applyControllerPaired(createLobbySlots('mobile'), 1, makeProfile('X', 'xx'));
+    const slots = applyControllerPaired(slots0, 2, makeProfile('X', 'xx'));
+    expect(slots[0].input).toBeNull();
+    expect(slots[1].player?.deviceId).toBe('X');
+  });
+
+  it('an unsupported phone clears its slot on purpose (so the player can pick another input)', () => {
+    const slots = applyControllerUnsupported(createLobbySlots('mobile'), 2);
+    expect(slots[1].input).toBeNull();
   });
 });

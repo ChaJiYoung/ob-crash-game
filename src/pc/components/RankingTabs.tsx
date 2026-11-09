@@ -17,7 +17,7 @@ export const WaveLabel: React.FC<{ waveReached: number; outcome?: RunOutcome }> 
       CLEAR
     </div>
   ) : (
-    <div data-testid="ranking-wave-dead" style={{ fontSize: '10px', color: '#64748b' }}>
+    <div data-testid="ranking-wave-dead" style={{ fontSize: '10px', color: '#94a3b8' }}>
       W{waveReached}
     </div>
   );
