@@ -3,6 +3,7 @@ import { ItemBuffKind, WeaponKind, WeaponLevel } from '../../shared/types';
 import { ITEM_BUFF_SPECS, WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
 import { GAME_TUNING } from '../../shared/gameTuning';
 import { createRealisticPlungerMesh } from './DraftTapGun3D';
+import { computeShotgunPelletTargets } from './shotgunPellets';
 
 export const HIT_PARTICLE_COUNTS = { hit: 5, kill: 10, boss: 15 } as const;
 const BOTTLE_SHARD_COUNT = 5;
@@ -593,7 +594,8 @@ export class ParticleEffects3D {
     targetPos: THREE.Vector3,
     kind: WeaponKind,
     level: WeaponLevel = 1,
-    tracerColor?: string
+    tracerColor?: string,
+    extraTargetPositions?: readonly THREE.Vector3[]
   ): void {
     const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level] || WEAPON_ARCHETYPE_SPECS[kind].levels[1];
 
@@ -608,13 +610,14 @@ export class ParticleEffects3D {
 
     if (kind === 'shotgun') {
       const pelletCount = spec.pelletCount;
+      // 탄 배분: 주 대상 주변으로 넓게(간격 0.56), 추가 명중 대상이 있으면 일부 탄은 그쪽으로 날아간다.
+      const pelletTargets = computeShotgunPelletTargets(targetPos, extraTargetPositions ?? [], pelletCount);
       for (let i = 0; i < pelletCount; i++) {
         const miniPlunger = this.acquireProjectileGroup('shotgun');
         miniPlunger.position.copy(origin);
         this.group.add(miniPlunger);
 
-        const spread = (i - (pelletCount - 1) / 2) * 0.28;
-        const spreadTarget = targetPos.clone().add(new THREE.Vector3(spread, (Math.random() - 0.5) * 0.25, 0));
+        const spreadTarget = new THREE.Vector3(pelletTargets[i].x, pelletTargets[i].y, pelletTargets[i].z);
 
         this.projectiles.push({
           group: miniPlunger,

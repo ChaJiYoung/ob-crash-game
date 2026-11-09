@@ -13,8 +13,8 @@
 ## Phases
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| P01 | `in_progress` | 샷건 평타 퍼짐: 추가 명중 엔진·튜닝, 연출 | [P01](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P01-shotgun-spread/phase.md) |
-| P02 | `pending` | 샷건 스킬 재설계: 박힘→기절→폭발, `GAME_TUNING.skills.plunger`, 연출 | [P02](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/phase.md) |
+| P01 | `done ✅` | 샷건 평타 퍼짐: 추가 명중 엔진·튜닝, 연출 | [P01](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P01-shotgun-spread/phase.md) |
+| P02 | `in_progress` | 샷건 스킬 재설계: 박힘→기절→폭발, `GAME_TUNING.skills.plunger`, 연출 | [P02](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/phase.md) |
 | P03 | `pending` | 균형 측정·튜닝: 봇 80판으로 서열 확인, 값 조정 | [P03](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P03-balance-measure/phase.md) |
 | P04 | `pending` | 로비: 1P 입력 방식 기억·기본값, "지금 할 일" 배너 | [P04](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P04-lobby/phase.md) |
 | P05 | `pending` | 가이드 모달 카드화(한 줄 요약·칩·접기), 문구는 튜닝 값에서 계산 | [P05](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P05-guide/phase.md) |

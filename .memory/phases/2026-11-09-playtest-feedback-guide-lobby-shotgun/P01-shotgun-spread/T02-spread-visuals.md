@@ -1,6 +1,6 @@
 # Task: T02 샷건 평타 퍼짐 연출
 
-## Status: pending
+## Status: done
 
 ## Goal
 샷건을 쏠 때 탄이 지금의 약 2배로 넓게 퍼지고, 추가 명중이 일어난 몬스터 쪽으로도 탄이 날아가게 해서 "퍼진 곳에 있으면 맞는다"가 눈으로 보이게 한다(D05 연출, D17). 엔진은 T01에서 이미 끝났고 이 Task는 화면만 바꾼다.
@@ -91,6 +91,6 @@ Task: T02-spread-visuals
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T02-spread-visuals"

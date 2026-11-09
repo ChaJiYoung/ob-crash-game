@@ -4,18 +4,17 @@
 [플레이 피드백 반영 (가이드·로비·샷건 스킬/퍼짐·튜토리얼)](./plans/2026-11-09-playtest-feedback-guide-lobby-shotgun.md)
 
 ## Active Phase
-[P01 샷건 평타 퍼짐](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P01-shotgun-spread/phase.md)
+[P02 샷건 스킬 재설계](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/phase.md)
 
 ## Active Task
-[T01 샷건 평타 추가 명중 엔진·튜닝](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P01-shotgun-spread/T01-extra-hit-engine.md)
+[T01 샷건 스킬 엔진 재설계 (박힘 → 기절 → 폭발)](./phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P02-shotgun-skill/T01-plunger-engine.md)
 
 ## Status
-- 계획 수립 완료(7 Phase, 11 Task). 결정 문서: [2026-11-09-playtest-feedback-guide-lobby-shotgun](./decisions/2026-11-09-playtest-feedback-guide-lobby-shotgun.md)
-- T01 구현 시작 준비 완료
+- P01 완료(T01 추가 명중, T02 퍼짐 연출). P02-T01 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/shared/gameTuning.ts`(`shotgunSpread` 추가, `weaponDamageScale.shotgun` 1.0)와 `src/pc/engine/BeerCrusherEngine.ts`(`shootAt`의 샷건 분기, 새 `collectShotgunSpreadTargets`) 구현 시작
+T01 청사진을 읽고 `GAME_TUNING.skills.plunger`와 엔진 `runWeaponSkill` 샷건 분기, `advancePlungerBlasts` 구현
 
-## 보류 중인 이전 작업 (Azure VM 배포 계획, 완료 처리됨 — 이 계획과 별개)
-- 미확인: 폰에서 한 판 완료·랭킹 저장, 자동 종료(KST 24:00) 실동작, 가이드의 리소스 삭제 절차(실행해 본 적 없음).
-- 폰으로 한 판 완료·랭킹 저장 확인: `scripts/azure/vm.sh start` → 플레이 → `backup.sh`로 기록 확인 → `vm.sh stop`. 다음날 `vm.sh status`로 자동 종료 확인. 팀 그룹 월 비용 증가(약 $6~15) 공유.
+## 실행 메모
+- 사용자 지시: P1~P3, P4~P6 끝날 때마다 Opus 5.5 리뷰. P03·P07 같은 단순 작업은 Orca CLI로 Gemini 3.8 Flash(high)에 위임.
+- 각 Task 커밋은 `git log --grep "Task: <id>"`로 찾는다.

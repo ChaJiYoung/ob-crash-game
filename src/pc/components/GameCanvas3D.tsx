@@ -242,6 +242,8 @@ export const GameCanvas3D = React.memo(
           const curAim = aim ?? gunAimsRef.current[result.playerIndex]?.current ?? { aimX: 0, aimY: 0 };
 
           let targetPos: THREE.Vector3;
+          // 샷건 평타 퍼짐: 추가 명중한 몬스터 위치(탄이 그쪽으로도 날아간다)
+          let extraPositions: THREE.Vector3[] = [];
           const overrideColor = playerColorsRef.current?.[result.playerIndex] ?? null;
           let beamColor = overrideColor ?? (isPower ? '#ef4444' : isFever ? '#fbbf24' : '#38bdf8');
           const aimDist = result.target ? Math.max(3, result.target.radiusM) : 15;
@@ -267,6 +269,14 @@ export const GameCanvas3D = React.memo(
                 }
 
                 // 리볼버 관통: 뒤쪽에 맞은 몬스터도 찌그러지고 파편이 튄다(소리는 주 대상 한 번).
+                if (player.weaponSystem.getState().weaponKind === 'shotgun') {
+                  extraPositions = getPiercedTargets(result).map((rear) => {
+                    const m = targetMeshMapRef.current.get(rear.id);
+                    // 이번 발에 죽었으면 메시가 이미 없을 수 있다: 몬스터 좌표로 대체
+                    const base = m ? m.position.clone() : new THREE.Vector3(rear.x, 0.8, rear.z);
+                    return base.add(new THREE.Vector3(0, 0.35, 0));
+                  });
+                }
                 getPiercedTargets(result).forEach((rear) => {
                   const rearKilled = rear.hp <= 0;
                   const rearMesh = targetMeshMapRef.current.get(rear.id);
@@ -283,7 +293,7 @@ export const GameCanvas3D = React.memo(
           }
 
           // Spawn 3D Flying Projectile according to weapon archetype
-          particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel, beamColor);
+          particlesRef.current.spawnWeaponProjectile(muzzlePos, targetPos, weaponState.weaponKind, weaponState.weaponLevel, beamColor, extraPositions);
         }
       },
       [engine, soundSynth]
