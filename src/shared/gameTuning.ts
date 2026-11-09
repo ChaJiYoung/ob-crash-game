@@ -47,7 +47,8 @@ export const GAME_TUNING = {
     reloadScale: 1.2,
     /** 누르고 쏘기(hold) 피해 배율. 2026-11-09에 모든 무기 1.0(피해 감소 없음)으로 바꿨다. 값을 1 미만으로 내리면 엔진이 그대로 적용한다. */
     holdDamageByWeapon: { shotgun: 1.0, revolver: 1.0, gatling: 1.0 },
-    holdIntervalScaleByWeapon: { shotgun: 0.7, revolver: 0.7, gatling: 0.85 },
+    /** 누르고 쏘기(hold) 발사 간격 배율. 2026-11-09에 모두 1.0(연타 속도 = 탭 속도)으로 바꿨다. 탭으로 탄창을 비우는 시간이 이미 3초 안팎이라 연타는 속도 이득 없이 자동 연사의 편의만 준다. */
+    holdIntervalScaleByWeapon: { shotgun: 1.0, revolver: 1.0, gatling: 1.0 },
   },
   /**
    * 샷건 평타 퍼짐(2026-11-09 D05~D07, D17). 십자선 주변 몬스터도 낮은 피해를 받는다.
