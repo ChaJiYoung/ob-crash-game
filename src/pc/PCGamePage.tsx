@@ -416,6 +416,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [hitTestButton]);
 
   const tryStartFromLobby = useCallback(() => {
+    // 이미 카운트다운이 돌고 있으면 그 시점에 확정한 인원·매핑을 덮어쓰지 않는다(재클릭·재사격 무시).
+    if (countdownTimerRef.current) return;
     const decision = decideLobbyStart(slotsRef.current);
     if (!decision.start) {
       setStartNotice(decision.notice);
