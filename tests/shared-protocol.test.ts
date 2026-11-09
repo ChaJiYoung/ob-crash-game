@@ -103,7 +103,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // Check Shotgun specifics
     const sg = WEAPON_ARCHETYPE_SPECS.shotgun;
     expect(sg.levels[1].pelletCount).toBe(3);
-    expect(sg.levels[1].damagePerHit).toBe(0.42); // 0.35 x 1.2 (tuning) -> 1.26 total hit
+    expect(sg.levels[1].damagePerHit).toBe(0.35); // 0.35 x 1.0 (tuning, 2026-11-09) -> 1.05 total hit
     expect(sg.levels[2].knockbackM).toBe(0.3);
     expect(sg.levels[4].pelletCount).toBe(6);
     expect(sg.levels[4].slowDurationMs).toBe(1000);

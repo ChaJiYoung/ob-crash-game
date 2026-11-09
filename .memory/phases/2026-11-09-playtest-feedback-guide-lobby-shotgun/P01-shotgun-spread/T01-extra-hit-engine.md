@@ -1,6 +1,6 @@
 # Task: T01 샷건 평타 추가 명중 엔진·튜닝
 
-## Status: pending
+## Status: done
 
 ## Goal
 샷건 평타 한 발이 십자선 주변 몬스터에게도 낮은 피해를 주도록 엔진에 추가 명중을 넣고, 샷건 피해 스케일을 1.2에서 1.0으로 낮춘다. 퍼짐 수치는 `GAME_TUNING.shotgunSpread`에 둔다. 퍼짐 없이 강했던 평타를 "한 마리엔 약간 약하고 뭉친 무리엔 더 강한" 무기로 바꾸기 위한 것이다(D05~D07, D17).
@@ -116,6 +116,6 @@ Task: T01-extra-hit-engine
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: 3605532

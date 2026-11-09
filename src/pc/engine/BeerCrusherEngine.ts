@@ -2304,11 +2304,22 @@ export class BeerCrusherEngine {
       const bossScale = target.kind === 'boss' ? GAME_TUNING.boss.damageScaleByWeapon[weaponKind] : 1.0;
       const totalMult = powerMult * judgmentMult * weaponBonusMult * holdMult * bossScale;
       let damage = Number((levelSpec.damagePerHit * totalMult).toFixed(3));
+      // 샷건 평타 퍼짐: 주 대상 피해를 깎기 전에 후보를 확정한다(처치 시 병 분열로 생기는 새 병이 맞지 않게).
+      let spreadTargets: ActiveTargetEntity[] = [];
+      let spreadExtraDamage = 0;
 
       if (weaponKind === 'shotgun') {
         // Shotgun: Lv.1 GREAT = 3 * 0.35 * 1.0 = 1.05 (1HP 캔 원샷), GOOD = 1.05 * 0.8 = 0.84
         const baseDamage = levelSpec.pelletCount * levelSpec.damagePerHit;
         damage = Number((baseDamage * totalMult).toFixed(3));
+        if (!target.isItem) {
+          spreadTargets = this.collectShotgunSpreadTargets(target, aimX, aimY, nowMs, weaponLevel, playerIndex);
+          // 추가 대상은 보스가 아니므로 bossScale은 곱하지 않는다.
+          const spreadBase = baseDamage * powerMult * judgmentMult * weaponBonusMult * holdMult;
+          spreadExtraDamage = Number(
+            (spreadBase * GAME_TUNING.shotgunSpread.damageRatioByLevel[weaponLevel]).toFixed(3)
+          );
+        }
 
         // Knockback on Lv.2+
         if (levelSpec.knockbackM > 0 && target.kind !== 'boss') {
@@ -2394,6 +2405,24 @@ export class BeerCrusherEngine {
         this.emit({ type: 'targetKilled', target, playerIndex, nowMs });
       }
 
+      // 샷건 평타 퍼짐: 추가 대상은 낮은 피해만 받는다(넉백·둔화 없음). 처치는 리볼버 관통과 같은 경로.
+      for (const rear of spreadTargets) {
+        if (!this.activeTargets.includes(rear)) continue; // 한맥 폭발 등으로 이미 사라졌을 수 있다
+        rear.hp = Number(Math.max(0, rear.hp - spreadExtraDamage).toFixed(3));
+        hitTargets.push(rear);
+        if (rear.hp <= 0) {
+          const rearIdx = this.activeTargets.indexOf(rear);
+          if (rearIdx >= 0) {
+            this.activeTargets.splice(rearIdx, 1);
+            this.killedInWave += 1;
+            player.totalKills += 1;
+            player.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
+            this.handleMonsterKilled(rear, nowMs, playerIndex);
+            this.emit({ type: 'targetKilled', target: rear, playerIndex, nowMs });
+          }
+        }
+      }
+
       return {
         fired: true,
         grade: result.grade,
@@ -2418,6 +2447,38 @@ export class BeerCrusherEngine {
       weaponLevel,
       playerIndex,
     };
+  }
+
+  /**
+   * 샷건 평타 퍼짐: 십자선 주변에서 가까운 순서로 추가 명중 대상을 고른다(주 대상 제외, 최대 extraTargetsByLevel[level]마리).
+   * 거리는 findBestTarget과 같은 화면 거리(가로 x aspect, 세로 x 0.85)이고 radiusNorm 이내만 대상이다.
+   */
+  private collectShotgunSpreadTargets(
+    primary: ActiveTargetEntity,
+    aimX: number,
+    aimY: number,
+    nowMs: number,
+    level: WeaponLevel,
+    playerIndex: PlayerIndex
+  ): ActiveTargetEntity[] {
+    const spread = GAME_TUNING.shotgunSpread;
+    const maxExtra = spread.extraTargetsByLevel[level];
+    if (maxExtra <= 0 || primary.isItem) return [];
+
+    const scored: { target: ActiveTargetEntity; dist: number }[] = [];
+    for (const t of this.activeTargets) {
+      if (t === primary) continue;
+      if (t.isItem || t.isProjectile || t.isGoldenCan || t.weaponSelectKind || t.rewardCardKind) continue;
+      if (t.kind === 'boss' || t.isGuarding) continue;
+      if (!this.isTargetLanded(t, nowMs)) continue;
+      const proj = this.computeTargetAimCoords(t, 1.0, playerIndex);
+      const dx = (aimX - proj.targetNormX) * this.aspect;
+      const dy = t.customNormY !== undefined ? aimY - proj.targetNormY : (aimY - proj.targetNormY) * 0.85;
+      const dist = Math.hypot(dx, dy);
+      if (dist <= spread.radiusNorm) scored.push({ target: t, dist });
+    }
+    scored.sort((a, b) => a.dist - b.dist);
+    return scored.slice(0, maxExtra).map((x) => x.target);
   }
 
   /** 몬스터를 뒤로 민다. 등장 거리를 넘지 않고, 앞으로 끌어오지 않는다. */

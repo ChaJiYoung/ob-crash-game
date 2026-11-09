@@ -490,7 +490,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const engine = new BeerCrusherEngine();
     engine.startGame();
 
-    // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 base DMG. With PERFECT (1.5x) -> 2.40 DMG + 0.3m knockback
+    // 1. Shotgun Lv.2: 4 pellets * 0.40 = 1.60 base DMG. With PERFECT (2.0x) -> 3.20 DMG + 0.3m knockback
     engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 2);
     engine.getPlayer(0).weaponSystem.refillSkillInstant(); // selectWeapon starts with 0 charges
     const sgTarget = {
@@ -513,7 +513,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
     expect(shot1.fired).toBe(true);
     expect(shot1.grade).toBe('PERFECT');
-    expect(sgTarget.hp).toBeCloseTo(0.16, 5); // 4.0 - (4 x (0.40 x 1.2) x 2.0 PERFECT) = 0.16
+    expect(sgTarget.hp).toBeCloseTo(0.8, 5); // 4.0 - (4 x (0.40 x 1.0) x 2.0 PERFECT) = 0.8 (샷건 스케일 1.0, 2026-11-09)
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
     // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
@@ -850,7 +850,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(sgGood.fired).toBe(true);
     expect(sgGood.grade).toBe('GOOD');
     expect(sgGood.killed).toBe(false);
-    expect(canSgGood.hp).toBeCloseTo(0.37, 2); // 3 pellets x (0.35 x 1.2) x 0.5 GOOD = 0.63
+    expect(canSgGood.hp).toBeCloseTo(0.475, 2); // 3 pellets x (0.35 x 1.0) x 0.5 GOOD = 0.525
   });
 });
 
