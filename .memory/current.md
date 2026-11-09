@@ -4,13 +4,13 @@
 [로비 2P 기본 모바일 + 플레이어별 단계 뱃지 + 시작 버튼 상태 문구](./plans/2026-11-10-lobby-2p-default-mobile.md)
 
 ## Active Phase
-[P02 로비 안내 UI](./phases/2026-11-10-lobby-2p-default-mobile/P02-lobby-guide-ui/phase.md)
+[P03 랭킹 클리어 표시](./phases/2026-11-10-lobby-2p-default-mobile/P03-ranking-clear-marker/phase.md)
 
 ## Active Task
-[T02 시작 버튼 상태 문구 + 2P 카드 (선택)](./phases/2026-11-10-lobby-2p-default-mobile/P02-lobby-guide-ui/T02-start-button-and-card-optional.md)
+[T01 랭킹 outcome 노출 + 클리어 글자 표시](./phases/2026-11-10-lobby-2p-default-mobile/P03-ranking-clear-marker/T01-ranking-outcome-and-clear-label.md)
 
 ## Status
-- P01-T01, P02-T01 완료. 전체 Task 완료 후 같은 모델 서브에이전트로 코드리뷰 진행(사용자 요청).
+- P01~P02 완료(전체 테스트 1020개, tsc 통과). 전체 Task 완료 후 같은 모델 서브에이전트로 코드리뷰 진행(사용자 요청).
 
 ## Next Step (IMPORTANT)
-P02-T02 청사진을 읽고 `getStartButtonView`(lobbyGuide.ts), 모달 시작 버튼·SlotCard 상태 글자, 테스트를 구현.
+P03-T01 청사진을 읽고 types.ts·PlayRecordStore.ts에 outcome을 싣고 RankingTabs에서 CLEAR 글자 표시.

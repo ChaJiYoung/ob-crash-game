@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { PlayerSlot, RunRankingEntry, TeamRankingEntry } from '../../shared/types';
 import { PLAYER_COLORS, WEAPON_RANKING_LABEL } from '../../shared/constants';
 import { LobbyNextStepBanner } from './LobbyNextStepBanner';
-import { getLobbyNextAction } from '../lobbyGuide';
+import { getLobbyNextAction, getStartButtonView, isOptionalSlot } from '../lobbyGuide';
 import { SlotPair, SlotState, SlotInput, StartGate, isSlotJoined, isSlotReady, getJoinedSlots } from '../coopSlots';
 import { RankingTabs, RankingTab, getDefaultRankTab } from './RankingTabs';
 
@@ -41,6 +41,8 @@ export interface QRPairingModalProps {
 
 interface SlotCardProps {
   slotState: SlotState;
+  /** 이 슬롯이 "선택 사항"인가(1P 준비 완료 + 2P 폰 미연결). 상태 글자만 바꾼다. */
+  optional: boolean;
   otherSlotState: SlotState;
   roomId: string;
   lanIp?: string;
@@ -52,6 +54,7 @@ interface SlotCardProps {
 
 const SlotCard: React.FC<SlotCardProps> = ({
   slotState,
+  optional,
   otherSlotState,
   roomId,
   lanIp,
@@ -86,8 +89,8 @@ const SlotCard: React.FC<SlotCardProps> = ({
       statusText = '● 연결 끊김';
       statusColor = '#f87171';
     } else if (!player) {
-      statusText = '● 스마트폰 연결 대기 중…';
-      statusColor = '#f59e0b';
+      statusText = optional ? '● 스마트폰 연결 대기 (선택)' : '● 스마트폰 연결 대기 중…';
+      statusColor = optional ? '#64748b' : '#f59e0b';
     } else if (!isZeroCalibrated) {
       statusText = '● 영점 조절 필요';
       statusColor = '#f59e0b';
@@ -391,6 +394,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   onRenewRoom,
 }) => {
   const joinedCount = getJoinedSlots(slots).length;
+  const startView = getStartButtonView(slots, startGate);
   const defaultTab = getDefaultRankTab(joinedCount);
 
   const [localRankTab, setLocalRankTab] = useState<RankingTab>(() => {
@@ -493,6 +497,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         <div style={{ display: 'flex', gap: '20px', width: '100%', marginBottom: '24px' }}>
           <SlotCard
             slotState={slots[0]}
+            optional={isOptionalSlot(slots, 1)}
             otherSlotState={slots[1]}
             roomId={roomId}
             lanIp={lanIp}
@@ -503,6 +508,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           />
           <SlotCard
             slotState={slots[1]}
+            optional={isOptionalSlot(slots, 2)}
             otherSlotState={slots[0]}
             roomId={roomId}
             lanIp={lanIp}
@@ -585,52 +591,52 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                   <span>⚠️</span>
                   <span>{startNotice}</span>
                 </div>
-              ) : startGate.canStart ? (
-                <button
-                  data-shootable="start"
-                  onClick={onStart}
-                  style={{
-                    flex: 1,
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '2px solid #f59e0b',
-                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                    color: '#000000',
-                    fontSize: '16px',
-                    fontWeight: 900,
-                    cursor: 'pointer',
-                    boxShadow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  <span style={{ fontSize: '22px' }}>▶</span>
-                  <span>게임 시작 (폰은 화면 가운데를 쏘세요)</span>
-                </button>
               ) : (
-                <div
-                  style={{
-                    flex: 1,
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(148, 163, 184, 0.25)',
-                    background: 'rgba(30, 41, 59, 0.5)',
-                    color: '#94a3b8',
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    textAlign: 'center',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                  }}
+                <button
+                  type="button"
+                  data-testid="lobby-start-button"
+                  data-enabled={startView.enabled}
+                  disabled={!startView.enabled}
+                  {...(startView.enabled ? { 'data-shootable': 'start', onClick: onStart } : {})}
+                  style={
+                    startView.enabled
+                      ? {
+                          flex: 1,
+                          padding: '16px',
+                          borderRadius: '12px',
+                          border: '2px solid #f59e0b',
+                          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                          color: '#000000',
+                          fontSize: '16px',
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                          boxShadow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '10px',
+                          letterSpacing: '0.5px',
+                        }
+                      : {
+                          flex: 1,
+                          padding: '16px',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(148, 163, 184, 0.25)',
+                          background: 'rgba(30, 41, 59, 0.5)',
+                          color: '#94a3b8',
+                          fontSize: '15px',
+                          fontWeight: 800,
+                          cursor: 'not-allowed',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                        }
+                  }
                 >
-                  <span>⏳</span>
-                  <span>{startGate.message || '플레이어를 연결하세요'}</span>
-                </div>
+                  <span style={startView.enabled ? { fontSize: '22px' } : undefined}>{startView.icon}</span>
+                  <span>{startView.label}</span>
+                </button>
               )}
             </div>
 

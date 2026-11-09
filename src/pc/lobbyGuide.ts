@@ -1,6 +1,6 @@
 import type { PlayerSlot } from '../shared/types';
-import { isSlotReady } from './coopSlots';
-import type { SlotPair, SlotState } from './coopSlots';
+import { getJoinedSlots, isSlotReady } from './coopSlots';
+import type { SlotPair, SlotState, StartGate } from './coopSlots';
 
 export type LobbyStepId = 'choose' | 'connect' | 'zero' | 'start';
 export type LobbyStepState = 'done' | 'active' | 'todo';
@@ -88,4 +88,29 @@ export function getLobbyNextAction(slots: SlotPair): LobbyNextAction {
       };
     }),
   };
+}
+
+export interface StartButtonView {
+  enabled: boolean;
+  icon: '▶' | '⏳';
+  /** 괄호 포함 전체 문구. 예: "게임 시작 (2P 준비 중…)" */
+  label: string;
+}
+
+/**
+ * 로비 시작 버튼의 활성 여부와 글자. 전체 상태(누가 준비 중인지, 2P 없이 시작인지)를 괄호 안에 담는다.
+ * 시작 판정은 StartGate가 이미 하므로 여기서는 문구만 고른다.
+ */
+export function getStartButtonView(slots: SlotPair, gate: StartGate): StartButtonView {
+  if (!gate.canStart) {
+    const detail = gate.playerCount === 0 ? '플레이어를 연결하세요' : `${gate.message}…`;
+    return { enabled: false, icon: '⏳', label: `게임 시작 (${detail})` };
+  }
+  // 폰을 고르고 아직 QR을 안 찍은 슬롯은 게이트가 무시한다 -> 그 슬롯 없이 혼자 시작한다.
+  const pending = slots.find((s) => s.input === 'mobile' && !s.player);
+  if (gate.playerCount === 1 && pending) {
+    return { enabled: true, icon: '▶', label: `게임 시작 (${pending.slot}P 없이 1인 시작)` };
+  }
+  const hasPhone = getJoinedSlots(slots).some((s) => s.input === 'mobile');
+  return { enabled: true, icon: '▶', label: hasPhone ? '게임 시작 (화면 가운데를 쏘세요)' : '게임 시작 (클릭으로 시작)' };
 }

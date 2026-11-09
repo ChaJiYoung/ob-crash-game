@@ -32,12 +32,12 @@ describe('lobby slot cards UI (P04-T03)', () => {
     const matches = html.match(/비어 있음/g);
     expect(matches).toHaveLength(2);
 
-    // No start button
+    // Disabled start button that carries the overall status
+    expect(html).toContain('data-testid="lobby-start-button"');
+    expect(html).toContain('(플레이어를 연결하세요)');
+    expect(html).toContain('disabled=""');
+    expect(html).not.toContain('data-shootable="start"');
     expect(html).not.toContain('▶');
-    expect(html).not.toContain('게임 시작');
-
-    // Waiting notice
-    expect(html).toContain('플레이어를 연결하세요');
   });
 
   it('renders 1P ready mouse, 2P mobile waiting with slot=2 QR and 2P mouse disabled', () => {
@@ -78,9 +78,12 @@ describe('lobby slot cards UI (P04-T03)', () => {
     expect(html).toContain('data-testid="mouse-nickname-edit-1"');
     expect(html).toContain('● 준비 완료');
 
-    // 2P waiting status and slot=2 in url
-    expect(html).toContain('● 스마트폰 연결 대기 중…');
+    // 2P waiting status is optional because 1P is already ready; the start button works without 2P
+    expect(html).toContain('● 스마트폰 연결 대기 (선택)');
+    expect(html).not.toContain('● 스마트폰 연결 대기 중…');
     expect(html).toContain('slot=2');
+    expect(html).toContain('data-shootable="start"');
+    expect(html).toContain('(2P 없이 1인 시작)');
   });
 
   it('renders waiting chip when 2P is joined but not ready (zero not calibrated)', () => {
@@ -128,8 +131,10 @@ describe('lobby slot cards UI (P04-T03)', () => {
     );
 
     // Waiting chip
-    expect(html).toContain('2P 준비 중');
+    expect(html).toContain('(2P 준비 중…)');
+    expect(html).toContain('data-enabled="false"');
     expect(html).not.toContain('data-shootable="start"');
+    expect(html).not.toContain('(선택)');
   });
 
   it('renders start button when only 1P is joined and ready', () => {
@@ -164,6 +169,25 @@ describe('lobby slot cards UI (P04-T03)', () => {
     // Start button rendered
     expect(html).toContain('data-shootable="start"');
     expect(html).toContain('게임 시작');
+    expect(html).toContain('(클릭으로 시작)');
+  });
+
+  it('keeps the orange "waiting" status on both cards while 1P is not ready yet', () => {
+    const slots = createLobbySlots('mobile');
+    const html = renderToStaticMarkup(
+      <QRPairingModal
+        roomId="TEST_ROOM"
+        slots={slots}
+        startGate={getStartGate(slots)}
+        topRankings={[]}
+        onEditMouseNickname={() => {}}
+        onChooseInput={() => {}}
+        onSubmitMouseNickname={() => {}}
+        onStart={() => {}}
+      />
+    );
+    expect(html.match(/● 스마트폰 연결 대기 중…/g)).toHaveLength(2);
+    expect(html).not.toContain('(선택)');
   });
 
   it('shows the per-player next-step banner for the default mobile lobby', () => {

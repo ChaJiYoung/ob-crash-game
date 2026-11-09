@@ -1,6 +1,6 @@
 # Task: T02 시작 버튼 상태 문구 + 2P 카드 "(선택)"
 
-## Status: pending
+## Status: done
 
 ## Goal
 시작 버튼이 로비에 항상 보이고, 시작할 수 없을 땐 비활성화되며(쏘기·클릭 모두 시작 불가), 전체 상태는 버튼 글자의 괄호 문구로 알린다. 1P가 준비됐고 2P 폰이 미연결이면 2P 카드 오른쪽 상태 글자가 "● 스마트폰 연결 대기 (선택)"(회색)이 된다.
@@ -106,6 +106,6 @@ Task: T02-start-button-and-card-optional
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T02-start-button-and-card-optional"
