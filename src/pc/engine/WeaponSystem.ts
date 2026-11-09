@@ -53,11 +53,11 @@ export class WeaponSystem {
   }
 
   public getFireIntervalMs(source: ShotSource = 'press'): number {
-    const base = this.getCurrentLevelSpec().fireIntervalMs;
     if (source === 'hold') {
-      return Math.round(base * GAME_TUNING.fire.holdIntervalScaleByWeapon[this.weaponKind]);
+      // 연타 간격은 무기별 고정값(레벨과 무관).
+      return GAME_TUNING.fire.holdIntervalMsByWeapon[this.weaponKind];
     }
-    return base;
+    return this.getCurrentLevelSpec().fireIntervalMs;
   }
 
   public getMaxSkillStock(): number {

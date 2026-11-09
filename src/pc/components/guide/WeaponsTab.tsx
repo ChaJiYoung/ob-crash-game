@@ -48,7 +48,7 @@ export const WeaponsTab: React.FC = () => (
                   • <strong>웨이브 시간 보너스:</strong> 웨이브마다 정해진 기준 시간 안에 끝내면 웨이브당 최대 {GAME_TUNING.score.timeBonus.maxPerWave}점(보스 웨이브는 {GAME_TUNING.score.timeBonus.maxPerWave * GAME_TUNING.score.timeBonus.bossWaveWeight}점)을 받고, 기준 시간의 {GAME_TUNING.score.timeBonus.zeroAtParMult}배에서 0점이 될 때까지 줄어듭니다. 보스를 살려 두고 부하만 잡으며 시간을 끌면 시간 보너스가 줄어듭니다.<br />
                   • <strong>정밀도 보너스:</strong> 클리어하면 한 판 동안의 판정 비율(PERFECT 100% · GREAT 50% · GOOD 20% 가중, MISS 포함)에 따라 최대 약 {GAME_TUNING.score.precisionBonus.k.toLocaleString()}점이 더해집니다. 많이 쏘는 것보다 정확히 맞히는 것이 랭킹에 유리합니다.<br />
                   • <strong>MISS:</strong> 점수나 콤보가 깎이지는 않지만, 빗나간 탄약과 <strong>긴 장전 시간</strong>(재장전 약 {GAME_TUNING.fire.reloadScale.toFixed(1)}배)이 그대로 손해입니다. 판정 범위가 좁아 난사로는 깨기 어렵습니다!<br />
-                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘면 자동 연사되며, 피해 감소가 없고 샷건·리볼버는 탭과 같은 속도로 자동 연사됩니다(게틀링만 연타가 더 빠릅니다).
+                  • <strong>누르고 쏘기:</strong> 버튼을 누른 채 쏘면 자동 연사되며, 피해 감소 없이 자동 연사됩니다. 연타 속도는 무기별로 고정이고(샷건 4발/초, 리볼버 5발/초, 게틀링 15발/초) 레벨이 올라도 빨라지지 않습니다.
                 </div>
       </div>
     </details>

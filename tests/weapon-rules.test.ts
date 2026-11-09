@@ -50,22 +50,37 @@ describe('weapon rules (gameplay-polish P03-T02)', () => {
     expect(damageOf('revolver', 'hold', true)).toBeCloseTo(feverPress, 5);
   });
 
-  it("fires 'hold' shots at the press interval for shotgun and revolver, and faster for the gatling (x0.85)", () => {
-    expect(GAME_TUNING.fire.holdIntervalScaleByWeapon).toEqual({ shotgun: 1.0, revolver: 1.0, gatling: 0.85 });
-    for (const w of ['shotgun', 'revolver'] as const) {
+  it("fires 'hold' shots at a fixed per-weapon interval that does not change with the weapon level", () => {
+    expect(GAME_TUNING.fire.holdIntervalMsByWeapon).toEqual({ shotgun: 250, revolver: 200, gatling: 67 });
+    for (const w of ['shotgun', 'revolver', 'gatling'] as const) {
       const ws = new WeaponSystem(w, 1);
-      expect(ws.getFireIntervalMs('hold')).toBe(ws.getFireIntervalMs('press'));
+      const fixed = GAME_TUNING.fire.holdIntervalMsByWeapon[w];
+      for (const lv of [1, 2, 3, 4] as const) {
+        ws.selectWeapon(w, lv);
+        expect(ws.getFireIntervalMs('hold')).toBe(fixed);
+      }
     }
-    const gat = new WeaponSystem('gatling', 1);
-    expect(gat.getFireIntervalMs('hold')).toBe(Math.round(gat.getFireIntervalMs('press') * 0.85));
-    expect(gat.getFireIntervalMs('hold')).toBeLessThan(gat.getFireIntervalMs('press'));
+  });
+
+  it("keeps the real-gun order for hold fire (shotgun slower than revolver, revolver slower than gatling)", () => {
+    const h = GAME_TUNING.fire.holdIntervalMsByWeapon;
+    expect(h.shotgun).toBeGreaterThan(h.revolver);
+    expect(h.revolver).toBeGreaterThan(h.gatling);
+  });
+
+  it("press shots still use the per-level interval, and fever auto-fire uses the press interval", () => {
+    const ws = new WeaponSystem('gatling', 1);
+    const l1 = ws.getFireIntervalMs('press');
+    ws.selectWeapon('gatling', 4);
+    expect(ws.getFireIntervalMs('press')).toBeLessThan(l1);
+  });
+
+  it("blocks a second hold shot before the hold interval has passed", () => {
     const ws = new WeaponSystem('shotgun', 1);
-    const press = ws.getFireIntervalMs('press');
     const hold = ws.getFireIntervalMs('hold');
     expect(ws.consumeShot(1000, false, 'hold').fired).toBe(true);
     expect(ws.canFire(1000 + hold - 1, false, 'hold')).toBe(false);
     expect(ws.canFire(1000 + hold, false, 'hold')).toBe(true);
-    expect(ws.canFire(1000 + hold, false, 'press')).toBe(hold >= press);
   });
 
   it('scales base fire interval by 0.7 and reload by 2.0', () => {
