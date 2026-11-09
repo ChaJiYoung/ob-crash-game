@@ -1,6 +1,6 @@
 # Task: T01 Azure 프로비저닝·VM 운영 스크립트
 
-## Status: pending
+## Status: done
 
 ## Goal
 `scripts/azure/provision.sh`가 `<RESOURCE_GROUP>` 리소스그룹에 VM·고정 공용 IP(DNS 이름)·NSG·자동 종료를 만드는 `az` 명령 묶음을 **기본은 계획만 출력**하고 `--yes`가 있을 때만 실행하도록 한다. `vm.sh`로 VM을 켜고(`start`)·과금을 멈추고(`stop`=deallocate)·상태를 보고(`status`)·접속(`ssh`)하며, `nsg-myip.sh`로 22번 규칙을 현재 내 IP로 갱신한다. 이 Task에서는 **Azure 리소스를 실제로 만들지 않는다**(dry-run과 문법·구조 테스트로만 검증).
@@ -166,6 +166,6 @@ Task: T01-provision-and-vm-ops
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

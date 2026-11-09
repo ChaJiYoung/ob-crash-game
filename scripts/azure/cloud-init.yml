@@ -1,0 +1,14 @@
+#cloud-config
+# 첫 부팅 때 한 번 실행된다. azureuser 는 scripts/azure/config.sh 의 AZ_ADMIN_USER 와 같아야 한다.
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - ca-certificates
+  - curl
+runcmd:
+  # 1GB RAM 안전망: 2GB 스왑
+  - [ bash, -c, "fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab" ]
+  - [ systemctl, enable, --now, docker ]
+  - [ usermod, -aG, docker, azureuser ]
+  - [ bash, -c, "mkdir -p /opt/ob-crash/data && chown -R azureuser:azureuser /opt/ob-crash" ]
