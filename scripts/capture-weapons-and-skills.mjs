@@ -16,19 +16,35 @@ async function captureWeaponsAndSkills() {
   const screensDir = path.join(process.cwd(), 'docs/screens');
   const weaponsDir = path.join(screensDir, 'weapons');
 
-  console.log('1. Navigating to https://localhost:5173...');
-  await page.goto('https://localhost:5173', { waitUntil: 'networkidle' });
+  console.log('1. Navigating to https://127.0.0.1:5173...');
+  await page.goto('https://127.0.0.1:5173', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
 
   // --- Step 1: Start PC Game & Capture 3D Starting Weapon Selection Cards ---
   console.log('Starting PC Game to capture starting weapon selection...');
-  await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(b =>
-      b.textContent && b.textContent.includes('스마트폰 없이 PC')
-    );
-    if (btn) btn.click();
-  });
-  await page.waitForTimeout(1200);
+  const mouseBtn = page.locator('button:has-text("마우스")').first();
+  if (await mouseBtn.count()) {
+    await mouseBtn.click();
+    await page.waitForTimeout(300);
+    const nickInput = page.locator('input[placeholder*="닉네임"]').first();
+    if (await nickInput.count()) {
+      await nickInput.fill('PC 게이머');
+      await page.locator('button:has-text("확인")').first().click();
+      await page.waitForTimeout(400);
+    }
+    const startBtn = page.locator('button:has-text("게임 시작")').first();
+    if (await startBtn.count()) {
+      await startBtn.click();
+    }
+  } else {
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find(b =>
+        b.textContent && b.textContent.includes('스마트폰 없이 PC')
+      );
+      if (btn) btn.click();
+    });
+  }
+  await page.waitForTimeout(4500); // Wait for 3-second countdown to complete
 
   console.log('Capturing screen-13a-starting-weapon-selection.png...');
   await page.screenshot({ path: path.join(screensDir, 'screen-13a-starting-weapon-selection.png') });
@@ -82,7 +98,7 @@ async function captureWeaponsAndSkills() {
   // --- Step 4: Capture Active Skill Action Frames with KeyR ---
 
   // 1. Shotgun: Plunger Storm
-  console.log('Setting up Shotgun for Plunger Storm skill...');
+  console.log('Setting up Shotgun for Plunger Storm skill (4+ monsters)...');
   await page.evaluate(() => {
     const eng = window.__engine;
     if (eng) {
@@ -92,19 +108,25 @@ async function captureWeaponsAndSkills() {
       eng.isRewardCardPending = false;
       eng.getPlayer(0).weaponSystem.selectWeapon('shotgun', 3);
       eng.getPlayer(0).weaponSystem.refillSkillInstant();
-      const now = performance.now();
-      eng.spawnSandboxTarget('obi', { radiusM: 9.0, thetaRad: -0.25, stationary: true });
-      eng.spawnSandboxTarget('hanmac', { radiusM: 11.0, thetaRad: 0.05, stationary: true });
-      eng.spawnSandboxTarget('bottle', { radiusM: 13.0, thetaRad: 0.28, stationary: true });
+      eng.spawnSandboxTarget('pilgood', { radiusM: 8.0, thetaRad: -0.28, stationary: true });
+      eng.spawnSandboxTarget('caslight', { radiusM: 9.5, thetaRad: -0.10, stationary: true });
+      eng.spawnSandboxTarget('obi', { radiusM: 11.0, thetaRad: 0.10, stationary: true });
+      eng.spawnSandboxTarget('hanmac', { radiusM: 12.5, thetaRad: 0.28, stationary: true });
     }
   });
   await page.waitForTimeout(800);
 
-  console.log('Firing Plunger Storm via KeyR...');
-  await page.keyboard.press('KeyR');
-  await page.waitForTimeout(120); // Golden frame while plungers are flying in parabolic arcs!
+  console.log('Firing Plunger Storm...');
+  await page.evaluate(() => window.__engine.triggerWeaponSkill(performance.now(), 0));
+  await page.waitForTimeout(200); // Plungers are stuck to monsters and monsters are stunned!
   console.log('Capturing screen-17-skill-plunger-storm.png...');
   await page.screenshot({ path: path.join(screensDir, 'screen-17-skill-plunger-storm.png') });
+
+  // Lv.3 Shotgun stun is 2500ms. Wait for stun expiration + 100ms to capture the explosion frame!
+  console.log('Waiting for plunger blast frame (~2500ms + 100ms)...');
+  await page.waitForTimeout(2350);
+  console.log('Capturing screen-17b-skill-plunger-blast.png...');
+  await page.screenshot({ path: path.join(screensDir, 'screen-17b-skill-plunger-blast.png') });
 
   // 2. Revolver: Opener Slash
   console.log('Setting up Revolver for Opener Slash skill...');
@@ -209,6 +231,26 @@ async function captureWeaponsAndSkills() {
   });
   await page.waitForTimeout(450);
   await page.screenshot({ path: path.join(screensDir, 'play-boss-down.png') });
+
+  // 5. Shotgun Wave 1 combat scene
+  console.log('Setting up Shotgun Wave 1 combat scene...');
+  await page.evaluate(() => {
+    const eng = window.__engine;
+    if (eng) {
+      eng.mode = 'game';
+      eng.startGame({ withWeaponSelect: false });
+      eng.currentWave = 1;
+      eng.activeTargets = [];
+      eng.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+      eng.spawnSandboxTarget('pilgood', { radiusM: 7.5, thetaRad: -0.20, stationary: true });
+      eng.spawnSandboxTarget('caslight', { radiusM: 9.0, thetaRad: 0.05, stationary: true });
+      eng.spawnSandboxTarget('obi', { radiusM: 11.0, thetaRad: 0.22, stationary: true });
+      eng.spawnSandboxTarget('hanmac', { radiusM: 13.0, thetaRad: -0.05, stationary: true });
+    }
+  });
+  await page.waitForTimeout(600);
+  console.log('Capturing play-wave1-shotgun-combat.png...');
+  await page.screenshot({ path: path.join(screensDir, 'play-wave1-shotgun-combat.png') });
 
   await browser.close();
   console.log('ALL WEAPON EVOLUTIONS, SKILL ACTION FRAMES & CARD SELECTIONS CAPTURED SUCCESSFULLY!');

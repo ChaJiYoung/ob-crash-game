@@ -1,6 +1,6 @@
 # Task: T01 문서 캡처 재촬영과 참조 점검
 
-## Status: pending
+## Status: done
 
 ## Goal
 이번 변경으로 틀려진 문서 캡처(로비, 가이드 5탭, 튜토리얼, 샷건 스킬)를 새 화면으로 다시 찍어 `docs/screens/`에 교체하고, 문서가 가리키는 이미지가 모두 존재하는지 검사하는 테스트를 둔다(D15).
@@ -45,11 +45,11 @@
 - **함정**: 한글 파일명은 없으므로 문제없지만, 문서의 경로 표기가 `./docs/screens/x.png`(README)와 `./screens/x.png`(docs)로 다르다. 도우미에서 기준 디렉터리를 문서별로 다르게 해석해야 한다.
 
 ## Acceptance Criteria
-- [ ] 로비·가이드 5탭·튜토리얼·샷건 스킬 캡처가 새 화면(1P 모바일 기본, 카드화 가이드, 3라운드 안내, 박힘·폭발)으로 교체됐다.
-- [ ] 새 이미지(튜토리얼 라운드 3장, 폭발 1장)가 해당 문서에서 참조된다.
-- [ ] 문서가 참조하는 모든 이미지 파일이 존재한다(테스트 통과).
-- [ ] 이미지를 육안으로 확인했고 잘림·깨짐이 없다.
-- [ ] `npm test`, `npx tsc --noEmit` 통과.
+- [x] 로비·가이드 5탭·튜토리얼·샷건 스킬 캡처가 새 화면(1P 모바일 기본, 카드화 가이드, 3라운드 안내, 박힘·폭발)으로 교체됐다.
+- [x] 새 이미지(튜토리얼 라운드 3장, 폭발 1장)가 해당 문서에서 참조된다.
+- [x] 문서가 참조하는 모든 이미지 파일이 존재한다(테스트 통과).
+- [x] 이미지를 육안으로 확인했고 잘림·깨짐이 없다.
+- [x] `npm test`, `npx tsc --noEmit` 통과.
 
 ## Validation
 - `npx vitest run tests/docs-screens-exist.test.ts` — 통과
@@ -71,6 +71,6 @@ Task: T01-recapture-docs-screens
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-recapture-docs-screens"

@@ -19,7 +19,7 @@
 | P04 | `done ✅` | 로비: 1P 입력 방식 기억·기본값, "지금 할 일" 배너 | [P04](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P04-lobby/phase.md) |
 | P05 | `done ✅` | 가이드 모달 카드화(한 줄 요약·칩·접기), 문구는 튜닝 값에서 계산 | [P05](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P05-guide/phase.md) |
 | P06 | `done ✅` | 튜토리얼 3단계 무기 3라운드(샷건·리볼버·게틀링 스킬 체험) | [P06](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P06-tutorial/phase.md) |
-| P07 | `in_progress` | 문서 캡처 재촬영·교체, README 참조 점검 | [P07](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P07-docs-captures/phase.md) |
+| P07 | `done ✅` | 문서 캡처 재촬영·교체, README 참조 점검 | [P07](../phases/2026-11-09-playtest-feedback-guide-lobby-shotgun/P07-docs-captures/phase.md) |
 
 ## 순서의 이유
 - P01→P02→P03: 샷건 수치(평타·스킬)가 모두 구현된 뒤에야 봇 측정(P03)이 의미 있다. 측정 결과로 값이 바뀔 수 있으므로 값이 문서에 박히는 P05·P07보다 앞에 둔다.
