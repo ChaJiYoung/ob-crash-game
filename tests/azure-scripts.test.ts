@@ -282,7 +282,7 @@ describe('식별 값 분리 (공개 저장소 보호)', () => {
     const secrets = r.stdout.split('\n').map((x) => x.trim()).filter((x) => x.length >= 6);
     expect(secrets.length).toBeGreaterThan(0);
     const tracked = spawnSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\0').filter(Boolean);
-    const scan = tracked.filter((f) => !f.startsWith('.memory/') && !f.startsWith('node_modules/') && /\.(sh|ts|tsx|md|yml|yaml|json|mjs|example)$/.test(f) && f !== 'package-lock.json');
+    const scan = tracked.filter((f) => !f.startsWith('node_modules/') && /\.(sh|ts|tsx|md|yml|yaml|json|mjs|example)$/.test(f) && f !== 'package-lock.json');
     for (const f of scan) {
       const text = fs.readFileSync(path.join(ROOT, f), 'utf8');
       for (const sec of secrets) expect(text.includes(sec), `${f} 에 식별 값이 있음`).toBe(false);
