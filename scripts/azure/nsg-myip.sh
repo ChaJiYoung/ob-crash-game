@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/config.sh"
 # shellcheck disable=SC1091
 . "${SCRIPT_DIR}/lib.sh"
+require_azure_config
 SUBARG=(--subscription "${AZ_SUBSCRIPTION_ID}")
 
 for a in "$@"; do

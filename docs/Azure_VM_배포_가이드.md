@@ -17,14 +17,14 @@
 
 | 항목 | 값 |
 | :--- | :--- |
-| 구독 / 리소스그룹 | `<SUBSCRIPTION_NAME>` / `<RESOURCE_GROUP>` (팀 공용 그룹) |
+| 구독 / 리소스그룹 | `<구독 이름>` / `<리소스그룹>` (팀 공용 그룹일 수 있음) |
 | 리전 / VM | Korea Central / `Standard_B2ats_v2` (2 vCPU, 1GB RAM), Ubuntu 24.04 |
-| 주소 | `https://<DNS_LABEL>.koreacentral.cloudapp.azure.com` (Azure가 주는 무료 이름, 고정 IP) |
+| 주소 | `https://<AZ_DNS_LABEL>.koreacentral.cloudapp.azure.com` (Azure가 주는 무료 이름, 고정 IP) |
 | 이미지 | `ghcr.io/chajiyoung/ob-crash-backend`, `ghcr.io/chajiyoung/ob-crash-web` (공개 패키지) |
 | 리소스 이름 규칙 | 전부 `ob-crash-` 접두사 + 태그 `project=ob-crash-game` |
 
 > [!WARNING]
-> `<RESOURCE_GROUP>`는 **팀 전체가 쓰는 그룹**입니다. 이 가이드의 스크립트는 `ob-crash-` 리소스만 다룹니다.
+> 리소스그룹이 **팀 전체가 쓰는 그룹**일 수 있습니다. 이 가이드의 스크립트는 `ob-crash-` 리소스만 다룹니다.
 > 다른 사람의 리소스를 수정·삭제하지 마세요. 삭제할 때는 반드시 아래 [정리하기](#-정리하기-리소스-삭제)의 목록 확인 명령부터 실행하세요.
 
 ---
@@ -52,7 +52,7 @@
 
 | 필요한 것 | 확인 방법 |
 | :--- | :--- |
-| Azure CLI 로그인, 구독 `<SUBSCRIPTION_NAME>` | `az account show --query name -o tsv` |
+| Azure CLI 로그인, 대상 구독 | `az account show --query "[name,id]" -o tsv` |
 | Docker (내 PC) | `docker info` (x86_64면 에뮬레이션 없이 빌드됩니다) |
 | GitHub CLI, 계정 `ChaJiYoung` 활성, `write:packages` 권한 | `gh auth status` |
 | Node 24 (스모크 테스트용) | `node -v` |
@@ -65,6 +65,20 @@ gh auth refresh -s write:packages
 ```
 
 > 계정이 둘 이상이면 활성 계정이 `ChaJiYoung`인지 꼭 확인하세요.
+
+---
+
+## ⚙️ 처음 설정: 내 환경 값 넣기
+
+이 저장소는 **공개**입니다. 그래서 구독 ID, 구독·리소스그룹 이름, 접속 주소의 앞부분(DNS 레이블)처럼 회사·팀을 식별하는 값은 저장소에 두지 않고 내 PC의 `config.local.sh`에만 둡니다. 이 파일은 git이 추적하지 않습니다.
+
+```bash
+cp scripts/azure/config.local.sh.example scripts/azure/config.local.sh
+# 파일을 열어 4개 값을 채웁니다: 구독 이름, 구독 ID, 리소스그룹, DNS 레이블
+az account show --query "[name,id]" -o tsv     # 구독 이름과 ID 확인
+```
+
+값이 비어 있으면 스크립트가 안내 메시지를 내고 멈춥니다. 문서와 예시의 `<…>`는 모두 이 값으로 바꿔 읽으세요.
 
 ---
 
@@ -91,7 +105,7 @@ scripts/azure/provision.sh --yes
 
 - SSH 키가 없으면 `~/.ssh/ob-crash-azure`(ed25519, 비밀번호 없음)를 새로 만듭니다.
 - 중간에 실패하면 VM을 자동으로 중지(deallocate)하고 알려 줍니다. 원인을 고친 뒤 `provision.sh --resume --yes`로 이어갑니다.
-- DNS 이름 `<DNS_LABEL>`가 이미 쓰이고 있다면 `scripts/azure/config.local.sh`(git이 추적하지 않음)에 `AZ_DNS_LABEL=원하는이름`을 적습니다.
+- DNS 이름(`AZ_DNS_LABEL`)이 이미 쓰이고 있다면 `scripts/azure/config.local.sh`에서 다른 이름으로 바꾸세요.
 
 ### 2단계: VM 준비 확인
 
@@ -144,7 +158,7 @@ scripts/azure/deploy.sh --skip-build --tag <3단계에서 나온 태그>
 
 ### 6단계: 실제로 해 보기
 
-1. PC 브라우저로 `https://<DNS_LABEL>.koreacentral.cloudapp.azure.com` 접속 (자물쇠가 보여야 합니다)
+1. PC 브라우저로 `https://<AZ_DNS_LABEL>.koreacentral.cloudapp.azure.com` 접속 (자물쇠가 보여야 합니다)
 2. 화면의 QR을 폰으로 스캔 → 자이로(동작 센서) 권한 허용
 3. 무기 선택 → 조준·발사 → 한 판 마무리까지
 
@@ -203,7 +217,7 @@ scripts/azure/backup.sh            # VM이 켜져 있어야 함. backups/backup-
 scripts/azure/vm.sh ssh
 cd /opt/ob-crash && docker compose stop backend
 exit
-scp -i ~/.ssh/ob-crash-azure backups/backup-<시각>.db azureuser@<DNS_LABEL>.koreacentral.cloudapp.azure.com:/opt/ob-crash/data/restore.db
+scp -i ~/.ssh/ob-crash-azure backups/backup-<시각>.db azureuser@<AZ_DNS_LABEL>.koreacentral.cloudapp.azure.com:/opt/ob-crash/data/restore.db
 scripts/azure/vm.sh ssh
 cd /opt/ob-crash/data
 sudo mv restore.db game.db && sudo rm -f game.db-wal game.db-shm
@@ -246,14 +260,14 @@ EXTRA_ENV=$'WS_MAX_CONN_PER_IP=150\nWS_MAX_CONN_TOTAL=600'
 먼저 지울 대상을 확인합니다. 아래 목록에 `ob-crash-`로 시작하거나 `project=ob-crash-game` 태그가 붙은 것만 있어야 합니다.
 
 ```bash
-az resource list -g <RESOURCE_GROUP> --query "[?tags.project=='ob-crash-game'].{name:name,type:type}" -o table
+az resource list -g <리소스그룹> --query "[?tags.project=='ob-crash-game'].{name:name,type:type}" -o table
 ```
 
 확인했다면 목록의 리소스 ID를 그대로 삭제합니다(VM을 먼저 지워야 NIC·디스크가 풀립니다).
 
 ```bash
-az vm delete -g <RESOURCE_GROUP> -n ob-crash-vm --yes
-az resource delete --ids $(az resource list -g <RESOURCE_GROUP> --query "[?tags.project=='ob-crash-game'].id" -o tsv)
+az vm delete -g <리소스그룹> -n ob-crash-vm --yes
+az resource delete --ids $(az resource list -g <리소스그룹> --query "[?tags.project=='ob-crash-game'].id" -o tsv)
 ```
 
 두 번째 명령이 일부 리소스를 "다른 리소스가 사용 중"이라고 거절하면 같은 명령을 한 번 더 실행하세요(NIC → 디스크·IP → NSG → VNet 순서로 풀립니다). 자동 종료 스케줄(`shutdown-computevm-ob-crash-vm`)도 같은 태그가 붙어 함께 지워집니다.
@@ -270,7 +284,7 @@ GHCR 패키지가 비공개입니다. [4단계](#4단계-패키지를-public으�
 `scripts/azure/cloud-init.yml`에 한글 같은 ASCII 이외 문자가 들어가면 생기는 오류입니다. 이 파일은 영어로만 작성하세요(테스트가 검사합니다). 이 오류는 리소스가 만들어지기 전에 나므로 아무것도 생기지 않습니다.
 
 ### `provision.sh`가 "구독이 다릅니다"라고 해요
-`az account set --subscription <SUBSCRIPTION_ID>`로 구독을 바꾼 뒤 다시 실행하세요.
+`az account set --subscription <구독 ID>`로 구독을 바꾼 뒤 다시 실행하세요.
 
 ### SSH가 안 돼요 (`Connection timed out`)
 대개 내 공인 IP가 바뀐 것입니다. `scripts/azure/nsg-myip.sh`를 실행하세요. VM이 꺼져 있지 않은지도 `vm.sh status`로 확인합니다.

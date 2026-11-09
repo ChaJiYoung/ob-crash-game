@@ -63,3 +63,16 @@ scp_from() {
   fi
   scp "${SSH_OPTS[@]}" "${AZ_ADMIN_USER}@${AZ_FQDN}:$1" "$2"
 }
+
+# 식별 값이 채워졌는지 확인한다. Azure 를 호출하는 스크립트가 맨 위에서 부른다.
+require_azure_config() {
+  local missing="" v
+  for v in AZ_SUBSCRIPTION_NAME AZ_SUBSCRIPTION_ID AZ_RESOURCE_GROUP AZ_DNS_LABEL; do
+    eval "[ -n \"\${$v}\" ]" || missing="${missing} ${v}"
+  done
+  if [ -n "${missing}" ]; then
+    die "설정이 비어 있습니다:${missing}. 'cp scripts/azure/config.local.sh.example scripts/azure/config.local.sh' 후 값을 채우세요." 2
+  fi
+  echo "${AZ_SUBSCRIPTION_ID}" | grep -Eq '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$' || die "AZ_SUBSCRIPTION_ID 가 GUID 형식이 아닙니다." 2
+  echo "${AZ_DNS_LABEL}" | grep -Eq '^[a-z][a-z0-9-]{1,61}[a-z0-9]$' || die "AZ_DNS_LABEL 은 소문자·숫자·하이픈이어야 합니다 (예: ob-crash-abc123)." 2
+}

@@ -6,8 +6,19 @@ import { spawnSync } from 'node:child_process';
 const ROOT = path.resolve(__dirname, '..');
 const script = (name: string) => path.join(ROOT, 'scripts/azure', name);
 
+/** 테스트 전용 가짜 식별 값. 실제 구독·그룹 값은 저장소에 두지 않는다 (scripts/azure/config.local.sh 에만 있음). */
+const FAKE_SUB_ID = '00000000-0000-4000-8000-000000000000';
+const FAKE_ENV = {
+  AZ_CONFIG_LOCAL: '/nonexistent', // 개발자 PC 의 실제 config.local.sh 를 읽지 않는다
+  AZ_SUBSCRIPTION_NAME: 'Test-Subscription',
+  AZ_SUBSCRIPTION_ID: FAKE_SUB_ID,
+  AZ_RESOURCE_GROUP: 'test-rg',
+  AZ_DNS_LABEL: 'ob-crash-test',
+};
+const FAKE_FQDN = 'ob-crash-test.koreacentral.cloudapp.azure.com';
+
 /** 스크립트를 실행한다. az·네트워크를 호출하면 실패하도록 PATH 에서 az/ssh 를 뺀다. */
-function bash(args: string[], env: Record<string, string> = {}) {
+function bash(args: string[], env: Record<string, string> = FAKE_ENV) {
   const safePath = ['/usr/bin', '/bin'].join(':'); // az, gh, docker 는 /usr/local 등에 있다
   return spawnSync('bash', args, {
     cwd: ROOT,
@@ -25,7 +36,7 @@ describe('provision.sh --dry-run', () => {
     expect(out).toContain('az vm create');
     expect(out).toContain('--public-ip-sku Standard');
     expect(out).toContain('--public-ip-address-allocation static');
-    expect(out).toContain('--public-ip-address-dns-name <DNS_LABEL>');
+    expect(out).toContain('--public-ip-address-dns-name ob-crash-test');
     expect(out).toContain('--nsg-rule NONE');
     expect(out).toContain('--tags project=ob-crash-game');
     expect(out).toContain('--custom-data');
@@ -57,7 +68,7 @@ describe('provision.sh --dry-run', () => {
   it('모든 az 호출이 구독 ID 로 고정된다', () => {
     const azLines = out.split('\n').filter((l) => l.startsWith('[dry-run] az '));
     expect(azLines.length).toBeGreaterThan(5);
-    for (const l of azLines) expect(l, l).toContain('--subscription <SUBSCRIPTION_ID>');
+    for (const l of azLines) expect(l, l).toContain(`--subscription ${FAKE_SUB_ID}`);
   });
 
   it('자동 종료를 NSG 규칙보다 먼저 건다 (중간 실패 시에도 과금이 하루 안에 끝남)', () => {
@@ -163,10 +174,10 @@ describe('cloud-init.yml', () => {
 
 describe('config.sh (azure)', () => {
   it('FQDN·자동 종료 시각·태그 규칙', () => {
-    const r = bash(['-c', `. "${script('config.sh')}"; echo "$AZ_FQDN|$AZ_AUTOSHUTDOWN_UTC|$AZ_TAG|$AZ_VM_NAME|$AZ_PIP_NAME|$AZ_NSG_NAME"`]);
+    const r = bash(['-c', `. "${script('config.sh')}"; echo "$AZ_FQDN|$AZ_AUTOSHUTDOWN_UTC|$AZ_TAG|$AZ_VM_NAME|$AZ_PIP_NAME|$AZ_NSG_NAME"`], FAKE_ENV);
     expect(r.status, r.stderr).toBe(0);
     const [fqdn, shut, tag, vm, pip, nsg] = r.stdout.trim().split('|');
-    expect(fqdn).toBe('<DNS_LABEL>.koreacentral.cloudapp.azure.com');
+    expect(fqdn).toBe(FAKE_FQDN);
     expect(shut).toBe('1500');
     expect(tag).toBe('project=ob-crash-game');
     for (const n of [vm, pip, nsg]) expect(n.startsWith('ob-crash-')).toBe(true);
@@ -227,5 +238,60 @@ describe('.gitignore', () => {
     const g = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
     expect(g).toMatch(/^backups\/$/m);
     expect(g).toContain('scripts/azure/config.local.sh');
+  });
+});
+
+describe('식별 값 분리 (공개 저장소 보호)', () => {
+  it('설정이 비어 있으면 안내하고 종료 코드 2 로 멈춘다', () => {
+    for (const f of ['vm.sh', 'provision.sh', 'deploy.sh', 'backup.sh', 'nsg-myip.sh']) {
+      const args = f === 'vm.sh' ? [script(f), 'status'] : [script(f), '--dry-run'];
+      const r = bash(args, { AZ_CONFIG_LOCAL: '/nonexistent' });
+      expect(r.status, `${f}: ${r.stderr}`).toBe(2);
+      expect(r.stderr, f).toContain('config.local.sh');
+    }
+  });
+
+  it('형식이 틀린 구독 ID 와 DNS 레이블은 거부한다', () => {
+    const badId = bash([script('vm.sh'), 'status'], { ...FAKE_ENV, AZ_SUBSCRIPTION_ID: 'not-a-guid' });
+    expect(badId.status).toBe(2);
+    const badLabel = bash([script('vm.sh'), 'status'], { ...FAKE_ENV, AZ_DNS_LABEL: 'Bad_Label' });
+    expect(badLabel.status).toBe(2);
+  });
+
+  it('추적되는 Azure 스크립트·compose·가이드에 실제 GUID(구독 ID)가 없다', () => {
+    const guid = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+    const files = [
+      ...fs.readdirSync(path.join(ROOT, 'scripts/azure')).map((f) => `scripts/azure/${f}`),
+      'deploy/azure/docker-compose.yml',
+      'deploy/azure/.env.example',
+      'docs/Azure_VM_배포_가이드.md',
+    ].filter((f) => !f.endsWith('config.local.sh')); // 이 파일은 gitignore 대상이라 저장소에 없다
+    for (const f of files) {
+      const hits = (fs.readFileSync(path.join(ROOT, f), 'utf8').match(guid) ?? []).filter((g) => g !== FAKE_SUB_ID);
+      expect(hits, `${f} 에 GUID 가 있음`).toEqual([]);
+    }
+  });
+
+  it('추적되는 파일에 실제 리소스그룹·구독 이름·DNS 레이블 문자열이 없다', () => {
+    // 실제 값은 로컬 설정에서 읽어 비교한다. 설정이 없는 환경(CI)에서는 이 검사를 건너뛴다.
+    const local = path.join(ROOT, 'scripts/azure/config.local.sh');
+    if (!fs.existsSync(local)) return;
+    const r = spawnSync('bash', ['-c', `. "${path.join(ROOT, 'scripts/azure/config.sh')}"; printf '%s\\n%s\\n%s\\n%s\\n' "$AZ_SUBSCRIPTION_NAME" "$AZ_SUBSCRIPTION_ID" "$AZ_RESOURCE_GROUP" "$AZ_DNS_LABEL"`], {
+      cwd: ROOT, encoding: 'utf8', env: { PATH: '/usr/bin:/bin', HOME: process.env.HOME ?? '/tmp' },
+    });
+    const secrets = r.stdout.split('\n').map((x) => x.trim()).filter((x) => x.length >= 6);
+    expect(secrets.length).toBeGreaterThan(0);
+    const tracked = spawnSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\0').filter(Boolean);
+    const scan = tracked.filter((f) => !f.startsWith('.memory/') && !f.startsWith('node_modules/') && /\.(sh|ts|tsx|md|yml|yaml|json|mjs|example)$/.test(f) && f !== 'package-lock.json');
+    for (const f of scan) {
+      const text = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      for (const sec of secrets) expect(text.includes(sec), `${f} 에 식별 값이 있음`).toBe(false);
+    }
+  });
+
+  it('config.local.sh 는 gitignore 되고 예시 파일은 추적 대상이다', () => {
+    const g = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+    expect(g).toContain('scripts/azure/config.local.sh');
+    expect(fs.existsSync(script('config.local.sh.example'))).toBe(true);
   });
 });

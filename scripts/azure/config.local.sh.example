@@ -1,0 +1,17 @@
+# 사용법: 이 파일을 config.local.sh 로 복사해 값을 채운다 (config.local.sh 는 git 이 추적하지 않는다).
+#   cp scripts/azure/config.local.sh.example scripts/azure/config.local.sh
+# 환경변수가 이미 있으면 그것을 우선한다.
+
+# az account show --query "[name,id]" -o tsv 로 확인한다.
+AZ_SUBSCRIPTION_NAME="${AZ_SUBSCRIPTION_NAME:-<구독 이름>}"
+AZ_SUBSCRIPTION_ID="${AZ_SUBSCRIPTION_ID:-<구독 ID (GUID)>}"
+
+# VM 등을 만들 기존 리소스그룹. 팀 공용 그룹이면 우리 리소스는 ob-crash- 접두사 + project 태그로 구분된다.
+AZ_RESOURCE_GROUP="${AZ_RESOURCE_GROUP:-<리소스그룹 이름>}"
+
+# 접속 주소의 앞부분: https://<AZ_DNS_LABEL>.koreacentral.cloudapp.azure.com
+# 리전 안에서 유일해야 한다. 소문자·숫자·하이픈, 예: ob-crash-<아무 문자열>
+AZ_DNS_LABEL="${AZ_DNS_LABEL:-<DNS 레이블>}"
+
+# 선택: 동시 접속 상한 등 VM 의 .env 에 추가할 값 (deploy.sh 가 배포할 때마다 기록한다)
+# EXTRA_ENV=$'WS_MAX_CONN_PER_IP=150\nWS_MAX_CONN_TOTAL=600'

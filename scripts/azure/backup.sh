@@ -9,6 +9,7 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 . "${SCRIPT_DIR}/config.sh"
 # shellcheck disable=SC1091
 . "${SCRIPT_DIR}/lib.sh"
+require_azure_config
 
 OUT="${ROOT_DIR}/backups"
 while [ $# -gt 0 ]; do

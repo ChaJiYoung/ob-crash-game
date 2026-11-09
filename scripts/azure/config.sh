@@ -11,9 +11,12 @@ GHCR_USER="${GHCR_USER:-ChaJiYoung}"
 
 # --- Azure ---
 AZ="${AZ:-az}"
-AZ_SUBSCRIPTION_NAME="<SUBSCRIPTION_NAME>"
-AZ_SUBSCRIPTION_ID="<SUBSCRIPTION_ID>"   # 이름은 겹칠 수 있어 ID 로도 확인한다
-AZ_RESOURCE_GROUP="<RESOURCE_GROUP>"            # 팀 공용 그룹: 우리 리소스는 ob-crash- 접두사 + project 태그로 구분
+# 아래 4개는 팀·회사 식별 값이라 저장소에 두지 않는다. config.local.sh(gitignored) 또는 환경변수로 준다.
+# 예시: config.local.sh.example. 비어 있으면 Azure 스크립트가 안내하고 멈춘다 (lib.sh 의 require_azure_config).
+AZ_SUBSCRIPTION_NAME="${AZ_SUBSCRIPTION_NAME:-}"
+AZ_SUBSCRIPTION_ID="${AZ_SUBSCRIPTION_ID:-}"   # 이름은 겹칠 수 있어 ID 로도 확인한다
+AZ_RESOURCE_GROUP="${AZ_RESOURCE_GROUP:-}"
+AZ_DNS_LABEL="${AZ_DNS_LABEL:-}"
 AZ_LOCATION="koreacentral"
 AZ_VM_NAME="ob-crash-vm"
 AZ_VM_SIZE="Standard_B2ats_v2"
@@ -26,7 +29,6 @@ AZ_VNET_NAME="ob-crash-vnet"        # 기존 VNet 을 재사용해 남의 네트
 AZ_SUBNET_NAME="ob-crash-subnet"
 AZ_VNET_PREFIX="10.77.0.0/24"
 AZ_SUBNET_PREFIX="10.77.0.0/26"
-AZ_DNS_LABEL="${AZ_DNS_LABEL:-<DNS_LABEL>}"
 AZ_TAG="project=ob-crash-game"
 AZ_AUTOSHUTDOWN_UTC="1500"                  # az vm auto-shutdown 은 UTC 기준: KST 24:00 = 15:00
 SSH_KEY_PATH="${SSH_KEY_PATH:-$HOME/.ssh/ob-crash-azure}"
@@ -35,12 +37,13 @@ SSH_KEY_PATH="${SSH_KEY_PATH:-$HOME/.ssh/ob-crash-azure}"
 REMOTE_DIR="/opt/ob-crash"
 
 _cfg_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "${_cfg_dir}/config.local.sh" ]; then
-  # shellcheck disable=SC1091
-  . "${_cfg_dir}/config.local.sh"
+_cfg_local="${AZ_CONFIG_LOCAL:-${_cfg_dir}/config.local.sh}"   # 테스트는 AZ_CONFIG_LOCAL 로 다른 경로를 가리킨다
+if [ -f "${_cfg_local}" ]; then
+  # shellcheck disable=SC1090
+  . "${_cfg_local}"
   # 로컬 설정이 IMAGE_PREFIX 를 바꿨다면 파생값도 다시 만든다.
   IMAGE_BACKEND="${IMAGE_PREFIX}/${IMAGE_BACKEND_NAME}"
   IMAGE_WEB="${IMAGE_PREFIX}/${IMAGE_WEB_NAME}"
 fi
 AZ_FQDN="${AZ_DNS_LABEL}.${AZ_LOCATION}.cloudapp.azure.com"
-unset _cfg_dir
+unset _cfg_dir _cfg_local

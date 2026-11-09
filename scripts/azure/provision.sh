@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# <RESOURCE_GROUP> 리소스그룹에 VM·고정 공용 IP(DNS 이름)·NSG·자동 종료를 만든다.
+# 설정된 리소스그룹(AZ_RESOURCE_GROUP)에 VM·고정 공용 IP(DNS 이름)·NSG·자동 종료를 만든다.
 # 기본은 점검 후 계획만 출력한다. 실제 생성은 --yes 를 붙였을 때만 한다.
 # 중간에 실패했다면 --resume 으로 VM 은 그대로 두고 자동 종료·방화벽 규칙만 이어서 적용한다.
 # 사용: provision.sh [--dry-run] [--yes] [--resume]
@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/config.sh"
 # shellcheck disable=SC1091
 . "${SCRIPT_DIR}/lib.sh"
+require_azure_config
 
 YES=0
 RESUME=0
