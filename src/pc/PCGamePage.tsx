@@ -19,7 +19,7 @@ import { TutorialGuideOverlay } from './components/TutorialGuideOverlay';
 import { PlayerPanel } from './components/PlayerPanel';
 import { buildTeamKey } from './components/RankingTabs';
 import { loadLastInput, saveLastInput } from './lobbyInputMemory';
-import { TutorialDirector } from './tutorial/TutorialDirector';
+import { TutorialDirector, TutorialRoundState } from './tutorial/TutorialDirector';
 import { SensorAndModuleTestLabOverlay, SensorDiagnosticsState } from './components/SensorAndModuleTestLabOverlay';
 import {
   MobileSensorLabModal,
@@ -221,6 +221,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const lastBossWarningRef = useRef<boolean>(false);
   const tutorialDirectorRef = useRef<TutorialDirector | null>(null);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(1);
+  const [tutorialRound, setTutorialRound] = useState<TutorialRoundState>({ round: 0, phase: 'ready' });
 
   // Snapshot for HUD: only replaced when a displayed value changes.
   const [hudState, setHudState] = useState<HudSnapshot>(() => buildHudSnapshot(engine, performance.now()));
@@ -1312,10 +1313,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     const soloSlot = getSoloSlot(slotIndexMapRef.current, slotsRef.current);
     slotIndexMapRef.current = { [soloSlot]: 0 };
     engine.startTutorialMode();
-    const director = new TutorialDirector(engine, (step) => setTutorialStep(step));
+    const director = new TutorialDirector(engine, (step) => setTutorialStep(step), setTutorialRound);
     tutorialDirectorRef.current = director;
     director.start(performance.now());
     setTutorialStep(director.step);
+    setTutorialRound({ round: 0, phase: 'ready' });
     syncProcessors();
     setPhase('TUTORIAL');
   }, [engine, syncProcessors]);
@@ -1683,6 +1685,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             isFeverReady={hudState.players[0]?.isFeverReady ?? false}
             isFeverActive={hudState.players[0]?.isFeverActive ?? false}
             inputKind={presentations[0]?.inputKind ?? 'mouse'}
+            weaponKind={hudState.players[0]?.weaponKind ?? 'shotgun'}
+            skillRound={tutorialRound.round}
+            skillPhase={tutorialRound.phase}
             onStartRealGame={() => pressScreenButton('start')}
             onExitToLobby={handleExitTutorial}
           />

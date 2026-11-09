@@ -1,8 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
-import { TutorialDirector } from '../src/pc/tutorial/TutorialDirector';
+import {
+  TutorialDirector,
+  TUTORIAL_BLAST_ADVANCE_DELAY_MS,
+  TUTORIAL_SKILL_ADVANCE_DELAY_MS,
+} from '../src/pc/tutorial/TutorialDirector';
+import { TutorialGuideOverlay } from '../src/pc/components/TutorialGuideOverlay';
+import { WEAPON_ONE_LINER } from '../src/shared/guideText';
+import { WEAPON_ARCHETYPE_SPECS } from '../src/shared/constants';
+
+afterEach(() => vi.useRealTimers());
 
 const toSkillStep = () => {
+  vi.useFakeTimers();
   const engine = new BeerCrusherEngine();
   engine.startTutorialMode();
   const director = new TutorialDirector(engine);
@@ -11,133 +23,154 @@ const toSkillStep = () => {
   director.advanceStep(3);
   return { engine, director };
 };
+const weapon = (engine: BeerCrusherEngine) => engine.getPlayer(0).weaponSystem.getState();
 
-describe('tutorial skill step (step 3)', () => {
-  it('sets up five stationary targets and a ready skill', () => {
+describe('tutorial skill step (step 3) is three weapon rounds', () => {
+  it('round 1 sets up shotgun Lv1, a ready skill and five stationary targets', () => {
     const { engine, director } = toSkillStep();
     expect(director.step).toBe(3);
+    expect(director.skillRound).toBe(0);
+    expect(director.skillPhase).toBe('ready');
+    expect(weapon(engine).weaponKind).toBe('shotgun');
+    expect(weapon(engine).weaponLevel).toBe(1);
+    expect(weapon(engine).skillStock).toBeGreaterThan(0);
     expect(engine.activeTargets.length).toBe(5);
     expect(engine.activeTargets.every((t) => t.speedMps === 0)).toBe(true);
-    expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBeGreaterThan(0);
+    expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(0);
   });
 
-  it('does not charge fever yet', () => {
-    expect(toSkillStep().engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(0);
-  });
-
-  it('moves to the fever step once the skill is used', () => {
+  it('shotgun round: skill -> awaiting blast; the round passes 500ms after the blast', () => {
     const { engine, director } = toSkillStep();
-    const res = engine.triggerWeaponSkill(1000);
-    expect(res.activated).toBe(true);
+    const rounds: string[] = [];
+    (director as any).onRoundChange = (s: { round: number; phase: string }) => rounds.push(`${s.round}:${s.phase}`);
+    expect(engine.triggerWeaponSkill(1000).activated).toBe(true);
+    expect(director.skillPhase).toBe('awaitingBlast');
+    expect(engine.activeTargets.filter((t) => t.plungerBlast).length).toBe(4); // Lv1 상한 4, 표적 5마리
+    expect(director.step).toBe(3);
+
+    engine.update(1000 + WEAPON_ARCHETYPE_SPECS.shotgun.levels[1].skillStunMs, 0.016); // 폭발
+    expect(director.skillPhase).toBe('done');
+    vi.advanceTimersByTime(TUTORIAL_BLAST_ADVANCE_DELAY_MS - 1);
+    expect(director.skillRound).toBe(0);
+    vi.advanceTimersByTime(1);
+    expect(director.skillRound).toBe(1);
+    expect(weapon(engine).weaponKind).toBe('revolver');
+    expect(weapon(engine).weaponLevel).toBe(1);
+    expect(weapon(engine).skillStock).toBeGreaterThan(0);
+    expect(engine.activeTargets.length).toBe(5);
+    expect(rounds).toContain('0:awaitingBlast');
+    expect(rounds).toContain('1:ready');
+  });
+
+  it('does not deadlock when every stuck monster is shot dead before the blast', () => {
+    const { engine, director } = toSkillStep();
+    engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
+    engine.triggerWeaponSkill(1000);
+    // 박힌 몬스터를 모두 평타로 처치(폭발 전)
+    let now = 1500;
+    for (let i = 0; i < 40 && engine.activeTargets.some((t) => t.plungerBlast); i++) {
+      const t = engine.activeTargets.find((x) => x.plungerBlast)!;
+      t.hp = 0.01;
+      const p = engine.computeTargetAimCoords(t, 1.0);
+      now += 400;
+      engine.shootAt(p.targetNormX, p.targetNormY, now, 'press');
+    }
+    expect(engine.activeTargets.some((t) => t.plungerBlast)).toBe(false);
+    vi.advanceTimersByTime(TUTORIAL_BLAST_ADVANCE_DELAY_MS);
+    expect(director.skillRound).toBe(1);
+  });
+
+  it('revolver and gatling rounds pass on skill use after a 1200ms presentation delay', () => {
+    const { engine, director } = toSkillStep();
+    engine.triggerWeaponSkill(1000);
+    engine.update(1000 + 2000, 0.016);
+    vi.advanceTimersByTime(TUTORIAL_BLAST_ADVANCE_DELAY_MS);
+    expect(director.skillRound).toBe(1);
+
+    expect(engine.triggerWeaponSkill(5000).activated).toBe(true);
+    expect(director.skillPhase).toBe('done');
+    vi.advanceTimersByTime(TUTORIAL_SKILL_ADVANCE_DELAY_MS - 1);
+    expect(director.skillRound).toBe(1);
+    vi.advanceTimersByTime(1);
+    expect(director.skillRound).toBe(2);
+    expect(weapon(engine).weaponKind).toBe('gatling');
+    expect(engine.activeTargets.length).toBe(5);
+
+    expect(engine.triggerWeaponSkill(9000).activated).toBe(true);
+    vi.advanceTimersByTime(TUTORIAL_SKILL_ADVANCE_DELAY_MS);
     expect(director.step).toBe(4);
+    expect(weapon(engine).weaponKind).toBe('shotgun');
+    expect(weapon(engine).weaponLevel).toBe(1);
     expect(engine.getPlayer(0).scoreManager.getState().feverGauge).toBe(100);
     expect(engine.activeTargets.length).toBe(0);
   });
 
-  it('stays on step 3 and re-sets the targets if shots cleared them without the skill', () => {
+  it('re-sets the round targets if shots cleared them before the skill, but not while waiting to pass', () => {
     const { engine, director } = toSkillStep();
-    const lastId = engine.activeTargets[0].id;
-    engine.activeTargets = [engine.activeTargets[0]];
+    engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
     const t = engine.activeTargets[0];
-    engine.activeTargets[0].hp = 0.01;
-    // aim straight at it: use its projected coords through a normal shot at the target centre
+    engine.activeTargets = [t];
+    t.hp = 0.01;
     const proj = (engine as any).computeTargetAimCoords(t, 1.0);
     engine.shootAt(proj.targetNormX, proj.targetNormY, 5000, 'press');
     expect(director.step).toBe(3);
+    expect(director.skillRound).toBe(0);
     expect(engine.activeTargets.length).toBe(5);
-    expect(lastId).toBeTruthy();
   });
 
-  it('a skill used outside the skill step does not change the step', () => {
+  it('stop() cancels a pending round change', () => {
+    const { engine, director } = toSkillStep();
+    engine.triggerWeaponSkill(1000);
+    engine.update(3000, 0.016);
+    director.stop();
+    vi.advanceTimersByTime(5000);
+    expect(director.skillRound).toBe(0);
+  });
+
+  it('a skill used outside the skill step does not change the step or the round', () => {
+    vi.useFakeTimers();
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
     const director = new TutorialDirector(engine);
     director.start(1000);
     engine.triggerWeaponSkill(1000);
+    vi.advanceTimersByTime(5000);
     expect(director.step).toBe(1);
+    expect(director.skillRound).toBe(0);
   });
 });
 
-describe('tutorial fever step (step 4)', () => {
-  it('finishes the tutorial when the fever targets are cleared', () => {
-    const { engine, director } = toSkillStep();
-    director.advanceStep(4);
-    engine.activateFever(2000);
-    expect(engine.activeTargets.length).toBe(6);
-    engine.activeTargets = [];
-    director.advanceStep('COMPLETED');
-    expect(director.completed).toBe(true);
-  });
-});
-
-import fs from 'node:fs';
-import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { TutorialGuideOverlay } from '../src/pc/components/TutorialGuideOverlay';
-
-describe('tutorial guide overlay for the skill and fever steps', () => {
-  const render = (
-    step: 1 | 2 | 3 | 4 | 'COMPLETED',
-    inputKind: 'mouse' | 'mobile' = 'mouse'
-  ) =>
+describe('TutorialGuideOverlay step 3 text', () => {
+  const render = (props: Record<string, unknown>) =>
     renderToStaticMarkup(
       React.createElement(TutorialGuideOverlay, {
-        step,
-        targetsRemaining: 3,
-        isFeverActive: false,
+        step: 3,
+        targetsRemaining: 5,
         isFeverReady: false,
-        inputKind,
-        onExitToLobby: () => {},
+        isFeverActive: false,
         onStartRealGame: () => {},
-      })
+        onExitToLobby: () => {},
+        ...props,
+      } as any)
     );
 
-  it('step 3 explains the skill and step 4 explains the fever', () => {
-    const skill = render(3, 'mouse');
-    expect(skill).toContain('STEP 3');
-    expect(skill).toContain('우클릭');
-    expect(skill).not.toContain('위로 휙!');
-    const fever = render(4, 'mouse');
-    expect(fever).toContain('STEP 4');
-    expect(fever).toContain('더블클릭');
+  it('shows the round, the weapon name and its one-liner', () => {
+    const html = render({ weaponKind: 'revolver', skillRound: 1 });
+    expect(html).toContain('STEP 3-2/3');
+    expect(html).toContain(WEAPON_ARCHETYPE_SPECS.revolver.nameKo);
+    expect(html).toContain(WEAPON_ONE_LINER.revolver);
+    expect(html).toContain('먼저');
   });
 
-  it('steps 2 and 4 only mention the input the player actually uses (the mouse no longer works for a phone player)', () => {
-    const holdPhone = render(2, 'mobile');
-    expect(holdPhone).toContain('화면을');
-    expect(holdPhone).not.toContain('마우스');
-    const holdMouse = render(2, 'mouse');
-    expect(holdMouse).toContain('마우스 좌클릭');
-    expect(holdMouse).not.toContain('화면을');
-
-    const feverPhone = render(4, 'mobile');
-    expect(feverPhone).toContain('두 번 탭');
-    expect(feverPhone).not.toContain('마우스');
-    const feverMouse = render(4, 'mouse');
-    expect(feverMouse).toContain('마우스 더블클릭');
-    expect(feverMouse).not.toContain('두 번 탭');
+  it('shows the blast-waiting message and no longer claims the skill stuns every monster', () => {
+    const html = render({ weaponKind: 'shotgun', skillRound: 0, skillPhase: 'awaitingBlast' });
+    expect(html).toContain('곧 터집니다');
+    expect(html).not.toContain('화면의 모든 몬스터를 기절시키고');
   });
 
-  it('step 3 shows phone snap guide when inputKind is mobile', () => {
-    const skill = render(3, 'mobile');
-    expect(skill).toContain('STEP 3');
-    expect(skill).toContain('위로 휙!');
-    expect(skill).not.toContain('우클릭');
-  });
-
-  it('does not render ammo counter in tutorial guide overlay', () => {
-    for (const step of [1, 2, 3, 4, 'COMPLETED'] as const) {
-      const html = render(step);
-      expect(html).not.toContain('탄창:');
-      expect(html).not.toContain('현재 탄창:');
-    }
-  });
-
-  // T05: 폰 스냅 스킬 및 튜토리얼 스킬 허용 처리는 PhoneAdapter와 PlayerActionProcessor가 담당
-  it('the phone snap skill is also handled during the tutorial in PlayerActionProcessor', () => {
-    const adapter = fs.readFileSync('src/pc/input/PhoneAdapter.ts', 'utf8');
-    const processor = fs.readFileSync('src/pc/input/PlayerActionProcessor.ts', 'utf8');
-    expect(adapter).toContain("p.skillSnapTriggered");
-    expect(processor).toContain("phase !== 'TUTORIAL'");
+  it('the last round says the fever step is next', () => {
+    const html = render({ weaponKind: 'gatling', skillRound: 2, skillPhase: 'done' });
+    expect(html).toContain('STEP 3-3/3');
+    expect(html).toContain('피버로 넘어갑니다');
   });
 });

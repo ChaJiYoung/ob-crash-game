@@ -1,6 +1,8 @@
 import React from 'react';
-import { TutorialStep } from '../../shared/types';
+import { TutorialStep, WeaponKind } from '../../shared/types';
 import { GAME_TUNING } from '../../shared/gameTuning';
+import { WEAPON_ARCHETYPE_SPECS } from '../../shared/constants';
+import { WEAPON_ONE_LINER, WEAPON_SKILL_ONE_LINER } from '../../shared/guideText';
 
 export interface TutorialGuideOverlayProps {
   step: TutorialStep;
@@ -8,6 +10,11 @@ export interface TutorialGuideOverlayProps {
   isFeverReady: boolean;
   isFeverActive: boolean;
   inputKind?: 'mobile' | 'mouse';
+  /** 3단계(스킬 체험) 라운드의 현재 무기. 기본 샷건. */
+  weaponKind?: WeaponKind;
+  /** 0 샷건, 1 리볼버, 2 게틀링. */
+  skillRound?: 0 | 1 | 2;
+  skillPhase?: 'ready' | 'awaitingBlast' | 'done';
   onStartRealGame: () => void;
   onExitToLobby: () => void;
 }
@@ -18,6 +25,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
   isFeverReady,
   isFeverActive,
   inputKind = 'mouse',
+  weaponKind = 'shotgun',
+  skillRound = 0,
+  skillPhase = 'ready',
   onStartRealGame,
   onExitToLobby,
 }) => {
@@ -72,9 +82,9 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
               {step === 1 && '🎯 STEP 1. 정밀 조준 배율(2.0x/1.0x/0.5x) & 원샷'}
               {step === 2 && '💥 STEP 2. 홀드 자동 연발(투두두두) & 100% 체력 게이지'}
               {step === 3 &&
-                (inputKind === 'mouse'
-                  ? '⚡ STEP 3. 액티브 스킬 (우클릭)'
-                  : '⚡ STEP 3. 액티브 스킬 (위로 휙!)')}
+                `⚡ STEP 3-${skillRound + 1}/3. ${WEAPON_ARCHETYPE_SPECS[weaponKind].badgeIcon} ${WEAPON_ARCHETYPE_SPECS[weaponKind].nameKo} 스킬 체험 (${
+                  inputKind === 'mouse' ? '우클릭' : '위로 휙!'
+                })`}
               {step === 4 && '🔥 STEP 4. 피버 모드 & 무제한 탄창'}
               {step === 'COMPLETED' && '🎉 훈련 수료 완료!'}
             </span>
@@ -106,13 +116,24 @@ export const TutorialGuideOverlay: React.FC<TutorialGuideOverlayProps> = ({
 
             {step === 3 && (
               <>
-                정지한 몬스터 편대 앞에서 {inputKind === 'mouse' ? (
-                  <strong style={{ color: '#fbbf24' }}>마우스 우클릭</strong>
-                ) : (
-                  <>폰을 위로 <strong style={{ color: '#fbbf24' }}>'휙!'</strong> 젖혀</>
-                )} 무기 스킬을 발동하세요!
+                <strong>{WEAPON_ONE_LINER[weaponKind]}</strong>
+                <div style={{ marginTop: '4px' }} data-testid="tutorial-round-body">
+                  {skillPhase === 'awaitingBlast' ? (
+                    <>박힌 몬스터가 곧 터집니다! 기절해 있는 동안 쏴서 마무리해 보세요.</>
+                  ) : skillPhase === 'done' ? (
+                    <>{skillRound >= 2 ? '스킬 체험 끝! 피버로 넘어갑니다…' : '좋아요! 다음 무기로 바꿉니다…'}</>
+                  ) : (
+                    <>
+                      먼저 {inputKind === 'mouse' ? '좌클릭' : '화면 탭'}으로 몇 발 쏴 보고, 준비되면 {inputKind === 'mouse' ? (
+                        <strong style={{ color: '#fbbf24' }}>마우스 우클릭</strong>
+                      ) : (
+                        <>폰을 위로 <strong style={{ color: '#fbbf24' }}>'휙!'</strong> 젖혀</>
+                      )} 스킬을 발동하세요!
+                    </>
+                  )}
+                </div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  💡 샷건 스킬은 화면의 모든 몬스터를 기절시키고 피해를 줍니다. 한 번만 쓰면 통과!
+                  💡 {WEAPON_SKILL_ONE_LINER[weaponKind]}. 스킬을 한 번 쓰면 통과!
                 </div>
               </>
             )}

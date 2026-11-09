@@ -1,23 +1,48 @@
 import { BeerCrusherEngine, ActiveTargetEntity } from '../engine/BeerCrusherEngine';
-import { TutorialStep, TargetKind } from '../../shared/types';
+import { TutorialStep, TargetKind, WeaponKind } from '../../shared/types';
 import { TARGET_SPECS } from '../../shared/constants';
 import { EngineEvent } from '../engine/engineEvents';
+
+/** 3단계(스킬) 라운드의 무기 순서. */
+export const TUTORIAL_SKILL_ROUND_WEAPONS: readonly WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
+export type TutorialSkillRound = 0 | 1 | 2;
+export type TutorialSkillPhase = 'ready' | 'awaitingBlast' | 'done';
+export interface TutorialRoundState {
+  round: TutorialSkillRound;
+  phase: TutorialSkillPhase;
+}
+/** 샷건 폭발 후 다음 라운드까지, 리볼버·게틀링 스킬 사용 후 다음 라운드까지 기다리는 시간(ms). 연출을 보여 주기 위한 지연이다. */
+export const TUTORIAL_BLAST_ADVANCE_DELAY_MS = 500;
+export const TUTORIAL_SKILL_ADVANCE_DELAY_MS = 1200;
 
 export class TutorialDirector {
   public step: TutorialStep = 1;
   public completed = false;
+  /** 3단계 안의 라운드(0 샷건, 1 리볼버, 2 게틀링). TutorialStep 타입은 바꾸지 않고 내부 상태로 다룬다. */
+  public skillRound: TutorialSkillRound = 0;
+  public skillPhase: TutorialSkillPhase = 'ready';
   private engine: BeerCrusherEngine;
   private onStepChange?: (step: TutorialStep) => void;
+  private onRoundChange?: (state: TutorialRoundState) => void;
   private unsubscribe?: () => void;
+  private advanceTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(engine: BeerCrusherEngine, onStepChange?: (step: TutorialStep) => void) {
+  constructor(
+    engine: BeerCrusherEngine,
+    onStepChange?: (step: TutorialStep) => void,
+    onRoundChange?: (state: TutorialRoundState) => void
+  ) {
     this.engine = engine;
     this.onStepChange = onStepChange;
+    this.onRoundChange = onRoundChange;
   }
 
   public start(nowMs: number): void {
+    this.clearAdvanceTimer();
     this.step = 1;
     this.completed = false;
+    this.skillRound = 0;
+    this.skillPhase = 'ready';
     this.onStepChange?.(1);
     this.stop();
     this.unsubscribe = this.engine.addEventListener((e) => this.handleEvent(e));
@@ -25,6 +50,7 @@ export class TutorialDirector {
   }
 
   public stop(): void {
+    this.clearAdvanceTimer();
     if (this.unsubscribe) {
       this.unsubscribe();
       this.unsubscribe = undefined;
@@ -37,15 +63,68 @@ export class TutorialDirector {
     if (nextStep === 2) {
       this.spawnStep2();
     } else if (nextStep === 3) {
-      this.engine.getPlayer(0).weaponSystem.refillSkillInstant();
-      this.spawnStep3();
+      this.startSkillRound(0);
     } else if (nextStep === 4) {
+      this.clearAdvanceTimer();
+      // 게틀링 라운드 뒤에도 피버 단계는 샷건으로 시작한다.
+      this.engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
       this.engine.getPlayer(0).scoreManager.forceSetFeverGauge(100);
       this.engine.activeTargets = [];
     } else if (nextStep === 'COMPLETED') {
+      this.clearAdvanceTimer();
       this.completed = true;
       this.engine.activeTargets = [];
     }
+  }
+
+  private clearAdvanceTimer(): void {
+    if (this.advanceTimer) {
+      clearTimeout(this.advanceTimer);
+      this.advanceTimer = undefined;
+    }
+  }
+
+  private emitRound(): void {
+    this.onRoundChange?.({ round: this.skillRound, phase: this.skillPhase });
+  }
+
+  /** 라운드 시작: 무기를 바꾸고(selectWeapon은 스킬 재고를 0으로 만든다) 스킬을 채운 뒤 정지 표적 편대를 세운다. */
+  private startSkillRound(round: TutorialSkillRound): void {
+    this.clearAdvanceTimer();
+    this.skillRound = round;
+    this.skillPhase = 'ready';
+    const weaponSystem = this.engine.getPlayer(0).weaponSystem;
+    weaponSystem.selectWeapon(TUTORIAL_SKILL_ROUND_WEAPONS[round], 1);
+    weaponSystem.refillSkillInstant();
+    this.spawnStep3();
+    this.emitRound();
+  }
+
+  /** 지연 후 다음 라운드(마지막 라운드면 4단계). 이미 예약돼 있으면 무시한다. */
+  private scheduleRoundAdvance(delayMs: number): void {
+    if (this.advanceTimer) return;
+    this.skillPhase = 'done';
+    this.emitRound();
+    this.advanceTimer = setTimeout(() => {
+      this.advanceTimer = undefined;
+      this.advanceSkillRound();
+    }, delayMs);
+  }
+
+  private advanceSkillRound(): void {
+    if (this.step !== 3 || this.completed) return;
+    if (this.skillRound >= 2) {
+      this.advanceStep(4);
+    } else {
+      this.startSkillRound((this.skillRound + 1) as TutorialSkillRound);
+    }
+  }
+
+  /** 샷건 라운드에서 박힌 몬스터가 하나도 남지 않았을 때(폭발했거나 모두 평타로 처치) 통과를 예약한다. */
+  private maybeFinishShotgunRound(): void {
+    if (this.step !== 3 || this.skillPhase !== 'awaitingBlast') return;
+    if (this.engine.activeTargets.some((t) => t.plungerBlast)) return;
+    this.scheduleRoundAdvance(TUTORIAL_BLAST_ADVANCE_DELAY_MS);
   }
 
   public spawnStep1(): void {
@@ -140,11 +219,18 @@ export class TutorialDirector {
           this.advanceStep(2);
         } else if (this.step === 2 && this.engine.activeTargets.length === 0) {
           this.advanceStep(3);
-        } else if (this.step === 3 && this.engine.activeTargets.length === 0) {
+        } else if (this.step === 3 && this.engine.activeTargets.length === 0 && this.skillPhase === 'ready') {
+          // 스킬을 쓰기 전에 표적을 모두 잡았다: 같은 라운드의 표적을 다시 세운다.
           this.spawnStep3();
+        } else if (this.step === 3) {
+          this.maybeFinishShotgunRound();
         } else if (this.step === 4 && this.engine.activeTargets.length === 0) {
           this.advanceStep('COMPLETED');
         }
+        break;
+      }
+      case 'plungerBlasted': {
+        this.maybeFinishShotgunRound();
         break;
       }
       case 'targetBreached': {
@@ -156,8 +242,15 @@ export class TutorialDirector {
         break;
       }
       case 'skillUsed': {
-        if (this.step === 3) {
-          this.advanceStep(4);
+        if (this.step === 3 && e.playerIndex === 0 && this.skillPhase === 'ready') {
+          if (this.skillRound === 0) {
+            // 샷건: 박힌 몬스터가 터지는 것까지 보고 넘어간다.
+            this.skillPhase = 'awaitingBlast';
+            this.emitRound();
+            this.maybeFinishShotgunRound(); // 박힌 몬스터가 없으면(교착 방지) 바로 예약
+          } else {
+            this.scheduleRoundAdvance(TUTORIAL_SKILL_ADVANCE_DELAY_MS);
+          }
         }
         break;
       }

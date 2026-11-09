@@ -1,9 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import { TutorialDirector } from '../src/pc/tutorial/TutorialDirector';
 
+afterEach(() => vi.useRealTimers());
+
 describe('TutorialDirector', () => {
   it('drives 1 -> 2 -> 3 -> 4 -> COMPLETED sequentially through events', () => {
+    vi.useFakeTimers();
     const engine = new BeerCrusherEngine();
     engine.startTutorialMode();
     engine.getPlayer(0).weaponSystem.setInfiniteAmmo(true);
@@ -44,13 +47,30 @@ describe('TutorialDirector', () => {
     expect(engine.activeTargets.length).toBe(5);
     expect(engine.getPlayer(0).weaponSystem.getState().skillStock).toBeGreaterThan(0);
 
-    // Use skill
-    now += 500;
-    const skillRes = engine.triggerWeaponSkill(now);
-    expect(skillRes.activated).toBe(true);
+    // Step 3 has three rounds (shotgun -> revolver -> gatling): use each weapon's skill once
+    now += 600;
+    expect(engine.getPlayer(0).weaponSystem.getState().weaponKind).toBe('shotgun');
+    expect(engine.triggerWeaponSkill(now).activated).toBe(true);
+    expect(director.step).toBe(3); // 샷건은 박힌 몬스터가 터질 때까지 기다린다
+    now += 2500; // Lv1 기절(2.0초)이 끝나면 터진다
+    engine.update(now, 0.016);
+    vi.advanceTimersByTime(500);
+    expect(director.skillRound).toBe(1);
+    expect(engine.getPlayer(0).weaponSystem.getState().weaponKind).toBe('revolver');
+
+    now += 600;
+    expect(engine.triggerWeaponSkill(now).activated).toBe(true);
+    vi.advanceTimersByTime(1200);
+    expect(director.skillRound).toBe(2);
+    expect(engine.getPlayer(0).weaponSystem.getState().weaponKind).toBe('gatling');
+
+    now += 600;
+    expect(engine.triggerWeaponSkill(now).activated).toBe(true);
+    vi.advanceTimersByTime(1200);
 
     // Should advance to Step 4: fever ready (gauge 100), targets cleared
     expect(director.step).toBe(4);
+    expect(engine.getPlayer(0).weaponSystem.getState().weaponKind).toBe('shotgun');
     expect(engine.getPlayer(0).scoreManager.getState().isFeverReady).toBe(true);
     expect(engine.activeTargets.length).toBe(0);
 

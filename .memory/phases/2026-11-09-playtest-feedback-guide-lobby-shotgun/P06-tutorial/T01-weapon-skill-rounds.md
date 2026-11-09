@@ -1,6 +1,6 @@
 # Task: T01 튜토리얼 3단계를 무기 3종 스킬 체험 라운드로
 
-## Status: pending
+## Status: done
 
 ## Goal
 튜토리얼 3단계(스킬)를 ① 샷건 → ② 리볼버 → ③ 게틀링 3라운드로 나눠, 무기를 자동으로 바꿔 가며 각 무기의 단타를 자유롭게 쏴 보고 **스킬을 한 번 쓰면 통과**하게 한다. 샷건 라운드만 박힌 몬스터가 **폭발하는 것까지 본 뒤** 통과한다. 화면 위 안내문은 무기 이름·한 줄 특징·지금 할 일을 보여 준다(D18, D19).
@@ -115,6 +115,6 @@ Task: T01-weapon-skill-rounds
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: git log --grep "Task: T01-weapon-skill-rounds"
