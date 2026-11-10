@@ -56,13 +56,13 @@ export const GAME_TUNING = {
     holdIntervalMsByWeapon: { shotgun: 250, revolver: 200, gatling: 57 },
   },
   /**
-   * 샷건 평타 퍼짐(2026-11-09 D05~D07, D17). 십자선 주변 몬스터도 낮은 피해를 받는다.
+   * 샷건 평타 퍼짐(2026-11-09 D05~D07, D17; 2026-11-10 비율 상향 15/25/35/45%). 십자선 주변 몬스터도 낮은 피해를 받는다.
    * radiusNorm은 조준 좌표 단위(1.0 = 화면 높이의 절반)이고, 거리는 findBestTarget과 같은 방식(가로 x aspect, 세로 x 0.85)으로 잰다.
    * 비율은 주 대상 피해(판정·피버·파워샷·누르고 쏘기 배율 포함)에 곱한다.
    */
   shotgunSpread: {
     extraTargetsByLevel: { 1: 2, 2: 2, 3: 3, 4: 3 },
-    damageRatioByLevel: { 1: 0.10, 2: 0.15, 3: 0.20, 4: 0.25 },
+    damageRatioByLevel: { 1: 0.15, 2: 0.25, 3: 0.35, 4: 0.45 },
     radiusNorm: 0.30,
   },
   weaponDamageScale: { shotgun: 1.0, revolver: 1.05, gatling: 1.5 },

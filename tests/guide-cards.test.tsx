@@ -82,7 +82,7 @@ describe('WeaponsTab', () => {
   it('computes the shotgun spread and skill text from GAME_TUNING (no old hand-written numbers)', () => {
     const p = GAME_TUNING.skills.plunger;
     expect(shotgunSpreadText()).toContain('2 / 2 / 3 / 3');
-    expect(shotgunSpreadText()).toContain('10 / 15 / 20 / 25%');
+    expect(shotgunSpreadText()).toContain('15 / 25 / 35 / 45%');
     const skill = weaponSkillDetailText('shotgun').join(' ');
     expect(skill).toContain('4 / 5 / 6 / 8');
     expect(skill).toContain('2 / 2.2 / 2.5 / 3초');
@@ -161,9 +161,9 @@ describe('weapon radar and one-shot order (2026-11-10)', () => {
     const gat = weaponBestCasePerShot('gatling', 4);
     expect(rev).toBeGreaterThan(sg);
     expect(sg).toBeGreaterThan(gat);
-    // revolver 1.208 (1.15 x 1.05 rounded to 3 digits) x (1 + 2 x 0.7), shotgun 1.122 x (1 + 3 x 0.25)
+    // revolver 1.208 (1.15 x 1.05 rounded to 3 digits) x (1 + 2 x 0.7), shotgun 1.122 x (1 + 3 x 0.45)
     expect(rev).toBeCloseTo(1.208 * 2.4, 3);
-    expect(sg).toBeCloseTo(1.122 * 1.75, 3);
+    expect(sg).toBeCloseTo(1.122 * 2.35, 3);
   });
 
   it('the one-shot damage bar is longest for the revolver', () => {
@@ -199,8 +199,8 @@ describe('weapon radar and one-shot order (2026-11-10)', () => {
 
   it('shotgun performance line shows the main total and the spread bonus, no wide-hit wording', () => {
     const text = weaponPerformanceText('shotgun');
-    expect(text).toContain('1.00 DMG(+산탄 최대 0.20)');
-    expect(text).toContain('1.12 DMG(+산탄 최대 0.84)');
+    expect(text).toContain('1.00 DMG(+산탄 최대 0.30)');
+    expect(text).toContain('1.12 DMG(+산탄 최대 1.51)');
     expect(text).not.toContain('넓은');
   });
 });

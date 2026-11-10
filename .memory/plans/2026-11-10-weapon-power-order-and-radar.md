@@ -11,3 +11,4 @@
 | P01 | `done ✅` | 게임 수치 변경(샷건·리볼버·판정) + 기존 테스트 정정 | [P01](../phases/2026-11-10-weapon-power-order-and-radar/P01-balance-values/phase.md) |
 | P02 | `done ✅` | 가이드 막대·성능 문구·레이더 차트를 새 기준으로 재작성 | [P02](../phases/2026-11-10-weapon-power-order-and-radar/P02-guide-radar/phase.md) |
 | P03 | `done ✅` | 봇 시뮬레이션 재측정 + 수치 변경 문서 갱신 | [P03](../phases/2026-11-10-weapon-power-order-and-radar/P03-verify-and-docs/phase.md) |
+| P04 | `done ✅` | 샷건 산탄 비율 상향(D09) | [P04](../phases/2026-11-10-weapon-power-order-and-radar/P04-shotgun-spread-tuning/phase.md) |

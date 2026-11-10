@@ -68,7 +68,7 @@ beforeEach(() => {
 describe('shotgun spread tuning', () => {
   it('pins the spread numbers and the 1.0 damage scale', () => {
     expect(GAME_TUNING.shotgunSpread.extraTargetsByLevel).toEqual({ 1: 2, 2: 2, 3: 3, 4: 3 });
-    expect(GAME_TUNING.shotgunSpread.damageRatioByLevel).toEqual({ 1: 0.1, 2: 0.15, 3: 0.2, 4: 0.25 });
+    expect(GAME_TUNING.shotgunSpread.damageRatioByLevel).toEqual({ 1: 0.15, 2: 0.25, 3: 0.35, 4: 0.45 });
     expect(GAME_TUNING.shotgunSpread.radiusNorm).toBe(0.3);
     expect(GAME_TUNING.weaponDamageScale.shotgun).toBe(1.0);
   });
@@ -92,7 +92,7 @@ describe('shotgun spread tuning', () => {
 });
 
 describe('shotgun spread hits', () => {
-  it('Lv3 hits the primary plus 3 nearest neighbours at 20% of the primary damage (nearest first)', () => {
+  it('Lv3 hits the primary plus 3 nearest neighbours at 35% of the primary damage (nearest first)', () => {
     selectShotgun(3);
     const primary = mk('hanmac', 0);
     const n1 = mk('hanmac', 0.04);
@@ -111,21 +111,21 @@ describe('shotgun spread hits', () => {
     expect(r.grade).toBe('PERFECT');
     const primaryDamage = shot(3) * GAME_TUNING.judgment.perfectDamage;
     expect(primary.hp).toBeCloseTo(99 - primaryDamage, 3);
-    const extra = primaryDamage * 0.2;
+    const extra = primaryDamage * 0.35;
     [n1, n2, n3].forEach((t) => expect(t.hp).toBeCloseTo(99 - extra, 3));
     expect(n4.hp).toBe(99);
     expect(r.hitTargets).toEqual([primary, n1, n2, n3]);
   });
 
-  it('Lv1 hits at most 2 neighbours at 10%', () => {
+  it('Lv1 hits at most 2 neighbours at 15%', () => {
     selectShotgun(1);
     const primary = mk('hanmac', 0);
     const ns = [mk('hanmac', 0.04), mk('hanmac', -0.07), mk('hanmac', 0.1)];
     engine.activeTargets = [primary, ...ns];
     shootCenter(primary);
     const primaryDamage = shot(1) * GAME_TUNING.judgment.perfectDamage;
-    expect(ns[0].hp).toBeCloseTo(99 - primaryDamage * 0.1, 3);
-    expect(ns[1].hp).toBeCloseTo(99 - primaryDamage * 0.1, 3);
+    expect(ns[0].hp).toBeCloseTo(99 - primaryDamage * 0.15, 3);
+    expect(ns[1].hp).toBeCloseTo(99 - primaryDamage * 0.15, 3);
     expect(ns[2].hp).toBe(99);
   });
 
@@ -166,7 +166,7 @@ describe('shotgun spread hits', () => {
     expect(r.hitTargets).toEqual([boss, minion]);
     const primaryDamage = shot(2) * GAME_TUNING.judgment.perfectDamage * GAME_TUNING.boss.damageScaleByWeapon.shotgun;
     expect(boss.hp).toBeCloseTo(99 - primaryDamage, 3);
-    expect(minion.hp).toBeCloseTo(99 - shot(2) * GAME_TUNING.judgment.perfectDamage * 0.15, 3);
+    expect(minion.hp).toBeCloseTo(99 - shot(2) * GAME_TUNING.judgment.perfectDamage * 0.25, 3);
   });
 
   it('no spread when the primary is an item', () => {
@@ -189,7 +189,7 @@ describe('shotgun spread hits', () => {
     });
     const before = engine.getPlayer(0).totalKills;
     shootCenter(primary);
-    // shot(3) 1.07 x 2.0(PERFECT) x 0.2 = 0.428 >= 0.4HP
+    // shot(3) 1.07 x 2.0(PERFECT) x 0.35 = 0.749 >= 0.4HP
     expect(engine.activeTargets).not.toContain(weak);
     expect(killed).toContain(weak.id);
     expect(engine.getPlayer(0).totalKills).toBe(before + 1);
@@ -204,7 +204,7 @@ describe('shotgun spread hits', () => {
     const hold = GAME_TUNING.fire.holdDamageByWeapon.shotgun;
     const primaryDamage = shot(3) * GAME_TUNING.judgment.perfectDamage * hold;
     expect(primary.hp).toBeCloseTo(99 - primaryDamage, 3);
-    expect(n.hp).toBeCloseTo(99 - primaryDamage * 0.2, 3);
+    expect(n.hp).toBeCloseTo(99 - primaryDamage * 0.35, 3);
   });
 
   it('a bottle that splits on death does not hit its own children in the same shot', () => {
