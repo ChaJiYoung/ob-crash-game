@@ -2318,7 +2318,7 @@ export class BeerCrusherEngine {
       let spreadExtraDamage = 0;
 
       if (weaponKind === 'shotgun') {
-        // Shotgun: Lv.1 GREAT = 3 * 0.35 * 1.0 = 1.05 (1HP 캔 원샷), GOOD = 1.05 * 0.8 = 0.84
+        // Shotgun: Lv.1 GREAT = 3 * 0.334 * 1.0 = 1.002 (1HP 캔 원샷), GOOD은 0.5배
         const baseDamage = levelSpec.pelletCount * levelSpec.damagePerHit;
         damage = Number((baseDamage * totalMult).toFixed(3));
         if (!target.isItem) {

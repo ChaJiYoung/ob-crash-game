@@ -40,7 +40,8 @@ export const GAME_TUNING = {
   itemDropKinds: ['power_shot', 'wide_scope', 'ice_freeze'],
   hitZone: {
     scale: 0.75,
-    toleranceByWeapon: { shotgun: 1.40, revolver: 0.95, gatling: 1.05 },
+    /** 2026-11-10: 샷건의 특성은 넓은 판정이 아니라 옆 몬스터까지 맞는 산탄이라 세 무기 모두 같게 둔다. */
+    toleranceByWeapon: { shotgun: 1.0, revolver: 1.0, gatling: 1.0 },
   },
   fire: {
     intervalScale: 0.7,

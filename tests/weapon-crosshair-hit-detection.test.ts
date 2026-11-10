@@ -26,7 +26,7 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     expect(gatlingSpec.primaryColor).toBe('#38bdf8');
   });
 
-  it('should allow shotgun to hit target within 120px pellet spread circle (1.35x apparent radius)', () => {
+  it('shotgun and revolver share one 1.0x tolerance circle (0.95x hits, shotgun 1.08x misses)', () => {
     // Spawn single target at (0, -6)
     engine.activeTargets.push({
       id: 'target_test_shotgun',
@@ -46,25 +46,31 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const target = engine.activeTargets[0];
     const proj = engine.computeTargetAimCoords(target);
 
-    // Aim offset by 1.35x apparentHitRadius (inside shotgun 1.40x tolerance circle).
+    // Aim offset by 1.35x apparentHitRadius (all weapons share the 1.0x tolerance since 2026-11-10; 0.95x is inside).
     // Horizontal aim spans half the screen width per unit, so divide by the aspect ratio.
-    const aimX = proj.targetNormX + (proj.apparentHitRadius * 1.35) / engine.aspect;
+    const aimX = proj.targetNormX + (proj.apparentHitRadius * 0.95) / engine.aspect;
     const aimY = proj.targetNormY;
 
-    // 1. Shotgun test -> Should HIT (effective radius is 1.40x, so 1.35x is within circle)
+    // 1. Shotgun test -> Should HIT (effective radius is 1.0x, 0.95x is within circle)
     engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
     const shotgunShot = engine.shootAt(aimX, aimY, 1000);
     expect(shotgunShot.fired).toBe(true);
     expect(shotgunShot.grade).not.toBe('MISS');
 
-    // 2. Revolver test at same offset -> Should MISS (effective radius is 0.95x, so 1.35x misses)
+    // 2. Revolver test at same offset -> also HIT (same tolerance, no shotgun-only wide zone)
     engine.getPlayer(0).weaponSystem.selectWeapon('revolver', 1);
     const revolverShot = engine.shootAt(aimX, aimY, 2000);
     expect(revolverShot.fired).toBe(true);
-    expect(revolverShot.grade).toBe('MISS');
+    expect(revolverShot.grade).not.toBe('MISS');
+
+    // 3. Shotgun outside 1.0x (1.08x) -> MISS
+    engine.getPlayer(0).weaponSystem.selectWeapon('shotgun', 1);
+    const outsideX = proj.targetNormX + (proj.apparentHitRadius * 1.08) / engine.aspect;
+    const shotgunMiss = engine.shootAt(outsideX, aimY, 3000);
+    expect(shotgunMiss.grade).toBe('MISS');
   });
 
-  it('should allow gatling to hit target within its tightened 1.05x spray radius (1.02x offset) and miss outside (1.12x)', () => {
+  it('should allow gatling to hit target within the 1.0x radius (0.97x offset) and miss outside (1.08x)', () => {
     engine.activeTargets.push({
       id: 'target_test_gatling',
       kind: 'pilgood',
@@ -83,8 +89,8 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     const target = engine.activeTargets[0];
     const proj = engine.computeTargetAimCoords(target);
 
-    // 1. Inside tightened 1.05x tolerance (1.02x offset) -> HIT
-    const insideAimX = proj.targetNormX + (proj.apparentHitRadius * 1.02) / engine.aspect;
+    // 1. Inside 1.0x tolerance (0.97x offset) -> HIT
+    const insideAimX = proj.targetNormX + (proj.apparentHitRadius * 0.97) / engine.aspect;
     const aimY = proj.targetNormY;
 
     engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
@@ -92,8 +98,8 @@ describe('Weapon Crosshair Hit Detection & Visual Alignment', () => {
     expect(hitShot.fired).toBe(true);
     expect(hitShot.grade).not.toBe('MISS');
 
-    // 2. Outside 1.05x tolerance (1.12x offset) -> MISS
-    const outsideAimX = proj.targetNormX + (proj.apparentHitRadius * 1.12) / engine.aspect;
+    // 2. Outside 1.0x tolerance (1.08x offset) -> MISS
+    const outsideAimX = proj.targetNormX + (proj.apparentHitRadius * 1.08) / engine.aspect;
     const missShot = engine.shootAt(outsideAimX, aimY, 2000);
     expect(missShot.fired).toBe(true);
     expect(missShot.grade).toBe('MISS');

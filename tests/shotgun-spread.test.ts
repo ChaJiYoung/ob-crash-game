@@ -73,8 +73,8 @@ describe('shotgun spread tuning', () => {
     expect(GAME_TUNING.weaponDamageScale.shotgun).toBe(1.0);
   });
 
-  it('one full hit is 1.02 / 1.32 / 1.65 / 2.46 (pellets x damage per pellet, 2026-11-09 attack-power rebalance)', () => {
-    const expected = { 1: 1.02, 2: 1.32, 3: 1.65, 4: 2.46 } as const;
+  it('one full hit is 1.002 / 1.032 / 1.07 / 1.122 (pellets x damage per pellet, 2026-11-10 one-shot power order)', () => {
+    const expected = { 1: 1.002, 2: 1.032, 3: 1.07, 4: 1.122 } as const;
     ([1, 2, 3, 4] as const).forEach((l) => {
       const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[l];
       expect(spec.pelletCount * spec.damagePerHit).toBeCloseTo(expected[l], 5);
@@ -181,7 +181,7 @@ describe('shotgun spread hits', () => {
   it('a killed neighbour counts as a kill and emits targetKilled', () => {
     selectShotgun(3);
     const primary = mk('hanmac', 0);
-    const weak = mk('pilgood', 0.05, { hp: 0.5, maxHp: 0.5 });
+    const weak = mk('pilgood', 0.05, { hp: 0.4, maxHp: 0.4 });
     engine.activeTargets = [primary, weak];
     const killed: string[] = [];
     engine.addEventListener((e) => {
@@ -189,7 +189,7 @@ describe('shotgun spread hits', () => {
     });
     const before = engine.getPlayer(0).totalKills;
     shootCenter(primary);
-    // shot(3) x 2.0(PERFECT) x 0.2 = 0.66 >= 0.5HP
+    // shot(3) 1.07 x 2.0(PERFECT) x 0.2 = 0.428 >= 0.4HP
     expect(engine.activeTargets).not.toContain(weak);
     expect(killed).toContain(weak.id);
     expect(engine.getPlayer(0).totalKills).toBe(before + 1);

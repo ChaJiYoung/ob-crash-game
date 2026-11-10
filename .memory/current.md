@@ -1,16 +1,16 @@
 # Current Context
 
 ## Active Plan
-[무기 떨림 수정](./plans/2026-11-10-gun-jitter-fix.md)
+[무기 공격력 서열 재정의와 가이드 레이더 차트](./plans/2026-11-10-weapon-power-order-and-radar.md)
 
 ## Active Phase
-없음 (P01 완료)
+[P02 가이드 레이더](./phases/2026-11-10-weapon-power-order-and-radar/P02-guide-radar/phase.md)
 
 ## Active Task
-없음 — 마지막: [P01-T01 guard-and-regression-test](./phases/2026-11-10-gun-jitter-fix/P01-gun-jitter/T01-guard-and-regression-test.md) (786581e)
+[T01 guide-radar](./phases/2026-11-10-weapon-power-order-and-radar/P02-guide-radar/T01-guide-radar.md)
 
 ## Status
-- T01 완료·커밋. 전체 테스트 1042개, tsc 통과.
+- P01-T01 완료·커밋(전체 테스트 1050개, tsc 통과)
 
 ## Next Step (IMPORTANT)
-사람이 직접 확인: 폰을 가만히 둔 상태에서 PC 화면의 총이 떨리지 않는지 확인.
+`src/pc/components/guide/weaponGuideData.ts`의 `weaponBestCasePerShot`·5축 `weaponRadarValues`부터 구현 (미커밋 임시 구현 교체)

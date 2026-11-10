@@ -513,7 +513,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
     expect(shot1.fired).toBe(true);
     expect(shot1.grade).toBe('PERFECT');
-    expect(sgTarget.hp).toBeCloseTo(1.36, 5); // 4.0 - (4 x 0.33 x 2.0 PERFECT) = 1.36 (샷건 공격력 재조정, 2026-11-09)
+    expect(sgTarget.hp).toBeCloseTo(1.936, 5); // 4.0 - (4 x 0.258 x 2.0 PERFECT) = 1.936 (샷건 한 발 서열 재정의, 2026-11-10)
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
     // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
@@ -555,7 +555,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(shot2.hitTargets?.length).toBe(2);
     const revPerfect = 1.0 * GAME_TUNING.weaponDamageScale.revolver * 2.0; // base 1.00 x tuning scale x 2.0 PERFECT
     expect(revFront.hp).toBeCloseTo(4.0 - revPerfect, 5);
-    expect(revRear.hp).toBeCloseTo(3.0 - revPerfect * 0.467, 2);
+    expect(revRear.hp).toBeCloseTo(3.0 - revPerfect * 0.5, 2); // Lv1 관통 비율 0.5 (2026-11-10)
 
     // 3. Gatling Lv.1: 0.25 base DMG x1.5 tuning. With PERFECT (2.0x) -> 0.75 DMG rapid fire
     engine.getPlayer(0).weaponSystem.selectWeapon('gatling', 1);
@@ -851,7 +851,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(sgGood.fired).toBe(true);
     expect(sgGood.grade).toBe('GOOD');
     expect(sgGood.killed).toBe(false);
-    expect(canSgGood.hp).toBeCloseTo(0.49, 2); // 3 pellets x 0.34 x 0.5 GOOD = 0.51
+    expect(canSgGood.hp).toBeCloseTo(0.499, 3); // 3 pellets x 0.334 x 0.5 GOOD = 0.501
   });
 });
 

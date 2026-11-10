@@ -658,7 +658,7 @@ export const GameCanvas3D = React.memo(
             } else if (target.weaponSelectKind) {
               const wk = target.weaponSelectKind;
               let title = '맥주관 뚫어뻥';
-              let sub = '넓은 명중 범위\n한 발 강한 화력 샷건';
+              let sub = '옆 몬스터까지 맞는 산탄\n한 발 강한 화력 샷건';
               let col = '#f59e0b';
               let ico = '🪠';
               if (wk === 'revolver') {
