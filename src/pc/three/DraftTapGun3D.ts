@@ -104,6 +104,8 @@ export class DraftTapGun3D {
   public readonly group: THREE.Group;
   private readonly basePosition = new THREE.Vector3(0.0, -0.46, -0.92);
   private slotOffsetX = 0;
+  /** 마지막으로 적용한 플레이어 색. undefined면 아직 적용 전. */
+  private playerColorHex: string | null | undefined = undefined;
   private currentRecoilZ = 0;
   private currentRecoilPitch = 0;
 
@@ -423,6 +425,8 @@ export class DraftTapGun3D {
 
   /** 화면 좌우 배치. 0이면 가운데(1인). */
   public setSlotOffset(offsetX: number): void {
+    // 렌더 루프가 매 프레임 부르므로 같은 값이면 건너뛴다. 덮어쓰면 updateAim이 보간 중인 x가 매번 리셋돼 떨린다.
+    if (this.slotOffsetX === offsetX) return;
     this.slotOffsetX = offsetX;
     this.basePosition.x = offsetX;
     this.group.position.x = this.basePosition.x;
@@ -430,6 +434,8 @@ export class DraftTapGun3D {
 
   /** 플레이어 색 받침 링. null이면 숨김(1인). */
   public setPlayerColor(hex: string | null): void {
+    if (this.playerColorHex === hex) return;
+    this.playerColorHex = hex;
     if (hex) {
       this.ringMat.color.set(hex);
       this.ringMesh.visible = true;
