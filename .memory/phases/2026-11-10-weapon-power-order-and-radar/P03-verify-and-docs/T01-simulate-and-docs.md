@@ -1,6 +1,6 @@
 # Task: T01 simulate-and-docs
 
-## Status: pending
+## Status: done
 
 ## Goal
 수치 변경 뒤 봇 클리어율을 재측정해 기록하고, 수치 변경 정리 문서를 새 값으로 갱신한다.
@@ -43,6 +43,6 @@ Task: T01-simulate-and-docs
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

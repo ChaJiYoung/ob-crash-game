@@ -1,5 +1,7 @@
 # 수치 변경 정리 (2026-11-09, 플레이 피드백 반영)
 
+> 2026-11-10에 샷건 펠릿 피해·리볼버 관통 비율·판정 허용 배율이 다시 바뀌었다. 현재 값은 [balance-changes-2026-11-10](balance-changes-2026-11-10.md)를 본다.
+
 - 모든 수치는 `src/shared/gameTuning.ts`에 있다(샷건 펠릿당 피해만 `src/shared/constants.ts`의 기본 무기 표).
 - 각 변경은 별도 커밋이라 해당 커밋만 `git revert`로 되돌릴 수 있다.
 - 결정 문서: [2026-11-09-playtest-feedback-guide-lobby-shotgun](../decisions/2026-11-09-playtest-feedback-guide-lobby-shotgun.md) (D01~D23)

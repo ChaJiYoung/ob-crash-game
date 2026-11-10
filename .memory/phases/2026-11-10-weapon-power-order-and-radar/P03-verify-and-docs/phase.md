@@ -3,7 +3,7 @@
 ## Tasks
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
-| T01 | `in_progress 🔵` | 봇 시뮬레이션 재측정, 수치 변경 문서 갱신 | [T01](./T01-simulate-and-docs.md) |
+| T01 | `done ✅` | 봇 시뮬레이션 재측정, 수치 변경 문서 갱신 | [T01](./T01-simulate-and-docs.md) |
 
 ## Progress
-- done: 0/1 (active: T01)
+- done: 1/1
