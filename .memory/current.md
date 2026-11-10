@@ -1,17 +1,16 @@
 # Current Context
 
 ## Active Plan
-[로비 2P 기본 모바일 + 플레이어별 단계 뱃지 + 시작 버튼 상태 문구](./plans/2026-11-10-lobby-2p-default-mobile.md)
+[무기 떨림 수정](./plans/2026-11-10-gun-jitter-fix.md)
 
 ## Active Phase
-없음 (P01~P04 구현 완료, 코드리뷰 진행 중)
+없음 (P01 완료)
 
 ## Active Task
-없음 — 마지막: [P04-T01 로비·결과 랭킹 캡처 재촬영](./phases/2026-11-10-lobby-2p-default-mobile/P04-docs-captures/T01-recapture-lobby-and-ranking.md)
+없음 — 마지막: [P01-T01 guard-and-regression-test](./phases/2026-11-10-gun-jitter-fix/P01-gun-jitter/T01-guard-and-regression-test.md) (786581e)
 
 ## Status
-- P01~P04 구현·커밋 완료 + 1·2차 코드리뷰(Sonnet 서브에이전트) 지적 반영. 2차 중간 지적(카운트다운 중 2P 접속 시 인원수·매핑 불일치)은 `lockedStartRef`/`resolveStartRoster`로 고정. 전체 테스트 1038개, tsc 통과.
-- 3차 리뷰(고정 로직 한정): 높음 없음. 중간 1건(카운트다운 중 재시작 시도가 잠금을 덮어씀)은 `tryStartFromLobby` 초입 가드로 반영. 낮음 3건(튜토리얼 경로의 낡은 잠금은 무해, 카운트다운 중 같은 기기 슬롯 이동 시 기록 누락, 카운트다운 중 1P 끊김은 기존 동작)은 기록만.
+- T01 완료·커밋. 전체 테스트 1042개, tsc 통과.
 
 ## Next Step (IMPORTANT)
-사람이 직접 확인: 로비 배너·시작 버튼·2P (선택), 랭킹 CLEAR, 튜토리얼 버튼 비활성/활성, 튜토리얼 수료 후 폰으로 "실전 배틀 시작"(P05, 수료 화면은 UI로 재현이 어려워 코드 경로로만 검증), 센서 랩(SANDBOX)의 같은 버튼은 미수정. 필요 시 PR 생성.
+사람이 직접 확인: 폰을 가만히 둔 상태에서 PC 화면의 총이 떨리지 않는지 확인.
