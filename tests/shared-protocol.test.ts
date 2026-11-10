@@ -103,7 +103,7 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // Check Shotgun specifics
     const sg = WEAPON_ARCHETYPE_SPECS.shotgun;
     expect(sg.levels[1].pelletCount).toBe(3);
-    expect(sg.levels[1].damagePerHit).toBe(0.334); // 0.334 x 3 = 1.002 (2026-11-10 한 발 서열 재정의, Lv1 1HP 원샷 유지)
+    expect(sg.levels[1].damagePerHit).toBe(1.0); // 한 발 피해 그대로(펠릿은 연출, 2026-11-10), Lv1 1HP 원샷 유지
     expect(sg.levels[2].knockbackM).toBe(0.3);
     expect(sg.levels[4].pelletCount).toBe(6);
     expect(sg.levels[4].slowDurationMs).toBe(1000);

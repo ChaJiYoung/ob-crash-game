@@ -2318,8 +2318,9 @@ export class BeerCrusherEngine {
       let spreadExtraDamage = 0;
 
       if (weaponKind === 'shotgun') {
-        // Shotgun: Lv.1 GREAT = 3 * 0.334 * 1.0 = 1.002 (1HP 캔 원샷), GOOD은 0.5배
-        const baseDamage = levelSpec.pelletCount * levelSpec.damagePerHit;
+        // Shotgun: Lv.1 GREAT = 1.00 * 1.0 (1HP 캔 원샷), GOOD은 0.5배
+        // 펠릿은 연출이고 한 발 피해는 damagePerHit 하나다(2026-11-10).
+        const baseDamage = levelSpec.damagePerHit;
         damage = Number((baseDamage * totalMult).toFixed(3));
         if (!target.isItem) {
           spreadTargets = this.collectShotgunSpreadTargets(target, aimX, aimY, nowMs, weaponLevel, playerIndex);

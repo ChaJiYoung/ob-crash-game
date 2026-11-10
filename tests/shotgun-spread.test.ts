@@ -33,7 +33,7 @@ let now = 1000;
 /** 샷건 한 발 피해(GREAT, 배율 1.0) = 펠릿 수 x 펠릿당 피해. 값은 무기 표에서 읽는다(튜닝을 바꿔도 테스트가 따라온다). */
 const shot = (level: WeaponLevel) => {
   const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[level];
-  return spec.pelletCount * spec.damagePerHit;
+  return spec.damagePerHit;
 };
 
 const selectShotgun = (level: WeaponLevel) => {
@@ -73,11 +73,11 @@ describe('shotgun spread tuning', () => {
     expect(GAME_TUNING.weaponDamageScale.shotgun).toBe(1.0);
   });
 
-  it('one full hit is 1.002 / 1.032 / 1.07 / 1.122 (pellets x damage per pellet, 2026-11-10 one-shot power order)', () => {
-    const expected = { 1: 1.002, 2: 1.032, 3: 1.07, 4: 1.122 } as const;
+  it('one full hit is 1.00 / 1.03 / 1.07 / 1.12 (damagePerHit is the whole shot; pellets are visual only, 2026-11-10)', () => {
+    const expected = { 1: 1.0, 2: 1.03, 3: 1.07, 4: 1.12 } as const;
     ([1, 2, 3, 4] as const).forEach((l) => {
       const spec = WEAPON_ARCHETYPE_SPECS.shotgun.levels[l];
-      expect(spec.pelletCount * spec.damagePerHit).toBeCloseTo(expected[l], 5);
+      expect(spec.damagePerHit).toBeCloseTo(expected[l], 5);
     });
   });
 

@@ -17,7 +17,7 @@ export function weaponPerformanceText(kind: WeaponKindKey): string {
       const label = l === 4 ? 'MAX' : `Lv.${l}`;
       const parts: string[] = [];
       if (kind === 'shotgun') {
-        const main = spec.damagePerHit * spec.pelletCount;
+        const main = spec.damagePerHit;
         const spreadExtra = main * GAME_TUNING.shotgunSpread.damageRatioByLevel[l] * GAME_TUNING.shotgunSpread.extraTargetsByLevel[l];
         parts.push(`${main.toFixed(2)} DMG(+산탄 최대 ${spreadExtra.toFixed(2)})`);
         if (spec.knockbackM > 0) parts.push(`${spec.knockbackM}m 넉백`);
@@ -40,7 +40,7 @@ export function weaponBestCasePerShot(kind: WeaponKindKey, level: 1 | 2 | 3 | 4)
   const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
   if (kind === 'shotgun') {
     const spread = GAME_TUNING.shotgunSpread;
-    return spec.pelletCount * spec.damagePerHit * (1 + spread.extraTargetsByLevel[level] * spread.damageRatioByLevel[level]);
+    return spec.damagePerHit * (1 + spread.extraTargetsByLevel[level] * spread.damageRatioByLevel[level]);
   }
   if (kind === 'revolver') return spec.damagePerHit * (1 + spec.pierceCount * spec.pierceDamageRatio);
   return spec.damagePerHit;

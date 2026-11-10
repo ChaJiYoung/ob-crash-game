@@ -513,7 +513,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     const shot1 = engine.shootAt(projSg.targetNormX, projSg.targetNormY, 1000);
     expect(shot1.fired).toBe(true);
     expect(shot1.grade).toBe('PERFECT');
-    expect(sgTarget.hp).toBeCloseTo(1.936, 5); // 4.0 - (4 x 0.258 x 2.0 PERFECT) = 1.936 (샷건 한 발 서열 재정의, 2026-11-10)
+    expect(sgTarget.hp).toBeCloseTo(1.94, 5); // 4.0 - (1.03 x 2.0 PERFECT) = 1.94 (샷건 한 발 서열 재정의, 2026-11-10)
     expect(sgTarget.radiusM).toBeCloseTo(8.3, 1); // 0.3m knockback!
 
     // 2. Revolver Lv.1: 1.00 base DMG. With PERFECT (2.0x) -> 2.00 DMG + pierces 1 rear target at 2.00 * 0.467 = 0.93 DMG
@@ -851,7 +851,7 @@ describe('Core Engine: Fan Spawn, 3-Tier Judgment, Fever 100% Lock, Auto Reload'
     expect(sgGood.fired).toBe(true);
     expect(sgGood.grade).toBe('GOOD');
     expect(sgGood.killed).toBe(false);
-    expect(canSgGood.hp).toBeCloseTo(0.499, 3); // 3 pellets x 0.334 x 0.5 GOOD = 0.501
+    expect(canSgGood.hp).toBeCloseTo(0.5, 3); // 1.00 x 0.5 GOOD = 0.5
   });
 });
 

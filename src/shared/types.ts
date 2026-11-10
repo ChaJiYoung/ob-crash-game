@@ -18,7 +18,9 @@ export type RewardCardKind =
 
 export interface WeaponLevelSpec {
   level: WeaponLevel;
+  /** 한 번 쏠 때 주 대상에게 들어가는 피해(GREAT 기준). 샷건도 펠릿 합이 아니라 이 값 하나다. */
   damagePerHit: number;
+  /** 화면에 그리는 탄 수(연출 전용, 피해 계산에 쓰지 않는다). 샷건 3/4/5/6, 나머지 1. */
   pelletCount: number;
   pierceCount: number;
   pierceDamageRatio: number;
