@@ -17,7 +17,9 @@ export function weaponPerformanceText(kind: WeaponKindKey): string {
       const label = l === 4 ? 'MAX' : `Lv.${l}`;
       const parts: string[] = [];
       if (kind === 'shotgun') {
-        parts.push(`${spec.damagePerHit.toFixed(2)}×${spec.pelletCount}=${(spec.damagePerHit * spec.pelletCount).toFixed(2)} DMG`);
+        const main = spec.damagePerHit * spec.pelletCount;
+        const spreadExtra = main * GAME_TUNING.shotgunSpread.damageRatioByLevel[l] * GAME_TUNING.shotgunSpread.extraTargetsByLevel[l];
+        parts.push(`${main.toFixed(2)} DMG(+산탄 최대 ${spreadExtra.toFixed(2)})`);
         if (spec.knockbackM > 0) parts.push(`${spec.knockbackM}m 넉백`);
         if (spec.slowDurationMs > 0) parts.push('둔화');
       } else if (kind === 'revolver') {
@@ -33,13 +35,24 @@ export function weaponPerformanceText(kind: WeaponKindKey): string {
     .join(' ➔ ');
 }
 
-/** MAX(Lv.4) 기준 세 무기 비교 막대: 한 발 피해(pelletCount x damagePerHit), 탄창, 초당 발사 수. ratio = 값 / 세 무기 중 최댓값. */
+/** 관통·산탄 포함 최선의 경우 한 발 총 피해(GREAT 기준). 샷건 = 주 대상 합계 x (1 + 추가 명중 수 x 비율), 리볼버 = 한 발 x (1 + 관통 수 x 관통 비율), 개틀링 = 한 발. */
+export function weaponBestCasePerShot(kind: WeaponKindKey, level: 1 | 2 | 3 | 4): number {
+  const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
+  if (kind === 'shotgun') {
+    const spread = GAME_TUNING.shotgunSpread;
+    return spec.pelletCount * spec.damagePerHit * (1 + spread.extraTargetsByLevel[level] * spread.damageRatioByLevel[level]);
+  }
+  if (kind === 'revolver') return spec.damagePerHit * (1 + spec.pierceCount * spec.pierceDamageRatio);
+  return spec.damagePerHit;
+}
+
+/** MAX(Lv.4) 기준 세 무기 비교 막대: 한 발 피해(관통·산탄 포함 최선의 경우), 탄창, 초당 발사 수. ratio = 값 / 세 무기 중 최댓값. */
 export function weaponStatBars(kind: WeaponKindKey): { label: string; valueText: string; ratio: number }[] {
   const kinds: WeaponKindKey[] = ['shotgun', 'revolver', 'gatling'];
   const stats = (k: WeaponKindKey) => {
     const spec = WEAPON_ARCHETYPE_SPECS[k].levels[4];
     return {
-      damage: spec.pelletCount * spec.damagePerHit,
+      damage: weaponBestCasePerShot(k, 4),
       ammo: spec.maxAmmo,
       rate: 1000 / spec.fireIntervalMs,
     };
@@ -103,3 +116,26 @@ export const WEAPON_EVOLUTION_TEXT: Record<WeaponKindKey, string> = {
   revolver: '병따개 해머 & 실린더 ➔ Lv.2 롱배럴 ➔ Lv.3 시안 네온 레이저 스코프 ➔ Lv.4 4각 머즐 브레이크',
   gatling: '6총열 묶음 ➔ Lv.2 카스 블루 냉각 재킷 ➔ Lv.3 듀얼 탄산 드럼통 ➔ Lv.4 12총열 아크 스파크',
 };
+
+export const RADAR_AXES = ['발당 화력', '초당 화력', '탄창', '장전 속도', '다중 타격 수'] as const;
+
+/** 레이더 원값(RADAR_AXES 순서). 발당 화력은 관통·산탄 포함 최선의 경우, 초당 화력은 그 값 x 누르고 쏘기 발수(레벨 무관 고정 간격). */
+function radarRaw(kind: WeaponKindKey, level: 1 | 2 | 3 | 4): number[] {
+  const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
+  const perShot = weaponBestCasePerShot(kind, level);
+  const multiHit = kind === 'shotgun' ? GAME_TUNING.shotgunSpread.extraTargetsByLevel[level] : spec.pierceCount;
+  return [
+    perShot,
+    (perShot * 1000) / GAME_TUNING.fire.holdIntervalMsByWeapon[kind],
+    spec.maxAmmo,
+    1000 / spec.reloadDurationMs,
+    multiHit,
+  ];
+}
+
+/** 레이더 값 0..100. 축마다 Lv.4(MAX) 세 무기 중 최댓값을 100으로 둔다. */
+export function weaponRadarValues(kind: WeaponKindKey, level: 1 | 2 | 3 | 4): number[] {
+  const kinds: WeaponKindKey[] = ['shotgun', 'revolver', 'gatling'];
+  const maxes = RADAR_AXES.map((_, i) => Math.max(...kinds.map((k) => radarRaw(k, 4)[i])));
+  return radarRaw(kind, level).map((v, i) => (maxes[i] > 0 ? Math.min(100, (v / maxes[i]) * 100) : 0));
+}

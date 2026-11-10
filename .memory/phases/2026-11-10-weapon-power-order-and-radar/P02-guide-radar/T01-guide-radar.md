@@ -1,6 +1,6 @@
 # Task: T01 guide-radar
 
-## Status: pending
+## Status: done
 
 ## Goal
 가이드의 한 발 피해 막대·성능 문구·레이더 차트를 결정 D06·D07 기준(5축, 관통·산탄 포함 최선의 경우, 초당 화력=누르고 쏘기)으로 다시 계산해 보여 준다.
@@ -69,6 +69,6 @@ Task: T01-guide-radar
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

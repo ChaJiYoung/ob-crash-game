@@ -3,6 +3,7 @@ import { WEAPON_ARCHETYPE_SPECS } from '../../../shared/constants';
 import { GAME_TUNING } from '../../../shared/gameTuning';
 import { WEAPON_ONE_LINER, WEAPON_SKILL_ONE_LINER, WEAPON_BADGE_TEXT } from '../../../shared/guideText';
 import { GuideCard } from './GuideCard';
+import { WeaponRadar } from './WeaponRadar';
 import {
   WEAPON_EVOLUTION_TEXT,
   WeaponKindKey,
@@ -52,6 +53,27 @@ export const WeaponsTab: React.FC = () => (
                 </div>
       </div>
     </details>
+
+    <section
+      data-testid="weapon-overview"
+      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', alignItems: 'center' }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {WEAPON_ORDER.map((k) => {
+          const spec = WEAPON_ARCHETYPE_SPECS[k];
+          return (
+            <div key={k} style={{ borderLeft: `4px solid ${spec.accentColorHex}`, paddingLeft: '12px' }}>
+              <div style={{ fontWeight: 900, fontSize: '15px', color: '#f8fafc' }}>
+                {spec.badgeIcon} {spec.nameKo}
+              </div>
+              <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.5 }}>{WEAPON_ONE_LINER[k]}</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8' }}>⚡ {WEAPON_SKILL_ONE_LINER[k]}</div>
+            </div>
+          );
+        })}
+      </div>
+      <WeaponRadar />
+    </section>
 
     {WEAPON_ORDER.map((k) => {
       const spec = WEAPON_ARCHETYPE_SPECS[k];

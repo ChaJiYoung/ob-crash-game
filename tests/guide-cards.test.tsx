@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, it, expect } from 'vitest';
 import { GuideCard, clampRatio } from '../src/pc/components/guide/GuideCard';
 import { WeaponsTab } from '../src/pc/components/guide/WeaponsTab';
-import { weaponStatBars, weaponSkillDetailText, shotgunSpreadText } from '../src/pc/components/guide/weaponGuideData';
+import { weaponStatBars, weaponSkillDetailText, shotgunSpreadText, weaponPerformanceText } from '../src/pc/components/guide/weaponGuideData';
 import { WEAPON_ONE_LINER, WEAPON_SKILL_ONE_LINER } from '../src/shared/guideText';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 import { GuideModal } from '../src/pc/components/GuideModal';
@@ -150,5 +150,57 @@ describe('the other guide tabs', () => {
     ['coop-lobby-card', 'coop-rules-card', 'coop-grace-card'].forEach((id) => {
       expect(html).toContain(`data-testid="${id}-oneliner"`);
     });
+  });
+});
+
+describe('weapon radar and one-shot order (2026-11-10)', () => {
+  it('best-case one-shot damage at Lv.4: revolver > shotgun > gatling', async () => {
+    const { weaponBestCasePerShot } = await import('../src/pc/components/guide/weaponGuideData');
+    const rev = weaponBestCasePerShot('revolver', 4);
+    const sg = weaponBestCasePerShot('shotgun', 4);
+    const gat = weaponBestCasePerShot('gatling', 4);
+    expect(rev).toBeGreaterThan(sg);
+    expect(sg).toBeGreaterThan(gat);
+    // revolver 1.208 (1.15 x 1.05 rounded to 3 digits) x (1 + 2 x 0.7), shotgun 1.122 x (1 + 3 x 0.25)
+    expect(rev).toBeCloseTo(1.208 * 2.4, 3);
+    expect(sg).toBeCloseTo(1.122 * 1.75, 3);
+  });
+
+  it('the one-shot damage bar is longest for the revolver', () => {
+    expect(weaponStatBars('revolver')[0].ratio).toBeCloseTo(1, 10);
+    expect(weaponStatBars('shotgun')[0].ratio).toBeLessThan(1);
+    expect(weaponStatBars('gatling')[0].ratio).toBeLessThan(weaponStatBars('shotgun')[0].ratio);
+  });
+
+  it('radar has 5 axes without a hit-range axis; Lv.4 axis maxima are 100 and values stay within 0..100', async () => {
+    const { weaponRadarValues, RADAR_AXES } = await import('../src/pc/components/guide/weaponGuideData');
+    expect(RADAR_AXES).toEqual(['발당 화력', '초당 화력', '탄창', '장전 속도', '다중 타격 수']);
+    const all = (['shotgun', 'revolver', 'gatling'] as const).flatMap((k) =>
+      ([1, 4] as const).map((l) => ({ l, v: weaponRadarValues(k, l) }))
+    );
+    all.forEach(({ v }) => {
+      expect(v).toHaveLength(5);
+      v.forEach((x) => {
+        expect(x).toBeGreaterThanOrEqual(0);
+        expect(x).toBeLessThanOrEqual(100);
+      });
+    });
+    RADAR_AXES.forEach((_, i) => {
+      expect(Math.max(...all.filter((a) => a.l === 4).map((a) => a.v[i]))).toBeCloseTo(100, 8);
+    });
+  });
+
+  it('Lv.4 per-second power (hold fire): revolver > gatling > shotgun', async () => {
+    const { weaponRadarValues } = await import('../src/pc/components/guide/weaponGuideData');
+    const dps = (k: 'shotgun' | 'revolver' | 'gatling') => weaponRadarValues(k, 4)[1];
+    expect(dps('revolver')).toBeGreaterThan(dps('gatling'));
+    expect(dps('gatling')).toBeGreaterThan(dps('shotgun'));
+  });
+
+  it('shotgun performance line shows the main total and the spread bonus, no wide-hit wording', () => {
+    const text = weaponPerformanceText('shotgun');
+    expect(text).toContain('1.00 DMG(+산탄 최대 0.20)');
+    expect(text).toContain('1.12 DMG(+산탄 최대 0.84)');
+    expect(text).not.toContain('넓은');
   });
 });
