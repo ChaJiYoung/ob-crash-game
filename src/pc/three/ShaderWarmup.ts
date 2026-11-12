@@ -11,7 +11,7 @@ import { DraftTapGun3D } from './DraftTapGun3D';
 import { ParticleEffects3D } from './ParticleEffects3D';
 import { ItemBuffKind, TargetKind, WeaponKind } from '../../shared/types';
 
-const WARMUP_TARGET_KINDS: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss'];
+const WARMUP_TARGET_KINDS: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss', 'chalang'];
 const WARMUP_ITEM_KINDS: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
 const WARMUP_WEAPON_KINDS: WeaponKind[] = ['shotgun', 'revolver', 'gatling'];
 

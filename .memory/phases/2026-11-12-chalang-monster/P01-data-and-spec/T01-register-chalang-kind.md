@@ -1,6 +1,6 @@
 # Task: T01 chalang 종류 등록
 
-## Status: pending
+## Status: done
 
 ## Goal
 `TargetKind`에 `'chalang'`을 추가하고, 스펙·튜닝·도감·테스트 목록을 모두 등록해 타입 검사(`tsc`)가 통과하는 상태를 만든다. 이 Task 완료 후 동작 변화는 없다(행동 로직은 P02).
@@ -113,6 +113,6 @@ Task: T01-register-chalang-kind
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

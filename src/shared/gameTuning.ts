@@ -123,6 +123,14 @@ export const GAME_TUNING = {
     /** 처치되면 터져 주변 몬스터에게 피해를 주는 폭탄 캔. 보스는 맞지 않는다. */
     hanmac: { blastRadiusM: 4, blastDamage: 2 },
     obi: { guardUpMs: 800, guardDownMs: 2400 },
+    chalang: {
+      submergeMinMs: 1500, // 물속 최소 시간 (D02)
+      submergeMaxMs: 3000, // 물속 최대 시간 (D02)
+      surfacedMs: 1000, // 수면 위 체류 시간 (A1, 사용자 확인으로 1초)
+      minRadiusM: 8, // 등장·순간이동 최소 반지름 = 방어선 1.8m + 여유 (A2, D03)
+      rushAfterAppearances: 3, // 이 등장 횟수에 급발진 (A3, D05)
+      rushSpeedMult: 3, // 급발진 속도 배율 (D07)
+    },
     bottle: {
       bigScale: 1.2,
       splitCount: 2,

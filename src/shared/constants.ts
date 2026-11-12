@@ -80,6 +80,18 @@ export const TARGET_SPECS: Record<TargetKind, TargetSpec> = {
     isAirborne: false,
     modelScale: 2.45,
   },
+  chalang: {
+    kind: 'chalang',
+    displayName: '찰랑 (Chalang)',
+    maxHp: 3,
+    speedMps: 2.0,
+    hitRadiusM: 1.0,
+    killBonusScore: 120,
+    brandColorHex: '#38bdf8',
+    accentColorHex: '#0c4a6e',
+    isAirborne: false,
+    modelScale: 1.9,
+  },
   boss: {
     kind: 'boss',
     displayName: '업소용 생맥주 냉각기 보스',

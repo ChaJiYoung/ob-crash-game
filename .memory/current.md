@@ -4,13 +4,13 @@
 [찰랑 몬스터 (Chalang Submerge Monster)](./plans/2026-11-12-chalang-monster.md)
 
 ## Active Phase
-[P01 데이터·스펙 등록](./phases/2026-11-12-chalang-monster/P01-data-and-spec/phase.md)
+[P02 잠수·순간이동 엔진](./phases/2026-11-12-chalang-monster/P02-submerge-engine/phase.md)
 
 ## Active Task
-[T01 찰랑 종류 등록](./phases/2026-11-12-chalang-monster/P01-data-and-spec/T01-register-chalang-kind.md)
+[T02 잠수·순간이동·타격 불가](./phases/2026-11-12-chalang-monster/P02-submerge-engine/T02-submerge-and-teleport.md)
 
 ## Status
-- T01 구현 시작 준비 완료
+- T01 완료 (tsc 통과, 전체 테스트 1057개 통과). 가이드 썸네일은 임시로 원본 참조 이미지 사용(`public/guide/monster-07-chalang.png`).
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/shared/types.ts`의 `TargetKind`에 `'chalang'`을 추가하는 것부터 시작
+T02 청사진을 읽고 `ActiveTargetEntity`에 잠수 필드를 추가하고, `updateChalangSubmerge` / `isTargetable`을 구현

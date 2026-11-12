@@ -1,4 +1,4 @@
-export type TargetKind = 'pilgood' | 'caslight' | 'obi' | 'hanmac' | 'bottle' | 'boss';
+export type TargetKind = 'pilgood' | 'caslight' | 'obi' | 'hanmac' | 'bottle' | 'boss' | 'chalang';
 export type ItemBuffKind = 'power_shot' | 'wide_scope' | 'ice_freeze' | 'bar_repair';
 export type JudgmentGrade = 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS';
 export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'SANDBOX' | 'GAMEOVER' | 'VICTORY';

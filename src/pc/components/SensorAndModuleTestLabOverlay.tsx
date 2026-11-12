@@ -92,7 +92,7 @@ export const SensorAndModuleTestLabOverlay: React.FC<SensorAndModuleTestLabOverl
   const radarDotLeft = Math.max(5, Math.min(95, 50 + diagnostics.aimX * 45));
   const radarDotTop = Math.max(5, Math.min(95, 50 - diagnostics.aimY * 45));
 
-  const targetKinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss'];
+  const targetKinds: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss', 'chalang'];
   const itemKinds: ItemBuffKind[] = ['power_shot', 'wide_scope', 'ice_freeze', 'bar_repair'];
 
   return (
