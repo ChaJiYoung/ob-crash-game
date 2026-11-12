@@ -180,6 +180,7 @@ describe('chalang 3D model', () => {
     expect((parts.body.geometry as THREE.PlaneGeometry).parameters.width).toBeCloseTo(0.85, 3);
     expect(parts.ripple.name).toBe('chalangRipple');
     expect(parts.ripple.visible).toBe(false);
+    expect(parts.water.visible).toBe(false);
   });
 });
 
@@ -190,6 +191,9 @@ describe('chalang submerged visuals', () => {
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 1 + i / 60, 1, { isSubmerged: true });
     expect(parts.body.scale.y).toBeLessThan(0.3);
     expect(parts.ripple.visible).toBe(true);
+    expect(parts.water.visible).toBe(true);
+    // 몸체 아랫변이 바닥(-0.29)에 머문다
+    expect(parts.body.position.y - 0.635 * parts.body.scale.y).toBeCloseTo(-0.29, 2);
   });
 
   it('restores the surfaced look when it comes back up', () => {
@@ -199,6 +203,7 @@ describe('chalang submerged visuals', () => {
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 2 + i / 60, 1, { isSubmerged: false });
     expect(parts.body.scale.y).toBeGreaterThan(0.9);
     expect(parts.ripple.visible).toBe(false);
+    expect(parts.water.visible).toBe(false);
   });
 });
 

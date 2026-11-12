@@ -340,7 +340,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
-  let chalangParts: { body: THREE.Mesh; ripple: THREE.Mesh } | null = null;
+  let chalangParts: { body: THREE.Mesh; ripple: THREE.Mesh; water: THREE.Mesh } | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -403,17 +403,32 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangBody.position.y = 0.345;
     inner.add(chalangBody);
 
-    // 물결 링: 수면 표시. 잠수 중에만 보이게 T05가 켠다.
-    const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.9, 0.04, 8, 32));
-    const rippleMat = getCachedMaterial('chalang-ripple-mat', () => new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 }));
+    // 물: 바닥에 깔린 반투명 수면 원판 + 가장자리 물결 링. 잠수 중에만 보이게 T05가 켠다.
+    // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
+    const waterGeo = getCachedGeometry('chalang-water-geo', () => new THREE.CircleGeometry(0.62, 40));
+    const waterMat = getCachedMaterial('chalang-water-mat', () => new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.55,
+      depthWrite: false,
+    }));
+    const chalangWater = new THREE.Mesh(waterGeo, waterMat);
+    chalangWater.name = 'chalangWater';
+    chalangWater.rotation.x = -Math.PI / 2;
+    chalangWater.position.y = -0.285;
+    chalangWater.visible = false;
+    inner.add(chalangWater);
+
+    const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.62, 0.035, 8, 40));
+    const rippleMat = getCachedMaterial('chalang-ripple-mat', () => new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.85 }));
     const chalangRipple = new THREE.Mesh(rippleGeo, rippleMat);
     chalangRipple.name = 'chalangRipple';
     chalangRipple.rotation.x = -Math.PI / 2;
-    chalangRipple.position.y = -0.2;
+    chalangRipple.position.y = -0.28;
     chalangRipple.visible = false;
     inner.add(chalangRipple);
 
-    chalangParts = { body: chalangBody, ripple: chalangRipple };
+    chalangParts = { body: chalangBody, ripple: chalangRipple, water: chalangWater };
   } else if (kind === 'boss') {
     // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
     const isKing = bossRole === 'king';
@@ -979,14 +994,20 @@ export function updateTargetAnimation3D(
   }
 
   // Chalang submerge: the cutout sinks to a flat water line and a ripple ring pulses (T05)
-  const chalangParts = root.userData.chalangParts as { body: THREE.Mesh; ripple: THREE.Mesh } | undefined;
+  const chalangParts = root.userData.chalangParts as
+    | { body: THREE.Mesh; ripple: THREE.Mesh; water: THREE.Mesh }
+    | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
     const targetScaleY = submerged ? 0.12 : 1;
-    chalangParts.body.scale.y += (targetScaleY - chalangParts.body.scale.y) * 0.2;
+    const body = chalangParts.body;
+    body.scale.y += (targetScaleY - body.scale.y) * 0.2;
+    // 몸체 아랫변을 바닥(-0.29)에 고정: 높이 1.27 기준 중심 = 바닥 + 0.635 * 세로배율
+    body.position.y = -0.29 + 0.635 * body.scale.y;
+    chalangParts.water.visible = submerged;
     chalangParts.ripple.visible = submerged;
     if (submerged) {
-      chalangParts.ripple.scale.setScalar(1 + 0.1 * Math.sin(elapsedSec * 4));
+      chalangParts.ripple.scale.setScalar(1 + 0.08 * Math.sin(elapsedSec * 4));
     }
   }
 
