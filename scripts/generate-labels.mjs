@@ -845,7 +845,50 @@ async function generateLabels() {
           ctx.fill();
         }
       }
-    }
+    },
+    {
+      name: 'chalang',
+      renderFn: () => {
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        // 블루 바다 그라데이션 (D08: 찰랑 제품 사진의 색감 참조)
+        const grad = ctx.createLinearGradient(0, 0, 0, 512);
+        grad.addColorStop(0, '#0c4a6e');
+        grad.addColorStop(1, '#38bdf8');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1024, 512);
+
+        // 잔잔한 물결 3줄
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 6;
+        for (let row = 0; row < 3; row++) {
+          ctx.beginPath();
+          for (let x = 0; x <= 1024; x += 8) {
+            const y = 110 + row * 70 + Math.sin((x + row * 40) / 60) * 12;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+
+        // 한글 로고 "찰랑" (굵은 흰색)
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 210px "Noto Sans KR", "Apple SD Gothic Neo", sans-serif';
+        ctx.fillText('찰랑', 512, 290);
+
+        // 하단 표기
+        ctx.font = '600 44px "Noto Sans KR", sans-serif';
+        ctx.fillText('ZERO SUGAR · 15%', 512, 430);
+
+        // 좌하단 원형 엠블럼 자리
+        ctx.beginPath();
+        ctx.arc(120, 420, 52, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fill();
+      },
+    },
   ];
 
   await page.setContent(`<!DOCTYPE html><html><body style="margin:0; overflow:hidden;"><canvas id="cv" width="1024" height="512"></canvas></body></html>`);
@@ -855,7 +898,10 @@ async function generateLabels() {
     ? `data:image/png;base64,${fs.readFileSync(cassLogoPath).toString('base64')}`
     : null;
 
+  // 인자가 있으면 그 이름의 라벨만 생성한다 (예: node scripts/generate-labels.mjs chalang)
+  const only = process.argv.slice(2);
   for (const cfg of labelConfigs) {
+    if (only.length > 0 && !only.includes(cfg.name)) continue;
     await page.evaluate(cfg.renderFn, { cassLogoBase64 });
     const canvasHandle = await page.$('#cv');
     const outPath = path.join(process.cwd(), 'public/textures/labels', `${cfg.name}.jpg`);

@@ -323,6 +323,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
+  let chalangParts: { body: THREE.Mesh; eyes: THREE.Group; bottle: THREE.Mesh; ripple: THREE.Mesh } | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -369,6 +370,66 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     neckLabelMesh.name = 'neckLabel';
     neckLabelMesh.position.y = 0.38;
     inner.add(neckLabelMesh);
+  } else if (kind === 'chalang') {
+    // 찰랑: 검은 덩어리 몸통 위에 투명 병(찰랑 라벨)을 얹은 캐릭터. 눈 두 개. 물속에서는 납작해진다(T05).
+    const bodyGeo = getCachedGeometry('chalang-body-geo', () => {
+      const g = new THREE.SphereGeometry(0.6, 24, 16);
+      g.scale(1.25, 0.6, 1.0);
+      return g;
+    });
+    const bodyMat = getCachedMaterial('chalang-body-mat', () => new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 }));
+    const chalangBody = new THREE.Mesh(bodyGeo, bodyMat);
+    chalangBody.name = 'chalangBody';
+    chalangBody.userData.isBodyMaterial = true;
+    inner.add(chalangBody);
+
+    // 눈 두 개: 흰자 + 파란 눈동자 (눈 앞쪽 z=0.5)
+    const chalangEyes = new THREE.Group();
+    chalangEyes.name = 'chalangEyes';
+    const eyeWhiteGeo = getCachedGeometry('chalang-eye-white-geo', () => new THREE.SphereGeometry(0.16, 16, 12));
+    const eyeWhiteMat = getCachedMaterial('chalang-eye-white-mat', () => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }));
+    const pupilGeo = getCachedGeometry('chalang-pupil-geo', () => new THREE.SphereGeometry(0.07, 12, 8));
+    const pupilMat = getCachedMaterial('chalang-pupil-mat', () => new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 }));
+    for (const sx of [-1, 1]) {
+      const eye = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
+      eye.position.set(sx * 0.22, 0.25, 0.5);
+      const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+      pupil.position.set(0, 0, 0.08);
+      eye.add(pupil);
+      chalangEyes.add(eye);
+    }
+    inner.add(chalangEyes);
+
+    // 투명 병과 찰랑 라벨 (몸통 위)
+    const bottleGeo = getCachedGeometry('chalang-bottle-geo', () => new THREE.CylinderGeometry(0.13, 0.13, 0.62, 20));
+    const bottleMat = getCachedMaterial('chalang-bottle-mat', () => new THREE.MeshPhysicalMaterial({
+      color: 0x7dd3fc,
+      transmission: 0.6,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.85,
+    }));
+    const chalangBottle = new THREE.Mesh(bottleGeo, bottleMat);
+    chalangBottle.name = 'chalangBottle';
+    chalangBottle.position.y = 0.55;
+    inner.add(chalangBottle);
+    const labelGeo = getCachedGeometry('chalang-label-geo', () => new THREE.PlaneGeometry(0.22, 0.3));
+    const labelMesh = new THREE.Mesh(labelGeo, new THREE.MeshBasicMaterial({ map: getOrCreateTargetLabelTexture('chalang') }));
+    labelMesh.name = 'chalangLabel';
+    labelMesh.position.set(0, 0.55, 0.135);
+    inner.add(labelMesh);
+
+    // 물결 링: 수면 표시. 잠수 중에만 보이게 T05가 켠다.
+    const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.9, 0.04, 8, 32));
+    const rippleMat = getCachedMaterial('chalang-ripple-mat', () => new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 }));
+    const chalangRipple = new THREE.Mesh(rippleGeo, rippleMat);
+    chalangRipple.name = 'chalangRipple';
+    chalangRipple.rotation.x = -Math.PI / 2;
+    chalangRipple.position.y = -0.2;
+    chalangRipple.visible = false;
+    inner.add(chalangRipple);
+
+    chalangParts = { body: chalangBody, eyes: chalangEyes, bottle: chalangBottle, ripple: chalangRipple };
   } else if (kind === 'boss') {
     // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
     const isKing = bossRole === 'king';
@@ -717,6 +778,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     plungerStuckGroup,
     bodyMaterials,
     guardShieldMesh: obiShield || undefined,
+    chalangParts: chalangParts || undefined,
     baseScale,
     hitFlashUntilSec: 0,
   };
@@ -978,7 +1040,7 @@ export function updateTargetAnimation3D(
     });
   }
 
-  const isGround = kind === 'bottle' || kind === 'obi' || kind === 'hanmac' || kind === 'boss' || kind === 'pilgood';
+  const isGround = kind === 'bottle' || kind === 'obi' || kind === 'hanmac' || kind === 'boss' || kind === 'pilgood' || kind === 'chalang';
 
   if (isGround) {
     // Ground monsters contact bounce & limited rotation so label stays visible

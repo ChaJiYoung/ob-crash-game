@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
+import { createTargetMesh3D } from '../src/pc/three/TargetModels3D';
 import { TARGET_SPECS, STAGE_CONSTANTS } from '../src/shared/constants';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 
@@ -166,5 +167,18 @@ describe('chalang rush and hp', () => {
     // 시간이 흘러도 체력은 회복되지 않는다(D10)
     for (let now = 1100; now <= 8000; now += 100) engine.update(now, 0.1);
     expect(t.hp).toBeCloseTo(1.8, 3);
+  });
+});
+
+describe('chalang 3D model', () => {
+  it('builds body, two eyes, bottle, label and a hidden ripple', () => {
+    const mesh = createTargetMesh3D('chalang');
+    const parts = mesh.userData.chalangParts;
+    expect(parts).toBeDefined();
+    expect(parts.body.name).toBe('chalangBody');
+    expect(parts.eyes.children.length).toBe(2);
+    expect(parts.bottle.name).toBe('chalangBottle');
+    expect(parts.ripple.name).toBe('chalangRipple');
+    expect(parts.ripple.visible).toBe(false);
   });
 });

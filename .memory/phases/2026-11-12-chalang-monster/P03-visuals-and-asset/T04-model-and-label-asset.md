@@ -1,6 +1,6 @@
 # Task: T04 찰랑 3D 모델과 라벨 에셋
 
-## Status: pending
+## Status: done
 
 ## Goal
 찰랑의 3D 모델(검은 덩어리 몸체, 눈 두 개, 그 위의 투명 병과 찰랑 라벨)을 만들고, 라벨 텍스처 `public/textures/labels/chalang.jpg`를 생성해 출처 문서에 등록한다.
@@ -48,7 +48,7 @@
   3. 병: `CylinderGeometry(0.13, 0.13, 0.62, 20)`, 재질 `MeshPhysicalMaterial({ color: 0x7dd3fc, transmission: 0.6, roughness: 0.1, transparent: true, opacity: 0.85 })`. 위치 `y = 0.55`(몸체 위).
   4. 병 라벨: `PlaneGeometry(0.22, 0.3)`, 재질 `MeshBasicMaterial({ map: getOrCreateTargetLabelTexture('chalang') })`. 병 원통 표면 앞쪽(`z = 0.135`)에 배치.
   5. 물결 링: `TorusGeometry(0.9, 0.04, 8, 32)`, `rotation.x = -Math.PI/2`, 재질 `MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 })`, `visible = false`. 이름 `chalangRipple`(T05가 켠다).
-- **Execution Flow**: 분기 안에서 위 1~5를 `root`(또는 기존 `inner` 그룹)에 추가한다. `obi`의 `obiShield`처럼 참조를 `root.userData`에 넣어 T05가 찾을 수 있게 한다: `root.userData.chalangBody`, `root.userData.chalangEyes`(눈 2개 그룹), `root.userData.chalangBottle`, `root.userData.chalangRipple`.
+- **Execution Flow**: 분기 안에서 위 1~5를 `root`(또는 기존 `inner` 그룹)에 추가한다. `obi`의 `obiShield`처럼 참조를 `root.userData`에 넣어 T05가 찾을 수 있게 한다: `root.userData.chalangParts = { body, eyes, bottle, ripple }` 한 객체로 묶는다(구현 중 변경: `userData`는 마지막 객체 리터럴로 한 번에 설정되므로 키를 나누지 않음).
 - **Error & Exception Handling**: `getOrCreateTargetLabelTexture`는 `document`가 없으면 자동으로 폴백 텍스처를 준다(기존 동작). 별도 처리 불필요.
 
 ## Acceptance Criteria
@@ -76,6 +76,6 @@ Task: T04-model-and-label-asset
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
