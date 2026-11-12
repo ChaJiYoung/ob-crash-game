@@ -561,7 +561,8 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     const chalangWater = new THREE.Mesh(waterGeo, waterMat);
     chalangWater.name = 'chalangWater';
     chalangWater.rotation.x = -Math.PI / 2;
-    chalangWater.scale.setScalar(1.0);
+    // 웅덩이를 앞뒤(로컬 Y = 월드 깊이)로 넓혀 바닥에 붙어 보이게 한다. 좌우는 조금만 넓힌다.
+    chalangWater.scale.set(1.15, 1.9, 1);
     chalangWater.position.y = -0.283;
     chalangWater.visible = false;
     inner.add(chalangWater);
@@ -1165,7 +1166,11 @@ export function updateTargetAnimation3D(
     // 물 웅덩이는 항상 보인다: 올라와 있을 때도 캐릭터가 물에 잠겨 서 있는 느낌을 준다
     chalangParts.water.visible = true;
     // 가장자리가 천천히 출렁이고(D02), 빛 반사 줄은 텍스처 위에서 좌우로 흐른다
-    chalangParts.water.scale.set(1 + 0.02 * Math.sin(elapsedSec * 2), 1 + 0.02 * Math.cos(elapsedSec * 2.3), 1);
+    chalangParts.water.scale.set(
+      1.15 * (1 + 0.02 * Math.sin(elapsedSec * 2)),
+      1.9 * (1 + 0.02 * Math.cos(elapsedSec * 2.3)),
+      1
+    );
     // 빛 반사 줄은 텍스처 가운데를 축으로 천천히 돈다. offset으로 밀면 가장자리 밖을 읽어 줄만 남는다.
     const map = (chalangParts.water.material as THREE.MeshBasicMaterial).map;
     if (map) {
