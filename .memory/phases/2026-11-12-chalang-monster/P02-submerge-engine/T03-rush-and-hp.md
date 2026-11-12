@@ -1,6 +1,6 @@
 # Task: T03 급발진과 체력 규칙
 
-## Status: pending
+## Status: done
 
 ## Goal
 찰랑이 3번째 등장(`rushAfterAppearances`)부터 방어선까지 평소 속도의 3배로 달려오며, 그 동안에는 다시 잠수하지 않는다. 수면 위 피격은 기존 몬스터와 같은 무기 피해 규칙으로 체력을 줄이고, 물속에서는 체력이 회복되지 않는다.
@@ -95,6 +95,6 @@ Task: T03-rush-and-hp
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

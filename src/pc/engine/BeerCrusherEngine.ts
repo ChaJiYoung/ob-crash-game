@@ -1188,6 +1188,12 @@ export class BeerCrusherEngine {
       this.sampleChalangPosition(t);
       t.appearanceCount = (t.appearanceCount ?? 1) + 1;
       t.submergedUntilMs = undefined;
+      if (t.appearanceCount >= cfg.rushAfterAppearances) {
+        // 3번째 등장부터 방어선까지 급발진. 이후 다시 잠수하지 않는다(D05, A7)
+        t.isRushing = true;
+        t.surfacedUntilMs = undefined;
+        return false;
+      }
       t.surfacedUntilMs = nowMs + cfg.surfacedMs;
       return false;
     }
@@ -1449,6 +1455,11 @@ export class BeerCrusherEngine {
         target.radiusM <= GAME_TUNING.monsters.pilgood.chargeRadiusM
       ) {
         effectiveSpeed *= GAME_TUNING.monsters.pilgood.chargeSpeedMult;
+      }
+
+      // Chalang: rushes toward the defense line at rushSpeedMult once it has appeared enough times (D05, D07)
+      if (target.kind === 'chalang' && target.isRushing && isPlainMonster && !isStunned) {
+        effectiveSpeed *= GAME_TUNING.monsters.chalang.rushSpeedMult;
       }
 
       // Caslight: the only airborne monster; it sways widely to dodge aim

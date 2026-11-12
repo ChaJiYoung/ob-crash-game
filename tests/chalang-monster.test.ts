@@ -109,3 +109,62 @@ describe('chalang submerge and teleport', () => {
     }
   });
 });
+
+describe('chalang rush and hp', () => {
+  let engine: BeerCrusherEngine;
+
+  beforeEach(() => {
+    engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.activeTargets = [];
+    (engine as unknown as { spawnedInWave: number }).spawnedInWave = 999;
+  });
+
+  it('starts rushing at the 3rd appearance and never submerges again', () => {
+    const t = mkChalang(12, { submergedUntilMs: 1050, appearanceCount: 2 });
+    engine.activeTargets = [t];
+    engine.update(1100, 0.1);
+    expect(t.appearanceCount).toBe(3);
+    expect(t.isRushing).toBe(true);
+    expect(t.submergedUntilMs).toBeUndefined();
+    // 급발진 중에는 다시 물속에 들어가지 않는다
+    for (let now = 1200; now <= 6000; now += 100) engine.update(now, 0.1);
+    expect(t.submergedUntilMs).toBeUndefined();
+  });
+
+  it('does not rush before the 3rd appearance', () => {
+    const t = mkChalang(12, { submergedUntilMs: 1050, appearanceCount: 1 });
+    engine.activeTargets = [t];
+    engine.update(1100, 0.1);
+    expect(t.appearanceCount).toBe(2);
+    expect(t.isRushing).toBeFalsy();
+  });
+
+  it('moves at rushSpeedMult times the surfaced speed while rushing', () => {
+    const t = mkChalang(12, { isRushing: true, surfacedUntilMs: undefined });
+    engine.activeTargets = [t];
+    engine.update(1000, 0.0001);
+    const before = t.radiusM;
+    engine.update(1100, 0.1);
+    expect(before - t.radiusM).toBeCloseTo(t.speedMps * GAME_TUNING.monsters.chalang.rushSpeedMult * 0.1, 3);
+  });
+
+  it('does not advance while stunned even when rushing', () => {
+    const t = mkChalang(12, { isRushing: true, stunUntilMs: 5000 });
+    engine.activeTargets = [t];
+    engine.update(1000, 0.0001);
+    const before = t.radiusM;
+    engine.update(1100, 0.1);
+    expect(t.radiusM).toBe(before);
+  });
+
+  it('takes the same skill damage rule as other monsters and never heals', () => {
+    const t = mkChalang(12, { hp: 3, maxHp: 3 });
+    engine.activeTargets = [t];
+    (engine as unknown as { applySkillDamage: (...a: unknown[]) => boolean }).applySkillDamage(t, 1.2, 1000, 0);
+    expect(t.hp).toBeCloseTo(1.8, 3);
+    // 시간이 흘러도 체력은 회복되지 않는다(D10)
+    for (let now = 1100; now <= 8000; now += 100) engine.update(now, 0.1);
+    expect(t.hp).toBeCloseTo(1.8, 3);
+  });
+});
