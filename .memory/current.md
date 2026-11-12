@@ -1,16 +1,16 @@
 # Current Context
 
 ## Active Plan
-[무기 공격력 서열 재정의와 가이드 레이더 차트](./plans/2026-11-10-weapon-power-order-and-radar.md)
+[찰랑 몬스터 (Chalang Submerge Monster)](./plans/2026-11-12-chalang-monster.md)
 
 ## Active Phase
-없음 (P01~P04 완료)
+[P01 데이터·스펙 등록](./phases/2026-11-12-chalang-monster/P01-data-and-spec/phase.md)
 
 ## Active Task
-없음 — 마지막: [P04-T02 damage-per-hit-cleanup](./phases/2026-11-10-weapon-power-order-and-radar/P04-shotgun-spread-tuning/T02-damage-per-hit-cleanup.md)
+[T01 찰랑 종류 등록](./phases/2026-11-12-chalang-monster/P01-data-and-spec/T01-register-chalang-kind.md)
 
 ## Status
-- 전체 테스트 1054개, tsc 통과. 샷건 시뮬레이션(TUNE 시험): 정확(탭) 58% / 보통(탭) 45% / 따라가며 70%.
+- T01 구현 시작 준비 완료
 
 ## Next Step (IMPORTANT)
-사람이 가이드 레이더 화면을 눈으로 확인.
+T01 청사진을 읽고 `src/shared/types.ts`의 `TargetKind`에 `'chalang'`을 추가하는 것부터 시작
