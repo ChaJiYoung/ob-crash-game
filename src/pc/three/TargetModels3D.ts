@@ -172,6 +172,9 @@ export function getOrCreateChalangEyeTexture(): THREE.Texture | null {
   return texture;
 }
 
+/** 찰랑 캐릭터를 카메라 쪽(앞)으로 옮기는 양. 몸체·수면선·눈이 같이 움직여 서로 어긋나지 않는다. */
+const CHALANG_FORWARD_M = 0.25;
+
 let chalangCutoutTexture: THREE.Texture | null = null;
 
 /** 찰랑 누끼 이미지(투명 배경 PNG). 카스 빌보드와 같은 방식으로 불러온다. */
@@ -492,7 +495,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangBody.name = 'chalangBody';
     chalangBody.userData.isBodyMaterial = true;
     // 누끼 아래끝을 바닥에 맞춘다: 몸체 기준 높이 0.55(지상 기준 고도) / 모델 크기 1.9 = 0.29 아래로 내림
-    chalangBody.position.y = 0.345;
+    chalangBody.position.set(0, 0.345, CHALANG_FORWARD_M);
     inner.add(chalangBody);
 
     // 수면선 오버레이: 누끼의 아래쪽 30%만 잘라 파랗게 덮는다. 올라와 있을 때 허리 아래가 물에 잠겨 보이게 한다.
@@ -523,7 +526,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     });
     const chalangWaterline = new THREE.Mesh(waterlineGeo, waterlineMat);
     chalangWaterline.name = 'chalangWaterline';
-    chalangWaterline.position.set(0, -0.214, 0.01);
+    chalangWaterline.position.set(0, -0.214, CHALANG_FORWARD_M + 0.01);
     inner.add(chalangWaterline);
 
     // 눈 두 개: 열린 눈(흰 타원 + 둥근 파란 눈동자). 누끼 속 원래 눈 위에 조금 크게 덮어 가린다.
@@ -543,7 +546,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
       }));
       const eye = new THREE.Mesh(eyeGeo, eyeMat);
       eye.name = 'chalangEye';
-      eye.position.set((c.x - 0.5) * 0.85, 0.345 + ((1 - c.y) - 0.5) * 1.27, 0.02);
+      eye.position.set((c.x - 0.5) * 0.85, 0.345 + ((1 - c.y) - 0.5) * 1.27, CHALANG_FORWARD_M + 0.02);
       inner.add(eye);
       chalangEyes.push(eye);
     }
@@ -1162,7 +1165,7 @@ export function updateTargetAnimation3D(
     // 올라와 있을 때는 허리 아래를 물 오버레이로 덮는다(잠긴 느낌)
     chalangParts.waterline.visible = !submerged;
     chalangParts.body.scale.y = 1;
-    chalangParts.body.position.y = 0.345;
+    chalangParts.body.position.set(0, 0.345, CHALANG_FORWARD_M);
     // 물 웅덩이는 항상 보인다: 올라와 있을 때도 캐릭터가 물에 잠겨 서 있는 느낌을 준다
     chalangParts.water.visible = true;
     // 가장자리가 천천히 출렁이고(D02), 빛 반사 줄은 텍스처 위에서 좌우로 흐른다
