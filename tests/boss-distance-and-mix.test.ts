@@ -20,7 +20,8 @@ describe('boss distance and wave mix', () => {
       return kinds.filter((k) => k === 'obi').length / kinds.length;
     };
     expect(share(2)).toBe(0.25);
-    expect(share(3)).toBe(0.25);
+    // 웨이브 3에 chalang이 추가되어(2026-11-12, 임시 배치 D09) 5개 중 obi 1개 = 0.2. 웨이브 5와 같아졌다.
+    expect(share(3)).toBe(0.2);
     expect(share(5)).toBe(0.2);
   });
 

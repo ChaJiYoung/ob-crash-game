@@ -10,7 +10,7 @@
 [T06 임시 웨이브 배치와 전체 검증](./phases/2026-11-12-chalang-monster/P04-wave-and-verify/T06-wave-placement-and-verify.md)
 
 ## Status
-- T05 완료: 물속 시각(납작해짐, 눈·병 숨김, 링 표시), 물속 체력 바 숨김. 전체 1070개 통과.
+- T06 완료: 웨이브 3에 chalang 추가(임시). 테스트 `boss-distance-and-mix`의 obi 비율 기대값 0.25→0.2로 수정(웨이브 구성 변경에 따른 것).
 
 ## Next Step (IMPORTANT)
-T06: 웨이브 3 kinds에 chalang 추가, 전체 검증, 샌드박스에서 모델을 원본 이미지와 비교 후 Opus 리뷰
+모델을 원본 이미지와 비교(렌더 캡처), 가이드 썸네일 교체 여부 결정, 이후 Opus 리뷰

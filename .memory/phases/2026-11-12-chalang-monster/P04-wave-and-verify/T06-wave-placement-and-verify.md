@@ -1,6 +1,6 @@
 # Task: T06 임시 웨이브 배치와 전체 검증
 
-## Status: pending
+## Status: done
 
 ## Goal
 웨이브 3의 일반 몬스터 목록에 `chalang`을 넣어 실제 플레이에서 등장하게 하고, 전체 테스트·타입 검사·샌드박스 확인으로 기능이 끝까지 동작함을 확인한다.
@@ -64,6 +64,7 @@ Task: T06-wave-placement-and-verify
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과(tsc 통과, 전체 테스트 1070개 통과)
+- commit: done
+- 실플레이·샌드박스 시각 확인은 아래 "시각 비교" 결과로 대신함

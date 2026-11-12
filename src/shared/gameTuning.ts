@@ -222,7 +222,7 @@ export const GAME_TUNING = {
   waves: [
     { waveIndex: 1, parTimeSec: 14, totalSpawns: 20, maxSimultaneous: 5, spawnIntervalMs: 700, kinds: ['pilgood', 'caslight'], midWaveCard: false, boss: null },
     { waveIndex: 2, parTimeSec: 18, totalSpawns: 26, maxSimultaneous: 6, spawnIntervalMs: 650, kinds: ['pilgood', 'pilgood', 'caslight', 'obi'], midWaveCard: false, boss: null },
-    { waveIndex: 3, parTimeSec: 34, totalSpawns: 15, maxSimultaneous: 6, spawnIntervalMs: 700, kinds: ['obi', 'caslight', 'caslight', 'hanmac'], midWaveCard: false, boss: { coolerHp: [100], kingHp: null, summonKinds: ['obi', 'caslight', 'hanmac'] } },
+    { waveIndex: 3, parTimeSec: 34, totalSpawns: 15, maxSimultaneous: 6, spawnIntervalMs: 700, kinds: ['obi', 'caslight', 'caslight', 'hanmac', 'chalang'], midWaveCard: false, boss: { coolerHp: [100], kingHp: null, summonKinds: ['obi', 'caslight', 'hanmac'] } },
     { waveIndex: 4, parTimeSec: 23, totalSpawns: 34, maxSimultaneous: 6, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'bottle'], midWaveCard: true, boss: null },
     { waveIndex: 5, parTimeSec: 38, totalSpawns: 20, maxSimultaneous: 7, spawnIntervalMs: 600, kinds: ['obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], midWaveCard: false, boss: { coolerHp: [120, 120], kingHp: null, summonKinds: ['pilgood', 'obi', 'hanmac', 'bottle'] } },
     { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'], midWaveCard: true, boss: null },
