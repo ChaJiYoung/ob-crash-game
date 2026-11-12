@@ -67,12 +67,14 @@ export interface ActiveTargetEntity {
   stuckPlungerCount?: number;
   /** 밀려난 거리만큼 흔들림 위상을 되돌려, 밀어내기가 카스 라이트 좌우 위치를 튀게 하지 않는다. */
   swayPhaseOffsetRad?: number;
-  /** 찰랑: 이 시각까지 물속이다(타격 불가, 전진 없음). */
+  /** 찰랑: 이 시각까지 물속이다(타격 불가, 반지름 전진 없음). */
   submergedUntilMs?: number;
   /** 찰랑: 수면 위 체류가 끝나는 시각. 처음 undefined이면 첫 틱에 nowMs + surfacedMs로 설정한다. */
   surfacedUntilMs?: number;
-  /** 찰랑: 등장 횟수. 스폰이 1회, 순간이동마다 +1. */
+  /** 찰랑: 등장 횟수. 스폰이 1회, 물속에서 올라올 때마다 +1. */
   appearanceCount?: number;
+  /** 찰랑: 물속 헤엄 방향(+1/-1). 시야 가장자리에서 바뀐다. */
+  swimDir?: number;
   /** 찰랑: 급발진 중. true이면 다시 잠수하지 않는다(T03에서 설정). */
   isRushing?: boolean;
   /** 아직 밀려나야 할 거리. 0보다 크면 전진하지 않고 뒤로 미끄러진다. */
@@ -1177,21 +1179,26 @@ export class BeerCrusherEngine {
     return this.isTargetLanded(t, nowMs) && !this.isTargetSubmerged(t, nowMs);
   }
 
-  /** 찰랑 잠수 상태 기계. true를 반환하면 이번 틱은 움직이지 않는다(물속). */
-  private updateChalangSubmerge(t: ActiveTargetEntity, nowMs: number): boolean {
+  /**
+   * 찰랑 잠수 상태 기계. 물속에서는 옆으로 헤엄치고(true: 반지름 전진 없음),
+   * 수면 위에서는 평소처럼 방어선으로 전진한다. 물속 시간이 끝나면 같은 자리에서 다시 올라온다.
+   */
+  private updateChalangSubmerge(t: ActiveTargetEntity, nowMs: number, dtSec: number): boolean {
     if (t.kind !== 'chalang' || t.isRushing) return false;
     // 기절 중에는 잠수하지 않는다(뚫어뻥 폭발 전까지 수면 위에 머문다)
     if (t.stunUntilMs !== undefined && t.stunUntilMs > nowMs) return false;
     const cfg = GAME_TUNING.monsters.chalang;
 
     if (t.submergedUntilMs !== undefined) {
-      if (nowMs < t.submergedUntilMs) return true;
-      // 물속 시간 종료: 화면 안 무작위 위치로 순간이동해 수면 위로 나온다(D02)
-      this.sampleChalangPosition(t);
-      t.appearanceCount = (t.appearanceCount ?? 1) + 1;
+      if (nowMs < t.submergedUntilMs) {
+        this.swimChalang(t, dtSec);
+        return true;
+      }
+      // 물속 시간 종료: 올라온 자리에서 수면 위로 나온다(순간이동 없음)
       t.submergedUntilMs = undefined;
+      t.appearanceCount = (t.appearanceCount ?? 1) + 1;
       if (t.appearanceCount >= cfg.rushAfterAppearances) {
-        // 3번째 등장부터 방어선까지 급발진. 이후 다시 잠수하지 않는다(D05, A7)
+        // 세 번째 등장부터 방어선까지 급발진. 이후 다시 잠수하지 않는다(D05, A7)
         t.isRushing = true;
         t.surfacedUntilMs = undefined;
         return false;
@@ -1202,28 +1209,31 @@ export class BeerCrusherEngine {
 
     if (t.surfacedUntilMs === undefined) t.surfacedUntilMs = nowMs + cfg.surfacedMs;
     if (nowMs >= t.surfacedUntilMs) {
-      // 수면 체류가 끝나면 1.5~3초 무작위로 물속에 들어간다(D02). 물속에서는 전진하지 않는다(D04).
+      // 수면 체류가 끝나면 1.5~3초 물속으로 들어간다(D02). 헤엄 방향은 무작위로 고른다.
       const diveMs = cfg.submergeMinMs + Math.random() * (cfg.submergeMaxMs - cfg.submergeMinMs);
       t.submergedUntilMs = nowMs + diveMs;
       t.surfacedUntilMs = undefined;
+      t.swimDir = Math.random() < 0.5 ? -1 : 1;
       return true;
     }
     return false;
   }
 
-  /** 찰랑 순간이동 위치: 보이는 부채꼴 안, 방어선에서 minRadiusM 이상 떨어진 무작위 지점(D03). */
-  private sampleChalangPosition(t: ActiveTargetEntity): void {
+  /** 물속 이동: 방어선과의 거리를 유지한 채 좌우(방위각)로 헤엄친다. 시야 가장자리에 닿으면 방향을 바꾼다. */
+  private swimChalang(t: ActiveTargetEntity, dtSec: number): void {
     const cfg = GAME_TUNING.monsters.chalang;
-    const visibleHalfRad =
+    const halfRad =
       computeHorizontalHalfFovRad(STAGE_CONSTANTS.CAMERA_FOV_DEG, this.aspect) * STAGE_CONSTANTS.FAN_MARGIN_RATIO;
-    const theta = (Math.random() * 2 - 1) * visibleHalfRad;
-    const radius = cfg.minRadiusM + Math.random() * (STAGE_CONSTANTS.SPAWN_RADIUS_M - cfg.minRadiusM);
+    const dir = t.swimDir ?? 1;
+    // 선속도 swimSpeedMps를 반지름에서의 각속도로 바꾼다(같은 속도로 보이도록)
+    let theta = t.thetaRad + dir * (cfg.swimSpeedMps / Math.max(0.1, t.radiusM)) * dtSec;
+    if (theta > halfRad || theta < -halfRad) {
+      theta = Math.max(-halfRad, Math.min(halfRad, theta));
+      t.swimDir = -dir;
+    }
     t.thetaRad = theta;
-    t.initialThetaRad = theta;
-    t.radiusM = radius;
-    t.x = Math.sin(theta) * radius;
-    t.z = -Math.cos(theta) * radius;
-    t.breached = false;
+    t.x = Math.sin(theta) * t.radiusM;
+    t.z = -Math.cos(theta) * t.radiusM;
   }
 
   /** Random landing spot across the field, not too close to the defense line and not on top of a sibling. */
@@ -1310,7 +1320,7 @@ export class BeerCrusherEngine {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
       if (target.dropLandAtMs !== undefined) target.dropLandAtMs += deltaMs;
-      // 찰랑 잠수·체류 타이머도 일시정지 동안 멈춰야 재개 직후 잠수·순간이동이 튀지 않는다
+      // 찰랑 잠수·체류 타이머도 일시정지 동안 멈춰야 재개 직후 잠수·헤엄 전환이 튀지 않는다
       if (target.submergedUntilMs !== undefined) target.submergedUntilMs += deltaMs;
       if (target.surfacedUntilMs !== undefined) target.surfacedUntilMs += deltaMs;
     }
@@ -1419,7 +1429,7 @@ export class BeerCrusherEngine {
       }
 
       // Chalang: submerged targets hold position (no advance) until they surface again
-      if (this.updateChalangSubmerge(target, nowMs)) continue;
+      if (this.updateChalangSubmerge(target, nowMs, dtSec)) continue;
 
       // Check stun status
       const isStunned = target.stunUntilMs !== undefined && target.stunUntilMs > nowMs;

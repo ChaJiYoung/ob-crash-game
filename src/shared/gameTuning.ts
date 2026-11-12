@@ -127,7 +127,7 @@ export const GAME_TUNING = {
       submergeMinMs: 1500, // 물속 최소 시간 (D02)
       submergeMaxMs: 3000, // 물속 최대 시간 (D02)
       surfacedMs: 1000, // 수면 위 체류 시간 (A1, 사용자 확인으로 1초)
-      minRadiusM: 8, // 등장·순간이동 최소 반지름 = 방어선 1.8m + 여유 (A2, D03)
+      swimSpeedMps: 1.2, // 물속 좌우 헤엄 속도(선속도, 수평 이동)
       rushAfterAppearances: 3, // 이 등장 횟수에 급발진 (A3, D05)
       rushSpeedMult: 3, // 급발진 속도 배율 (D07)
     },

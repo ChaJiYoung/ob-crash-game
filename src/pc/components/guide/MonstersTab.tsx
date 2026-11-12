@@ -36,9 +36,9 @@ export const MONSTER_DETAILS: Record<
     imageSrc: '/guide/monster-03-obi.png',
   },
   chalang: {
-    role: '수면 잠수형 · 물속에 숨었다 순간이동해 등장, 3번째 등장 후 급발진 (3HP)',
-    speedText: `2.0 m/s (수면 위에서만 전진, 3번째 등장 후 ×${GAME_TUNING.monsters.chalang.rushSpeedMult})`,
-    description: `검은 덩어리 위에 찰랑 병을 얹은 캐릭터. 물속에 ${GAME_TUNING.monsters.chalang.submergeMinMs / 1000}~${GAME_TUNING.monsters.chalang.submergeMaxMs / 1000}초 잠수했다가 화면 다른 곳으로 순간이동해 나타납니다. 3번째 등장부터는 방어선까지 급하게 달려옵니다.`,
+    role: '수면 잠수형 · 물속에서 옆으로 헤엄, 수면에서 앞으로 전진, 세 번째 등장 후 급발진 (3HP)',
+    speedText: `2.0 m/s (수면 위 전진) · 물속 좌우 ${GAME_TUNING.monsters.chalang.swimSpeedMps} m/s · 세 번째 등장 후 ×${GAME_TUNING.monsters.chalang.rushSpeedMult}`,
+    description: `검은 덩어리 위에 찰랑 병을 얹은 캐릭터. 수면 위에서는 방어선 쪽으로 전진하다가 ${GAME_TUNING.monsters.chalang.submergeMinMs / 1000}~${GAME_TUNING.monsters.chalang.submergeMaxMs / 1000}초 물속에 들어가 좌우로 헤엄칩니다. 물에서 다시 올라오기를 반복하다가 세 번째 등장부터 방어선까지 급하게 달려옵니다.`,
     tip: '물속에 있을 때는 맞지 않습니다. 수면 위로 올라온 순간에 쏘세요. 체력 3이라 여러 번 맞혀야 합니다.',
     imageSrc: '/guide/monster-07-chalang.png',
   },

@@ -16,7 +16,7 @@ describe('chalang spec and tuning registration', () => {
     expect(c.submergeMinMs).toBe(1500);
     expect(c.submergeMaxMs).toBe(3000);
     expect(c.surfacedMs).toBe(1000);
-    expect(c.minRadiusM).toBe(8);
+    expect(c.swimSpeedMps).toBe(1.2);
     expect(c.rushAfterAppearances).toBe(3);
     expect(c.rushSpeedMult).toBe(3);
   });
@@ -24,8 +24,7 @@ describe('chalang spec and tuning registration', () => {
   it('orders the submerge range and keeps the teleport radius between the defense line and spawn', () => {
     const c = GAME_TUNING.monsters.chalang;
     expect(c.submergeMinMs).toBeLessThan(c.submergeMaxMs);
-    expect(c.minRadiusM).toBeGreaterThan(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M);
-    expect(c.minRadiusM).toBeLessThan(STAGE_CONSTANTS.SPAWN_RADIUS_M);
+    expect(STAGE_CONSTANTS.SPAWN_RADIUS_M).toBeGreaterThan(STAGE_CONSTANTS.DEFENSE_LINE_RADIUS_M);
   });
 });
 
@@ -58,8 +57,8 @@ describe('chalang submerge and teleport', () => {
     (engine as unknown as { spawnedInWave: number }).spawnedInWave = 999;
   });
 
-  it('is not targetable and does not advance while submerged', () => {
-    const t = mkChalang(12, { submergedUntilMs: 10_000 });
+  it('is not targetable and does not advance radially while submerged', () => {
+    const t = mkChalang(12, { submergedUntilMs: 10_000, swimDir: 1 });
     engine.activeTargets = [t];
     expect(engine.isTargetable(t, 1000)).toBe(false);
     engine.update(1000, 0.1);
@@ -68,6 +67,24 @@ describe('chalang submerge and teleport', () => {
     engine.update(1200, 0.1);
     expect(t.radiusM).toBe(before);
     expect(t.submergedUntilMs).toBe(10_000);
+  });
+
+  it('swims sideways (theta changes) while submerged', () => {
+    const t = mkChalang(12, { submergedUntilMs: 10_000, swimDir: 1, thetaRad: 0 });
+    engine.activeTargets = [t];
+    engine.update(1000, 0.0001);
+    engine.update(1500, 0.5);
+    expect(t.thetaRad).toBeGreaterThan(0);
+    expect(Math.hypot(t.x, t.z)).toBeCloseTo(12, 3);
+  });
+
+  it('reverses swim direction at the edge of the visible fan', () => {
+    const t = mkChalang(12, { submergedUntilMs: 10_000, swimDir: 1, thetaRad: 0 });
+    engine.activeTargets = [t];
+    engine.update(1000, 0.0001);
+    engine.update(1100, 200); // 한 번에 시야 끝을 넘는 큰 dt
+    expect(t.swimDir).toBe(-1);
+    expect(Math.abs(t.thetaRad)).toBeLessThan(1.6);
   });
 
   it('is excluded from aim candidates while submerged', () => {
@@ -80,14 +97,13 @@ describe('chalang submerge and teleport', () => {
     expect(find(0, 0, 1000, () => true)).toBeDefined();
   });
 
-  it('teleports to a random spot beyond minRadiusM when the dive ends', () => {
-    const t = mkChalang(12, { submergedUntilMs: 1050 });
+  it('surfaces where it dove and counts one more appearance', () => {
+    const t = mkChalang(12, { submergedUntilMs: 1050, thetaRad: 0.1 });
     engine.activeTargets = [t];
     engine.update(1100, 0.1);
     expect(t.appearanceCount).toBe(2);
     expect(t.submergedUntilMs).toBeUndefined();
-    expect(t.radiusM).toBeGreaterThanOrEqual(GAME_TUNING.monsters.chalang.minRadiusM);
-    expect(t.radiusM).toBeLessThanOrEqual(STAGE_CONSTANTS.SPAWN_RADIUS_M + 1e-6);
+    expect(t.surfacedUntilMs).toBeDefined();
   });
 
   it('moves forward while surfaced', () => {

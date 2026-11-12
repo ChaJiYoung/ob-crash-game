@@ -80,6 +80,40 @@ export function getOrCreateOfficialCassTexture(): THREE.Texture {
   }
 }
 
+let chalangWaterTexture: THREE.Texture | null = null;
+
+/** 찰랑 물 표면 텍스처: 가운데가 밝고 가장자리로 흐려지는 원형 수면 + 흰 물결 두 줄(코드로 그린다). */
+export function getOrCreateChalangWaterTexture(): THREE.Texture | null {
+  if (chalangWaterTexture) return chalangWaterTexture;
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const grad = ctx.createRadialGradient(128, 128, 20, 128, 128, 128);
+  grad.addColorStop(0, 'rgba(186, 230, 253, 0.7)');
+  grad.addColorStop(0.7, 'rgba(14, 165, 233, 0.7)');
+  grad.addColorStop(1, 'rgba(14, 165, 233, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.lineWidth = 6;
+  for (let row = 0; row < 2; row++) {
+    ctx.beginPath();
+    for (let x = 30; x <= 226; x += 4) {
+      const y = 112 + row * 34 + Math.sin((x + row * 30) / 18) * 6;
+      if (x === 30) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  chalangWaterTexture = markShared(texture);
+  return texture;
+}
+
 let chalangCutoutTexture: THREE.Texture | null = null;
 
 /** 찰랑 누끼 이미지(투명 배경 PNG). 카스 빌보드와 같은 방식으로 불러온다. */
@@ -407,9 +441,10 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
     const waterGeo = getCachedGeometry('chalang-water-geo', () => new THREE.CircleGeometry(0.62, 40));
     const waterMat = getCachedMaterial('chalang-water-mat', () => new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
+      map: getOrCreateChalangWaterTexture() ?? undefined,
+      color: 0xffffff,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.9,
       depthWrite: false,
     }));
     const chalangWater = new THREE.Mesh(waterGeo, waterMat);
