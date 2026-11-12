@@ -460,24 +460,24 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
 
     // 수면선 오버레이: 누끼의 아래쪽 30%만 잘라 파랗게 덮는다. 올라와 있을 때 허리 아래가 물에 잠겨 보이게 한다.
     const waterlineGeo = getCachedGeometry('chalang-waterline-geo', () => {
-      const g = new THREE.PlaneGeometry(0.85, 0.38);
+      const g = new THREE.PlaneGeometry(0.85, 0.57);
       const uv = g.attributes.uv;
-      for (let k = 0; k < uv.count; k++) uv.setY(k, uv.getY(k) * 0.3); // 텍스처 아래 30%
+      for (let k = 0; k < uv.count; k++) uv.setY(k, uv.getY(k) * 0.45); // 텍스처 아래 45%
       uv.needsUpdate = true;
       return g;
     });
     const waterlineMat = new THREE.MeshBasicMaterial({
       map: getOrCreateChalangCutoutTexture(),
-      color: 0x3b9ccc,
+      color: 0x1d6fa3,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.85,
       alphaTest: 0.05,
       depthWrite: false,
       side: THREE.DoubleSide,
     });
     const chalangWaterline = new THREE.Mesh(waterlineGeo, waterlineMat);
     chalangWaterline.name = 'chalangWaterline';
-    chalangWaterline.position.set(0, -0.10, 0.01);
+    chalangWaterline.position.set(0, -0.005, 0.01);
     inner.add(chalangWaterline);
 
     // 물 웅덩이(D01): 불규칙한 가장자리 + 빛 반사 줄. 숨었을 때만 보인다(T05).
