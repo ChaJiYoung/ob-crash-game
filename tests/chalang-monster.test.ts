@@ -188,27 +188,27 @@ describe('chalang rush and hp', () => {
 });
 
 describe('chalang 3D model', () => {
-  it('builds a cutout billboard body and a hidden ripple ring', () => {
+  it('builds a cutout billboard body and a hidden water puddle with droplets', () => {
     const mesh = createTargetMesh3D('chalang');
     const parts = mesh.userData.chalangParts;
     expect(parts).toBeDefined();
     expect(parts.body.name).toBe('chalangBody');
     expect((parts.body.geometry as THREE.PlaneGeometry).parameters.width).toBeCloseTo(0.85, 3);
-    expect(parts.ripple.name).toBe('chalangRipple');
-    expect(parts.ripple.visible).toBe(false);
+    expect(parts.water.name).toBe('chalangWater');
+    expect(parts.water.visible).toBe(false);
+    expect(parts.droplets.length).toBe(5);
     expect(parts.water.visible).toBe(false);
   });
 });
 
 describe('chalang submerged visuals', () => {
-  it('sinks the cutout to a water line and shows the ripple while submerged', () => {
+  it('hides the body and shows the water puddle while submerged', () => {
     const mesh = createTargetMesh3D('chalang');
     const parts = mesh.userData.chalangParts;
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 1 + i / 60, 1, { isSubmerged: true });
     // 물속에서는 몸체를 완전히 숨기고 물만 보인다
     expect(parts.body.visible).toBe(false);
     expect(parts.body.scale.y).toBe(1);
-    expect(parts.ripple.visible).toBe(true);
     expect(parts.water.visible).toBe(true);
   });
 
@@ -218,8 +218,8 @@ describe('chalang submerged visuals', () => {
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', i / 60, 1, { isSubmerged: true });
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 2 + i / 60, 1, { isSubmerged: false });
     expect(parts.body.visible).toBe(true);
-    expect(parts.ripple.visible).toBe(false);
-    expect(parts.water.visible).toBe(false);
+    // 물 웅덩이는 올라와 있을 때도 그대로 남는다
+    expect(parts.water.visible).toBe(true);
   });
 });
 

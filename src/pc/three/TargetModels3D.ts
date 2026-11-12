@@ -82,6 +82,23 @@ export function getOrCreateOfficialCassTexture(): THREE.Texture {
 
 let chalangWaterTexture: THREE.Texture | null = null;
 
+/** 가장자리가 일렁이는 불규칙한 물 웅덩이 모양(D01). 원형 지오메트리의 정점을 반지름 방향으로 흔들어 만든다(UV는 원형 그대로 0..1). */
+function createChalangPuddleGeometry(): THREE.CircleGeometry {
+  const geo = new THREE.CircleGeometry(1, 72);
+  const pos = geo.attributes.position;
+  for (let k = 0; k < pos.count; k++) {
+    const x = pos.getX(k);
+    const y = pos.getY(k);
+    if (x === 0 && y === 0) continue; // 중심점
+    const a = Math.atan2(y, x);
+    const r = 1 + 0.1 * Math.sin(3 * a + 0.7) + 0.06 * Math.sin(5 * a + 1.9) + 0.03 * Math.sin(9 * a);
+    pos.setXY(k, x * r, y * r);
+  }
+  pos.needsUpdate = true;
+  geo.computeBoundingSphere();
+  return geo;
+}
+
 /** 찰랑 물 표면 텍스처: 가운데가 밝고 가장자리로 흐려지는 원형 수면 + 흰 물결 두 줄(코드로 그린다). */
 export function getOrCreateChalangWaterTexture(): THREE.Texture | null {
   if (chalangWaterTexture) return chalangWaterTexture;
@@ -99,22 +116,19 @@ export function getOrCreateChalangWaterTexture(): THREE.Texture | null {
   grad.addColorStop(1, 'rgba(8, 110, 160, 0)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 512, 512);
-  // 물결 무늬: 여러 겹의 흰 곡선을 원 둘레를 따라 그린다
+  // 빛 반사 줄 두 개: 물결을 따라 흐르는 밝은 줄(D01)
   ctx.lineCap = 'round';
-  for (let row = 0; row < 5; row++) {
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.55 - row * 0.07})`;
-    ctx.lineWidth = 7 - row;
-    ctx.beginPath();
-    for (let deg = 0; deg <= 360; deg += 2) {
-      const rad = (deg * Math.PI) / 180;
-      const r = 90 + row * 36 + Math.sin(rad * 6 + row) * 9;
-      const x = 256 + Math.cos(rad) * r;
-      const y = 256 + Math.sin(rad) * r;
-      if (deg === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(120, 200);
+  ctx.quadraticCurveTo(200, 170, 300, 196);
+  ctx.stroke();
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(190, 320);
+  ctx.quadraticCurveTo(260, 300, 340, 322);
+  ctx.stroke();
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   chalangWaterTexture = markShared(texture);
@@ -381,7 +395,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
-  let chalangParts: { body: THREE.Mesh; ripple: THREE.Mesh; water: THREE.Mesh } | null = null;
+  let chalangParts: { body: THREE.Mesh; water: THREE.Mesh; droplets: THREE.Mesh[] } | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -444,33 +458,38 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangBody.position.y = 0.345;
     inner.add(chalangBody);
 
-    // 물: 바닥에 깔린 반투명 수면 원판 + 가장자리 물결 링. 잠수 중에만 보이게 T05가 켠다.
+    // 물 웅덩이(D01): 불규칙한 가장자리 + 빛 반사 줄. 숨었을 때만 보인다(T05).
     // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
-    const waterGeo = getCachedGeometry('chalang-water-geo', () => new THREE.CircleGeometry(1.0, 56));
+    const waterGeo = getCachedGeometry('chalang-puddle-geo', () => createChalangPuddleGeometry());
     const waterMat = getCachedMaterial('chalang-water-mat', () => new THREE.MeshBasicMaterial({
       map: getOrCreateChalangWaterTexture() ?? undefined,
       color: 0xffffff,
       transparent: true,
       opacity: 0.95,
       depthWrite: false,
+      side: THREE.DoubleSide,
     }));
     const chalangWater = new THREE.Mesh(waterGeo, waterMat);
     chalangWater.name = 'chalangWater';
     chalangWater.rotation.x = -Math.PI / 2;
+    chalangWater.scale.setScalar(1.0);
     chalangWater.position.y = -0.283;
     chalangWater.visible = false;
     inner.add(chalangWater);
 
-    const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.98, 0.04, 8, 56));
-    const rippleMat = getCachedMaterial('chalang-ripple-mat', () => new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.85 }));
-    const chalangRipple = new THREE.Mesh(rippleGeo, rippleMat);
-    chalangRipple.name = 'chalangRipple';
-    chalangRipple.rotation.x = -Math.PI / 2;
-    chalangRipple.position.y = -0.282;
-    chalangRipple.visible = false;
-    inner.add(chalangRipple);
+    // 입수 물방울(D03): 웅덩이 가운데에서 튀었다 떨어지는 작은 구 5개. 입수할 때만 잠깐 보인다.
+    const dropGeo = getCachedGeometry('chalang-drop-geo', () => new THREE.SphereGeometry(0.035, 8, 6));
+    const dropMat = getCachedMaterial('chalang-drop-mat', () => new THREE.MeshBasicMaterial({ color: 0xe0f2fe }));
+    const chalangDroplets: THREE.Mesh[] = [];
+    for (let k = 0; k < 5; k++) {
+      const drop = new THREE.Mesh(dropGeo, dropMat);
+      drop.name = 'chalangDrop';
+      drop.visible = false;
+      inner.add(drop);
+      chalangDroplets.push(drop);
+    }
 
-    chalangParts = { body: chalangBody, ripple: chalangRipple, water: chalangWater };
+    chalangParts = { body: chalangBody, water: chalangWater, droplets: chalangDroplets };
   } else if (kind === 'boss') {
     // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
     const isKing = bossRole === 'king';
@@ -1035,23 +1054,42 @@ export function updateTargetAnimation3D(
     guardShield.visible = Boolean(options?.isGuarding);
   }
 
-  // Chalang submerge: 몸체는 완전히 숨고 수면 원판과 물결 링만 보인다(찌그러뜨리지 않는다)
+  // Chalang submerge: 몸체는 완전히 숨고 물 웅덩이만 보인다(D01, D02). 입수 순간 물방울이 튄다(D03).
   const chalangParts = root.userData.chalangParts as
-    | { body: THREE.Mesh; ripple: THREE.Mesh; water: THREE.Mesh }
+    | { body: THREE.Mesh; water: THREE.Mesh; droplets: THREE.Mesh[] }
     | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
     chalangParts.body.visible = !submerged;
     chalangParts.body.scale.y = 1;
     chalangParts.body.position.y = 0.345;
-    chalangParts.water.visible = submerged;
-    chalangParts.ripple.visible = submerged;
-    if (submerged) {
-      // 수면 무늬가 천천히 흘러가고, 가장자리 링이 두 박자로 맥동한다
-      chalangParts.water.rotation.z = elapsedSec * 0.35;
-      const pulse = 1 + 0.06 * Math.sin(elapsedSec * 4);
-      chalangParts.ripple.scale.setScalar(pulse);
-    }
+    // 물 웅덩이는 항상 보인다: 올라와 있을 때도 캐릭터가 물에 잠겨 서 있는 느낌을 준다
+    chalangParts.water.visible = true;
+    // 가장자리가 천천히 출렁이고(D02), 빛 반사 줄은 텍스처 위에서 좌우로 흐른다
+    chalangParts.water.scale.set(1 + 0.02 * Math.sin(elapsedSec * 2), 1 + 0.02 * Math.cos(elapsedSec * 2.3), 1);
+    const map = (chalangParts.water.material as THREE.MeshBasicMaterial).map;
+    if (map) map.offset.x = (elapsedSec * 0.05) % 1;
+    // 입수 순간(숨지 않았다가 숨은 순간)에 시작 시각을 기록한다
+    const wasSubmerged = Boolean(root.userData.chalangWasSubmerged);
+    if (submerged && !wasSubmerged) root.userData.chalangSplashAt = elapsedSec;
+    root.userData.chalangWasSubmerged = submerged;
+    const splashAt = root.userData.chalangSplashAt as number | undefined;
+    const age = splashAt === undefined ? Infinity : elapsedSec - splashAt;
+    chalangParts.droplets.forEach((drop, k) => {
+      if (age >= 0.5) {
+        drop.visible = false;
+        return;
+      }
+      // 포물선: 웅덩이 가운데에서 바깥으로 튀었다가 중력으로 떨어진다
+      const angle = (k / chalangParts.droplets.length) * Math.PI * 2;
+      const spread = 0.45;
+      drop.visible = true;
+      drop.position.set(
+        Math.cos(angle) * spread * age,
+        -0.25 + 1.6 * age - 6 * age * age,
+        Math.sin(angle) * spread * age
+      );
+    });
   }
 
   // Stunned Plunger Status
