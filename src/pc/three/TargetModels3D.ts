@@ -80,6 +80,23 @@ export function getOrCreateOfficialCassTexture(): THREE.Texture {
   }
 }
 
+let chalangCutoutTexture: THREE.Texture | null = null;
+
+/** 찰랑 누끼 이미지(투명 배경 PNG). 카스 빌보드와 같은 방식으로 불러온다. */
+export function getOrCreateChalangCutoutTexture(): THREE.Texture {
+  if (chalangCutoutTexture) return chalangCutoutTexture;
+  if (typeof document === 'undefined') {
+    chalangCutoutTexture = markShared(createDataTextureFallback('#38bdf8'));
+    return chalangCutoutTexture;
+  }
+  const texture = new THREE.TextureLoader().load('/textures/chalang_cutout.png');
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  chalangCutoutTexture = markShared(texture);
+  return texture;
+}
+
 function createDataTextureFallback(colorHex: string): THREE.DataTexture {
   const c = new THREE.Color(colorHex);
   const data = new Uint8Array([
@@ -323,7 +340,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
-  let chalangParts: { body: THREE.Mesh; eyes: THREE.Group; bottle: THREE.Mesh; ripple: THREE.Mesh } | null = null;
+  let chalangParts: { body: THREE.Mesh; ripple: THREE.Mesh } | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -371,53 +388,19 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     neckLabelMesh.position.y = 0.38;
     inner.add(neckLabelMesh);
   } else if (kind === 'chalang') {
-    // 찰랑: 검은 덩어리 몸통 위에 투명 병(찰랑 라벨)을 얹은 캐릭터. 눈 두 개. 물속에서는 납작해진다(T05).
-    const bodyGeo = getCachedGeometry('chalang-body-geo', () => {
-      const g = new THREE.SphereGeometry(0.6, 24, 16);
-      g.scale(1.25, 0.6, 1.0);
-      return g;
+    // 찰랑: 카스와 같은 누끼 빌보드. 제공 이미지(투명 배경 PNG, 254x378)의 비율을 유지한다.
+    const cutoutGeo = getCachedGeometry('chalang-cutout-geo', () => new THREE.PlaneGeometry(0.85, 1.27));
+    const cutoutMat = new THREE.MeshBasicMaterial({
+      map: getOrCreateChalangCutoutTexture(),
+      transparent: true,
+      alphaTest: 0.05,
+      side: THREE.DoubleSide,
     });
-    const bodyMat = getCachedMaterial('chalang-body-mat', () => new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 }));
-    const chalangBody = new THREE.Mesh(bodyGeo, bodyMat);
+    const chalangBody = new THREE.Mesh(cutoutGeo, cutoutMat);
     chalangBody.name = 'chalangBody';
     chalangBody.userData.isBodyMaterial = true;
+    chalangBody.position.y = 0.635; // 누끼 아래끝을 바닥(y=0)에 맞춤
     inner.add(chalangBody);
-
-    // 눈 두 개: 흰자 + 파란 눈동자 (눈 앞쪽 z=0.5)
-    const chalangEyes = new THREE.Group();
-    chalangEyes.name = 'chalangEyes';
-    const eyeWhiteGeo = getCachedGeometry('chalang-eye-white-geo', () => new THREE.SphereGeometry(0.16, 16, 12));
-    const eyeWhiteMat = getCachedMaterial('chalang-eye-white-mat', () => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }));
-    const pupilGeo = getCachedGeometry('chalang-pupil-geo', () => new THREE.SphereGeometry(0.07, 12, 8));
-    const pupilMat = getCachedMaterial('chalang-pupil-mat', () => new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 }));
-    for (const sx of [-1, 1]) {
-      const eye = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
-      eye.position.set(sx * 0.22, 0.25, 0.5);
-      const pupil = new THREE.Mesh(pupilGeo, pupilMat);
-      pupil.position.set(0, 0, 0.08);
-      eye.add(pupil);
-      chalangEyes.add(eye);
-    }
-    inner.add(chalangEyes);
-
-    // 투명 병과 찰랑 라벨 (몸통 위)
-    const bottleGeo = getCachedGeometry('chalang-bottle-geo', () => new THREE.CylinderGeometry(0.13, 0.13, 0.62, 20));
-    const bottleMat = getCachedMaterial('chalang-bottle-mat', () => new THREE.MeshPhysicalMaterial({
-      color: 0x7dd3fc,
-      transmission: 0.6,
-      roughness: 0.1,
-      transparent: true,
-      opacity: 0.85,
-    }));
-    const chalangBottle = new THREE.Mesh(bottleGeo, bottleMat);
-    chalangBottle.name = 'chalangBottle';
-    chalangBottle.position.y = 0.55;
-    inner.add(chalangBottle);
-    const labelGeo = getCachedGeometry('chalang-label-geo', () => new THREE.PlaneGeometry(0.22, 0.3));
-    const labelMesh = new THREE.Mesh(labelGeo, new THREE.MeshBasicMaterial({ map: getOrCreateTargetLabelTexture('chalang') }));
-    labelMesh.name = 'chalangLabel';
-    labelMesh.position.set(0, 0.55, 0.135);
-    inner.add(labelMesh);
 
     // 물결 링: 수면 표시. 잠수 중에만 보이게 T05가 켠다.
     const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.9, 0.04, 8, 32));
@@ -429,7 +412,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangRipple.visible = false;
     inner.add(chalangRipple);
 
-    chalangParts = { body: chalangBody, eyes: chalangEyes, bottle: chalangBottle, ripple: chalangRipple };
+    chalangParts = { body: chalangBody, ripple: chalangRipple };
   } else if (kind === 'boss') {
     // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
     const isKing = bossRole === 'king';
@@ -994,16 +977,12 @@ export function updateTargetAnimation3D(
     guardShield.visible = Boolean(options?.isGuarding);
   }
 
-  // Chalang submerge: flattened body, hidden eyes and bottle, pulsing ripple ring (T05)
-  const chalangParts = root.userData.chalangParts as
-    | { body: THREE.Mesh; eyes: THREE.Group; bottle: THREE.Mesh; ripple: THREE.Mesh }
-    | undefined;
+  // Chalang submerge: the cutout sinks to a flat water line and a ripple ring pulses (T05)
+  const chalangParts = root.userData.chalangParts as { body: THREE.Mesh; ripple: THREE.Mesh } | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
     const targetScaleY = submerged ? 0.12 : 1;
     chalangParts.body.scale.y += (targetScaleY - chalangParts.body.scale.y) * 0.2;
-    chalangParts.eyes.visible = !submerged;
-    chalangParts.bottle.visible = !submerged;
     chalangParts.ripple.visible = submerged;
     if (submerged) {
       chalangParts.ripple.scale.setScalar(1 + 0.1 * Math.sin(elapsedSec * 4));

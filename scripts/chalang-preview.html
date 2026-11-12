@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chalang model preview (dev tool)</title>
+  <style>
+    html, body { margin: 0; background: #ffffff; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <!-- 개발용 미리보기: 실제 createTargetMesh3D('chalang') 모델을 단독으로 렌더링한다.
+       실행: npx vite (5173) 후 https://localhost:5173/scripts/chalang-preview.html -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { createTargetMesh3D } from '/src/pc/three/TargetModels3D.ts';
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(1);
+    renderer.setSize(800, 800);
+    renderer.setClearColor(0xffffff, 1);
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    camera.position.set(0, 2.2, 9);
+    camera.lookAt(0, 0.9, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const key = new THREE.DirectionalLight(0xffffff, 1.6);
+    key.position.set(3, 6, 5);
+    scene.add(key);
+
+    const mesh = createTargetMesh3D('chalang');
+    scene.add(mesh);
+
+    // 텍스처(라벨)가 로드될 시간을 준 뒤 한 번 그리고 준비 완료를 알린다
+    setTimeout(() => {
+      renderer.render(scene, camera);
+      window.__chalangReady = true;
+    }, 1500);
+  </script>
+</body>
+</html>

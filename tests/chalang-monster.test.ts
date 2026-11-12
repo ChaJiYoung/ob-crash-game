@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
+import * as THREE from 'three';
 import { createTargetMesh3D, updateTargetAnimation3D } from '../src/pc/three/TargetModels3D';
 import { TARGET_SPECS, STAGE_CONSTANTS } from '../src/shared/constants';
 import { GAME_TUNING } from '../src/shared/gameTuning';
@@ -171,27 +172,23 @@ describe('chalang rush and hp', () => {
 });
 
 describe('chalang 3D model', () => {
-  it('builds body, two eyes, bottle, label and a hidden ripple', () => {
+  it('builds a cutout billboard body and a hidden ripple ring', () => {
     const mesh = createTargetMesh3D('chalang');
     const parts = mesh.userData.chalangParts;
     expect(parts).toBeDefined();
     expect(parts.body.name).toBe('chalangBody');
-    expect(parts.eyes.children.length).toBe(2);
-    expect(parts.bottle.name).toBe('chalangBottle');
+    expect((parts.body.geometry as THREE.PlaneGeometry).parameters.width).toBeCloseTo(0.85, 3);
     expect(parts.ripple.name).toBe('chalangRipple');
     expect(parts.ripple.visible).toBe(false);
   });
 });
 
 describe('chalang submerged visuals', () => {
-  it('flattens the body, hides eyes and bottle, and shows the ripple while submerged', () => {
+  it('sinks the cutout to a water line and shows the ripple while submerged', () => {
     const mesh = createTargetMesh3D('chalang');
     const parts = mesh.userData.chalangParts;
-    updateTargetAnimation3D(mesh, 'chalang', 1, 1, { isSubmerged: true });
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 1 + i / 60, 1, { isSubmerged: true });
     expect(parts.body.scale.y).toBeLessThan(0.3);
-    expect(parts.eyes.visible).toBe(false);
-    expect(parts.bottle.visible).toBe(false);
     expect(parts.ripple.visible).toBe(true);
   });
 
@@ -201,8 +198,6 @@ describe('chalang submerged visuals', () => {
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', i / 60, 1, { isSubmerged: true });
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 2 + i / 60, 1, { isSubmerged: false });
     expect(parts.body.scale.y).toBeGreaterThan(0.9);
-    expect(parts.eyes.visible).toBe(true);
-    expect(parts.bottle.visible).toBe(true);
     expect(parts.ripple.visible).toBe(false);
   });
 });
