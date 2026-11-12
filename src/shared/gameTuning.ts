@@ -124,11 +124,11 @@ export const GAME_TUNING = {
     hanmac: { blastRadiusM: 4, blastDamage: 2 },
     obi: { guardUpMs: 800, guardDownMs: 2400 },
     chalang: {
-      submergeMinMs: 1500, // 물속 최소 시간 (D02)
-      submergeMaxMs: 3000, // 물속 최대 시간 (D02)
+      submergeMinMs: 1000, // 물속 최소 시간 (D02, 1초)
+      submergeMaxMs: 1500, // 물속 최대 시간 (D02, 1.5초)
       surfacedMs: 1000, // 수면 위 체류 시간 (A1, 사용자 확인으로 1초)
       swimSpeedMps: 1.2, // 물속 좌우 헤엄 속도(선속도, 수평 이동)
-      rushAfterAppearances: 3, // 이 등장 횟수에 급발진 (A3, D05)
+      rushAfterAppearances: 5, // 스폰 1회 + 잠수 4회 뒤 5번째 등장에 급발진 (D05 수정)
       rushSpeedMult: 3, // 급발진 속도 배율 (D07)
     },
     bottle: {

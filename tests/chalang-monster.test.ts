@@ -13,11 +13,11 @@ describe('chalang spec and tuning registration', () => {
 
   it('keeps the chalang tuning values from the decisions', () => {
     const c = GAME_TUNING.monsters.chalang;
-    expect(c.submergeMinMs).toBe(1500);
-    expect(c.submergeMaxMs).toBe(3000);
+    expect(c.submergeMinMs).toBe(1000);
+    expect(c.submergeMaxMs).toBe(1500);
     expect(c.surfacedMs).toBe(1000);
     expect(c.swimSpeedMps).toBe(1.2);
-    expect(c.rushAfterAppearances).toBe(3);
+    expect(c.rushAfterAppearances).toBe(5);
     expect(c.rushSpeedMult).toBe(3);
   });
 
@@ -138,11 +138,11 @@ describe('chalang rush and hp', () => {
     (engine as unknown as { spawnedInWave: number }).spawnedInWave = 999;
   });
 
-  it('starts rushing at the 3rd appearance and never submerges again', () => {
-    const t = mkChalang(12, { submergedUntilMs: 1050, appearanceCount: 2 });
+  it('starts rushing at the 5th appearance and never submerges again', () => {
+    const t = mkChalang(12, { submergedUntilMs: 1050, appearanceCount: 4 });
     engine.activeTargets = [t];
     engine.update(1100, 0.1);
-    expect(t.appearanceCount).toBe(3);
+    expect(t.appearanceCount).toBe(5);
     expect(t.isRushing).toBe(true);
     expect(t.submergedUntilMs).toBeUndefined();
     // 급발진 중에는 다시 물속에 들어가지 않는다
@@ -150,7 +150,7 @@ describe('chalang rush and hp', () => {
     expect(t.submergedUntilMs).toBeUndefined();
   });
 
-  it('does not rush before the 3rd appearance', () => {
+  it('does not rush before the 5th appearance', () => {
     const t = mkChalang(12, { submergedUntilMs: 1050, appearanceCount: 1 });
     engine.activeTargets = [t];
     engine.update(1100, 0.1);
