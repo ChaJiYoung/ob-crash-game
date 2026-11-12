@@ -135,6 +135,43 @@ export function getOrCreateChalangWaterTexture(): THREE.Texture | null {
   return texture;
 }
 
+let chalangEyeTexture: THREE.Texture | null = null;
+
+/** 찰랑 눈: 흰 타원 + 둥근 파란 눈동자 + 작은 하이라이트(열린 눈). 참조 이미지 기준. */
+export function getOrCreateChalangEyeTexture(): THREE.Texture | null {
+  if (chalangEyeTexture) return chalangEyeTexture;
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 192;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  // 흰 눈 (세로로 긴 타원)
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.ellipse(64, 96, 60, 90, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 파란 눈동자 (아래쪽 중앙에 둥글게)
+  ctx.fillStyle = '#2aa8e0';
+  ctx.beginPath();
+  ctx.arc(64, 118, 40, 0, Math.PI * 2);
+  ctx.fill();
+  // 어두운 동공
+  ctx.fillStyle = '#0b3a5a';
+  ctx.beginPath();
+  ctx.arc(64, 118, 18, 0, Math.PI * 2);
+  ctx.fill();
+  // 하이라이트
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(50, 104, 8, 0, Math.PI * 2);
+  ctx.fill();
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  chalangEyeTexture = markShared(texture);
+  return texture;
+}
+
 let chalangCutoutTexture: THREE.Texture | null = null;
 
 /** 찰랑 누끼 이미지(투명 배경 PNG). 카스 빌보드와 같은 방식으로 불러온다. */
@@ -489,39 +526,27 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangWaterline.position.set(0, -0.214, 0.01);
     inner.add(chalangWaterline);
 
-    // 눈 조각 두 개: 누끼 이미지 속 눈 영역(픽셀 기준 좌 133~169, 우 181~217, 세로 267~326)을 잘라 얹는다.
-    // 평소에는 원본 눈과 똑같이 겹치고, 급발진 때 키워서 눈을 크게 뜬 것처럼 보이게 한다(D: 2번 선택).
+    // 눈 두 개: 열린 눈(흰 타원 + 둥근 파란 눈동자). 누끼 속 원래 눈 위에 조금 크게 덮어 가린다.
+    // 평소에도 보이고, 급발진 때 더 크게 뜬 것처럼 키운다.
     const chalangEyes: THREE.Mesh[] = [];
-    const eyeRects = [
-      { x0: 133, x1: 169, y0: 269, y1: 326, cx: 151, cy: 297.5 },
-      { x0: 181, x1: 217, y0: 267, y1: 322, cx: 199, cy: 294.5 },
+    const eyeCenters = [
+      { x: 151 / 254, y: 297.5 / 378 },
+      { x: 199 / 254, y: 294.5 / 378 },
     ];
-    for (const r of eyeRects) {
-      const wLocal = ((r.x1 - r.x0 + 1) / 254) * 0.85;
-      const hLocal = ((r.y1 - r.y0 + 1) / 378) * 1.27;
-      const eyeGeo = new THREE.PlaneGeometry(wLocal, hLocal);
-      const uv = eyeGeo.attributes.uv;
-      const u0 = r.x0 / 254;
-      const u1 = (r.x1 + 1) / 254;
-      const v0 = 1 - (r.y1 + 1) / 378;
-      const v1 = 1 - r.y0 / 378;
-      for (let k = 0; k < uv.count; k++) {
-        uv.setXY(k, u0 + uv.getX(k) * (u1 - u0), v0 + uv.getY(k) * (v1 - v0));
-      }
-      uv.needsUpdate = true;
-      const eyeMat = new THREE.MeshBasicMaterial({
-        map: getOrCreateChalangCutoutTexture(),
+    for (const c of eyeCenters) {
+      const eyeGeo = getCachedGeometry('chalang-eye-geo', () => new THREE.PlaneGeometry(0.15, 0.24));
+      const eyeMat = getCachedMaterial('chalang-eye-mat', () => new THREE.MeshBasicMaterial({
+        map: getOrCreateChalangEyeTexture(),
         transparent: true,
         alphaTest: 0.05,
         side: THREE.DoubleSide,
-      });
+      }));
       const eye = new THREE.Mesh(eyeGeo, eyeMat);
       eye.name = 'chalangEye';
-      eye.position.set(((r.cx / 254) - 0.5) * 0.85, 0.345 + ((1 - r.cy / 378) - 0.5) * 1.27, 0.02);
+      eye.position.set((c.x - 0.5) * 0.85, 0.345 + ((1 - c.y) - 0.5) * 1.27, 0.02);
       inner.add(eye);
       chalangEyes.push(eye);
     }
-
     // 물 웅덩이(D01): 불규칙한 가장자리 + 빛 반사 줄. 숨었을 때만 보인다(T05).
     // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
     const waterGeo = getCachedGeometry('chalang-puddle-geo', () => createChalangPuddleGeometry());
