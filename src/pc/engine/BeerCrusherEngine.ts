@@ -1180,6 +1180,8 @@ export class BeerCrusherEngine {
   /** 찰랑 잠수 상태 기계. true를 반환하면 이번 틱은 움직이지 않는다(물속). */
   private updateChalangSubmerge(t: ActiveTargetEntity, nowMs: number): boolean {
     if (t.kind !== 'chalang' || t.isRushing) return false;
+    // 기절 중에는 잠수하지 않는다(뚫어뻥 폭발 전까지 수면 위에 머문다)
+    if (t.stunUntilMs !== undefined && t.stunUntilMs > nowMs) return false;
     const cfg = GAME_TUNING.monsters.chalang;
 
     if (t.submergedUntilMs !== undefined) {
@@ -1308,6 +1310,9 @@ export class BeerCrusherEngine {
       if (target.stunUntilMs !== undefined && target.stunUntilMs > 0) target.stunUntilMs += deltaMs;
       if (target.slowUntilMs !== undefined && target.slowUntilMs > 0) target.slowUntilMs += deltaMs;
       if (target.dropLandAtMs !== undefined) target.dropLandAtMs += deltaMs;
+      // 찰랑 잠수·체류 타이머도 일시정지 동안 멈춰야 재개 직후 잠수·순간이동이 튀지 않는다
+      if (target.submergedUntilMs !== undefined) target.submergedUntilMs += deltaMs;
+      if (target.surfacedUntilMs !== undefined) target.surfacedUntilMs += deltaMs;
     }
   }
 
@@ -2797,6 +2802,8 @@ export class BeerCrusherEngine {
         continue;
       }
       if ((t.stunUntilMs ?? 0) > nowMs) continue;
+      // 물속 찰랑은 타격 불가(D01): 폭발은 수면 위로 올라온 뒤에 일어난다
+      if (this.isTargetSubmerged(t, nowMs)) continue;
       // 먼저 비워야 죽을 때 handleMonsterKilled의 "박힌 채 죽음" 연출이 중복으로 나가지 않는다.
       const blast = t.plungerBlast;
       t.plungerBlast = undefined;

@@ -201,3 +201,36 @@ describe('chalang submerged visuals', () => {
     expect(parts.ripple.visible).toBe(false);
   });
 });
+
+describe('chalang review fixes', () => {
+  let engine: BeerCrusherEngine;
+
+  beforeEach(() => {
+    engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    engine.activeTargets = [];
+    (engine as unknown as { spawnedInWave: number }).spawnedInWave = 999;
+  });
+
+  it('pausing shifts the submerge and surface timers so resume does not jump', () => {
+    const t = mkChalang(12, { submergedUntilMs: 5000 });
+    engine.activeTargets = [t];
+    (engine as unknown as { freezeTimers: (ms: number) => void }).freezeTimers(2000);
+    expect(t.submergedUntilMs).toBe(7000);
+  });
+
+  it('a stunned chalang does not start a dive', () => {
+    const t = mkChalang(12, { surfacedUntilMs: 900, stunUntilMs: 5000 });
+    engine.activeTargets = [t];
+    engine.update(1000, 0.0001);
+    expect(t.submergedUntilMs).toBeUndefined();
+  });
+
+  it('a submerged chalang takes no plunger blast damage', () => {
+    const t = mkChalang(12, { submergedUntilMs: 10_000, hp: 3, plungerBlast: { damage: 2, ownerIndex: 0 } });
+    engine.activeTargets = [t];
+    (engine as unknown as { advancePlungerBlasts: (ms: number) => void }).advancePlungerBlasts(1000);
+    expect(t.hp).toBe(3);
+    expect(t.plungerBlast).toBeDefined();
+  });
+});

@@ -944,7 +944,7 @@ export interface TargetAnimationOptions {
   stuckPlungerCount?: number;
   isBossSummoning?: boolean;
   isGuarding?: boolean;
-  /** 찰랑이 물속에 있다: 몸체가 납작해지고 눈·병이 숨고 물결 링이 보인다(D01). */
+  /** 찰랑이 물속에 있다: 몸체가 납작해지고 몸체가 납작해지고 물결 링이 보인다(D01). */
   isSubmerged?: boolean;
   /** 박힌 뚫어뻥이 곧 터진다(남은 500ms 이하): 더 세게 떨린다. */
   plungerBlastImminent?: boolean;
