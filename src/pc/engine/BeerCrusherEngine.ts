@@ -67,6 +67,14 @@ export interface ActiveTargetEntity {
   stuckPlungerCount?: number;
   /** 밀려난 거리만큼 흔들림 위상을 되돌려, 밀어내기가 카스 라이트 좌우 위치를 튀게 하지 않는다. */
   swayPhaseOffsetRad?: number;
+  /** 찰랑: 이 시각까지 물속이다(타격 불가, 전진 없음). */
+  submergedUntilMs?: number;
+  /** 찰랑: 수면 위 체류가 끝나는 시각. 처음 undefined이면 첫 틱에 nowMs + surfacedMs로 설정한다. */
+  surfacedUntilMs?: number;
+  /** 찰랑: 등장 횟수. 스폰이 1회, 순간이동마다 +1. */
+  appearanceCount?: number;
+  /** 찰랑: 급발진 중. true이면 다시 잠수하지 않는다(T03에서 설정). */
+  isRushing?: boolean;
   /** 아직 밀려나야 할 거리. 0보다 크면 전진하지 않고 뒤로 미끄러진다. */
   slideRemainingM?: number;
   isGoldenCan?: boolean;
@@ -1159,6 +1167,57 @@ export class BeerCrusherEngine {
     return t.dropLandAtMs === undefined || nowMs >= t.dropLandAtMs;
   }
 
+  /** 찰랑이 물속에 있는 동안은 타격 불가다(D01). */
+  public isTargetSubmerged(t: ActiveTargetEntity, nowMs: number): boolean {
+    return t.kind === 'chalang' && t.submergedUntilMs !== undefined && nowMs < t.submergedUntilMs;
+  }
+
+  /** 명중 후보 판정: 착지했고 물속이 아니어야 맞는다. 모든 타격·스킬 후보 필터가 이 함수를 쓴다. */
+  public isTargetable(t: ActiveTargetEntity, nowMs: number): boolean {
+    return this.isTargetLanded(t, nowMs) && !this.isTargetSubmerged(t, nowMs);
+  }
+
+  /** 찰랑 잠수 상태 기계. true를 반환하면 이번 틱은 움직이지 않는다(물속). */
+  private updateChalangSubmerge(t: ActiveTargetEntity, nowMs: number): boolean {
+    if (t.kind !== 'chalang' || t.isRushing) return false;
+    const cfg = GAME_TUNING.monsters.chalang;
+
+    if (t.submergedUntilMs !== undefined) {
+      if (nowMs < t.submergedUntilMs) return true;
+      // 물속 시간 종료: 화면 안 무작위 위치로 순간이동해 수면 위로 나온다(D02)
+      this.sampleChalangPosition(t);
+      t.appearanceCount = (t.appearanceCount ?? 1) + 1;
+      t.submergedUntilMs = undefined;
+      t.surfacedUntilMs = nowMs + cfg.surfacedMs;
+      return false;
+    }
+
+    if (t.surfacedUntilMs === undefined) t.surfacedUntilMs = nowMs + cfg.surfacedMs;
+    if (nowMs >= t.surfacedUntilMs) {
+      // 수면 체류가 끝나면 1.5~3초 무작위로 물속에 들어간다(D02). 물속에서는 전진하지 않는다(D04).
+      const diveMs = cfg.submergeMinMs + Math.random() * (cfg.submergeMaxMs - cfg.submergeMinMs);
+      t.submergedUntilMs = nowMs + diveMs;
+      t.surfacedUntilMs = undefined;
+      return true;
+    }
+    return false;
+  }
+
+  /** 찰랑 순간이동 위치: 보이는 부채꼴 안, 방어선에서 minRadiusM 이상 떨어진 무작위 지점(D03). */
+  private sampleChalangPosition(t: ActiveTargetEntity): void {
+    const cfg = GAME_TUNING.monsters.chalang;
+    const visibleHalfRad =
+      computeHorizontalHalfFovRad(STAGE_CONSTANTS.CAMERA_FOV_DEG, this.aspect) * STAGE_CONSTANTS.FAN_MARGIN_RATIO;
+    const theta = (Math.random() * 2 - 1) * visibleHalfRad;
+    const radius = cfg.minRadiusM + Math.random() * (STAGE_CONSTANTS.SPAWN_RADIUS_M - cfg.minRadiusM);
+    t.thetaRad = theta;
+    t.initialThetaRad = theta;
+    t.radiusM = radius;
+    t.x = Math.sin(theta) * radius;
+    t.z = -Math.cos(theta) * radius;
+    t.breached = false;
+  }
+
   /** Random landing spot across the field, not too close to the defense line and not on top of a sibling. */
   private pickMinionDropSpot(placed: { x: number; z: number }[]): { theta: number; radius: number } {
     const cfg = GAME_TUNING.boss.minionDrop;
@@ -1347,6 +1406,9 @@ export class BeerCrusherEngine {
         }
         continue;
       }
+
+      // Chalang: submerged targets hold position (no advance) until they surface again
+      if (this.updateChalangSubmerge(target, nowMs)) continue;
 
       // Check stun status
       const isStunned = target.stunUntilMs !== undefined && target.stunUntilMs > nowMs;
@@ -1605,6 +1667,8 @@ export class BeerCrusherEngine {
       entity.isGuarding = false;
     } else if (entity.kind === 'bottle') {
       entity.modelScaleMult = GAME_TUNING.monsters.bottle.bigScale;
+    } else if (entity.kind === 'chalang') {
+      entity.appearanceCount = 1; // 스폰이 첫 등장(A3)
     }
   }
 
@@ -1867,7 +1931,7 @@ export class BeerCrusherEngine {
     for (let i = 0; i < this.activeTargets.length; i++) {
       const target = this.activeTargets[i];
       if (!accept(target)) continue;
-      if (!this.isTargetLanded(target, nowMs)) continue;
+      if (!this.isTargetable(target, nowMs)) continue;
       const proj = this.computeTargetAimCoords(target, wideScopeMult, playerIndex);
       const dx = (aimX - proj.targetNormX) * this.aspect;
       const dy = target.customNormY !== undefined || isSelectTarget(target)
@@ -2352,7 +2416,7 @@ export class BeerCrusherEngine {
                 !t.isProjectile &&
                 !t.isGoldenCan &&
                 !t.isGuarding &&
-                this.isTargetLanded(t, nowMs) &&
+                this.isTargetable(t, nowMs) &&
                 t.radiusM > target.radiusM &&
                 Math.abs(t.thetaRad - target.thetaRad) <= 0.16
             )
@@ -2480,7 +2544,7 @@ export class BeerCrusherEngine {
       if (t === primary) continue;
       if (t.isItem || t.isProjectile || t.isGoldenCan || t.weaponSelectKind || t.rewardCardKind) continue;
       if (t.kind === 'boss' || t.isGuarding) continue;
-      if (!this.isTargetLanded(t, nowMs)) continue;
+      if (!this.isTargetable(t, nowMs)) continue;
       const proj = this.computeTargetAimCoords(t, 1.0, playerIndex);
       const dx = (aimX - proj.targetNormX) * this.aspect;
       const dy = t.customNormY !== undefined ? aimY - proj.targetNormY : (aimY - proj.targetNormY) * 0.85;
@@ -2574,7 +2638,7 @@ export class BeerCrusherEngine {
           !t.isGoldenCan &&
           !t.weaponSelectKind &&
           !t.rewardCardKind &&
-          this.isTargetLanded(t, nowMs) &&
+          this.isTargetable(t, nowMs) &&
           Math.hypot(t.x - blast.x, t.z - blast.z) <= blastRadiusM
       );
       for (const t of victims) {
@@ -2684,7 +2748,7 @@ export class BeerCrusherEngine {
       const candidates = this.activeTargets.filter(
         (t) =>
           !t.isItem && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && !t.isGoldenCan &&
-          this.isTargetLanded(t, nowMs) &&
+          this.isTargetable(t, nowMs) &&
           !wave.hitTargetIds.has(t.id) &&
           t.radiusM <= wave.radiusM &&
           t.radiusM > sweepFrom
@@ -2745,7 +2809,7 @@ export class BeerCrusherEngine {
         .filter(
           (t) =>
             !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isGoldenCan &&
-            this.isTargetLanded(t, nowMs) &&
+            this.isTargetable(t, nowMs) &&
             !blade.hitTargetIds.has(t.id) &&
             t.radiusM <= blade.radiusM &&
             t.radiusM > sweepFrom &&
@@ -2819,7 +2883,7 @@ export class BeerCrusherEngine {
 
     const affectedTargets: ActiveTargetEntity[] = [];
     const activeMonsters = this.activeTargets.filter(
-      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isProjectile && !t.isGoldenCan && this.isTargetLanded(t, nowMs)
+      (t) => !t.isItem && !t.weaponSelectKind && !t.rewardCardKind && !t.isProjectile && !t.isGoldenCan && this.isTargetable(t, nowMs)
     );
 
     if (weaponKind === 'shotgun') {

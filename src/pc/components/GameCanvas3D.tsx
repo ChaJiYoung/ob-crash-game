@@ -320,7 +320,7 @@ export const GameCanvas3D = React.memo(
         triggerSkillEffect(kind: WeaponKind, playerIndex: PlayerIndex = 0, affected?: readonly ActiveTargetEntity[]) {
           if (!particlesRef.current) return;
           const skillTargets = (affected ?? engine.activeTargets)
-            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetLanded(t, performance.now()));
+            .filter((t) => !t.isItem && !t.isGoldenCan && !t.isProjectile && !t.weaponSelectKind && !t.rewardCardKind && engine.isTargetable(t, performance.now()));
           const monsterPositions = skillTargets.map(
             (t) => new THREE.Vector3(t.x, (t as any).customBaseY ?? getTargetBaseY(t.kind, false), t.z)
           );

@@ -7,10 +7,10 @@
 [P02 잠수·순간이동 엔진](./phases/2026-11-12-chalang-monster/P02-submerge-engine/phase.md)
 
 ## Active Task
-[T02 잠수·순간이동·타격 불가](./phases/2026-11-12-chalang-monster/P02-submerge-engine/T02-submerge-and-teleport.md)
+[T03 급발진과 체력 규칙](./phases/2026-11-12-chalang-monster/P02-submerge-engine/T03-rush-and-hp.md)
 
 ## Status
-- T01 완료 (tsc 통과, 전체 테스트 1057개 통과). 가이드 썸네일은 임시로 원본 참조 이미지 사용(`public/guide/monster-07-chalang.png`).
+- T01 완료 (전체 테스트 통과). T02 완료: 잠수 상태 기계, 순간이동, isTargetable 명중 필터 전환(테스트 8개 통과, 전체 1062개 통과).
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 `ActiveTargetEntity`에 잠수 필드를 추가하고, `updateChalangSubmerge` / `isTargetable`을 구현
+T03 청사진을 읽고 `updateChalangSubmerge`에 3번째 등장 급발진(`isRushing`)을 추가하고, 이동 루프 속도 배율 블록에 `rushSpeedMult`를 곱함

@@ -1,6 +1,6 @@
 # Task: T02 잠수·순간이동·타격 불가
 
-## Status: pending
+## Status: done
 
 ## Goal
 찰랑이 수면 위 체류 후 물속(1.5~3초)에 들어가 타격 불가 상태가 되고, 물속 시간이 끝나면 `minRadiusM` 이상 떨어진 화면 안 무작위 위치에 순간이동해 수면 위로 나온다. 물속에서는 전진하지 않으며, 모든 타격·스킬 명중 경로에서 제외된다.
@@ -132,6 +132,6 @@ Task: T02-submerge-and-teleport
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
