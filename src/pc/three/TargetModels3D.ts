@@ -395,7 +395,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
-  let chalangParts: { body: THREE.Mesh; water: THREE.Mesh; droplets: THREE.Mesh[] } | null = null;
+  let chalangParts: { body: THREE.Mesh; water: THREE.Mesh; waterline: THREE.Mesh; droplets: THREE.Mesh[] } | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -458,6 +458,28 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangBody.position.y = 0.345;
     inner.add(chalangBody);
 
+    // 수면선 오버레이: 누끼의 아래쪽 30%만 잘라 파랗게 덮는다. 올라와 있을 때 허리 아래가 물에 잠겨 보이게 한다.
+    const waterlineGeo = getCachedGeometry('chalang-waterline-geo', () => {
+      const g = new THREE.PlaneGeometry(0.85, 0.38);
+      const uv = g.attributes.uv;
+      for (let k = 0; k < uv.count; k++) uv.setY(k, uv.getY(k) * 0.3); // 텍스처 아래 30%
+      uv.needsUpdate = true;
+      return g;
+    });
+    const waterlineMat = new THREE.MeshBasicMaterial({
+      map: getOrCreateChalangCutoutTexture(),
+      color: 0x3b9ccc,
+      transparent: true,
+      opacity: 0.6,
+      alphaTest: 0.05,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const chalangWaterline = new THREE.Mesh(waterlineGeo, waterlineMat);
+    chalangWaterline.name = 'chalangWaterline';
+    chalangWaterline.position.set(0, -0.10, 0.01);
+    inner.add(chalangWaterline);
+
     // 물 웅덩이(D01): 불규칙한 가장자리 + 빛 반사 줄. 숨었을 때만 보인다(T05).
     // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
     const waterGeo = getCachedGeometry('chalang-puddle-geo', () => createChalangPuddleGeometry());
@@ -490,7 +512,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
       chalangDroplets.push(drop);
     }
 
-    chalangParts = { body: chalangBody, water: chalangWater, droplets: chalangDroplets };
+    chalangParts = { body: chalangBody, water: chalangWater, waterline: chalangWaterline, droplets: chalangDroplets };
   } else if (kind === 'boss') {
     // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
     const isKing = bossRole === 'king';
@@ -1057,11 +1079,13 @@ export function updateTargetAnimation3D(
 
   // Chalang submerge: 몸체는 완전히 숨고 물 웅덩이만 보인다(D01, D02). 입수 순간 물방울이 튄다(D03).
   const chalangParts = root.userData.chalangParts as
-    | { body: THREE.Mesh; water: THREE.Mesh; droplets: THREE.Mesh[] }
+    | { body: THREE.Mesh; water: THREE.Mesh; waterline: THREE.Mesh; droplets: THREE.Mesh[] }
     | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
     chalangParts.body.visible = !submerged;
+    // 올라와 있을 때는 허리 아래를 물 오버레이로 덮는다(잠긴 느낌)
+    chalangParts.waterline.visible = !submerged;
     chalangParts.body.scale.y = 1;
     chalangParts.body.position.y = 0.345;
     // 물 웅덩이는 항상 보인다: 올라와 있을 때도 캐릭터가 물에 잠겨 서 있는 느낌을 준다

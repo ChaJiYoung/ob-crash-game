@@ -196,6 +196,7 @@ describe('chalang 3D model', () => {
     expect((parts.body.geometry as THREE.PlaneGeometry).parameters.width).toBeCloseTo(0.85, 3);
     expect(parts.water.name).toBe('chalangWater');
     expect(parts.water.visible).toBe(false);
+    expect(parts.waterline.visible).toBe(true);
     expect(parts.droplets.length).toBe(5);
     expect(parts.water.visible).toBe(false);
   });
@@ -218,8 +219,9 @@ describe('chalang submerged visuals', () => {
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', i / 60, 1, { isSubmerged: true });
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 2 + i / 60, 1, { isSubmerged: false });
     expect(parts.body.visible).toBe(true);
-    // 물 웅덩이는 올라와 있을 때도 그대로 남는다
+    // 물 웅덩이는 올라와 있을 때도 그대로 남고, 허리 아래 수면선이 덮인다
     expect(parts.water.visible).toBe(true);
+    expect(parts.waterline.visible).toBe(true);
   });
 });
 
