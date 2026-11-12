@@ -477,6 +477,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangWater.visible = false;
     inner.add(chalangWater);
 
+
     // 입수 물방울(D03): 웅덩이 가운데에서 튀었다 떨어지는 작은 구 5개. 입수할 때만 잠깐 보인다.
     const dropGeo = getCachedGeometry('chalang-drop-geo', () => new THREE.SphereGeometry(0.035, 8, 6));
     const dropMat = getCachedMaterial('chalang-drop-mat', () => new THREE.MeshBasicMaterial({ color: 0xe0f2fe }));
@@ -1067,8 +1068,12 @@ export function updateTargetAnimation3D(
     chalangParts.water.visible = true;
     // 가장자리가 천천히 출렁이고(D02), 빛 반사 줄은 텍스처 위에서 좌우로 흐른다
     chalangParts.water.scale.set(1 + 0.02 * Math.sin(elapsedSec * 2), 1 + 0.02 * Math.cos(elapsedSec * 2.3), 1);
+    // 빛 반사 줄은 텍스처 가운데를 축으로 천천히 돈다. offset으로 밀면 가장자리 밖을 읽어 줄만 남는다.
     const map = (chalangParts.water.material as THREE.MeshBasicMaterial).map;
-    if (map) map.offset.x = (elapsedSec * 0.05) % 1;
+    if (map) {
+      map.center.set(0.5, 0.5);
+      map.rotation = elapsedSec * 0.15;
+    }
     // 입수 순간(숨지 않았다가 숨은 순간)에 시작 시각을 기록한다
     const wasSubmerged = Boolean(root.userData.chalangWasSubmerged);
     if (submerged && !wasSubmerged) root.userData.chalangSplashAt = elapsedSec;
