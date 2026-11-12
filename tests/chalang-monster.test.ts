@@ -205,11 +205,11 @@ describe('chalang submerged visuals', () => {
     const mesh = createTargetMesh3D('chalang');
     const parts = mesh.userData.chalangParts;
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 1 + i / 60, 1, { isSubmerged: true });
-    expect(parts.body.scale.y).toBeLessThan(0.6);
+    // 물속에서는 몸체를 완전히 숨기고 물만 보인다
+    expect(parts.body.visible).toBe(false);
+    expect(parts.body.scale.y).toBe(1);
     expect(parts.ripple.visible).toBe(true);
     expect(parts.water.visible).toBe(true);
-    // 몸체 아랫변이 바닥(-0.29)에 머문다
-    expect(parts.body.position.y - 0.635 * parts.body.scale.y).toBeCloseTo(-0.29, 2);
   });
 
   it('restores the surfaced look when it comes back up', () => {
@@ -217,7 +217,7 @@ describe('chalang submerged visuals', () => {
     const parts = mesh.userData.chalangParts;
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', i / 60, 1, { isSubmerged: true });
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 2 + i / 60, 1, { isSubmerged: false });
-    expect(parts.body.scale.y).toBeGreaterThan(0.9);
+    expect(parts.body.visible).toBe(true);
     expect(parts.ripple.visible).toBe(false);
     expect(parts.water.visible).toBe(false);
   });

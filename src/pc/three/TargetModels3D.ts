@@ -1035,29 +1035,22 @@ export function updateTargetAnimation3D(
     guardShield.visible = Boolean(options?.isGuarding);
   }
 
-  // Chalang submerge: the cutout sinks to a flat water line and a ripple ring pulses (T05)
+  // Chalang submerge: 몸체는 완전히 숨고 수면 원판과 물결 링만 보인다(찌그러뜨리지 않는다)
   const chalangParts = root.userData.chalangParts as
     | { body: THREE.Mesh; ripple: THREE.Mesh; water: THREE.Mesh }
     | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
-    // 물속에서는 몸체 윗부분 절반만 수면 위에 남는다(바닥 고정, 아래는 물에 잠김)
-    const targetScaleY = submerged ? 0.5 : 1;
-    const body = chalangParts.body;
-    body.scale.y += (targetScaleY - body.scale.y) * 0.2;
-    // 몸체 아랫변을 바닥(-0.29)에 고정: 높이 1.27 기준 중심 = 바닥 + 0.635 * 세로배율
-    body.position.y = -0.29 + 0.635 * body.scale.y;
+    chalangParts.body.visible = !submerged;
+    chalangParts.body.scale.y = 1;
+    chalangParts.body.position.y = 0.345;
     chalangParts.water.visible = submerged;
     chalangParts.ripple.visible = submerged;
     if (submerged) {
-      // 수면 무늬가 천천히 흘러가고, 가장자리 링이 맥동한다
+      // 수면 무늬가 천천히 흘러가고, 가장자리 링이 두 박자로 맥동한다
       chalangParts.water.rotation.z = elapsedSec * 0.35;
-      chalangParts.ripple.scale.setScalar(1 + 0.05 * Math.sin(elapsedSec * 4));
-      // 물속에 잠긴 몸체는 푸르게 물든다
-      const mat = body.material as THREE.MeshBasicMaterial;
-      if (mat.color) mat.color.lerp(new THREE.Color(0x4f9ec4), 0.2);
-    } else if (body.material && (body.material as THREE.MeshBasicMaterial).color) {
-      (body.material as THREE.MeshBasicMaterial).color.lerp(new THREE.Color(0xffffff), 0.2);
+      const pulse = 1 + 0.06 * Math.sin(elapsedSec * 4);
+      chalangParts.ripple.scale.setScalar(pulse);
     }
   }
 
