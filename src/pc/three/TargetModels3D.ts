@@ -395,7 +395,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   let wings: [THREE.Mesh, THREE.Mesh] | null = null;
   let bossTapHandles: THREE.Mesh[] | null = null;
   let obiShield: THREE.Mesh | null = null;
-  let chalangParts: { body: THREE.Mesh; water: THREE.Mesh; waterline: THREE.Mesh; droplets: THREE.Mesh[] } | null = null;
+  let chalangParts: { body: THREE.Mesh; water: THREE.Mesh; waterline: THREE.Mesh; eyes: THREE.Mesh[]; droplets: THREE.Mesh[] } | null = null;
 
   if (kind === 'bottle') {
     // 🍾 Official All New Cass 500ml Authentic Transparent Cutout Billboard
@@ -489,6 +489,39 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     chalangWaterline.position.set(0, -0.214, 0.01);
     inner.add(chalangWaterline);
 
+    // 눈 조각 두 개: 누끼 이미지 속 눈 영역(픽셀 기준 좌 133~169, 우 181~217, 세로 267~326)을 잘라 얹는다.
+    // 평소에는 원본 눈과 똑같이 겹치고, 급발진 때 키워서 눈을 크게 뜬 것처럼 보이게 한다(D: 2번 선택).
+    const chalangEyes: THREE.Mesh[] = [];
+    const eyeRects = [
+      { x0: 133, x1: 169, y0: 269, y1: 326, cx: 151, cy: 297.5 },
+      { x0: 181, x1: 217, y0: 267, y1: 322, cx: 199, cy: 294.5 },
+    ];
+    for (const r of eyeRects) {
+      const wLocal = ((r.x1 - r.x0 + 1) / 254) * 0.85;
+      const hLocal = ((r.y1 - r.y0 + 1) / 378) * 1.27;
+      const eyeGeo = new THREE.PlaneGeometry(wLocal, hLocal);
+      const uv = eyeGeo.attributes.uv;
+      const u0 = r.x0 / 254;
+      const u1 = (r.x1 + 1) / 254;
+      const v0 = 1 - (r.y1 + 1) / 378;
+      const v1 = 1 - r.y0 / 378;
+      for (let k = 0; k < uv.count; k++) {
+        uv.setXY(k, u0 + uv.getX(k) * (u1 - u0), v0 + uv.getY(k) * (v1 - v0));
+      }
+      uv.needsUpdate = true;
+      const eyeMat = new THREE.MeshBasicMaterial({
+        map: getOrCreateChalangCutoutTexture(),
+        transparent: true,
+        alphaTest: 0.05,
+        side: THREE.DoubleSide,
+      });
+      const eye = new THREE.Mesh(eyeGeo, eyeMat);
+      eye.name = 'chalangEye';
+      eye.position.set(((r.cx / 254) - 0.5) * 0.85, 0.345 + ((1 - r.cy / 378) - 0.5) * 1.27, 0.02);
+      inner.add(eye);
+      chalangEyes.push(eye);
+    }
+
     // 물 웅덩이(D01): 불규칙한 가장자리 + 빛 반사 줄. 숨었을 때만 보인다(T05).
     // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
     const waterGeo = getCachedGeometry('chalang-puddle-geo', () => createChalangPuddleGeometry());
@@ -521,7 +554,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
       chalangDroplets.push(drop);
     }
 
-    chalangParts = { body: chalangBody, water: chalangWater, waterline: chalangWaterline, droplets: chalangDroplets };
+    chalangParts = { body: chalangBody, water: chalangWater, waterline: chalangWaterline, eyes: chalangEyes, droplets: chalangDroplets };
   } else if (kind === 'boss') {
     // 🧊 Boss: 실제 업소용 순간냉각기처럼 세로로 긴 몸통 앞면에 탭이 달렸다. 소형은 은색 1구, 대왕은 검정 3구에 왕관.
     const isKing = bossRole === 'king';
@@ -1055,6 +1088,8 @@ export interface TargetAnimationOptions {
   isGuarding?: boolean;
   /** 찰랑이 물속에 있다: 몸체가 납작해지고 몸체가 납작해지고 물결 링이 보인다(D01). */
   isSubmerged?: boolean;
+  /** 찰랑 급발진 중: 눈을 크게 뜨고 다가온다. */
+  isRushing?: boolean;
   /** 박힌 뚫어뻥이 곧 터진다(남은 500ms 이하): 더 세게 떨린다. */
   plungerBlastImminent?: boolean;
 }
@@ -1088,10 +1123,16 @@ export function updateTargetAnimation3D(
 
   // Chalang submerge: 몸체는 완전히 숨고 물 웅덩이만 보인다(D01, D02). 입수 순간 물방울이 튄다(D03).
   const chalangParts = root.userData.chalangParts as
-    | { body: THREE.Mesh; water: THREE.Mesh; waterline: THREE.Mesh; droplets: THREE.Mesh[] }
+    | { body: THREE.Mesh; water: THREE.Mesh; waterline: THREE.Mesh; eyes: THREE.Mesh[]; droplets: THREE.Mesh[] }
     | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
+    // 눈 조각: 올라와 있을 때만 보인다. 급발진 중에는 크게 뜨고 살짝 떨린다.
+    const eyeScale = options?.isRushing ? 1.35 + 0.05 * Math.sin(elapsedSec * 12) : 1;
+    for (const eye of chalangParts.eyes) {
+      eye.visible = !submerged;
+      eye.scale.set(eyeScale, eyeScale, 1);
+    }
     chalangParts.body.visible = !submerged;
     // 올라와 있을 때는 허리 아래를 물 오버레이로 덮는다(잠긴 느낌)
     chalangParts.waterline.visible = !submerged;

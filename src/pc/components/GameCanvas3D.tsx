@@ -756,6 +756,7 @@ export const GameCanvas3D = React.memo(
               isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
               isGuarding: Boolean(target.isGuarding),
               isSubmerged: engine.isTargetSubmerged(target, time),
+              isRushing: Boolean(target.isRushing),
               plungerBlastImminent: isPlungerBlastImminent(target.plungerBlast, target.stunUntilMs, time),
             });
           }

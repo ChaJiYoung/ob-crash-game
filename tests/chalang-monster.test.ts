@@ -198,6 +198,7 @@ describe('chalang 3D model', () => {
     expect(parts.water.visible).toBe(false);
     expect(parts.waterline.visible).toBe(true);
     expect(parts.droplets.length).toBe(5);
+    expect(parts.eyes.length).toBe(2);
     expect(parts.water.visible).toBe(false);
   });
 });
