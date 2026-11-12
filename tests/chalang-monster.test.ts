@@ -205,7 +205,7 @@ describe('chalang submerged visuals', () => {
     const mesh = createTargetMesh3D('chalang');
     const parts = mesh.userData.chalangParts;
     for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 1 + i / 60, 1, { isSubmerged: true });
-    expect(parts.body.scale.y).toBeLessThan(0.3);
+    expect(parts.body.scale.y).toBeLessThan(0.6);
     expect(parts.ripple.visible).toBe(true);
     expect(parts.water.visible).toBe(true);
     // 몸체 아랫변이 바닥(-0.29)에 머문다

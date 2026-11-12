@@ -87,23 +87,30 @@ export function getOrCreateChalangWaterTexture(): THREE.Texture | null {
   if (chalangWaterTexture) return chalangWaterTexture;
   if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
+  canvas.width = 512;
+  canvas.height = 512;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  const grad = ctx.createRadialGradient(128, 128, 20, 128, 128, 128);
-  grad.addColorStop(0, 'rgba(186, 230, 253, 0.7)');
-  grad.addColorStop(0.7, 'rgba(14, 165, 233, 0.7)');
-  grad.addColorStop(1, 'rgba(14, 165, 233, 0)');
+  // 깊은 물: 가장자리는 진한 청록, 가운데는 밝은 수면, 바깥은 부드럽게 사라짐
+  const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 256);
+  grad.addColorStop(0, 'rgba(165, 243, 252, 0.85)');
+  grad.addColorStop(0.45, 'rgba(34, 211, 238, 0.8)');
+  grad.addColorStop(0.85, 'rgba(8, 110, 160, 0.9)');
+  grad.addColorStop(1, 'rgba(8, 110, 160, 0)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 256, 256);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-  ctx.lineWidth = 6;
-  for (let row = 0; row < 2; row++) {
+  ctx.fillRect(0, 0, 512, 512);
+  // 물결 무늬: 여러 겹의 흰 곡선을 원 둘레를 따라 그린다
+  ctx.lineCap = 'round';
+  for (let row = 0; row < 5; row++) {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.55 - row * 0.07})`;
+    ctx.lineWidth = 7 - row;
     ctx.beginPath();
-    for (let x = 30; x <= 226; x += 4) {
-      const y = 112 + row * 34 + Math.sin((x + row * 30) / 18) * 6;
-      if (x === 30) ctx.moveTo(x, y);
+    for (let deg = 0; deg <= 360; deg += 2) {
+      const rad = (deg * Math.PI) / 180;
+      const r = 90 + row * 36 + Math.sin(rad * 6 + row) * 9;
+      const x = 256 + Math.cos(rad) * r;
+      const y = 256 + Math.sin(rad) * r;
+      if (deg === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
@@ -439,27 +446,27 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
 
     // 물: 바닥에 깔린 반투명 수면 원판 + 가장자리 물결 링. 잠수 중에만 보이게 T05가 켠다.
     // y = 바닥 높이(-0.29, 몸체 기준 고도 0.55 / 모델 크기 1.9)에 놓는다.
-    const waterGeo = getCachedGeometry('chalang-water-geo', () => new THREE.CircleGeometry(0.62, 40));
+    const waterGeo = getCachedGeometry('chalang-water-geo', () => new THREE.CircleGeometry(1.0, 56));
     const waterMat = getCachedMaterial('chalang-water-mat', () => new THREE.MeshBasicMaterial({
       map: getOrCreateChalangWaterTexture() ?? undefined,
       color: 0xffffff,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.95,
       depthWrite: false,
     }));
     const chalangWater = new THREE.Mesh(waterGeo, waterMat);
     chalangWater.name = 'chalangWater';
     chalangWater.rotation.x = -Math.PI / 2;
-    chalangWater.position.y = -0.285;
+    chalangWater.position.y = -0.283;
     chalangWater.visible = false;
     inner.add(chalangWater);
 
-    const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.62, 0.035, 8, 40));
+    const rippleGeo = getCachedGeometry('chalang-ripple-geo', () => new THREE.TorusGeometry(0.98, 0.04, 8, 56));
     const rippleMat = getCachedMaterial('chalang-ripple-mat', () => new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.85 }));
     const chalangRipple = new THREE.Mesh(rippleGeo, rippleMat);
     chalangRipple.name = 'chalangRipple';
     chalangRipple.rotation.x = -Math.PI / 2;
-    chalangRipple.position.y = -0.28;
+    chalangRipple.position.y = -0.282;
     chalangRipple.visible = false;
     inner.add(chalangRipple);
 
@@ -1034,7 +1041,8 @@ export function updateTargetAnimation3D(
     | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
-    const targetScaleY = submerged ? 0.12 : 1;
+    // 물속에서는 몸체 윗부분 절반만 수면 위에 남는다(바닥 고정, 아래는 물에 잠김)
+    const targetScaleY = submerged ? 0.5 : 1;
     const body = chalangParts.body;
     body.scale.y += (targetScaleY - body.scale.y) * 0.2;
     // 몸체 아랫변을 바닥(-0.29)에 고정: 높이 1.27 기준 중심 = 바닥 + 0.635 * 세로배율
@@ -1042,7 +1050,14 @@ export function updateTargetAnimation3D(
     chalangParts.water.visible = submerged;
     chalangParts.ripple.visible = submerged;
     if (submerged) {
-      chalangParts.ripple.scale.setScalar(1 + 0.08 * Math.sin(elapsedSec * 4));
+      // 수면 무늬가 천천히 흘러가고, 가장자리 링이 맥동한다
+      chalangParts.water.rotation.z = elapsedSec * 0.35;
+      chalangParts.ripple.scale.setScalar(1 + 0.05 * Math.sin(elapsedSec * 4));
+      // 물속에 잠긴 몸체는 푸르게 물든다
+      const mat = body.material as THREE.MeshBasicMaterial;
+      if (mat.color) mat.color.lerp(new THREE.Color(0x4f9ec4), 0.2);
+    } else if (body.material && (body.material as THREE.MeshBasicMaterial).color) {
+      (body.material as THREE.MeshBasicMaterial).color.lerp(new THREE.Color(0xffffff), 0.2);
     }
   }
 
