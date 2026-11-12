@@ -1,6 +1,6 @@
 # Task: T05 물속 시각 상태
 
-## Status: pending
+## Status: done
 
 ## Goal
 찰랑이 물속일 때 몸체가 납작해지고 병·눈이 숨겨지며 물결 링이 보이게 하고, 수면 위로 나오면 원래대로 돌아온다. 이 상태는 T02의 `isTargetSubmerged` 판정과 같은 값을 쓴다.
@@ -48,7 +48,7 @@
 ## Acceptance Criteria
 - [ ] 물속 찰랑은 몸체가 납작하고 병·눈이 보이지 않으며 물결 링이 보인다.
 - [ ] 수면 위 찰랑은 원래 모습이다.
-- [ ] 물속 상태의 체력 바가 숨겨진다(또는 기존 목록이 이미 제외함을 확인했다).
+- [ ] 물속 상태의 체력 바가 숨겨진다. 구현: `GameCanvas3D` 투사체 루프에서 `isTargetSubmerged`면 건너뜀(MonsterHpBarLayer 자체는 수정하지 않음).
 - [ ] 다른 종류 몬스터의 렌더링이 바뀌지 않는다.
 
 ## Validation
@@ -69,6 +69,6 @@ Task: T05-submerged-visual-state
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

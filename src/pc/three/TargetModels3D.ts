@@ -961,6 +961,8 @@ export interface TargetAnimationOptions {
   stuckPlungerCount?: number;
   isBossSummoning?: boolean;
   isGuarding?: boolean;
+  /** 찰랑이 물속에 있다: 몸체가 납작해지고 눈·병이 숨고 물결 링이 보인다(D01). */
+  isSubmerged?: boolean;
   /** 박힌 뚫어뻥이 곧 터진다(남은 500ms 이하): 더 세게 떨린다. */
   plungerBlastImminent?: boolean;
 }
@@ -990,6 +992,22 @@ export function updateTargetAnimation3D(
   const guardShield = root.userData.guardShieldMesh as THREE.Mesh | undefined;
   if (guardShield) {
     guardShield.visible = Boolean(options?.isGuarding);
+  }
+
+  // Chalang submerge: flattened body, hidden eyes and bottle, pulsing ripple ring (T05)
+  const chalangParts = root.userData.chalangParts as
+    | { body: THREE.Mesh; eyes: THREE.Group; bottle: THREE.Mesh; ripple: THREE.Mesh }
+    | undefined;
+  if (chalangParts) {
+    const submerged = Boolean(options?.isSubmerged);
+    const targetScaleY = submerged ? 0.12 : 1;
+    chalangParts.body.scale.y += (targetScaleY - chalangParts.body.scale.y) * 0.2;
+    chalangParts.eyes.visible = !submerged;
+    chalangParts.bottle.visible = !submerged;
+    chalangParts.ripple.visible = submerged;
+    if (submerged) {
+      chalangParts.ripple.scale.setScalar(1 + 0.1 * Math.sin(elapsedSec * 4));
+    }
   }
 
   // Stunned Plunger Status

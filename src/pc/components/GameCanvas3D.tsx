@@ -755,6 +755,7 @@ export const GameCanvas3D = React.memo(
               stuckPlungerCount: target.stuckPlungerCount ?? 0,
               isBossSummoning: target.kind === 'boss' && engine.isBossSummoning(time),
               isGuarding: Boolean(target.isGuarding),
+              isSubmerged: engine.isTargetSubmerged(target, time),
               plungerBlastImminent: isPlungerBlastImminent(target.plungerBlast, target.stunUntilMs, time),
             });
           }
@@ -835,6 +836,7 @@ export const GameCanvas3D = React.memo(
 
             engine.activeTargets.forEach((target) => {
               if (!shouldRenderMonsterHpBar(target.maxHp, target.isItem, target.isProjectile, target.hp)) return;
+              if (engine.isTargetSubmerged(target, time)) return; // 물속 찰랑: 체력 바 숨김 (T05)
               if (getMinionDropRemaining(target.dropLandAtMs, engine.getEffectiveNowMs(time), GAME_TUNING.boss.minionDrop.dropMs) > 0) return; // still falling in
               const mesh = targetMeshMap.get(target.id);
               if (!mesh) return;

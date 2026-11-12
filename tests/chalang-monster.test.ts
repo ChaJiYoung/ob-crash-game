@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BeerCrusherEngine, ActiveTargetEntity } from '../src/pc/engine/BeerCrusherEngine';
-import { createTargetMesh3D } from '../src/pc/three/TargetModels3D';
+import { createTargetMesh3D, updateTargetAnimation3D } from '../src/pc/three/TargetModels3D';
 import { TARGET_SPECS, STAGE_CONSTANTS } from '../src/shared/constants';
 import { GAME_TUNING } from '../src/shared/gameTuning';
 
@@ -179,6 +179,30 @@ describe('chalang 3D model', () => {
     expect(parts.eyes.children.length).toBe(2);
     expect(parts.bottle.name).toBe('chalangBottle');
     expect(parts.ripple.name).toBe('chalangRipple');
+    expect(parts.ripple.visible).toBe(false);
+  });
+});
+
+describe('chalang submerged visuals', () => {
+  it('flattens the body, hides eyes and bottle, and shows the ripple while submerged', () => {
+    const mesh = createTargetMesh3D('chalang');
+    const parts = mesh.userData.chalangParts;
+    updateTargetAnimation3D(mesh, 'chalang', 1, 1, { isSubmerged: true });
+    for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 1 + i / 60, 1, { isSubmerged: true });
+    expect(parts.body.scale.y).toBeLessThan(0.3);
+    expect(parts.eyes.visible).toBe(false);
+    expect(parts.bottle.visible).toBe(false);
+    expect(parts.ripple.visible).toBe(true);
+  });
+
+  it('restores the surfaced look when it comes back up', () => {
+    const mesh = createTargetMesh3D('chalang');
+    const parts = mesh.userData.chalangParts;
+    for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', i / 60, 1, { isSubmerged: true });
+    for (let i = 0; i < 60; i++) updateTargetAnimation3D(mesh, 'chalang', 2 + i / 60, 1, { isSubmerged: false });
+    expect(parts.body.scale.y).toBeGreaterThan(0.9);
+    expect(parts.eyes.visible).toBe(true);
+    expect(parts.bottle.visible).toBe(true);
     expect(parts.ripple.visible).toBe(false);
   });
 });
