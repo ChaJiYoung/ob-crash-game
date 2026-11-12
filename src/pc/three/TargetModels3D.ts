@@ -1152,11 +1152,10 @@ export function updateTargetAnimation3D(
     | undefined;
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
-    // 눈 조각: 올라와 있을 때만 보인다. 급발진 중에는 크게 뜨고 살짝 떨린다.
-    const eyeScale = options?.isRushing ? 1.6 + 0.06 * Math.sin(elapsedSec * 12) : 1;
+    // 눈: 기본은 누끼 원래 눈(감은 눈). 뜬 눈은 급발진 중이고 기절하지 않았을 때만 보인다(크기 변화 없음).
+    const showOpenEyes = Boolean(options?.isRushing) && !options?.isStunned && !submerged;
     for (const eye of chalangParts.eyes) {
-      eye.visible = !submerged;
-      eye.scale.set(eyeScale, eyeScale, 1);
+      eye.visible = showOpenEyes;
     }
     chalangParts.body.visible = !submerged;
     // 올라와 있을 때는 허리 아래를 물 오버레이로 덮는다(잠긴 느낌)

@@ -258,3 +258,28 @@ describe('chalang review fixes', () => {
     expect(t.plungerBlast).toBeDefined();
   });
 });
+
+describe('chalang eyes', () => {
+  it('shows closed (baked) eyes by default and open eyes only while rushing', () => {
+    const mesh = createTargetMesh3D('chalang');
+    const parts = mesh.userData.chalangParts;
+    updateTargetAnimation3D(mesh, 'chalang', 1, 1, {});
+    expect(parts.eyes.every((e: THREE.Object3D) => !e.visible)).toBe(true);
+    updateTargetAnimation3D(mesh, 'chalang', 1.1, 1, { isRushing: true });
+    expect(parts.eyes.every((e: THREE.Object3D) => e.visible)).toBe(true);
+  });
+
+  it('closes the eyes again while stunned during a rush', () => {
+    const mesh = createTargetMesh3D('chalang');
+    const parts = mesh.userData.chalangParts;
+    updateTargetAnimation3D(mesh, 'chalang', 1, 1, { isRushing: true, isStunned: true });
+    expect(parts.eyes.every((e: THREE.Object3D) => !e.visible)).toBe(true);
+  });
+
+  it('never scales the eyeballs', () => {
+    const mesh = createTargetMesh3D('chalang');
+    const parts = mesh.userData.chalangParts;
+    updateTargetAnimation3D(mesh, 'chalang', 1.5, 1, { isRushing: true });
+    expect(parts.eyes[0].scale.x).toBe(1);
+  });
+});
