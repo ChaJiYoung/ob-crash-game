@@ -1128,7 +1128,7 @@ export function updateTargetAnimation3D(
   if (chalangParts) {
     const submerged = Boolean(options?.isSubmerged);
     // 눈 조각: 올라와 있을 때만 보인다. 급발진 중에는 크게 뜨고 살짝 떨린다.
-    const eyeScale = options?.isRushing ? 1.35 + 0.05 * Math.sin(elapsedSec * 12) : 1;
+    const eyeScale = options?.isRushing ? 1.6 + 0.06 * Math.sin(elapsedSec * 12) : 1;
     for (const eye of chalangParts.eyes) {
       eye.visible = !submerged;
       eye.scale.set(eyeScale, eyeScale, 1);
