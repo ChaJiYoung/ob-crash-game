@@ -399,7 +399,8 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     const chalangBody = new THREE.Mesh(cutoutGeo, cutoutMat);
     chalangBody.name = 'chalangBody';
     chalangBody.userData.isBodyMaterial = true;
-    chalangBody.position.y = 0.635; // 누끼 아래끝을 바닥(y=0)에 맞춤
+    // 누끼 아래끝을 바닥에 맞춘다: 몸체 기준 높이 0.55(지상 기준 고도) / 모델 크기 1.9 = 0.29 아래로 내림
+    chalangBody.position.y = 0.345;
     inner.add(chalangBody);
 
     // 물결 링: 수면 표시. 잠수 중에만 보이게 T05가 켠다.
