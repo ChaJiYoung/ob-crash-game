@@ -191,6 +191,9 @@ describe('weapon radar and one-shot order (2026-11-10)', () => {
     RADAR_AXES.forEach((_, i) => {
       expect(Math.max(...all.filter((a) => a.l === 4).map((a) => a.v[i]))).toBeCloseTo(100, 8);
     });
+    // 발당 화력(축 0)은 주 대상 한 발 피해 비율(1.323 / 1.12 / 0.75)을 따른다
+    expect(weaponRadarValues('shotgun', 4)[0]).toBeCloseTo((1.12 / 1.323) * 100, 5);
+    expect(weaponRadarValues('gatling', 4)[0]).toBeCloseTo((0.75 / 1.323) * 100, 5);
   });
 
   it('Lv.4 per-second power (hold fire): revolver > gatling > shotgun', async () => {

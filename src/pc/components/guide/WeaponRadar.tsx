@@ -84,7 +84,7 @@ export const WeaponRadar: React.FC = () => {
         ))}
       </div>
       <div style={{ fontSize: '11px', color: '#94a3b8', textAlign: 'center', marginTop: '6px' }}>
-        축별 Lv.4 최댓값=100 · 샷건·리볼버는 옆·뒤 몬스터까지 맞은 최선의 경우 · 초당 화력은 누르고 쏘기 기준
+        축별 Lv.4 최댓값=100 · 발당 화력은 주 대상 기준 · 초당 화력은 다중 타격 포함 누르고 쏘기 기준
       </div>
     </div>
   );

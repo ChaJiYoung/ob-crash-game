@@ -121,14 +121,14 @@ export const WEAPON_EVOLUTION_TEXT: Record<WeaponKindKey, string> = {
 
 export const RADAR_AXES = ['발당 화력', '초당 화력', '탄창', '장전 속도', '다중 타격 수'] as const;
 
-/** 레이더 원값(RADAR_AXES 순서). 발당 화력은 관통·산탄 포함 최선의 경우, 초당 화력은 그 값 x 누르고 쏘기 발수(레벨 무관 고정 간격). */
+/** 레이더 원값(RADAR_AXES 순서). 발당 화력은 주 대상 한 발 피해, 초당 화력은 최선의 경우 x 누르고 쏘기 발수(레벨 무관 고정 간격). */
 function radarRaw(kind: WeaponKindKey, level: 1 | 2 | 3 | 4): number[] {
   const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
-  const perShot = weaponBestCasePerShot(kind, level);
+  const bestPerShot = weaponBestCasePerShot(kind, level);
   const multiHit = kind === 'shotgun' ? GAME_TUNING.shotgunSpread.extraTargetsByLevel[level] : spec.pierceCount;
   return [
-    perShot,
-    (perShot * 1000) / GAME_TUNING.fire.holdIntervalMsByWeapon[kind],
+    spec.damagePerHit,
+    (bestPerShot * 1000) / GAME_TUNING.fire.holdIntervalMsByWeapon[kind],
     spec.maxAmmo,
     1000 / spec.reloadDurationMs,
     multiHit,
