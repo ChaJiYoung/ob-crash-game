@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BeerCrusherEngine } from '../src/pc/engine/BeerCrusherEngine';
 import {
   buildExRushQueue,
+  getExBossDueCount,
+  getExBossSpec,
   getExDanger,
   getExFieldCap,
   getExHpMult,
@@ -229,5 +231,133 @@ describe('BeerCrusherEngine EX rush', () => {
       engine.update(t, 0.1);
     }
     expect(engine.exElapsedMs).toBe(elapsedBefore);
+  });
+});
+
+describe('EX boss intrusion (T03)', () => {
+  it('computes due boss count and alternating boss specs', () => {
+    expect(getExBossDueCount(59999)).toBe(0);
+    expect(getExBossDueCount(60000)).toBe(1);
+    expect(getExBossDueCount(125000)).toBe(2);
+
+    expect(getExBossSpec(1)).toEqual({ role: 'cooler', hp: 150 });
+    expect(getExBossSpec(2)).toEqual({ role: 'king', hp: 275 });
+    expect(getExBossSpec(3)).toEqual({ role: 'cooler', hp: 181.5 });
+  });
+
+  it('spawns cooler boss (hp 150) when exElapsedMs crosses 60s without setting isBossEncounterActive', () => {
+    const engine = new BeerCrusherEngine();
+    engine.exRng = makeSeededRng(10);
+    engine.startGame({ withWeaponSelect: false });
+    let t = clearWave7ToEnterEx(engine);
+
+    for (let i = 0; i < 60; i += 1) {
+      t += 1000;
+      engine.update(t, 1.0);
+      engine.activeTargets = engine.activeTargets.filter((x) => x.kind === 'boss');
+    }
+
+    const bosses = engine.activeTargets.filter((x) => x.kind === 'boss');
+    expect(bosses).toHaveLength(1);
+    expect(bosses[0].bossRole).toBe('cooler');
+    expect(bosses[0].hp).toBe(150);
+    expect(engine.bossWarningUntilMs).toBeGreaterThan(t);
+    expect(engine.isBossEncounterActive).toBe(false);
+  });
+
+  it('accumulates king boss (hp 275) at 120s at a different theta when 1st boss is alive', () => {
+    const engine = new BeerCrusherEngine();
+    engine.exRng = makeSeededRng(11);
+    engine.startGame({ withWeaponSelect: false });
+    let t = clearWave7ToEnterEx(engine);
+
+    for (let i = 0; i < 120; i += 1) {
+      t += 1000;
+      engine.update(t, 1.0);
+      engine.activeTargets = engine.activeTargets.filter((x) => x.kind === 'boss');
+    }
+
+    const bosses = engine.activeTargets.filter((x) => x.kind === 'boss');
+    expect(bosses).toHaveLength(2);
+    expect(bosses[0].bossRole).toBe('cooler');
+    expect(bosses[1].bossRole).toBe('king');
+    expect(bosses[1].hp).toBe(275);
+    expect(bosses[1].modelScaleMult).toBe(GAME_TUNING.boss.kingScale);
+    expect(bosses[0].bossBaseThetaRad).not.toBe(bosses[1].bossBaseThetaRad);
+  });
+
+  it('doubles EX boss HP in 2P coop', () => {
+    const engine = new BeerCrusherEngine();
+    engine.exRng = makeSeededRng(12);
+    engine.startGame({ withWeaponSelect: false, playerCount: 2 });
+    let t = clearWave7ToEnterEx(engine);
+
+    for (let i = 0; i < 60; i += 1) {
+      t += 1000;
+      engine.update(t, 1.0);
+      engine.activeTargets = engine.activeTargets.filter((x) => x.kind === 'boss');
+    }
+
+    const bosses = engine.activeTargets.filter((x) => x.kind === 'boss');
+    expect(bosses).toHaveLength(1);
+    expect(bosses[0].hp).toBe(300);
+  });
+
+  it('kills EX boss without clear sequence, without clearing monsters, without healing lives, and awards score', () => {
+    const engine = new BeerCrusherEngine();
+    engine.exRng = makeSeededRng(13);
+    engine.startGame({ withWeaponSelect: false });
+    let t = clearWave7ToEnterEx(engine);
+
+    for (let i = 0; i < 60; i += 1) {
+      t += 1000;
+      engine.update(t, 1.0);
+      engine.lives = 5;
+      // 일반 몬스터는 방어선 도달 방지용으로 거리 유지
+      for (const m of engine.activeTargets) {
+        if (m.kind !== 'boss' && !m.isProjectile) m.radiusM = 18;
+      }
+    }
+
+    const boss = engine.activeTargets.find((x) => x.kind === 'boss')!;
+    expect(boss).toBeDefined();
+    expect(engine.activeTargets.some((x) => x.kind !== 'boss' && !x.isProjectile && !x.isItem)).toBe(true);
+
+    engine.lives = 3;
+    const scoreBefore = engine.getPlayer(0).scoreManager.getState().totalScore;
+    boss.hp = 0.01;
+    const proj = engine.computeTargetAimCoords(boss);
+    t += 500;
+    const shot = engine.shootAt(proj.targetNormX, proj.targetNormY, t, 'press');
+
+    expect(shot.fired).toBe(true);
+    expect(shot.killed).toBe(true);
+    expect(engine.isBossClearSequence()).toBe(false);
+    expect(engine.lives).toBe(3);
+    expect(engine.getPlayer(0).scoreManager.getState().totalScore).toBeGreaterThan(scoreBefore);
+    expect(engine.activeTargets.some((x) => x.kind !== 'boss' && !x.isProjectile && !x.isItem)).toBe(true);
+    expect(engine.activeTargets.some((x) => x.isSummonedMinion)).toBe(false);
+  });
+
+  it('never summons boss minions while EX boss takes damage and stays alive', () => {
+    const engine = new BeerCrusherEngine();
+    engine.exRng = makeSeededRng(14);
+    engine.startGame({ withWeaponSelect: false });
+    let t = clearWave7ToEnterEx(engine);
+
+    for (let i = 0; i < 60; i += 1) {
+      t += 1000;
+      engine.update(t, 1.0);
+      engine.lives = 5;
+      for (const m of engine.activeTargets) {
+        if (m.kind !== 'boss' && !m.isProjectile) m.radiusM = 18;
+      }
+    }
+
+    const boss = engine.activeTargets.find((x) => x.kind === 'boss')!;
+    boss.hp = boss.maxHp * 0.2;
+    t += 50;
+    engine.update(t, 0.05);
+    expect(engine.activeTargets.some((x) => x.isSummonedMinion)).toBe(false);
   });
 });

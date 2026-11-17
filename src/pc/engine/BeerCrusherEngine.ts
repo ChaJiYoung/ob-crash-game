@@ -25,6 +25,8 @@ import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
 import { GAME_TUNING, EngineMode, ExRushTheme, ModeRules, PlayerCountRules } from '../../shared/gameTuning';
 import {
   buildExRushQueue,
+  getExBossDueCount,
+  getExBossSpec,
   getExDanger,
   getExFieldCap,
   getExHpMult,
@@ -336,6 +338,7 @@ export class BeerCrusherEngine {
   public exRushTheme: ExRushTheme | null = null;
   private exRushQueue: TargetKind[] = [];
   private exRushSpawned = 0;
+  private exBossCount = 0;
   /** 테스트에서 고정할 수 있는 EX 난수. */
   public exRng: () => number = () => Math.random();
 
@@ -575,6 +578,7 @@ export class BeerCrusherEngine {
     this.exRushTheme = null;
     this.exRushQueue = [];
     this.exRushSpawned = 0;
+    this.exBossCount = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
@@ -1631,17 +1635,7 @@ export class BeerCrusherEngine {
     }
 
     // Periodic projectile spawn from the boss
-    const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
-    if (hasBossShooter && nowMs - this.lastBossProjectileMs >= this.getBossShellIntervalMs(nowMs) && this.countFieldMonsters() < waveDef.maxSimultaneous + 2) {
-      // Living coolers fire in turns from their own position; the king fires only if no cooler is left
-      const bosses = this.getBossEntities();
-      const coolers = bosses.filter((b) => b.bossRole !== 'king');
-      const shooters = coolers.length > 0 ? coolers : bosses;
-      const shooter = shooters[this.bossShooterIndex % shooters.length];
-      this.bossShooterIndex += 1;
-      this.lastBossProjectileMs = nowMs;
-      this.spawnMonsterProjectile(nowMs, 'boss', { thetaRad: shooter.thetaRad, radiusM: shooter.radiusM });
-    }
+    this.updateBossShells(nowMs, waveDef.maxSimultaneous + 2);
 
     // Boss encounter: minions drop in when a boss crosses an HP threshold (not on a timer)
     if (this.isBossEncounterActive) this.checkBossHpSummons(nowMs);
@@ -1763,6 +1757,30 @@ export class BeerCrusherEngine {
       this.spawnMonsterOfKind(this.exRushQueue[this.exRushSpawned], nowMs, hpMult, speedMult);
       this.exRushSpawned += 1;
     }
+
+    while (this.exBossCount < getExBossDueCount(this.exElapsedMs)) {
+      this.spawnExBoss(nowMs);
+    }
+    this.updateBossShells(nowMs, null);
+  }
+
+  /** fieldCap이 null이면 필드 수 제한 없이 간격마다 쏜다(EX). */
+  private updateBossShells(nowMs: number, fieldCap: number | null): void {
+    const hasBossShooter = this.activeTargets.some((t) => t.kind === 'boss');
+    if (
+      hasBossShooter &&
+      nowMs - this.lastBossProjectileMs >= this.getBossShellIntervalMs(nowMs) &&
+      (fieldCap === null || this.countFieldMonsters() < fieldCap)
+    ) {
+      // Living coolers fire in turns from their own position; the king fires only if no cooler is left
+      const bosses = this.getBossEntities();
+      const coolers = bosses.filter((b) => b.bossRole !== 'king');
+      const shooters = coolers.length > 0 ? coolers : bosses;
+      const shooter = shooters[this.bossShooterIndex % shooters.length];
+      this.bossShooterIndex += 1;
+      this.lastBossProjectileMs = nowMs;
+      this.spawnMonsterProjectile(nowMs, 'boss', { thetaRad: shooter.thetaRad, radiusM: shooter.radiusM });
+    }
   }
 
   /** 종류별 개체 특성(오비 방패 위상, 큰 병 크기). 웨이브 몬스터와 보스 소환 부하에 쓴다. */
@@ -1849,6 +1867,53 @@ export class BeerCrusherEngine {
     return 1 + GAME_TUNING.speedPerWave * (this.currentWave - 1);
   }
 
+  private makeBossEntity(role: 'cooler' | 'king', hp: number, theta: number): ActiveTargetEntity {
+    const spec = TARGET_SPECS.boss;
+    const isKing = role === 'king';
+    const kingScale = GAME_TUNING.boss.kingScale;
+    this.targetCounter += 1;
+    const radius = GAME_TUNING.boss.startRadiusM;
+    const entity: ActiveTargetEntity = {
+      id: `boss_${this.targetCounter}`,
+      kind: 'boss',
+      hp,
+      maxHp: hp,
+      radiusM: radius,
+      thetaRad: theta,
+      initialThetaRad: theta,
+      bossBaseThetaRad: theta,
+      bossRole: role,
+      x: Math.sin(theta) * radius,
+      z: -Math.cos(theta) * radius,
+      speedMps: spec.speedMps,
+      hitRadiusM: isKing ? spec.hitRadiusM * kingScale : spec.hitRadiusM,
+      killBonusScore: spec.killBonusScore,
+      breached: false,
+    };
+    if (isKing) {
+      entity.modelScaleMult = kingScale;
+      // The model scales around its center, so lift it to stand on the floor (the hit center follows).
+      entity.customBaseY = getTargetBaseY('boss', false) * kingScale;
+    }
+    return entity;
+  }
+
+  private spawnExBoss(nowMs: number): void {
+    this.exBossCount += 1;
+    const { role, hp } = getExBossSpec(this.exBossCount);
+    const scaledHp = Number((hp * this.rules.bossHpMult).toFixed(3));
+    const s = GAME_TUNING.boss.coolerSpreadRad;
+    const candidates = [0, -s, s, -2 * s, 2 * s];
+    const existing = this.getBossEntities().map((b) => b.bossBaseThetaRad ?? b.thetaRad);
+    const theta = candidates.find((c) => existing.every((e) => Math.abs(c - e) >= s / 2)) ?? 0;
+
+    this.activeTargets.push(this.makeBossEntity(role, scaledHp, theta));
+    this.bossWarningUntilMs = nowMs + GAME_TUNING.boss.warningMs;
+    this.bossEncounterStartMs = nowMs;
+    this.lastBossProjectileMs = nowMs;
+    this.bossShooterIndex = 0;
+  }
+
   /** 일반 몬스터를 encounterStartRatio만큼 소환하면 냉각기(들)와 필요하면 대왕을 좌우로 벌려 등장시킨다. */
   private spawnBossEncounter(nowMs: number): void {
     const waveDef = this.waveDefinitions[this.currentWave];
@@ -1861,50 +1926,18 @@ export class BeerCrusherEngine {
     this.lastBossProjectileMs = nowMs;
     this.bossEncounterStartMs = nowMs;
 
-    const spec = TARGET_SPECS.boss;
     const { coolerHp, kingHp } = waveDef.boss;
     const spread = GAME_TUNING.boss.coolerSpreadRad;
     const thetas =
       coolerHp.length === 1 ? [0] : coolerHp.map((_, i) => (i === 0 ? -spread : spread));
 
-    const make = (
-      role: 'cooler' | 'king',
-      hp: number,
-      theta: number,
-      hitRadiusM: number
-    ): ActiveTargetEntity => {
-      this.targetCounter += 1;
-      const radius = GAME_TUNING.boss.startRadiusM;
-      return {
-        id: `boss_${this.targetCounter}`,
-        kind: 'boss',
-        hp,
-        maxHp: hp,
-        radiusM: radius,
-        thetaRad: theta,
-        initialThetaRad: theta,
-        bossBaseThetaRad: theta,
-        bossRole: role,
-        x: Math.sin(theta) * radius,
-        z: -Math.cos(theta) * radius,
-        speedMps: spec.speedMps,
-        hitRadiusM,
-        killBonusScore: spec.killBonusScore,
-        breached: false,
-      };
-    };
-
     coolerHp.forEach((hp, i) => {
       const scaledHp = Number((hp * this.rules.bossHpMult).toFixed(3));
-      this.activeTargets.push(make('cooler', scaledHp, thetas[i], spec.hitRadiusM));
+      this.activeTargets.push(this.makeBossEntity('cooler', scaledHp, thetas[i]));
     });
     if (kingHp !== null) {
       const scaledKingHp = Number((kingHp * this.rules.bossHpMult).toFixed(3));
-      const king = make('king', scaledKingHp, 0, spec.hitRadiusM * GAME_TUNING.boss.kingScale);
-      king.modelScaleMult = GAME_TUNING.boss.kingScale;
-      // The model scales around its center, so lift it to stand on the floor (the hit center follows).
-      king.customBaseY = getTargetBaseY('boss', false) * GAME_TUNING.boss.kingScale;
-      this.activeTargets.push(king);
+      this.activeTargets.push(this.makeBossEntity('king', scaledKingHp, 0));
     }
     this.lastSpawnTimeMs = nowMs;
   }
@@ -1969,6 +2002,7 @@ export class BeerCrusherEngine {
     }
 
     if (target.kind === 'boss') {
+      if (this.isExActive) return; // EX: 클리어 연출·필드 정리 없음. 점수는 사격 처리에서 이미 들어감
       if (this.getBossEntities().length > 0) return; // other bosses remain
       this.startBossClearSequence(target, nowMs);
       return;
@@ -2390,6 +2424,7 @@ export class BeerCrusherEngine {
     this.exRushTheme = null;
     this.exRushQueue = [];
     this.exRushSpawned = 0;
+    this.exBossCount = 0;
     this.activeTargets = [];
     this.isBossEncounterActive = false;
     this.isRewardCardPending = false;

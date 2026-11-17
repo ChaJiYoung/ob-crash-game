@@ -258,6 +258,15 @@ export const GAME_TUNING = {
       blast: { kind: 'hanmac', labelKo: '연쇄폭발' },
       split: { kind: 'bottle', labelKo: '분열' },
     },
+    boss: {
+      /** EX 게임 시계 기준 난입 간격. */
+      intervalMs: 60000,
+      /** n번째(1부터) 난입: 홀수 = 소형(cooler), 짝수 = 대형(king). */
+      coolerHp: 150,
+      kingHp: 250,
+      /** 난입할 때마다 HP ×(1 + 0.1). n번째 = 기준 × hpGrowth^(n-1). */
+      hpGrowth: 1.1,
+    },
   },
   breachRespawnRadiusM: 16,
   /** 모드별 규칙(D31). 엔진은 모드를 묻지 않고 이 값만 읽는다. */

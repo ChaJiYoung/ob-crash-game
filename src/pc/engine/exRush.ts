@@ -79,3 +79,20 @@ export function buildExRushQueue(theme: ExRushTheme, quota: number, rng: () => n
   }
   return queue;
 }
+
+/** 지금까지 나왔어야 할 보스 수 = floor(elapsedMs / intervalMs). 0~59999ms는 0. */
+export function getExBossDueCount(elapsedMs: number): number {
+  return Math.floor(Math.max(0, elapsedMs) / GAME_TUNING.exRush.boss.intervalMs);
+}
+
+/** n(1부터) → 역할과 기본 HP(인원 배율 전). Number(x.toFixed(3)). */
+export function getExBossSpec(n: number): { role: 'cooler' | 'king'; hp: number } {
+  const idx = Math.max(1, Math.floor(n));
+  const { coolerHp, kingHp, hpGrowth } = GAME_TUNING.exRush.boss;
+  const role: 'cooler' | 'king' = idx % 2 === 1 ? 'cooler' : 'king';
+  const baseHp = role === 'cooler' ? coolerHp : kingHp;
+  return {
+    role,
+    hp: Number((baseHp * Math.pow(hpGrowth, idx - 1)).toFixed(3)),
+  };
+}
