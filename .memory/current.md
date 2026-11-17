@@ -1,16 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Lobby Compact Layout & Weapon-Filtered Top 10 Ranking](./plans/2026-11-17-lobby-compact-weapon-ranking.md)
+[Debug Mode](./plans/2026-11-17-debug-mode.md)
 
 ## Active Phase
-[P02 Frontend Lobby & Ranking UI](./phases/2026-11-17-lobby-compact-weapon-ranking/P02-frontend-lobby-ranking-ui/phase.md)
+[P02 Engine Debug Play](./phases/2026-11-17-debug-mode/P02-engine-debug-play/phase.md)
 
 ## Active Task
-- 모든 Task 완료 (`done: 3/3`)
+[T01 Engine Invincible and Debug Start](./phases/2026-11-17-debug-mode/P02-engine-debug-play/T01-engine-invincible-and-debug-start.md)
 
 ## Status
-- P01-T01, P02-T01, P02-T02 모두 완료 및 검증·빌드 통과
+- P01 완료(T01 fb4488f, T02 커밋됨)
 
 ## Next Step (IMPORTANT)
-없음 (전체 구현 완료)
+T01 청사진을 읽고 `src/pc/engine/BeerCrusherEngine.ts`에 무적·디버그 시작·DANGER 피격 집계 구현

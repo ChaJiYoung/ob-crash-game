@@ -660,6 +660,13 @@ export async function createBeerCrusherServer(options?: {
             break;
           }
 
+          case 'DEBUG_RECORDS_REQUEST': {
+            const session = requireHost(ws, msg.roomId);
+            if (!session) return;
+            sendJson(ws, { type: 'DEBUG_RECORDS', roomId: session.roomId, runs: playRecordStore.getRecentDebugRuns(10) });
+            break;
+          }
+
           case 'GAME_ABANDON': {
             const session = requireHost(ws, msg.roomId);
             if (!session) return;

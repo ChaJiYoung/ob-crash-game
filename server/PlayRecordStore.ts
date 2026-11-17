@@ -1,6 +1,7 @@
 import { GameDatabase } from './db/GameDatabase';
-import { CardPickRecord, DebugStartConfig, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind, WeaponRankingsMap } from '../src/shared/types';
+import { CardPickRecord, DebugRunEntry, DebugStartConfig, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind, WeaponRankingsMap } from '../src/shared/types';
 import { GAME_TUNING, RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
+import { STAGE_CONSTANTS } from '../src/shared/constants';
 
 export interface BeginGameInput {
   /** 대문자 정규화된 값(RoomSession.roomId) */
@@ -63,6 +64,11 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   if (!s.waves.every((w: any) => w && isCount(w.wave) && isCount(w.seconds) && isCount(w.bonus) && (w.damageTaken === undefined || isCount(w.damageTaken)))) return false;
   // game_waves UNIQUE(game_id, wave_num)
   if (new Set(s.waves.map((w: any) => w.wave)).size !== s.waves.length) return false;
+  if (s.exDangers !== undefined) {
+    if (!Array.isArray(s.exDangers) || s.exDangers.length > 50) return false;
+    if (!s.exDangers.every((e: any) => e && isCount(e.danger) && e.danger >= 1 && Number.isInteger(e.danger) && isCount(e.damageTaken))) return false;
+    if (new Set(s.exDangers.map((e: any) => e.danger)).size !== s.exDangers.length) return false;
+  }
 
   if (s.inputKind !== undefined && !INPUTS.includes(s.inputKind)) return false;
   if (s.cardPicks !== undefined) {
@@ -315,6 +321,14 @@ export class PlayRecordStore {
           }
           finishedGame = true;
         }
+        // EX DANGER 피격: 체크포인트(첫 제출)와 EX 최종 갱신 모두에서 덮어쓴다.
+        const upsertDanger = conn.prepare(
+          `INSERT INTO game_waves (game_id, wave_num, seconds, bonus, damage_taken) VALUES (@gameId, @wave, 0, 0, @damageTaken)
+           ON CONFLICT(game_id, wave_num) DO UPDATE SET damage_taken = excluded.damage_taken`,
+        );
+        for (const e of stats.exDangers ?? []) {
+          upsertDanger.run({ gameId, wave: STAGE_CONSTANTS.TOTAL_WAVES + e.danger, damageTaken: e.damageTaken });
+        }
       }
       return { ok: true, finishedGame };
     });
@@ -349,6 +363,47 @@ export class PlayRecordStore {
       ...(r.input_kind ? { inputKind: r.input_kind } : {}),
       ...(r.outcome ? { outcome: r.outcome } : {}),
     }));
+  }
+
+  /** 최근 끝난 디버그 판(버전 무관, 최신 순). */
+  public getRecentDebugRuns(limit = 10): DebugRunEntry[] {
+    const conn = this.db.conn;
+    const games = conn
+      .prepare(
+        `SELECT id, mode, ended_at, outcome, total_score, wave_reached, debug_config FROM games
+         WHERE is_debug = 1 AND status = 'finished' ORDER BY ended_at DESC, id DESC LIMIT @limit`,
+      )
+      .all({ limit }) as {
+        id: number; mode: PlayMode; ended_at: string; outcome: RunOutcome; total_score: number; wave_reached: number; debug_config: string | null;
+      }[];
+    const memberStmt = conn.prepare(
+      `SELECT gp.slot, p.nickname, gp.weapon_kind, gp.score, gp.damage_taken
+       FROM game_players gp JOIN players p ON p.id = gp.player_id WHERE gp.game_id = ? ORDER BY gp.slot`,
+    );
+    const waveStmt = conn.prepare(`SELECT wave_num, damage_taken FROM game_waves WHERE game_id = ? ORDER BY wave_num`);
+    return games.map((g) => {
+      const members = memberStmt.all(g.id) as { slot: PlayerSlot; nickname: string; weapon_kind: WeaponKind | null; score: number | null; damage_taken: number | null }[];
+      const waves = waveStmt.all(g.id) as { wave_num: number; damage_taken: number | null }[];
+      let config: DebugStartConfig | null = null;
+      try {
+        const parsed = g.debug_config ? JSON.parse(g.debug_config) : null;
+        config = isValidDebugStartConfig(parsed) ? parsed : null;
+      } catch {
+        config = null;
+      }
+      return {
+        gameId: g.id,
+        mode: g.mode,
+        endedAt: g.ended_at,
+        outcome: g.outcome,
+        totalScore: g.total_score,
+        waveReached: g.wave_reached,
+        damageTaken: Math.max(0, ...members.map((m) => m.damage_taken ?? 0)),
+        config,
+        waves: waves.map((w) => ({ wave: w.wave_num, damageTaken: w.damage_taken })),
+        members: members.map((m) => ({ slot: m.slot, nickname: m.nickname, weaponKind: m.weapon_kind, score: m.score })),
+      };
+    });
   }
 
   public getTopRunsByWeapon(limit = 10): WeaponRankingsMap {

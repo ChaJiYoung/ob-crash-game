@@ -184,6 +184,8 @@ export interface PlayRunStats {
   healedLives?: number;
   itemsCollected?: number;
   waves: { wave: number; seconds: number; bonus: number; damageTaken?: number }[];
+  /** EX DANGER별 피격 수. EX에 들어간 판에만 있다. */
+  exDangers?: { danger: number; damageTaken: number }[];
   shots: { PERFECT: number; GREAT: number; GOOD: number; MISS: number };
   /** 0..1 */
   accuracy: number;
@@ -222,6 +224,24 @@ export interface TeamRankingMember {
   score?: number;
   weaponKind?: WeaponKind;
   inputKind?: InputKind;
+}
+
+/** 로비 디버그 패널 [최근 기록] 한 줄. */
+export interface DebugRunEntry {
+  gameId: number;
+  mode: PlayMode;
+  endedAt: string;
+  outcome: RunOutcome;
+  totalScore: number;
+  /** 8 이상이면 EX DANGER (waveReached - 7). */
+  waveReached: number;
+  /** game_players.damage_taken의 MAX(협동은 공유 목숨이라 같은 값). */
+  damageTaken: number;
+  /** debug_config JSON. 파싱 실패 시 null. */
+  config: DebugStartConfig | null;
+  /** wave_num 오름차순(8 이상은 EX DANGER). */
+  waves: { wave: number; damageTaken: number | null }[];
+  members: { slot: PlayerSlot; nickname: string; weaponKind: WeaponKind | null; score: number | null }[];
 }
 
 export interface TeamRankingEntry {
@@ -305,6 +325,8 @@ export type ClientToServerMessage =
   | { type: 'WEAPON_CHOSEN'; roomId: string; gameId: number; slot: PlayerSlot; weaponKind: WeaponKind }
   /** 일시정지 메뉴의 "로비로"/"다시시작". */
   | { type: 'GAME_ABANDON'; roomId: string; gameId: number }
+  /** 디버그 패널 [최근 기록]. 호스트만. */
+  | { type: 'DEBUG_RECORDS_REQUEST'; roomId: string }
   /** rulesetVersion: 클라이언트 빌드의 RANKING_RULESET_VERSION. 서버와 다르면 점수를 기록하지 않는다(옛 빌드가 새 랭킹을 오염시키지 않게). */
   | { type: 'GAME_SCORE_SUBMIT'; roomId: string; deviceId: string; gameId: number; score: number; waveReached: number; maxCombo: number; stats?: PlayRunStats; rulesetVersion: number; mode?: PlayMode; isExUpdate?: boolean }
   | { type: 'REGISTER_LOCAL_PLAYER'; roomId: string; deviceId: string; nickname: string; slot: PlayerSlot }
@@ -327,6 +349,7 @@ export type ServerToClientMessage =
   /** 조회한 deviceId가 등록되지 않았다. PC는 닉네임 입력 폼을 보여준다. */
   | { type: 'LOCAL_PLAYER_UNKNOWN'; roomId: string; slot: PlayerSlot }
   | { type: 'GAME_STARTED'; roomId: string; beginId: string; gameId: number }
+  | { type: 'DEBUG_RECORDS'; roomId: string; runs: DebugRunEntry[] }
   | { type: 'GAME_START_RELAY'; roomId: string; deviceId: string; slot: PlayerSlot }
   | { type: 'SENSOR_RELAY'; roomId: string; deviceId: string; payload: SensorFramePayload; slot: PlayerSlot }
   | { type: 'FEVER_STATUS_RELAY'; roomId: string; isFeverReady: boolean }

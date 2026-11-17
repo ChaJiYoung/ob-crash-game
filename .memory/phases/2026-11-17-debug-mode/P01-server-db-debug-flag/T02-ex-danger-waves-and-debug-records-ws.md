@@ -1,6 +1,6 @@
 # Task: T02 EX Danger Waves and Debug Records WS
 
-## Status: pending
+## Status: done
 
 ## Goal
 EX DANGER별 피격 수를 `game_waves`에 저장하고(일반 판 포함), PC 로비가 최근 디버그 판 10개를 WS로 받아 볼 수 있게 한다.
@@ -76,8 +76,8 @@ EX DANGER별 피격 수를 `game_waves`에 저장하고(일반 판 포함), PC �
 - `getRecentDebugRuns`: 디버그 판 12개 + 일반 판 1개 → 10개, 최신 순, 일반 판 없음, config 파싱, members·waves 포함. 깨진 debug_config → `config: null`.
 
 ## Acceptance Criteria
-- [ ] EX 체크포인트와 EX 최종 갱신 모두에서 DANGER별 피격이 `game_waves`(8 이상)에 반영된다.
-- [ ] 호스트가 `DEBUG_RECORDS_REQUEST`를 보내면 최근 디버그 판 10개가 `DEBUG_RECORDS`로 온다.
+- [x] EX 체크포인트와 EX 최종 갱신 모두에서 DANGER별 피격이 `game_waves`(8 이상)에 반영된다.
+- [x] 호스트가 `DEBUG_RECORDS_REQUEST`를 보내면 최근 디버그 판 10개가 `DEBUG_RECORDS`로 온다.
 
 ## Validation
 - `npx vitest run tests/debug-records.test.ts tests/play-records.test.ts tests/play-run-stats.test.ts tests/shared-protocol.test.ts` — 모두 통과
@@ -97,6 +97,6 @@ Task: T02-ex-danger-waves-and-debug-records-ws
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending
