@@ -7,7 +7,7 @@
 [P02 EX 화면과 결과](./phases/2026-11-17-ex-endless-waves/P02-ex-ui-and-result/phase.md)
 
 ## Active Task
-[T02 EX 결과 화면·랭킹 표기와 최종 QA](./phases/2026-11-17-ex-endless-waves/P02-ex-ui-and-result/T02-ex-result-and-qa.md)
+없음 — [EX 무한 러시](./plans/2026-11-17-ex-endless-waves.md) P01·P02 전체 완료
 
 ## Status
 - P01(T01·T02·T03) 완료 (`ce169fc`, `0dcc64f`, `85a3ffa`, 리뷰 반영 `3b9ed54`)

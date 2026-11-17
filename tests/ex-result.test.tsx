@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ResultRankingModal } from '../src/pc/components/ResultRankingModal';
@@ -54,5 +55,12 @@ describe('EX result modal and ranking wave label (P02-T02)', () => {
 
     const deadHtml = renderToStaticMarkup(<WaveLabel waveReached={4} outcome="GAMEOVER" />);
     expect(deadHtml).toContain('W4');
+  });
+
+  it('preserves pre-run bestScore in PCGamePage so EX checkpoint does not hide NEW RECORD', () => {
+    const src = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
+    expect(src).toContain('preRunBestScoreRef.current = pairedPlayerRef.current?.bestScore ?? 0');
+    expect(src).toContain('const baseBest = preRunBestScoreRef.current ?? (curP.bestScore || 0)');
+    expect(src).toContain('setIsNewRecord(up.bestScore > baseBest)');
   });
 });

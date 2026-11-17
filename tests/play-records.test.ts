@@ -261,6 +261,12 @@ describe('play records (DB)', () => {
         wave_reached: 10,
         total_score: 11000,
       });
+      expect(row(env, 'SELECT score FROM game_players WHERE game_id = ? AND player_id = ?', coopId, 'c1')).toEqual({ score: 6000 });
+      expect(row(env, 'SELECT score FROM game_players WHERE game_id = ? AND player_id = ?', coopId, 'c2')).toEqual({ score: 5000 });
+
+      // 협동에서도 점수·단계 하락 갱신 거절
+      expect(env.records.submitResult({ gameId: coopId, roomId: 'COOP1', playerId: 'c1', submittedAt: 't3', stats: mkCoop(1, 5500, 5000, 10), isExUpdate: true })).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
+      expect(env.records.submitResult({ gameId: coopId, roomId: 'COOP1', playerId: 'c2', submittedAt: 't3', stats: mkCoop(2, 5000, 6000, 9), isExUpdate: true })).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
     });
   });
 

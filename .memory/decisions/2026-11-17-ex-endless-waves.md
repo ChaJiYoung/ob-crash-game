@@ -74,8 +74,7 @@
 - 서버 점수 제출 검증에 웨이브나 점수 상한이 있는지 확인이 필요하다.
 - 본편 W7 2인에서 이미 버벅임이 보고됨(별건). EX 2인은 상한이 없어 더 무거울 수 있으므로 플레이테스트로 프레임을 확인한다.
 
-
 ## D12. EX 도중 이탈 시 클리어 기록 보호(체크포인트 + 최종 갱신)
 - **Chosen**: EX 진입 직후(`mainCleared === true`) 서버에 `outcome: 'VICTORY'`, `waveReached: 8` 체크포인트를 즉시 저장하고, EX 종료(`GAMEOVER`) 또는 일시정지 이탈·`pagehide`(`!e.persisted`) 시 `isExUpdate: true`로 최종 점수·단계를 갱신한다. 서버(`PlayRecordStore.submitResult`)는 기존 `games.wave_reached >= 8`인 `VICTORY` 기록에 한해 점수·`waveReached` 비감소 조건으로 갱신을 허용한다.
 - **Rationale**: D02("본편 클리어 기록은 지킨다")를 브라우저 강제 종료·네트워크 단절 상황에서도 보장하기 위함.
-- **Accepted limits**: EX 진입 후 강제 종료/단절 시 W7 체크포인트 이후의 EX 추가 점수는 유실될 수 있음. 포탄 램프(R2)는 첫 보스 난입 이후 계속 유지됨.
+- **Accepted limits**: EX 진입 후 강제 종료/단절 시 W7 체크포인트 이후의 EX 추가 점수는 유실될 수 있음(WS가 닫혀 있으면 `GAME_ABANDON`도 전송되지 않고 방 정리에 의존). 값을 올리는 방향의 `isExUpdate` 횟수 제한은 없음(점수 자체가 클라이언트 신뢰 기반). 협동 최종 갱신 시 `games` 행은 마지막 제출자의 값으로 덮임. 포탄 램프(R2)는 첫 보스 난입 이후 계속 유지됨.

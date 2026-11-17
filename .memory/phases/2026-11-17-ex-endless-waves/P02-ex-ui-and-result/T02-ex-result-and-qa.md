@@ -43,7 +43,7 @@ EX에서 죽은 판이 결과 화면에서 "패배"가 아니라 `CLEAR · DANGE
 
 #### Details
 - 기존 VICTORY 저장 테스트(약 36행)와 같은 픽스처로 `outcome: 'VICTORY', waveReached: 10` 판을 저장하고 `games.wave_reached === 10`, `outcome === 'VICTORY'`, 랭킹 조회(`getTopTeams` 또는 개인 랭킹 조회 함수)에 그 판이 점수 순으로 들어가는지 확인한다.
-- 서버 코드는 바꾸지 않는다. 테스트가 실패하면 원인을 보고하고 멈춘다(계획 밖 변경 금지).
+- EX 체크포인트·최종 갱신(`isExUpdate`) 검증은 아래 I07 및 D12를 따른다.
 
 ### I04. 렌더 테스트
 
@@ -77,6 +77,16 @@ EX에서 죽은 판이 결과 화면에서 "패배"가 아니라 `CLEAR · DANGE
 - 찰랑 HP 표기 `(3HP)`도 `(${TARGET_SPECS.chalang.maxHp}HP)`로 상수화(이미 import되어 있지 않으면 `src/shared/constants`에서 import).
 - 보스 tip 마지막 문장 "7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다." → "7웨이브는 냉각기와 대왕을 모두 잡으면 클리어! 이어서 EX 무한 러시가 시작됩니다."
 - `tests/docs-sync.test.ts`의 `FORBIDDEN`에 추가: `{ pattern: /세 번째 등장/, why: '찰랑 급발진 횟수는 rushAfterAppearances를 따른다' }`, `{ pattern: /모두 잡아야 승리/, why: '7웨이브 클리어 후 EX 무한 러시로 이어진다' }`.
+
+### I07. EX 이탈 시 클리어 기록 보호 (D12)
+
+- Related Files:
+  - `src/shared/types.ts`, `src/pc/scoreSubmission.ts`, `src/pc/engine/BeerCrusherEngine.ts`, `src/pc/PCGamePage.tsx`, `server/PlayRecordStore.ts`, `server/wsServer.ts`; modify
+
+#### Details
+- EX 진입 직후(`mainCleared === true` & WS OPEN) 1차 체크포인트(`outcome: 'VICTORY', waveReached: 8`)를 저장하고, EX 종료·일시정지 이탈·`pagehide`(`!e.persisted`) 시 `isExUpdate: true`로 최종 점수·단계를 갱신한다.
+- 서버는 기존 `games.wave_reached >= 8`인 `VICTORY` 기록에 한해 점수·`waveReached` 비감소 조건으로 갱신을 허용하고, 그 외 중복 제출은 `ALREADY_SUBMITTED`로 거절한다.
+- `PCGamePage`는 `preRunBestScoreRef`에 시작 전 최고점을 보존해 체크포인트 응답이 `isNewRecord` 비교 기준을 오염시키지 않게 한다.
 
 ## Acceptance Criteria
 - [x] EX에서 죽으면 결과 화면이 금색 `CLEAR! · DANGER n 도달`로 나온다.
