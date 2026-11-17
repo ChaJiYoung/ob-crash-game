@@ -1,7 +1,7 @@
 import { GameDatabase } from '../../server/db/GameDatabase';
 import { PlayerStore } from '../../server/PlayerStore';
 import { PlayRecordStore } from '../../server/PlayRecordStore';
-import type { PlayRunStats, PlayerSlot } from '../../src/shared/types';
+import type { DebugStartConfig, PlayRunStats, PlayerSlot } from '../../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../../src/shared/gameTuning';
 
 export interface Env {
@@ -59,7 +59,7 @@ const iso = (n: number) => new Date(Date.UTC(2026, 10, 8, 0, 0, n)).toISOString(
 /** 솔로 판을 만들고 제출까지 끝낸다. at(초)이 ended_at이 된다. */
 export function playSolo(
   env: Env,
-  o: { playerId: string; score: number; at?: number; roomId?: string; rv?: number; over?: Partial<PlayRunStats>; submit?: boolean },
+  o: { playerId: string; score: number; at?: number; roomId?: string; rv?: number; over?: Partial<PlayRunStats>; submit?: boolean; debug?: DebugStartConfig },
 ): number {
   const at = o.at ?? ++seq;
   const gameId = env.records.beginGame({
@@ -68,6 +68,7 @@ export function playSolo(
     rulesetVersion: o.rv ?? RANKING_RULESET_VERSION,
     startedAt: iso(at),
     players: [{ slot: 1, playerId: o.playerId, inputKind: null }],
+    debug: o.debug,
   });
   if (o.submit !== false) {
     const res = env.records.submitResult({
@@ -82,7 +83,7 @@ export function playSolo(
 /** 협동 판(slot1=a, slot2=b)을 만들고 둘 다 제출한다. teamScore는 두 점수의 합이 아니어도 된다. */
 export function playCoop(
   env: Env,
-  o: { a: string; b: string; teamScore: number; scoreA?: number; scoreB?: number; at?: number; roomId?: string; rv?: number; submitB?: boolean; outcome?: PlayRunStats['outcome'] },
+  o: { a: string; b: string; teamScore: number; scoreA?: number; scoreB?: number; at?: number; roomId?: string; rv?: number; submitB?: boolean; outcome?: PlayRunStats['outcome']; debug?: DebugStartConfig },
 ): number {
   const at = o.at ?? ++seq;
   const roomId = o.roomId ?? `R${++seq}`;
@@ -97,6 +98,7 @@ export function playCoop(
       { slot: 1, playerId: o.a, inputKind: null },
       { slot: 2, playerId: o.b, inputKind: null },
     ],
+    debug: o.debug,
   });
   const nick = (id: string) => `닉_${id}`.slice(0, 10);
   const r1 = env.records.submitResult({
@@ -113,3 +115,11 @@ export function playCoop(
   }
   return gameId;
 }
+
+/** 디버그 판 시작 조건 예시. */
+export const debugCfg = (over: Partial<DebugStartConfig> = {}): DebugStartConfig => ({
+  startAt: 'W6',
+  weaponLevel: 3,
+  cards: { damage_up: 2, skill_cooldown: 2, fever_extend: 2, hit_zone_up: 1, rapid_reload: 2, lucky_drop: 2 },
+  ...over,
+});

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import Database from 'better-sqlite3';
 import { GameDatabase } from '../server/db/GameDatabase';
 
 const now = '2026-11-08T00:00:00.000Z';
@@ -74,7 +75,7 @@ describe('GameDatabase', () => {
     ).map((r) => r.name);
     expect(indexes).toHaveLength(4);
     expect(db.conn.pragma('foreign_keys', { simple: true })).toBe(1);
-    expect(db.conn.pragma('user_version', { simple: true })).toBe(1);
+    expect(db.conn.pragma('user_version', { simple: true })).toBe(2);
   });
 
   it('finished인데 outcome이 NULL이면 거절한다', () => {
@@ -155,10 +156,44 @@ describe('GameDatabase', () => {
       first.close();
       first.close();
       const second = new GameDatabase(file);
-      expect(second.conn.pragma('user_version', { simple: true })).toBe(1);
+      expect(second.conn.pragma('user_version', { simple: true })).toBe(2);
       second.close();
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('v1 DB를 열면 is_debug·debug_config 컬럼을 추가하고 기존 판은 0이다(멱등)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gamedb-v1-'));
+    try {
+      const file = path.join(dir, 'game.db');
+      const raw = new Database(file);
+      raw.exec(`CREATE TABLE games (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, room_id TEXT NOT NULL, mode TEXT NOT NULL, player_count INTEGER NOT NULL,
+        team_key TEXT, ruleset_version INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'playing', outcome TEXT,
+        total_score INTEGER, wave_reached INTEGER, lives_left INTEGER, duration_sec REAL, started_at TEXT NOT NULL, ended_at TEXT);
+        INSERT INTO games (room_id, mode, player_count, ruleset_version, started_at) VALUES ('R', 'solo', 1, 5, '${now}');`);
+      raw.pragma('user_version = 1');
+      raw.close();
+
+      const first = new GameDatabase(file);
+      const cols = (first.conn.prepare('PRAGMA table_info(games)').all() as { name: string }[]).map((c) => c.name);
+      expect(cols).toContain('is_debug');
+      expect(cols).toContain('debug_config');
+      expect(first.conn.prepare('SELECT is_debug, debug_config FROM games').get()).toEqual({ is_debug: 0, debug_config: null });
+      expect(first.conn.pragma('user_version', { simple: true })).toBe(2);
+      first.close();
+
+      const second = new GameDatabase(file);
+      expect(second.conn.pragma('user_version', { simple: true })).toBe(2);
+      second.close();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('새 DB에는 is_debug 컬럼이 있다', () => {
+    const cols = (db.conn.prepare('PRAGMA table_info(games)').all() as { name: string }[]).map((c) => c.name);
+    expect(cols).toEqual(expect.arrayContaining(['is_debug', 'debug_config']));
   });
 });

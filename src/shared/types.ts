@@ -5,6 +5,21 @@ export type GamePhase = 'PAIRING' | 'ZEROING' | 'PLAYING' | 'TUTORIAL' | 'SANDBO
 
 export type WeaponKind = 'shotgun' | 'revolver' | 'gatling';
 export type WeaponLevel = 1 | 2 | 3 | 4;
+
+export type DebugStartPoint = 'W1' | 'W6' | 'EX';
+/** 디버그 판 시작 조건. EX 시작은 엔진이 EX MAX 강화를 강제하므로 weaponLevel·cards는 기록용이다. */
+export interface DebugStartConfig {
+  startAt: DebugStartPoint;
+  weaponLevel: WeaponLevel;
+  cards: {
+    damage_up: number;
+    skill_cooldown: number;
+    fever_extend: number;
+    hit_zone_up: number;
+    rapid_reload: number;
+    lucky_drop: number;
+  };
+}
 export type RewardCardKind =
   | 'weapon_level_up'
   | 'rapid_reload'
@@ -286,7 +301,7 @@ export type ClientToServerMessage =
   /** 마우스 슬롯 선택 시 PC가 자기 deviceId로 기존 플레이어를 조회한다. */
   | { type: 'LOOKUP_LOCAL_PLAYER'; roomId: string; deviceId: string; slot: PlayerSlot }
   /** 무기 선택 화면이 뜨는 순간(PCGamePage.handleStartGame) PC가 보낸다. beginId는 응답을 짝짓는 PC 쪽 임의 문자열. */
-  | { type: 'GAME_BEGIN'; roomId: string; beginId: string; mode: PlayMode; players: GameBeginPlayer[] }
+  | { type: 'GAME_BEGIN'; roomId: string; beginId: string; mode: PlayMode; players: GameBeginPlayer[]; /** 있으면 디버그 판(랭킹 제외). 없으면 일반 판. */ debug?: DebugStartConfig }
   | { type: 'WEAPON_CHOSEN'; roomId: string; gameId: number; slot: PlayerSlot; weaponKind: WeaponKind }
   /** 일시정지 메뉴의 "로비로"/"다시시작". */
   | { type: 'GAME_ABANDON'; roomId: string; gameId: number }

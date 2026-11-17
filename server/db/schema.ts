@@ -1,5 +1,5 @@
 /** PRAGMA user_version에 기록한다. 이후 스키마를 바꿀 때 이 값으로 분기한다. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS players (
@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS games (
   duration_sec    REAL,
   started_at      TEXT NOT NULL,
   ended_at        TEXT,
+  is_debug        INTEGER NOT NULL DEFAULT 0 CHECK(is_debug IN (0, 1)),
+  debug_config    TEXT,
   CHECK (status <> 'finished' OR (outcome IS NOT NULL AND total_score IS NOT NULL
          AND wave_reached IS NOT NULL AND duration_sec IS NOT NULL AND ended_at IS NOT NULL)),
   CHECK ((mode = 'coop') = (team_key IS NOT NULL))
@@ -94,3 +96,12 @@ CREATE INDEX IF NOT EXISTS idx_games_team ON games(ruleset_version, team_key) WH
 CREATE INDEX IF NOT EXISTS idx_games_room_playing ON games(room_id) WHERE status = 'playing';
 CREATE INDEX IF NOT EXISTS idx_game_players_player ON game_players(player_id);
 `;
+
+/** user_version이 to보다 작은 기존 DB에 순서대로 적용한다. */
+export const MIGRATIONS: { to: number; sql: string }[] = [
+  {
+    to: 2,
+    sql: `ALTER TABLE games ADD COLUMN is_debug INTEGER NOT NULL DEFAULT 0 CHECK(is_debug IN (0, 1));
+          ALTER TABLE games ADD COLUMN debug_config TEXT;`,
+  },
+];

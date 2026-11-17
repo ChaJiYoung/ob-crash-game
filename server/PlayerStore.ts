@@ -22,9 +22,9 @@ interface CoopRow {
 
 const BEST_SCORE_SQL = `COALESCE((SELECT MAX(gp.score) FROM game_players gp JOIN games g ON g.id = gp.game_id
               WHERE gp.player_id = p.id AND g.mode = 'solo' AND g.status = 'finished'
-                AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL), 0)`;
+                AND g.ruleset_version = @rv AND g.is_debug = 0 AND gp.submitted_at IS NOT NULL), 0)`;
 const TOTAL_GAMES_SQL = `(SELECT COUNT(*) FROM game_players gp JOIN games g ON g.id = gp.game_id
-      WHERE gp.player_id = p.id AND g.status = 'finished' AND g.ruleset_version = @rv)`;
+      WHERE gp.player_id = p.id AND g.status = 'finished' AND g.ruleset_version = @rv AND g.is_debug = 0)`;
 
 export class PlayerStore {
   constructor(
@@ -62,7 +62,7 @@ export class PlayerStore {
          JOIN games g ON g.id = me.game_id
          JOIN game_players pa ON pa.game_id = g.id AND pa.player_id <> me.player_id
          JOIN players pp ON pp.id = pa.player_id
-         WHERE me.player_id = @id AND g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv
+         WHERE me.player_id = @id AND g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv AND g.is_debug = 0
          ORDER BY g.total_score DESC, g.ended_at ASC`,
       )
       .all({ id: deviceId, rv: this.rulesetVersion }) as CoopRow[];

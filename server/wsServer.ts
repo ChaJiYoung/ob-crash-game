@@ -6,7 +6,7 @@ import { RoomManager, RoomSession, normalizeSlot } from './RoomManager';
 import { GameDatabase } from './db/GameDatabase';
 import { ClientToServerMessage, GameBeginPlayer, PlayerSlot, WeaponKind, ServerToClientMessage, UnsupportedReason } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
-import { PlayRecordStore, isValidPlayRunStats } from './PlayRecordStore';
+import { PlayRecordStore, isValidDebugStartConfig, isValidPlayRunStats } from './PlayRecordStore';
 import { ControllerWatch, watchKey, parseWatchKey } from './ControllerWatch';
 import { CONTROLLER_LIFECYCLE } from '../src/shared/controllerLifecycle';
 import { ConnectionGuard, CONNECTION_GUARD_DEFAULTS, isOriginAllowed, resolveClientIp } from './ConnectionGuard';
@@ -632,6 +632,7 @@ export async function createBeerCrusherServer(options?: {
             for (const p of players) {
               if (!playerStore.findByDeviceId(p.deviceId)) return reject('Unregistered device');
             }
+            if (msg.debug !== undefined && !isValidDebugStartConfig(msg.debug)) return reject('Invalid debug config');
             for (const p of players) playerStore.touchLastSeen(p.deviceId);
             const gameId = playRecordStore.beginGame({
               roomId: session.roomId,
@@ -639,6 +640,7 @@ export async function createBeerCrusherServer(options?: {
               rulesetVersion: RANKING_RULESET_VERSION,
               startedAt: new Date().toISOString(),
               players: players.map((p) => ({ slot: p.slot, playerId: p.deviceId, inputKind: p.inputKind })),
+              debug: msg.debug,
             });
             sendJson(ws, { type: 'GAME_STARTED', roomId: session.roomId, beginId, gameId });
             break;

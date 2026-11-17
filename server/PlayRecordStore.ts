@@ -1,6 +1,6 @@
 import { GameDatabase } from './db/GameDatabase';
-import { CardPickRecord, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind, WeaponRankingsMap } from '../src/shared/types';
-import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
+import { CardPickRecord, DebugStartConfig, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind, WeaponRankingsMap } from '../src/shared/types';
+import { GAME_TUNING, RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface BeginGameInput {
   /** 대문자 정규화된 값(RoomSession.roomId) */
@@ -9,6 +9,8 @@ export interface BeginGameInput {
   rulesetVersion: number;
   startedAt: string;
   players: { slot: PlayerSlot; playerId: string; inputKind: InputKind | null }[];
+  /** 있으면 디버그 판(is_debug = 1, 랭킹 제외). */
+  debug?: DebugStartConfig;
 }
 
 export interface SubmitResultInput {
@@ -86,6 +88,28 @@ export function isValidPlayRunStats(v: unknown): v is PlayRunStats {
   return true;
 }
 
+/** GAME_BEGIN.debug 형식 검증. 값은 랭킹에서 빼는 방향으로만 쓰이므로 형식만 본다. */
+export function isValidDebugStartConfig(v: unknown): v is DebugStartConfig {
+  if (!v || typeof v !== 'object') return false;
+  const d = v as Record<string, any>;
+  if (d.startAt !== 'W1' && d.startAt !== 'W6' && d.startAt !== 'EX') return false;
+  if (!Number.isInteger(d.weaponLevel) || d.weaponLevel < 1 || d.weaponLevel > 4) return false;
+  if (!d.cards || typeof d.cards !== 'object') return false;
+  const c = GAME_TUNING.cards;
+  const limits: Record<string, number> = {
+    damage_up: c.damageUp.maxStacks,
+    skill_cooldown: c.skillCooldown.maxStacks,
+    fever_extend: c.feverExtend.maxStacks,
+    hit_zone_up: c.hitZoneUp.maxStacks,
+    rapid_reload: c.rapidReloadMaxStacks,
+    lucky_drop: c.luckyDropMaxStacks,
+  };
+  return Object.entries(limits).every(([k, max]) => {
+    const n = d.cards[k];
+    return Number.isInteger(n) && n >= 0 && n <= max;
+  });
+}
+
 /** 값이 없는 선택 필드는 키째 뺀다. */
 function compactMember(m: TeamRankingMember): TeamRankingMember {
   const out: TeamRankingMember = { deviceId: m.deviceId, nickname: m.nickname };
@@ -141,8 +165,8 @@ export class PlayRecordStore {
       const teamKey = input.mode === 'coop' ? input.players.map((p) => p.playerId).sort().join('|') : null;
       const res = conn
         .prepare(
-          `INSERT INTO games (room_id, mode, player_count, team_key, ruleset_version, status, started_at)
-           VALUES (@roomId, @mode, @playerCount, @teamKey, @rv, 'playing', @startedAt)`,
+          `INSERT INTO games (room_id, mode, player_count, team_key, ruleset_version, status, started_at, is_debug, debug_config)
+           VALUES (@roomId, @mode, @playerCount, @teamKey, @rv, 'playing', @startedAt, @isDebug, @debugConfig)`,
         )
         .run({
           roomId: input.roomId,
@@ -151,6 +175,8 @@ export class PlayRecordStore {
           teamKey,
           rv: input.rulesetVersion,
           startedAt: input.startedAt,
+          isDebug: input.debug ? 1 : 0,
+          debugConfig: input.debug ? JSON.stringify(input.debug) : null,
         });
       const gameId = Number(res.lastInsertRowid);
       const insertPlayer = conn.prepare(
@@ -305,7 +331,7 @@ export class PlayRecordStore {
            SELECT gp.player_id, p.nickname, g.total_score, g.wave_reached, g.outcome, gp.weapon_kind, g.ended_at, gp.input_kind,
                   ROW_NUMBER() OVER (PARTITION BY gp.player_id ORDER BY g.total_score DESC, g.ended_at ASC) AS rn
            FROM games g JOIN game_players gp ON gp.game_id = g.id JOIN players p ON p.id = gp.player_id
-           WHERE g.mode = 'solo' AND g.status = 'finished' AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL${weaponClause}
+           WHERE g.mode = 'solo' AND g.status = 'finished' AND g.ruleset_version = @rv AND g.is_debug = 0 AND gp.submitted_at IS NOT NULL${weaponClause}
          )
          SELECT player_id, nickname, total_score, wave_reached, outcome, weapon_kind, ended_at, input_kind
          FROM ranked
@@ -339,7 +365,7 @@ export class PlayRecordStore {
         `WITH ranked AS (
            SELECT g.id, g.team_key, g.total_score, g.wave_reached, g.outcome, g.ended_at,
                   ROW_NUMBER() OVER (PARTITION BY g.team_key ORDER BY g.total_score DESC, g.ended_at ASC) AS rn
-           FROM games g WHERE g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv)
+           FROM games g WHERE g.mode = 'coop' AND g.status = 'finished' AND g.ruleset_version = @rv AND g.is_debug = 0)
          SELECT id, team_key, total_score, wave_reached, outcome, ended_at FROM ranked WHERE rn = 1
          ORDER BY total_score DESC, ended_at ASC LIMIT @limit`,
       )
