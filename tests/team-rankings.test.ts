@@ -104,6 +104,10 @@ describe('team rankings (P03-T04)', () => {
       const res = await msgPromise;
       expect(res.teamRankings).toBeDefined();
       expect(Array.isArray(res.teamRankings)).toBe(true);
+      expect(res.weaponRankings).toBeDefined();
+      expect(Array.isArray(res.weaponRankings?.shotgun)).toBe(true);
+      expect(Array.isArray(res.weaponRankings?.revolver)).toBe(true);
+      expect(Array.isArray(res.weaponRankings?.gatling)).toBe(true);
 
       ws.close();
     });

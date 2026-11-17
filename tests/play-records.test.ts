@@ -91,9 +91,35 @@ describe('play records (DB)', () => {
       expect('inputKind' in top[0]).toBe(false);
     });
 
-    it('limits to 5 and lets the same player repeat', () => {
-      [10, 50, 30, 60, 20, 40].forEach((v, i) => playSolo(env, { playerId: 'd1', score: v, at: i + 1 }));
-      expect(env.records.getTopRuns().map((r) => r.score)).toEqual([60, 50, 40, 30, 20]);
+    it('limits to 10 and keeps only the best score per player', () => {
+      register(env, 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12');
+      // d1 plays twice: only 60 should remain in overall
+      playSolo(env, { playerId: 'd1', score: 20, at: 1 });
+      playSolo(env, { playerId: 'd1', score: 60, at: 2 });
+      const others = ['d2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12'];
+      others.forEach((pid, i) => playSolo(env, { playerId: pid, score: (i + 1) * 10, at: i + 3 }));
+      const top = env.records.getTopRuns();
+      expect(top).toHaveLength(10);
+      expect(top.filter((r) => r.deviceId === 'd1').map((r) => r.score)).toEqual([60]);
+      expect(top.map((r) => r.score)).toEqual([110, 100, 90, 80, 70, 60, 60, 50, 40, 30]);
+    });
+
+    it('getTopRunsByWeapon partitions per player within each weapon kind', () => {
+      playSolo(env, { playerId: 'd1', score: 100, at: 1, over: { weaponKind: 'shotgun' } });
+      playSolo(env, { playerId: 'd1', score: 250, at: 2, over: { weaponKind: 'shotgun' } });
+      playSolo(env, { playerId: 'd1', score: 500, at: 3, over: { weaponKind: 'revolver' } });
+      playSolo(env, { playerId: 'd2', score: 300, at: 4, over: { weaponKind: 'gatling' } });
+
+      // Overall keeps d1's single highest score (500) and d2's 300
+      expect(env.records.getTopRuns().map((r) => [r.deviceId, r.score])).toEqual([
+        ['d1', 500],
+        ['d2', 300],
+      ]);
+
+      const byWeapon = env.records.getTopRunsByWeapon();
+      expect(byWeapon.shotgun.map((r) => [r.deviceId, r.score])).toEqual([['d1', 250]]);
+      expect(byWeapon.revolver.map((r) => [r.deviceId, r.score])).toEqual([['d1', 500]]);
+      expect(byWeapon.gatling.map((r) => [r.deviceId, r.score])).toEqual([['d2', 300]]);
     });
 
     it('carries the input kind when known', () => {

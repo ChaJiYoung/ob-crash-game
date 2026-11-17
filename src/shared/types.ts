@@ -184,7 +184,7 @@ export interface PlayRunStats {
   cardPicks?: CardPickRecord[];
 }
 
-/** 랭킹 한 줄(판 단위). 같은 사람이 여러 줄 나올 수 있다. */
+/** 랭킹 한 줄(플레이어/무기별 최고 기록 단위). */
 export interface RunRankingEntry {
   deviceId: string;
   nickname: string;
@@ -196,6 +196,9 @@ export interface RunRankingEntry {
   /** 클리어(VICTORY)인지 사망(GAMEOVER)인지. 없으면 사망으로 본다(옛 데이터·옛 클라이언트). */
   outcome?: RunOutcome;
 }
+
+export type WeaponRankingFilter = 'all' | WeaponKind;
+export type WeaponRankingsMap = Record<WeaponKind, RunRankingEntry[]>;
 
 export interface TeamRankingMember {
   deviceId: string;
@@ -298,8 +301,8 @@ export type ClientToServerMessage =
     };
 
 export type ServerToClientMessage =
-  | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[]; lanIp?: string }
-  | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[] }
+  | { type: 'ROOM_CREATED'; roomId: string; rankings: RunRankingEntry[]; weaponRankings?: WeaponRankingsMap; teamRankings?: TeamRankingEntry[]; lanIp?: string }
+  | { type: 'AUTH_RESULT'; roomId: string; isNewUser: boolean; player?: PlayerProfile; rankings: RunRankingEntry[]; weaponRankings?: WeaponRankingsMap; teamRankings?: TeamRankingEntry[] }
   | { type: 'CONTROLLER_PAIRED'; roomId: string; player: PlayerProfile; slot: PlayerSlot }
   /** 슬롯의 폰이 미지원 기기라서 내보냈다. 곧 CONTROLLER_DISCONNECTED가 이어진다. */
   | { type: 'CONTROLLER_UNSUPPORTED'; roomId: string; slot: PlayerSlot; reason: UnsupportedReason }
@@ -327,5 +330,5 @@ export type ServerToClientMessage =
       roomId: string;
       config: Record<string, any>;
     }
-  | { type: 'RANKING_UPDATED'; rankings: RunRankingEntry[]; teamRankings?: TeamRankingEntry[]; updatedPlayer?: PlayerProfile }
+  | { type: 'RANKING_UPDATED'; rankings: RunRankingEntry[]; weaponRankings?: WeaponRankingsMap; teamRankings?: TeamRankingEntry[]; updatedPlayer?: PlayerProfile }
   | { type: 'ERROR'; code: string; message: string; slot?: PlayerSlot };

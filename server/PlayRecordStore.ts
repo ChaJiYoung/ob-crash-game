@@ -1,5 +1,5 @@
 import { GameDatabase } from './db/GameDatabase';
-import { CardPickRecord, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../src/shared/types';
+import { CardPickRecord, InputKind, PlayMode, PlayRunStats, PlayerSlot, RewardCardKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind, WeaponRankingsMap } from '../src/shared/types';
 import { RANKING_RULESET_VERSION } from '../src/shared/gameTuning';
 
 export interface BeginGameInput {
@@ -294,15 +294,25 @@ export class PlayRecordStore {
     });
   }
 
-  public getTopRuns(limit = 5): RunRankingEntry[] {
+  public getTopRuns(limit = 10, weaponKind?: WeaponKind): RunRankingEntry[] {
+    const weaponClause = weaponKind ? ' AND gp.weapon_kind = @weaponKind' : '';
+    const params: Record<string, unknown> = { rv: this.rulesetVersion, limit };
+    if (weaponKind) params.weaponKind = weaponKind;
+
     const rows = this.db.conn
       .prepare(
-        `SELECT gp.player_id, p.nickname, g.total_score, g.wave_reached, g.outcome, gp.weapon_kind, g.ended_at, gp.input_kind
-         FROM games g JOIN game_players gp ON gp.game_id = g.id JOIN players p ON p.id = gp.player_id
-         WHERE g.mode = 'solo' AND g.status = 'finished' AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL
-         ORDER BY g.total_score DESC, g.ended_at ASC LIMIT @limit`,
+        `WITH ranked AS (
+           SELECT gp.player_id, p.nickname, g.total_score, g.wave_reached, g.outcome, gp.weapon_kind, g.ended_at, gp.input_kind,
+                  ROW_NUMBER() OVER (PARTITION BY gp.player_id ORDER BY g.total_score DESC, g.ended_at ASC) AS rn
+           FROM games g JOIN game_players gp ON gp.game_id = g.id JOIN players p ON p.id = gp.player_id
+           WHERE g.mode = 'solo' AND g.status = 'finished' AND g.ruleset_version = @rv AND gp.submitted_at IS NOT NULL${weaponClause}
+         )
+         SELECT player_id, nickname, total_score, wave_reached, outcome, weapon_kind, ended_at, input_kind
+         FROM ranked
+         WHERE rn = 1
+         ORDER BY total_score DESC, ended_at ASC LIMIT @limit`,
       )
-      .all({ rv: this.rulesetVersion, limit }) as RunRow[];
+      .all(params) as RunRow[];
     return rows.map((r) => ({
       deviceId: r.player_id,
       nickname: r.nickname,
@@ -315,7 +325,15 @@ export class PlayRecordStore {
     }));
   }
 
-  public getTopTeams(limit = 5): TeamRankingEntry[] {
+  public getTopRunsByWeapon(limit = 10): WeaponRankingsMap {
+    return {
+      shotgun: this.getTopRuns(limit, 'shotgun'),
+      revolver: this.getTopRuns(limit, 'revolver'),
+      gatling: this.getTopRuns(limit, 'gatling'),
+    };
+  }
+
+  public getTopTeams(limit = 10): TeamRankingEntry[] {
     const games = this.db.conn
       .prepare(
         `WITH ranked AS (

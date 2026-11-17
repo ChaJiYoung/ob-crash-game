@@ -133,6 +133,12 @@ export async function createBeerCrusherServer(options?: {
       isOriginAllowed(info.origin || undefined, options?.allowedOrigin),
   });
 
+  const buildRankingSnapshot = () => ({
+    rankings: playRecordStore.getTopRuns(10),
+    weaponRankings: playRecordStore.getTopRunsByWeapon(10),
+    teamRankings: playRecordStore.getTopTeams(10),
+  });
+
   wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
     const clientIp = resolveClientIp(req, trustProxy);
     if (!guard.tryAcquire(clientIp)) {
@@ -171,8 +177,7 @@ export async function createBeerCrusherServer(options?: {
             sendJson(ws, {
               type: 'ROOM_CREATED',
               roomId: session.roomId,
-              rankings: playRecordStore.getTopRuns(5),
-              teamRankings: playRecordStore.getTopTeams(5),
+              ...buildRankingSnapshot(),
               lanIp: getLanIpAddress(),
             });
             break;
@@ -228,8 +233,7 @@ export async function createBeerCrusherServer(options?: {
             }
 
             const player = playerStore.findByDeviceId(deviceId);
-            const rankings = playRecordStore.getTopRuns(5);
-            const teamRankings = playRecordStore.getTopTeams(5);
+            const snapshot = buildRankingSnapshot();
 
             if (player) {
               sendJson(ws, {
@@ -237,8 +241,7 @@ export async function createBeerCrusherServer(options?: {
                 roomId,
                 isNewUser: false,
                 player,
-                rankings,
-                teamRankings,
+                ...snapshot,
               });
               sendJson(session.pcSocket, {
                 type: 'CONTROLLER_PAIRED',
@@ -251,8 +254,7 @@ export async function createBeerCrusherServer(options?: {
                 type: 'AUTH_RESULT',
                 roomId,
                 isNewUser: true,
-                rankings,
-                teamRankings,
+                ...snapshot,
               });
             }
             break;
@@ -304,16 +306,13 @@ export async function createBeerCrusherServer(options?: {
 
             try {
               const player = playerStore.registerOrUpdateNickname(deviceId, nickname);
-              const rankings = playRecordStore.getTopRuns(5);
-              const teamRankings = playRecordStore.getTopTeams(5);
 
               sendJson(ws, {
                 type: 'AUTH_RESULT',
                 roomId,
                 isNewUser: false,
                 player,
-                rankings,
-                teamRankings,
+                ...buildRankingSnapshot(),
               });
 
               sendJson(session.pcSocket, {
@@ -721,8 +720,7 @@ export async function createBeerCrusherServer(options?: {
 
             const response: ServerToClientMessage = {
               type: 'RANKING_UPDATED',
-              rankings: playRecordStore.getTopRuns(5),
-              teamRankings: playRecordStore.getTopTeams(5),
+              ...buildRankingSnapshot(),
               updatedPlayer: profile,
             };
 
