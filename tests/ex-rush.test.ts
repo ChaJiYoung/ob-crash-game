@@ -360,4 +360,56 @@ describe('EX boss intrusion (T03)', () => {
     engine.update(t, 0.05);
     expect(engine.activeTargets.some((x) => x.isSummonedMinion)).toBe(false);
   });
+
+  it('scales split bottle children with EX HP and speed multipliers', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    let t = clearWave7ToEnterEx(engine);
+    t += 50;
+    engine.update(t, 0.05);
+
+    const parent = {
+      id: 'bottle_p',
+      kind: 'bottle',
+      hp: 0.1,
+      maxHp: 3,
+      radiusM: 10,
+      thetaRad: 0,
+      x: 0,
+      z: -10,
+      speedMps: 1.5,
+      hitRadiusM: 1.15,
+      killBonusScore: 100,
+      breached: false,
+    } as any;
+    (engine as any).handleMonsterKilled(parent, t);
+    const children = engine.activeTargets.filter((x) => x.isSplitChild);
+    expect(children).toHaveLength(GAME_TUNING.monsters.bottle.splitCount);
+    expect(children[0].maxHp).toBeCloseTo(GAME_TUNING.monsters.bottle.childHp * 1.5, 3);
+    expect(children[0].speedMps).toBeCloseTo(GAME_TUNING.monsters.bottle.childSpeedMps * 1.5, 3);
+  });
+
+  it('upgrades both players to MAX in 2P coop and moves EX boss horizontally', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false, playerCount: 2 });
+    let t = clearWave7ToEnterEx(engine);
+    for (const pIdx of [0, 1] as const) {
+      const p = engine.getPlayer(pIdx);
+      expect(p.weaponSystem.getState().weaponLevel).toBe(4);
+      expect(p.cardStacks).toEqual({ damage_up: 3, skill_cooldown: 3, fever_extend: 3, hit_zone_up: 2 });
+      expect(p.weaponSystem.getRapidReloadStacks()).toBe(3);
+      expect(p.luckyDropStacks).toBe(3);
+    }
+
+    for (let i = 0; i < 60; i += 1) {
+      t += 1000;
+      engine.update(t, 1.0);
+      engine.activeTargets = engine.activeTargets.filter((x) => x.kind === 'boss');
+    }
+    const boss = engine.activeTargets.find((x) => x.kind === 'boss')!;
+    const theta0 = boss.thetaRad;
+    t += 500;
+    engine.update(t, 0.5);
+    expect(boss.thetaRad).not.toBe(theta0);
+  });
 });

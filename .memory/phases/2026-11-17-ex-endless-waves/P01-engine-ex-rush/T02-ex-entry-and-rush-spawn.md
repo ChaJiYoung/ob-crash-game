@@ -250,4 +250,4 @@ Task: T02-ex-entry-and-rush-spawn
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: 0dcc64f

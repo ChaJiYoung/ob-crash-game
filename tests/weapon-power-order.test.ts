@@ -18,13 +18,18 @@ describe('weapon power order (one shot, GREAT)', () => {
     expect(sg.damagePerHit).toBeGreaterThanOrEqual(1);
   });
 
-  it('pierce ratios are [0.5] / [0.5] / [0.6, 0.4] / [0.6, 0.4]', () => {
+  it('pierce ratios are [0.5] / [0.5] / [0.6, 0.4] / [0.6, 0.4] and match pierceCount', () => {
     expect(([1, 2, 3, 4] as const).map((l) => S.revolver.levels[l].pierceDamageRatios)).toEqual([
       [0.5],
       [0.5],
       [0.6, 0.4],
       [0.6, 0.4],
     ]);
+    (['shotgun', 'revolver', 'gatling'] as const).forEach((k) => {
+      ([1, 2, 3, 4] as const).forEach((l) => {
+        expect(S[k].levels[l].pierceDamageRatios).toHaveLength(S[k].levels[l].pierceCount);
+      });
+    });
   });
 
   it('hit tolerance is 1.0 for every weapon', () => {

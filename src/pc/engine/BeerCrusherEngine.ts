@@ -570,15 +570,7 @@ export class BeerCrusherEngine {
     this.healedLives = 0;
     this.waveStartMs = null;
     this.lastWaveClear = null;
-    this.mainCleared = false;
-    this.isExActive = false;
-    this.exElapsedMs = 0;
-    this.exDanger = 1;
-    this.exRushIndex = -1;
-    this.exRushTheme = null;
-    this.exRushQueue = [];
-    this.exRushSpawned = 0;
-    this.exBossCount = 0;
+    this.resetExState();
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
@@ -894,6 +886,7 @@ export class BeerCrusherEngine {
     this.bossSpawned = false;
     this.bossWarningUntilMs = 0;
     this.bossEncounterStartMs = 0;
+    this.resetExState();
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -970,6 +963,7 @@ export class BeerCrusherEngine {
     this.bossSpawned = false;
     this.bossWarningUntilMs = 0;
     this.bossEncounterStartMs = 0;
+    this.resetExState();
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lives = STAGE_CONSTANTS.PLAYER_MAX_LIVES;
@@ -1798,7 +1792,7 @@ export class BeerCrusherEngine {
 
   /** 보스 좌우 이동. theta만 바꾸면 이동 루프가 x, z를 다시 계산한다. */
   private updateBossMovement(nowMs: number): void {
-    if (!this.isBossEncounterActive) return;
+    if (!this.isBossEncounterActive && !this.isExActive) return;
     const bosses = this.getBossEntities();
     if (bosses.length === 0) return;
     const m = GAME_TUNING.boss.movement;
@@ -1808,6 +1802,13 @@ export class BeerCrusherEngine {
     const totalCoolersAtStart = this.waveDefinitions[this.currentWave]?.boss?.coolerHp.length ?? coolers.length;
 
     for (const b of bosses) {
+      if (this.isExActive) {
+        const base = b.bossBaseThetaRad ?? 0;
+        const amp = b.bossRole === 'king' ? m.kingAmplitudeRad : m.singleAmplitudeRad;
+        const spd = b.bossRole === 'king' ? m.kingSpeed : m.singleSpeed;
+        b.thetaRad = base + amp * Math.sin(t * spd);
+        continue;
+      }
       const side = (b.bossBaseThetaRad ?? 0) < 0 ? -1 : 1;
       if (b.bossRole === 'king') {
         b.thetaRad = m.kingAmplitudeRad * Math.sin(t * m.kingSpeed);
@@ -1836,11 +1837,13 @@ export class BeerCrusherEngine {
   /** 큰 병맥주가 깨지면 작은 병 두 마리로 나뉜다. 작은 병은 다시 나뉘지 않는다. */
   private splitBottle(parent: ActiveTargetEntity): void {
     const cfg = GAME_TUNING.monsters.bottle;
+    const hpMult = this.rules.monsterHpMult * (this.isExActive ? getExHpMult(this.exDanger) : 1);
+    const speedMult = this.isExActive ? getExSpeedMult(this.exDanger) : this.getWaveSpeedMultiplier();
     for (let i = 0; i < cfg.splitCount; i++) {
       const side = i % 2 === 0 ? -1 : 1;
       const thetaRad = parent.thetaRad + side * cfg.splitOffsetRad;
       this.targetCounter += 1;
-      const childHp = Number((cfg.childHp * this.rules.monsterHpMult).toFixed(3));
+      const childHp = Number((cfg.childHp * hpMult).toFixed(3));
       this.activeTargets.push({
         id: `bottle_child_${this.targetCounter}`,
         kind: 'bottle',
@@ -1851,7 +1854,7 @@ export class BeerCrusherEngine {
         initialThetaRad: thetaRad,
         x: Math.sin(thetaRad) * parent.radiusM,
         z: -Math.cos(thetaRad) * parent.radiusM,
-        speedMps: cfg.childSpeedMps * this.getWaveSpeedMultiplier(),
+        speedMps: cfg.childSpeedMps * speedMult,
         hitRadiusM: cfg.childHitRadiusM,
         killBonusScore: cfg.childKillBonus,
         breached: false,
@@ -1909,9 +1912,11 @@ export class BeerCrusherEngine {
 
     this.activeTargets.push(this.makeBossEntity(role, scaledHp, theta));
     this.bossWarningUntilMs = nowMs + GAME_TUNING.boss.warningMs;
-    this.bossEncounterStartMs = nowMs;
-    this.lastBossProjectileMs = nowMs;
-    this.bossShooterIndex = 0;
+    if (this.exBossCount === 1) {
+      this.bossEncounterStartMs = nowMs;
+      this.lastBossProjectileMs = nowMs;
+      this.bossShooterIndex = 0;
+    }
   }
 
   /** 일반 몬스터를 encounterStartRatio만큼 소환하면 냉각기(들)와 필요하면 대왕을 좌우로 벌려 등장시킨다. */
@@ -2411,6 +2416,18 @@ export class BeerCrusherEngine {
     this.gamePhase = 'VICTORY';
     this.clearSkillProjectiles();
     this.applyVictoryBonuses();
+  }
+
+  private resetExState(): void {
+    this.mainCleared = false;
+    this.isExActive = false;
+    this.exElapsedMs = 0;
+    this.exDanger = 1;
+    this.exRushIndex = -1;
+    this.exRushTheme = null;
+    this.exRushQueue = [];
+    this.exRushSpawned = 0;
+    this.exBossCount = 0;
   }
 
   private enterExRush(nowMs: number): void {
