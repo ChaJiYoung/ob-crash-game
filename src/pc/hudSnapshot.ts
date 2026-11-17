@@ -1,4 +1,5 @@
 import { ActiveBuffState, WeaponKind, WeaponLevel, TutorialStep } from '../shared/types';
+import { GAME_TUNING } from '../shared/gameTuning';
 import { BeerCrusherEngine, PassiveCardStack, WaveProgressInfo, SelectionStatus } from './engine/BeerCrusherEngine';
 import { PlayerIndex } from './engine/PlayerCombatState';
 
@@ -62,11 +63,19 @@ export interface HudSnapshot {
   isBossWarning: boolean;
   bossDown: boolean;
   waveClearKey: string;
+  /** EX 진행 중이면 현재 DANGER(1부터), 아니면 0. */
+  exDanger: number;
+  /** 러시 배너: `${rushIndex}|${themeLabelKo}` (EX_RUSH_BANNER_MS 동안), 아니면 ''. */
+  exRushBannerKey: string;
+  /** DANGER 배너: `${danger}` (EX_DANGER_BANNER_MS 동안), 아니면 ''. */
+  exDangerBannerKey: string;
   selection: SelectionStatus;
   players: PlayerHudSnapshot[];
 }
 
 export const WAVE_CLEAR_BANNER_MS = 2500;
+export const EX_RUSH_BANNER_MS = 1800;
+export const EX_DANGER_BANNER_MS = 2200;
 
 export const roundTo100Ms = (ms: number): number => Math.round(ms / 100) * 100;
 
@@ -146,6 +155,20 @@ export function buildHudSnapshot(
     waveClearKey:
       engine.lastWaveClear && nowMs - engine.lastWaveClear.atMs < WAVE_CLEAR_BANNER_MS
         ? `${engine.lastWaveClear.wave}|${engine.lastWaveClear.seconds.toFixed(1)}|${engine.lastWaveClear.bonus}`
+        : '',
+    exDanger: engine.mode === 'game' && engine.isExActive ? engine.exDanger : 0,
+    exRushBannerKey:
+      engine.mode === 'game' &&
+      engine.isExActive &&
+      engine.exRushTheme &&
+      nowMs - engine.exRushStartedAtMs < EX_RUSH_BANNER_MS
+        ? `${engine.exRushIndex}|${GAME_TUNING.exRush.themes[engine.exRushTheme].labelKo}`
+        : '',
+    exDangerBannerKey:
+      engine.mode === 'game' &&
+      engine.isExActive &&
+      nowMs - engine.exDangerStartedAtMs < EX_DANGER_BANNER_MS
+        ? String(engine.exDanger)
         : '',
     selection: engine.getSelectionStatus(),
     players,

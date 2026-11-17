@@ -224,6 +224,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const [isGoldenCanAlertActive, setIsGoldenCanAlertActive] = useState<boolean>(false);
   const lastGoldenCanActiveRef = useRef<boolean>(false);
   const lastBossWarningRef = useRef<boolean>(false);
+  const lastExDangerKeyRef = useRef<string>('');
   const tutorialDirectorRef = useRef<TutorialDirector | null>(null);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(1);
   const [tutorialRound, setTutorialRound] = useState<TutorialRoundState>({ round: 0, phase: 'ready' });
@@ -968,6 +969,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       if (nextHud.isBossWarning && !lastBossWarningRef.current) soundSynth.playBossWarningSound();
       lastBossWarningRef.current = nextHud.isBossWarning;
 
+      // EX DANGER rise alarm: once, on the rising edge
+      if (nextHud.exDangerBannerKey !== '' && lastExDangerKeyRef.current === '') {
+        soundSynth.playBossWarningSound();
+      }
+      lastExDangerKeyRef.current = nextHud.exDangerBannerKey;
+
       // Player action processor tick & phone feedback sync
       processorsRef.current.forEach((proc) => proc.tick());
       const map = slotIndexMapRef.current;
@@ -1634,6 +1641,61 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         );
       })()}
 
+      {/* EX Rush Theme Banner */}
+      {gamePhase === 'PLAYING' && hudState.exRushBannerKey !== '' && (() => {
+        const themeLabel = hudState.exRushBannerKey.split('|')[1] ?? '';
+        return (
+          <div
+            data-testid="ex-rush-banner"
+            style={{
+              position: 'absolute',
+              top: '16%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 124,
+              padding: '8px 28px',
+              borderRadius: '9999px',
+              background: 'rgba(8, 47, 73, 0.94)',
+              border: '2px solid #38bdf8',
+              color: '#e0f2fe',
+              fontSize: '20px',
+              fontWeight: 900,
+              letterSpacing: '0.06em',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ▶ {themeLabel} RUSH!
+          </div>
+        );
+      })()}
+
+      {/* EX DANGER Banner */}
+      {gamePhase === 'PLAYING' && hudState.exDangerBannerKey !== '' && (
+        <div
+          data-testid="ex-danger-banner"
+          style={{
+            position: 'absolute',
+            top: '25%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 124,
+            padding: '10px 36px',
+            borderRadius: '16px',
+            background: 'rgba(69, 10, 10, 0.93)',
+            border: '2px solid #ef4444',
+            color: '#fecaca',
+            fontSize: 'clamp(36px, 5vw, 72px)',
+            fontWeight: 900,
+            letterSpacing: '0.08em',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ⚠ DANGER {hudState.exDangerBannerKey}
+        </div>
+      )}
+
       {/* 2. 4-Corner Arcade Overlay HUD */}
       {gamePhase === 'PLAYING' && (
         <>
@@ -1648,6 +1710,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             maxLives={engine.maxLives}
             wave={hudState.wave}
             totalWaves={STAGE_CONSTANTS.TOTAL_WAVES}
+            exDanger={hudState.exDanger}
             bosses={hudState.bosses}
             activeBuffs={hudState.activeBuffs}
             waveProgress={hudState.waveProgress}

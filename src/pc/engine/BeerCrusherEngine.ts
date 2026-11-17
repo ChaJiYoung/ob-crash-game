@@ -336,6 +336,8 @@ export class BeerCrusherEngine {
   public exDanger = 1;
   public exRushIndex = -1;
   public exRushTheme: ExRushTheme | null = null;
+  public exRushStartedAtMs = 0;
+  public exDangerStartedAtMs = 0;
   private exRushQueue: TargetKind[] = [];
   private exRushSpawned = 0;
   private exBossCount = 0;
@@ -1727,8 +1729,13 @@ export class BeerCrusherEngine {
 
     if (rushIndex !== this.exRushIndex) {
       const leftover = this.exRushQueue.slice(this.exRushSpawned);
+      const prevDanger = this.exDanger;
       this.exDanger = danger;
       this.exRushIndex = rushIndex;
+      this.exRushStartedAtMs = nowMs;
+      if (rushIndex === 0 || danger !== prevDanger) {
+        this.exDangerStartedAtMs = nowMs;
+      }
       this.exRushTheme = pickExTheme(rushIndex, this.exRushTheme, this.exRng);
       const quota = getExRushQuota(danger, this.players.length as 1 | 2);
       this.exRushQueue = [...leftover, ...buildExRushQueue(this.exRushTheme, quota, this.exRng)];
@@ -2425,6 +2432,8 @@ export class BeerCrusherEngine {
     this.exDanger = 1;
     this.exRushIndex = -1;
     this.exRushTheme = null;
+    this.exRushStartedAtMs = 0;
+    this.exDangerStartedAtMs = 0;
     this.exRushQueue = [];
     this.exRushSpawned = 0;
     this.exBossCount = 0;
@@ -2439,6 +2448,8 @@ export class BeerCrusherEngine {
     this.exDanger = 1;
     this.exRushIndex = -1;
     this.exRushTheme = null;
+    this.exRushStartedAtMs = 0;
+    this.exDangerStartedAtMs = 0;
     this.exRushQueue = [];
     this.exRushSpawned = 0;
     this.exBossCount = 0;

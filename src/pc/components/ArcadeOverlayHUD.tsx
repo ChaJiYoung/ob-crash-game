@@ -168,6 +168,7 @@ export interface ArcadeOverlayHUDProps {
   maxLives?: number;
   wave: number;
   totalWaves?: number;
+  exDanger?: number;
   bosses?: BossHudInfo[];
   activeBuffs?: ActiveBuffState[];
   waveProgress?: WaveProgressInfo;
@@ -214,6 +215,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   maxLives = STAGE_CONSTANTS.PLAYER_MAX_LIVES,
   wave,
   totalWaves = STAGE_CONSTANTS.TOTAL_WAVES,
+  exDanger = 0,
   bosses = [],
   activeBuffs = [],
   waveProgress,
@@ -298,23 +300,41 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
             gap: '8px',
           }}
         >
-          <div
-            style={{
-              background: 'rgba(17, 24, 39, 0.96)',
-              border: '2px solid #f59e0b',
-              borderRadius: '20px',
-              padding: '6px 24px',
-              fontWeight: 900,
-              fontSize: '17px',
-              color: '#f59e0b',
-              letterSpacing: '1px',
-            }}
-          >
-            WAVE {wave} / {totalWaves}
-          </div>
+          {exDanger > 0 ? (
+            <div
+              data-testid="ex-danger-badge"
+              style={{
+                background: 'rgba(17, 24, 39, 0.96)',
+                border: '2px solid #ef4444',
+                borderRadius: '20px',
+                padding: '6px 24px',
+                fontWeight: 900,
+                fontSize: '17px',
+                color: '#ef4444',
+                letterSpacing: '1px',
+              }}
+            >
+              ⚠ DANGER {exDanger}
+            </div>
+          ) : (
+            <div
+              style={{
+                background: 'rgba(17, 24, 39, 0.96)',
+                border: '2px solid #f59e0b',
+                borderRadius: '20px',
+                padding: '6px 24px',
+                fontWeight: 900,
+                fontSize: '17px',
+                color: '#f59e0b',
+                letterSpacing: '1px',
+              }}
+            >
+              WAVE {wave} / {totalWaves}
+            </div>
+          )}
 
           {/* Compact Wave Progress Bar */}
-          {waveProgress && getWaveHudMode(bosses.length).showProgressBar && (
+          {exDanger === 0 && waveProgress && getWaveHudMode(bosses.length).showProgressBar && (
             <div
               style={{
                 width: '320px',
