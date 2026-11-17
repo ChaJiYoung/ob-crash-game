@@ -3,7 +3,11 @@ import { WEAPON_ARCHETYPE_SPECS } from '../../../shared/constants';
 import { RADAR_AXES, WeaponKindKey, weaponRadarValues } from './weaponGuideData';
 
 const KINDS: WeaponKindKey[] = ['shotgun', 'revolver', 'gatling'];
-const COLORS: Record<WeaponKindKey, string> = { shotgun: '#f0b94d', revolver: '#5bc0de', gatling: '#e5485d' };
+const COLORS: Record<WeaponKindKey, string> = {
+  shotgun: WEAPON_ARCHETYPE_SPECS.shotgun.accentColorHex,
+  revolver: WEAPON_ARCHETYPE_SPECS.revolver.accentColorHex,
+  gatling: WEAPON_ARCHETYPE_SPECS.gatling.accentColorHex,
+};
 const SIZE = 320;
 const CENTER = SIZE / 2;
 const RADIUS = 100;

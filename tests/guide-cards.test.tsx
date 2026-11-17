@@ -166,7 +166,10 @@ describe('weapon radar and one-shot order (2026-11-10)', () => {
     expect(sg).toBeCloseTo(1.12 * 2.35, 3);
   });
 
-  it('the one-shot damage bar is longest for the revolver', () => {
+  it('the one-shot damage bar uses primary-target damage and is longest for the revolver', () => {
+    expect(weaponStatBars('revolver')[0].valueText).toBe('1.32');
+    expect(weaponStatBars('shotgun')[0].valueText).toBe('1.12');
+    expect(weaponStatBars('gatling')[0].valueText).toBe('0.75');
     expect(weaponStatBars('revolver')[0].ratio).toBeCloseTo(1, 10);
     expect(weaponStatBars('shotgun')[0].ratio).toBeLessThan(1);
     expect(weaponStatBars('gatling')[0].ratio).toBeLessThan(weaponStatBars('shotgun')[0].ratio);

@@ -48,13 +48,13 @@ export function weaponBestCasePerShot(kind: WeaponKindKey, level: 1 | 2 | 3 | 4)
   return spec.damagePerHit;
 }
 
-/** MAX(Lv.4) 기준 세 무기 비교 막대: 한 발 피해(관통·산탄 포함 최선의 경우), 탄창, 초당 발사 수. ratio = 값 / 세 무기 중 최댓값. */
+/** MAX(Lv.4) 기준 세 무기 비교 막대: 한 발 피해(주 대상 GREAT 기준), 탄창, 초당 발사 수. ratio = 값 / 세 무기 중 최댓값. */
 export function weaponStatBars(kind: WeaponKindKey): { label: string; valueText: string; ratio: number }[] {
   const kinds: WeaponKindKey[] = ['shotgun', 'revolver', 'gatling'];
   const stats = (k: WeaponKindKey) => {
     const spec = WEAPON_ARCHETYPE_SPECS[k].levels[4];
     return {
-      damage: weaponBestCasePerShot(k, 4),
+      damage: spec.damagePerHit,
       ammo: spec.maxAmmo,
       rate: 1000 / spec.fireIntervalMs,
     };
