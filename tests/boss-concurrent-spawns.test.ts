@@ -171,7 +171,9 @@ describe('boss fights run alongside regular monsters', () => {
       now += 50;
       engine.update(now, 0.05);
     }
-    expect(engine.gamePhase).toBe('VICTORY');
+    expect(engine.mainCleared).toBe(true);
+    expect(engine.isExActive).toBe(true);
+    expect(engine.gamePhase).toBe('PLAYING');
   });
 
   describe('cards and boss fights', () => {
@@ -223,7 +225,9 @@ describe('boss fights run alongside regular monsters', () => {
         t += 50;
         e.update(t, 0.05);
         if (wave === 7) {
-          expect(e.gamePhase).toBe('VICTORY');
+          expect(e.mainCleared).toBe(true);
+          expect(e.isExActive).toBe(true);
+          expect(e.gamePhase).toBe('PLAYING');
         } else {
           expect(e.gamePhase).toBe('PLAYING');
           expect(e.isRewardCardPending).toBe(true); // the after-boss card, not a stale one

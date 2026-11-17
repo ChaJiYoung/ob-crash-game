@@ -110,8 +110,10 @@ describe('seven waves and boss encounters (gameplay-polish P04-T01)', () => {
     });
     expect(engine.gamePhase).toBe('PLAYING'); // the clear sequence runs first
     finishBossSequence(engine, 2000 + 2 * 600);
-    expect(engine.gamePhase).toBe('VICTORY');
-    expect(engine.activeTargets.length).toBe(0);
+    expect(engine.mainCleared).toBe(true);
+    expect(engine.isExActive).toBe(true);
+    expect(engine.gamePhase).toBe('PLAYING');
+    expect(engine.activeTargets.every((t) => !t.isSummonedMinion && !t.isProjectile && t.kind !== 'boss')).toBe(true);
   });
 
   it('bosses are immune to shotgun knockback and the gatling skill knockback', () => {

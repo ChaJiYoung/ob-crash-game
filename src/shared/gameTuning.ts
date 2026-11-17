@@ -127,7 +127,7 @@ export const GAME_TUNING = {
       submergeMinMs: 1000, // 물속 최소 시간 (D02, 1초)
       submergeMaxMs: 1500, // 물속 최대 시간 (D02, 1.5초)
       surfacedMs: 1000, // 수면 위 체류 시간 (A1, 사용자 확인으로 1초)
-      swimSpeedMps: 1.2, // 물속 좌우 헤엄 속도(선속도, 수평 이동)
+      swimSpeedMps: 2.4, // 물속 좌우 헤엄 속도(선속도, 수평 이동)
       rushAfterAppearances: 5, // 스폰 1회 + 잠수 4회 뒤 5번째 등장에 급발진 (D05 수정)
       rushSpeedMult: 3, // 급발진 속도 배율 (D07)
     },
@@ -218,16 +218,47 @@ export const GAME_TUNING = {
    * 엔진에서 TargetKind로 해석한다. kinds의 중복 항목은 등장 비중이 그만큼 큼을 뜻한다.
    * midWaveCard가 true면 처치 수가 ceil(totalSpawns/2)에 닿을 때 중간 카드를 한 번 준다(2026-11-08-half-wave-card-and-coop-density D01).
    * 보스 웨이브(3·5·7)는 false다(보스를 안 죽이고 처치 수로 카드를 모으는 파밍을 막으려고).
+   * 찰랑은 W6·W7과 EX에 등장(2026-11-17 D07).
    */
   waves: [
     { waveIndex: 1, parTimeSec: 14, totalSpawns: 20, maxSimultaneous: 5, spawnIntervalMs: 700, kinds: ['pilgood', 'caslight'], midWaveCard: false, boss: null },
     { waveIndex: 2, parTimeSec: 18, totalSpawns: 26, maxSimultaneous: 6, spawnIntervalMs: 650, kinds: ['pilgood', 'pilgood', 'caslight', 'obi'], midWaveCard: false, boss: null },
-    { waveIndex: 3, parTimeSec: 34, totalSpawns: 15, maxSimultaneous: 6, spawnIntervalMs: 700, kinds: ['obi', 'caslight', 'caslight', 'hanmac', 'chalang'], midWaveCard: false, boss: { coolerHp: [100], kingHp: null, summonKinds: ['obi', 'caslight', 'hanmac'] } },
+    { waveIndex: 3, parTimeSec: 34, totalSpawns: 15, maxSimultaneous: 6, spawnIntervalMs: 700, kinds: ['obi', 'caslight', 'caslight', 'hanmac'], midWaveCard: false, boss: { coolerHp: [100], kingHp: null, summonKinds: ['obi', 'caslight', 'hanmac'] } },
     { waveIndex: 4, parTimeSec: 23, totalSpawns: 34, maxSimultaneous: 6, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'bottle'], midWaveCard: true, boss: null },
     { waveIndex: 5, parTimeSec: 38, totalSpawns: 20, maxSimultaneous: 7, spawnIntervalMs: 600, kinds: ['obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], midWaveCard: false, boss: { coolerHp: [120, 120], kingHp: null, summonKinds: ['pilgood', 'obi', 'hanmac', 'bottle'] } },
-    { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'], midWaveCard: true, boss: null },
-    { waveIndex: 7, parTimeSec: 45, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle'], midWaveCard: false, boss: { coolerHp: [150, 150], kingHp: 250, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
+    { waveIndex: 6, parTimeSec: 24, totalSpawns: 40, maxSimultaneous: 7, spawnIntervalMs: 550, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'chalang', 'chalang'], midWaveCard: true, boss: null },
+    { waveIndex: 7, parTimeSec: 45, totalSpawns: 25, maxSimultaneous: 8, spawnIntervalMs: 600, kinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'hanmac', 'bottle', 'bottle', 'chalang', 'chalang'], midWaveCard: false, boss: { coolerHp: [150, 150], kingHp: 250, summonKinds: ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle'] } },
   ],
+  exRush: {
+    /** 러시 하나의 길이. 할당량을 이 시간 안에 고르게 다 내보낸다(D05). */
+    rushDurationMs: 10000,
+    /** 한 DANGER = 러시 3개(30초). */
+    rushesPerDanger: 3,
+    /** 1인 러시 할당량: base + perDanger × (danger - 1). */
+    quota: { base: 20, perDanger: 8 },
+    /** 2인 할당량·필드 상한 배율. playerCountRules.spawnCountMult(×2)를 쓰지 않는다(공유 목숨 보정, D05). */
+    coopQuotaMult: 1.5,
+    /** 일반 몬스터(보스 제외) 필드 상한. 1인 값, 2인은 ceil(× coopQuotaMult) = 23. */
+    fieldCap: 15,
+    /** 이동속도: 기본 speedMps 대비 절대 배율. speedPerWave는 EX에서 쓰지 않는다. */
+    speed: { start: 1.5, perDangerMult: 1.12, max: 2.3 },
+    /** 몬스터 HP 배율(한맥 폭발 피해도 같은 배율): start × perDangerMult^(danger-1). */
+    hp: { start: 1.5, perDangerMult: 1.3 },
+    /** 테마 위주 몬스터 비율, 잠수가 아닌 테마에 섞는 찰랑 비율. */
+    themeShare: 0.5,
+    chalangShare: 0.1,
+    /** 첫 러시는 잠수(찰랑) 고정(D06). */
+    firstTheme: 'dive',
+    /** 테마 → 위주 몬스터 종류. 문자열 리터럴(이 파일은 다른 파일을 import하지 않는다). */
+    themes: {
+      charge: { kind: 'pilgood', labelKo: '돌진' },
+      air: { kind: 'caslight', labelKo: '공습' },
+      shield: { kind: 'obi', labelKo: '방패' },
+      dive: { kind: 'chalang', labelKo: '잠수' },
+      blast: { kind: 'hanmac', labelKo: '연쇄폭발' },
+      split: { kind: 'bottle', labelKo: '분열' },
+    },
+  },
   breachRespawnRadiusM: 16,
   /** 모드별 규칙(D31). 엔진은 모드를 묻지 않고 이 값만 읽는다. */
   modeRules: {
@@ -273,6 +304,7 @@ export const GAME_TUNING = {
 export type BreachEffect = 'damageLives' | 'respawnFar' | 'remove';
 export type EngineMode = 'game' | 'tutorial' | 'sandbox';
 export type PlayerCountRules = (typeof GAME_TUNING.playerCountRules)[1 | 2];
+export type ExRushTheme = keyof typeof GAME_TUNING.exRush.themes;
 export type ModeRules = {
   readonly waveSpawning: boolean;
   readonly breachEffect: BreachEffect;

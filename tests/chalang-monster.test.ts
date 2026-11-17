@@ -16,7 +16,7 @@ describe('chalang spec and tuning registration', () => {
     expect(c.submergeMinMs).toBe(1000);
     expect(c.submergeMaxMs).toBe(1500);
     expect(c.surfacedMs).toBe(1000);
-    expect(c.swimSpeedMps).toBe(1.2);
+    expect(c.swimSpeedMps).toBe(2.4);
     expect(c.rushAfterAppearances).toBe(5);
     expect(c.rushSpeedMult).toBe(3);
   });

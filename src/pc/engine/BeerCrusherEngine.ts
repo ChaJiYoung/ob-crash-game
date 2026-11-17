@@ -22,7 +22,17 @@ import {
 } from '../../shared/constants';
 import { advanceRadialTarget, computeHorizontalHalfFovRad, sampleFanSpawnPoint } from './FanSpawner';
 import { evaluateHitJudgment, HitJudgmentResult } from './HitJudgment';
-import { GAME_TUNING, EngineMode, ModeRules, PlayerCountRules } from '../../shared/gameTuning';
+import { GAME_TUNING, EngineMode, ExRushTheme, ModeRules, PlayerCountRules } from '../../shared/gameTuning';
+import {
+  buildExRushQueue,
+  getExDanger,
+  getExFieldCap,
+  getExHpMult,
+  getExRushIndex,
+  getExRushQuota,
+  getExSpeedMult,
+  pickExTheme,
+} from './exRush';
 import type { ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
@@ -315,6 +325,20 @@ export class BeerCrusherEngine {
   private waveStartMs: number | null = null;
   public lastWaveClear: { wave: number; seconds: number; bonus: number; atMs: number } | null = null;
 
+  /** 본편 7웨이브를 클리어했다. EX에서 죽어도 기록은 VICTORY(D02). */
+  public mainCleared = false;
+  /** EX 무한 러시 진행 중. */
+  public isExActive = false;
+  /** EX 게임 시계(ms). update의 dtSec만 누적하므로 일시정지·카드 정지 중에는 멈춘다. */
+  public exElapsedMs = 0;
+  public exDanger = 1;
+  public exRushIndex = -1;
+  public exRushTheme: ExRushTheme | null = null;
+  private exRushQueue: TargetKind[] = [];
+  private exRushSpawned = 0;
+  /** 테스트에서 고정할 수 있는 EX 난수. */
+  public exRng: () => number = () => Math.random();
+
   // Roguelike card & item drop state
   /** 이번 웨이브의 절반 중간 카드를 이미 줬으면 true. */
   public midCardGranted = false;
@@ -543,6 +567,14 @@ export class BeerCrusherEngine {
     this.healedLives = 0;
     this.waveStartMs = null;
     this.lastWaveClear = null;
+    this.mainCleared = false;
+    this.isExActive = false;
+    this.exElapsedMs = 0;
+    this.exDanger = 1;
+    this.exRushIndex = -1;
+    this.exRushTheme = null;
+    this.exRushQueue = [];
+    this.exRushSpawned = 0;
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
@@ -1562,6 +1594,11 @@ export class BeerCrusherEngine {
       return { breaches, phaseChanged: false, reloadedJustNow, reloadedByPlayer };
     }
 
+    if (this.isExActive) {
+      this.updateExRush(nowMs, dtSec);
+      return { breaches, phaseChanged: false, reloadedJustNow, reloadedByPlayer };
+    }
+
     const waveDef = this.waveDefinitions[this.currentWave] || this.waveDefinitions[STAGE_CONSTANTS.TOTAL_WAVES];
 
     // 2. Periodic enemy spawn. While a boss is alive the field is refilled past totalSpawns, and only regular monsters
@@ -1652,6 +1689,16 @@ export class BeerCrusherEngine {
 
   private spawnNextTarget(waveDef: WaveDefinition, nowMs: number): void {
     const kind = waveDef.kinds[Math.floor(Math.random() * waveDef.kinds.length)];
+    this.spawnMonsterOfKind(kind, nowMs, this.rules.monsterHpMult, this.getWaveSpeedMultiplier());
+    this.spawnedInWave += 1;
+  }
+
+  private spawnMonsterOfKind(
+    kind: TargetKind,
+    nowMs: number,
+    hpMult: number,
+    speedMult: number
+  ): ActiveTargetEntity {
     const spec = TARGET_SPECS[kind];
     const existingAngles = this.activeTargets.map((t) => t.thetaRad);
 
@@ -1662,7 +1709,7 @@ export class BeerCrusherEngine {
     });
 
     this.targetCounter += 1;
-    const maxHp = Number((spec.maxHp * this.rules.monsterHpMult).toFixed(3));
+    const maxHp = Number((spec.maxHp * hpMult).toFixed(3));
     const entity: ActiveTargetEntity = {
       id: `target_${this.targetCounter}_${kind}`,
       kind,
@@ -1673,7 +1720,7 @@ export class BeerCrusherEngine {
       initialThetaRad: pt.thetaRad,
       x: pt.x,
       z: pt.z,
-      speedMps: spec.speedMps * this.getWaveSpeedMultiplier(),
+      speedMps: spec.speedMps * speedMult,
       hitRadiusM: spec.hitRadiusM,
       killBonusScore: spec.killBonusScore,
       breached: false,
@@ -1681,8 +1728,41 @@ export class BeerCrusherEngine {
 
     this.applyMonsterTraits(entity);
     this.activeTargets.push(entity);
-    this.spawnedInWave += 1;
     this.lastSpawnTimeMs = nowMs;
+    return entity;
+  }
+
+  private updateExRush(nowMs: number, dtSec: number): void {
+    this.exElapsedMs += dtSec * 1000;
+    const danger = getExDanger(this.exElapsedMs);
+    const rushIndex = getExRushIndex(this.exElapsedMs);
+
+    if (rushIndex !== this.exRushIndex) {
+      const leftover = this.exRushQueue.slice(this.exRushSpawned);
+      this.exDanger = danger;
+      this.exRushIndex = rushIndex;
+      this.exRushTheme = pickExTheme(rushIndex, this.exRushTheme, this.exRng);
+      const quota = getExRushQuota(danger, this.players.length as 1 | 2);
+      this.exRushQueue = [...leftover, ...buildExRushQueue(this.exRushTheme, quota, this.exRng)];
+      this.exRushSpawned = 0;
+      this.emit({ type: 'exRushStarted', theme: this.exRushTheme, danger, rushIndex, nowMs });
+    }
+
+    const rushDurationMs = GAME_TUNING.exRush.rushDurationMs;
+    const rushElapsed = this.exElapsedMs - rushIndex * rushDurationMs;
+    const interval = this.exRushQueue.length > 0 ? rushDurationMs / this.exRushQueue.length : rushDurationMs;
+    const fieldCap = getExFieldCap(this.players.length as 1 | 2);
+    const hpMult = this.rules.monsterHpMult * getExHpMult(this.exDanger);
+    const speedMult = getExSpeedMult(this.exDanger);
+
+    while (
+      this.exRushSpawned < this.exRushQueue.length &&
+      rushElapsed >= this.exRushSpawned * interval &&
+      this.countFieldMonsters() < fieldCap
+    ) {
+      this.spawnMonsterOfKind(this.exRushQueue[this.exRushSpawned], nowMs, hpMult, speedMult);
+      this.exRushSpawned += 1;
+    }
   }
 
   /** 종류별 개체 특성(오비 방패 위상, 큰 병 크기). 웨이브 몬스터와 보스 소환 부하에 쓴다. */
@@ -2092,7 +2172,8 @@ export class BeerCrusherEngine {
       if (wasWaveClear || (remainingSpawns === 0 && remainingMonsters === 0)) {
         if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
           this.awardWaveTimeBonus(nowMs);
-          this.declareVictory();
+          if (this.mode === 'game') this.enterExRush(nowMs);
+          else this.declareVictory();
         } else {
           this.awardWaveTimeBonus(nowMs);
           this.startWave(this.currentWave + 1);
@@ -2226,8 +2307,8 @@ export class BeerCrusherEngine {
     const breakdown = this.getScoreBreakdown(playerIndex);
     const weapon = player.weaponSystem.getState();
     const stats: PlayRunStats = {
-      outcome: this.gamePhase,
-      waveReached: this.currentWave,
+      outcome: this.mainCleared ? 'VICTORY' : this.gamePhase,
+      waveReached: this.isExActive ? STAGE_CONSTANTS.TOTAL_WAVES + this.exDanger : this.currentWave,
       livesLeft: this.lives,
       durationSec: Number(this.playTimeSec.toFixed(2)),
       totalScore: breakdown.total,
@@ -2280,18 +2361,59 @@ export class BeerCrusherEngine {
     return stacks.filter((s) => s.count > 0);
   }
 
+  /** 정밀·무기 레벨 승리 보너스를 한 번 지급한다(EX 진입과 VICTORY가 같이 쓴다). */
+  private applyVictoryBonuses(): void {
+    if (!this.modeRules.victoryBonus) return;
+    for (const p of this.players) {
+      const { base } = this.getScoreBreakdown(p.index);
+      const mult = GAME_TUNING.score.weaponLevelBonusMult[p.weaponSystem.getState().weaponLevel];
+      p.precisionBonusApplied = p.scoreManager.addBonusScore(this.getPrecisionStats(p.index).bonus);
+      p.levelBonusApplied = p.scoreManager.addBonusScore(Math.round(base * (mult - 1)));
+    }
+  }
+
   private declareVictory(): void {
     if (this.gamePhase === 'VICTORY') return;
     this.gamePhase = 'VICTORY';
     this.clearSkillProjectiles();
-    if (this.modeRules.victoryBonus) {
-      for (const p of this.players) {
-        const { base } = this.getScoreBreakdown(p.index);
-        const mult = GAME_TUNING.score.weaponLevelBonusMult[p.weaponSystem.getState().weaponLevel];
-        p.precisionBonusApplied = p.scoreManager.addBonusScore(this.getPrecisionStats(p.index).bonus);
-        p.levelBonusApplied = p.scoreManager.addBonusScore(Math.round(base * (mult - 1)));
-      }
+    this.applyVictoryBonuses();
+  }
+
+  private enterExRush(nowMs: number): void {
+    if (this.isExActive) return;
+    this.applyVictoryBonuses();
+    this.mainCleared = true;
+    this.isExActive = true;
+    this.exElapsedMs = 0;
+    this.exDanger = 1;
+    this.exRushIndex = -1;
+    this.exRushTheme = null;
+    this.exRushQueue = [];
+    this.exRushSpawned = 0;
+    this.activeTargets = [];
+    this.isBossEncounterActive = false;
+    this.isRewardCardPending = false;
+    this.pendingWaveAdvance = false;
+    this.midCardGranted = true;
+    for (const p of this.players) {
+      this.applyExMaxUpgrades(p.index, nowMs);
     }
+    this.emit({ type: 'exStarted', nowMs });
+  }
+
+  private applyExMaxUpgrades(playerIndex: PlayerIndex, nowMs: number): void {
+    const p = this.getPlayer(playerIndex);
+    const c = GAME_TUNING.cards;
+    const step = (cond: () => boolean, fn: () => void) => {
+      for (let guard = 0; guard < 10 && cond(); guard += 1) fn();
+    };
+    step(() => p.weaponSystem.getState().weaponLevel < 4, () => this.applyRewardCard('weapon_level_up', nowMs, playerIndex));
+    step(() => p.weaponSystem.getRapidReloadStacks() < c.rapidReloadMaxStacks, () => this.applyRewardCard('rapid_reload', nowMs, playerIndex));
+    step(() => p.luckyDropStacks < c.luckyDropMaxStacks, () => this.applyRewardCard('lucky_drop', nowMs, playerIndex));
+    step(() => p.cardStacks.damage_up < c.damageUp.maxStacks, () => this.applyRewardCard('damage_up', nowMs, playerIndex));
+    step(() => p.cardStacks.skill_cooldown < c.skillCooldown.maxStacks, () => this.applyRewardCard('skill_cooldown', nowMs, playerIndex));
+    step(() => p.cardStacks.fever_extend < c.feverExtend.maxStacks, () => this.applyRewardCard('fever_extend', nowMs, playerIndex));
+    step(() => p.cardStacks.hit_zone_up < c.hitZoneUp.maxStacks, () => this.applyRewardCard('hit_zone_up', nowMs, playerIndex));
   }
 
   private shootAtInner(
@@ -2668,9 +2790,10 @@ export class BeerCrusherEngine {
           this.isTargetable(t, nowMs) &&
           Math.hypot(t.x - blast.x, t.z - blast.z) <= blastRadiusM
       );
+      const dmg = this.isExActive ? blastDamage * getExHpMult(this.exDanger) : blastDamage;
       for (const t of victims) {
         if (!this.activeTargets.includes(t)) continue;
-        const killed = this.applySkillDamage(t, blastDamage, nowMs, blast.ownerIndex);
+        const killed = this.applySkillDamage(t, dmg, nowMs, blast.ownerIndex);
         this.pushSkillHitEvent({ source: 'blast', target: t, killed, ownerIndex: blast.ownerIndex });
       }
     }
@@ -2735,7 +2858,10 @@ export class BeerCrusherEngine {
     if (nowMs >= this.bossClearUntilMs) {
       this.activeTargets = [];
       this.bossClearUntilMs = 0;
-      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) this.declareVictory();
+      if (this.currentWave >= STAGE_CONSTANTS.TOTAL_WAVES) {
+        if (this.mode === 'game') this.enterExRush(nowMs);
+        else this.declareVictory();
+      }
       // A mid boss falls through to the wave-complete check in the next update, which deals the cards.
     }
     return reloadedByPlayer;

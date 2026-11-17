@@ -1,3 +1,4 @@
+import type { ExRushTheme } from '../../shared/gameTuning';
 import type { ActiveTargetEntity, SkillExecuteResult } from './BeerCrusherEngine';
 import type { PlayerIndex } from './PlayerCombatState';
 
@@ -7,6 +8,8 @@ export type EngineEvent =
   | { type: 'skillUsed'; playerIndex: PlayerIndex; result: SkillExecuteResult; nowMs: number }
   | { type: 'plungerBlasted'; playerIndex: PlayerIndex; target: ActiveTargetEntity; killed: boolean; nowMs: number }
   | { type: 'feverStarted'; playerIndex: PlayerIndex; nowMs: number }
-  | { type: 'feverEnded'; playerIndex: PlayerIndex; nowMs: number };
+  | { type: 'feverEnded'; playerIndex: PlayerIndex; nowMs: number }
+  | { type: 'exStarted'; nowMs: number }
+  | { type: 'exRushStarted'; theme: ExRushTheme; danger: number; rushIndex: number; nowMs: number };
 
 export type EngineEventListener = (e: EngineEvent) => void;

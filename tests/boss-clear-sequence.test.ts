@@ -122,7 +122,9 @@ describe('boss clear sequence', () => {
     expect(e2.isBossClearSequence()).toBe(true);
     expect(e2.gamePhase).toBe('PLAYING');
     for (let t = 0; t < DUR + 200; t += 50) { t2 += 50; e2.update(t2, 0.05); }
-    expect(e2.gamePhase).toBe('VICTORY');
+    expect(e2.mainCleared).toBe(true);
+    expect(e2.isExActive).toBe(true);
+    expect(e2.gamePhase).toBe('PLAYING');
   });
 
   it('killing one of two coolers does not start the sequence', () => {
