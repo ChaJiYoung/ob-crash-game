@@ -7,10 +7,10 @@
 [P03 PC Debug UI](./phases/2026-11-17-debug-mode/P03-pc-debug-ui/phase.md)
 
 ## Active Task
-[T03 Result Debug Details](./phases/2026-11-17-debug-mode/P03-pc-debug-ui/T03-result-debug-details.md)
+- 모든 Task 완료 (`P01 2/2, P02 1/1, P03 3/3`)
 
 ## Status
-- P01, P02, P03-T01, P03-T02 완료
+- 전체 구현 완료, `npm test` 1157/1157 통과, `npm run build` 성공
 
 ## Next Step (IMPORTANT)
-T03 청사진을 읽고 `src/pc/components/ResultRankingModal.tsx` 디버그 영역 구현
+없음 (실기기 플레이테스트로 패널·HUD 배지 위치, 디버그 판 종료 흐름 육안 확인)

@@ -1,6 +1,6 @@
 # Task: T03 Result Debug Details
 
-## Status: pending
+## Status: done
 
 ## Goal
 디버그 판의 결과 화면에 `DEBUG · 랭킹 미등록` 배지와 피격 총합, 웨이브·DANGER별 피격을 보여주고, NEW RECORD 표시는 띄우지 않는다.
@@ -47,9 +47,13 @@
 - `debugInfo` 있음 → 배지·"피격 총 5"·`DANGER 2` 칩 렌더. 없음 → 배지 없음(회귀).
 - `tests/docs-sync.test.ts`가 README 구조를 검사하면 통과하도록 형식 맞춤.
 
+### I04. 디버그 판 종료 버튼 (구현 중 추가)
+- 무적이라 판이 끝나지 않고, W7 클리어 시 EX로 넘어가 결과 화면에 도달할 수 없음을 구현 중 발견.
+- `BeerCrusherEngine.endDebugRun()`(디버그 판일 때만 GAMEOVER로 전환), `PauseMenuOverlay.onEndDebugRun`, `PCGamePage.handleEndDebugRun` 추가. 결과 저장은 기존 GAMEOVER 동기화·EX 갱신 경로를 그대로 탄다.
+
 ## Acceptance Criteria
-- [ ] 디버그 판 결과 화면에 배지와 피격 상세가 보이고 NEW RECORD가 뜨지 않는다.
-- [ ] 일반 판 결과 화면은 기존과 같다.
+- [x] 디버그 판 결과 화면에 배지와 피격 상세가 보이고 NEW RECORD가 뜨지 않는다.
+- [x] 일반 판 결과 화면은 기존과 같다.
 
 ## Validation
 - `npx vitest run tests/debug-result.test.tsx tests/ex-result.test.tsx tests/coop-result.test.tsx tests/result-breakdown.test.ts tests/docs-sync.test.ts` — 통과
@@ -69,6 +73,6 @@ Task: T03-result-debug-details
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

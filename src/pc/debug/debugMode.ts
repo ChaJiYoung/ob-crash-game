@@ -1,4 +1,6 @@
 import { GAME_TUNING } from '../../shared/gameTuning';
+import type { BeerCrusherEngine } from '../engine/BeerCrusherEngine';
+import type { DebugResultInfo } from '../components/ResultRankingModal';
 import type { DebugStartConfig, DebugStartPoint, WeaponLevel } from '../../shared/types';
 
 export const DEBUG_CONFIG_STORAGE_KEY = 'beer.debugStartConfig.v1';
@@ -71,4 +73,12 @@ export function saveDebugStartConfig(cfg: DebugStartConfig): void {
   } catch {
     // 저장 실패는 무시(사생활 보호 모드 등).
   }
+}
+
+/** 결과 화면 디버그 상세: 끝낸 웨이브별 피격 + EX DANGER별 피격. */
+export function buildDebugResultInfo(engine: BeerCrusherEngine): DebugResultInfo {
+  const stats = engine.getPlayRunStats(0, { allowExCheckpoint: true });
+  const waves = (stats?.waves ?? []).map((w) => ({ label: `W${w.wave}`, damageTaken: w.damageTaken ?? 0 }));
+  const dangers = engine.getExDangerDamage().map((d) => ({ label: `DANGER ${d.danger}`, damageTaken: d.damageTaken }));
+  return { damageTaken: stats?.damageTaken ?? 0, waves: [...waves, ...dangers] };
 }

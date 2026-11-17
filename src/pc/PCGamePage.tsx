@@ -44,6 +44,7 @@ import { buildDebugSnapshot } from './debug/debugSnapshot';
 import { isDebugModeSearch, loadDebugStartConfig, saveDebugStartConfig } from './debug/debugMode';
 import type { DebugRunEntry, DebugStartConfig } from '../shared/types';
 import { DebugLobbyPanel } from './components/DebugLobbyPanel';
+import { buildDebugResultInfo } from './debug/debugMode';
 
 import {
   createLobbySlots,
@@ -767,7 +768,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
                 const curP = pairedPlayerRef.current;
                 if (curP && up.deviceId === curP.deviceId) {
                   const baseBest = preRunBestScoreRef.current ?? (curP.bestScore || 0);
-                  setIsNewRecord(up.bestScore > baseBest);
+                  // 디버그 판은 랭킹 미등록이므로 신기록 연출을 하지 않는다.
+                  setIsNewRecord(!isDebugMode && up.bestScore > baseBest);
                 }
               } else {
                 setIsNewRecord(false);
@@ -1482,6 +1484,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   handleReturnToLobbyRef.current = handleReturnToLobby;
 
   // Leaving from the pause menu drops this run's score (no submitScore), like restart does.
+  /** 디버그 판 종료: 일시정지를 풀고 엔진을 끝낸다. 결과 화면·점수 제출은 평소 GAMEOVER 동기화가 처리한다. */
+  const handleEndDebugRun = useCallback(() => {
+    if (!engine.debugInvincible) return;
+    setIsExitConfirmOpen(false);
+    setPauseMenu({ open: false, reason: 'USER' });
+    engine.setPaused(false, performance.now());
+    engine.endDebugRun();
+  }, [engine]);
+
   const handleExitToLobbyFromPause = useCallback(() => {
     const abandonId = gameIdRef.current;
     if (engine.mainCleared && abandonId !== null) {
@@ -2022,6 +2033,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           lostSlot={grace?.slot}
           graceRemainingSec={graceRemainingSec}
           onContinueAlone={handleContinueAlone}
+          onEndDebugRun={isDebugMode && pauseMenu.reason !== 'PLAYER_LOST' ? handleEndDebugRun : undefined}
         />
       )}
 
@@ -2083,6 +2095,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onRestart={() => pressScreenButton('restart')}
             onReturnToLobby={() => pressScreenButton('lobby')}
             hoveredAction={hoveredResultAction}
+            debugInfo={isDebugMode ? buildDebugResultInfo(engine) : undefined}
           />
           {/* Result Crosshair Overlay on top of result modal */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 130 }}>

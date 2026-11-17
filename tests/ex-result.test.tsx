@@ -61,6 +61,6 @@ describe('EX result modal and ranking wave label (P02-T02)', () => {
     const src = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
     expect(src).toContain('preRunBestScoreRef.current = pairedPlayerRef.current?.bestScore ?? 0');
     expect(src).toContain('const baseBest = preRunBestScoreRef.current ?? (curP.bestScore || 0)');
-    expect(src).toContain('setIsNewRecord(up.bestScore > baseBest)');
+    expect(src).toContain('setIsNewRecord(!isDebugMode && up.bestScore > baseBest)');
   });
 });

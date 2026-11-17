@@ -16,6 +16,8 @@ export interface PauseMenuOverlayProps {
   graceRemainingSec?: number;
   /** PLAYER_LOST일 때 "혼자 계속하기". */
   onContinueAlone?: () => void;
+  /** 디버그 판이면 "디버그 판 종료(결과 보기)". */
+  onEndDebugRun?: () => void;
 }
 
 const stop = (e: React.SyntheticEvent) => e.stopPropagation();
@@ -32,6 +34,7 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
   lostSlot,
   graceRemainingSec,
   onContinueAlone,
+  onEndDebugRun,
 }) => {
   const waitingForController = (reason === 'CONTROLLER_LOST' && !isControllerConnected) || reason === 'PLAYER_LOST';
   const title = isExitConfirmOpen
@@ -163,6 +166,27 @@ export const PauseMenuOverlay: React.FC<PauseMenuOverlayProps> = ({
                 }}
               >
                 혼자 계속하기
+              </button>
+            )}
+
+            {onEndDebugRun && (
+              <button
+                data-testid="pause-end-debug-run"
+                onClick={onEndDebugRun}
+                style={{
+                  width: '100%',
+                  marginTop: '10px',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(251, 146, 60, 0.6)',
+                  background: 'rgba(234, 88, 12, 0.15)',
+                  color: '#fdba74',
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                🛠 디버그 판 종료 (결과 보기 · 기록 저장)
               </button>
             )}
 

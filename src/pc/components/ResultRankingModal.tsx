@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DEBUG_BADGE_COLOR } from './ArcadeOverlayHUD';
 import { CoopBestEntry, GamePhase, InputKind, PlayerProfile, RunRankingEntry, TeamRankingEntry, WeaponKind, WeaponRankingsMap } from '../../shared/types';
 import { INPUT_KIND_ICON, INPUT_KIND_LABEL, WEAPON_RANKING_LABEL } from '../../shared/constants';
 import { RankingTabs, RankingTab } from './RankingTabs';
@@ -30,6 +31,13 @@ export interface CoopResultInfo {
   isNewTeamBest: boolean;
 }
 
+/** 디버그 판 결과 상세(랭킹 미등록). */
+export interface DebugResultInfo {
+  damageTaken: number;
+  /** 'W1'..'W7', 'DANGER 1'.. 순서. */
+  waves: { label: string; damageTaken: number }[];
+}
+
 export interface ResultRankingModalProps {
   gamePhase: GamePhase;
   score: number;
@@ -58,6 +66,8 @@ export interface ResultRankingModalProps {
   onReturnToLobby: () => void;
   hoveredAction?: 'restart' | 'lobby' | null;
   restartButtonRef?: React.Ref<HTMLButtonElement>;
+  /** 있으면 디버그 배지와 피격 상세를 보여준다. */
+  debugInfo?: DebugResultInfo;
   lobbyButtonRef?: React.Ref<HTMLButtonElement>;
 }
 
@@ -219,6 +229,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   hoveredAction = null,
   restartButtonRef,
   lobbyButtonRef,
+  debugInfo,
 }) => {
   const isVictory = gamePhase === 'VICTORY' || exDangerReached > 0;
   const [activeRankTab, setActiveRankTab] = useState<RankingTab>(initialRankTab ?? (coop ? 'team' : 'solo'));
@@ -255,6 +266,21 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
           alignItems: 'center',
         }}
       >
+        {debugInfo && (
+          <div data-testid="result-debug-info" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
+            <div style={{ padding: '2px 12px', borderRadius: '8px', background: DEBUG_BADGE_COLOR, color: '#fff', fontSize: '12px', fontWeight: 900, letterSpacing: '0.04em' }}>
+              DEBUG · 랭킹 미등록
+            </div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#fca5a5' }}>피격 총 {debugInfo.damageTaken}</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', maxWidth: '760px' }}>
+              {debugInfo.waves.map((w) => (
+                <span key={w.label} style={{ padding: '1px 8px', borderRadius: '6px', fontSize: '12px', background: 'rgba(255,255,255,0.07)', color: w.damageTaken > 0 ? '#fecaca' : '#94a3b8' }}>
+                  {w.label} · {w.damageTaken}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Title */}
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <div

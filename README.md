@@ -170,3 +170,11 @@ npx vitest run tests/
 ## 📊 플레이 기록
 
 판은 서버의 SQLite DB `data/game.db`에 저장됩니다(`games`: 판 결과, `game_players`: 플레이어별 상세, `game_waves`: 웨이브별 시간·보너스·피격 수, `game_player_card_picks`: 카드 선택). 판이 시작될 때 기록이 만들어지고 끝날 때 채워지며, 중간에 나간 판은 `abandoned`로 남습니다. 랭킹과 개인 기록은 현재 규칙 버전의 끝난 판으로 계산하므로 규칙 버전이 바뀌어도 기록은 지워지지 않습니다. DB에 기기 ID와 닉네임이 들어 있으니 외부에 공유할 때 주의하세요. 예전 `players.json`/`play-records.jsonl`은 더 이상 쓰지 않습니다(옮기지 않음).
+
+### 🛠 디버그 모드 (무적 테스트, 랭킹 미등록)
+
+PC 화면 주소에 `?debug=1`을 붙이면(예: `https://<호스트>/?debug=1`) 로비의 랭킹 칸이 디버그 패널로 바뀝니다. [시작 조건]에서 시작 지점(W1/W6/EX), 무기 레벨, 카드 스택을 고르면 무기 선택 직후 적용되고, 판 내내 목숨이 줄지 않습니다(피격 수는 셉니다). 판은 `games.is_debug = 1`로 저장되어 모든 랭킹·최고점에서 빠지며, 결과 화면과 [최근 기록]에서 웨이브·DANGER별 피격을 볼 수 있습니다. EX DANGER n의 피격은 `game_waves.wave_num = 7 + n`에 들어갑니다. 누적 분석은 DB에서 직접 조회합니다:
+
+```sql
+SELECT id, mode, total_score, wave_reached, debug_config, ended_at FROM games WHERE is_debug = 1 ORDER BY ended_at DESC;
+```

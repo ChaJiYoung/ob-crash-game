@@ -2272,6 +2272,17 @@ export class BeerCrusherEngine {
     if (cfg.startAt === 'W6') this.startWave(6);
   }
 
+  /**
+   * 디버그 판을 스스로 끝낸다(무적이라 판이 끝나지 않으므로). 결과는 일반 종료와 같은 경로로 저장된다:
+   * EX에 들어갔으면 outcome VICTORY, 아니면 GAMEOVER. 디버그 판이 아니면 아무것도 하지 않는다.
+   */
+  public endDebugRun(): boolean {
+    if (!this.debugInvincible || this.mode !== 'game' || this.gamePhase !== 'PLAYING') return false;
+    this.clearSkillProjectiles();
+    this.gamePhase = 'GAMEOVER';
+    return true;
+  }
+
   /** EX DANGER별 피격(1..현재 DANGER, 피격 0도 포함). EX에 안 들어갔으면 빈 배열. */
   public getExDangerDamage(): { danger: number; damageTaken: number }[] {
     if (!this.mainCleared) return [];
