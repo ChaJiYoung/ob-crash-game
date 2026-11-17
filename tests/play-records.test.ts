@@ -219,6 +219,49 @@ describe('play records (DB)', () => {
         })
       ).toEqual({ ok: true, finishedGame: true });
     });
+
+    it('updates both players in 2P coop checkpoint -> final EX update order', () => {
+      register(env, 'c1', 'c2');
+      const coopId = env.records.beginGame({
+        roomId: 'COOP1',
+        mode: 'coop',
+        rulesetVersion: 6,
+        startedAt: 's1',
+        players: [
+          { slot: 1, playerId: 'c1', inputKind: 'mouse' },
+          { slot: 2, playerId: 'c2', inputKind: 'mobile' },
+        ],
+      });
+      const mkCoop = (slot: 1 | 2, myScore: number, partnerScore: number, waveReached: number) =>
+        stats({
+          mode: 'coop',
+          outcome: 'VICTORY',
+          waveReached,
+          totalScore: myScore,
+          coop: {
+            slot,
+            teamScore: myScore + partnerScore,
+            partnerScore,
+            partnerDeviceId: slot === 1 ? 'c2' : 'c1',
+            partnerNickname: slot === 1 ? '협동2' : '협동1',
+            leftEarly: false,
+          },
+        });
+
+      // 1) EX 진입 체크포인트 (두 플레이어 모두 제출)
+      expect(env.records.submitResult({ gameId: coopId, roomId: 'COOP1', playerId: 'c1', submittedAt: 't1', stats: mkCoop(1, 3000, 2000, 8) })).toEqual({ ok: true, finishedGame: true });
+      expect(env.records.submitResult({ gameId: coopId, roomId: 'COOP1', playerId: 'c2', submittedAt: 't1', stats: mkCoop(2, 2000, 3000, 8) })).toEqual({ ok: true, finishedGame: false });
+
+      // 2) EX 종료 최종 갱신 (1P 먼저, 2P 다음)
+      expect(env.records.submitResult({ gameId: coopId, roomId: 'COOP1', playerId: 'c1', submittedAt: 't2', stats: mkCoop(1, 6000, 5000, 10), isExUpdate: true })).toEqual({ ok: true, finishedGame: false });
+      expect(env.records.submitResult({ gameId: coopId, roomId: 'COOP1', playerId: 'c2', submittedAt: 't2', stats: mkCoop(2, 5000, 6000, 10), isExUpdate: true })).toEqual({ ok: true, finishedGame: false });
+
+      expect(row(env, 'SELECT outcome, wave_reached, total_score FROM games WHERE id = ?', coopId)).toEqual({
+        outcome: 'VICTORY',
+        wave_reached: 10,
+        total_score: 11000,
+      });
+    });
   });
 
   it('validates the stats shape', () => {

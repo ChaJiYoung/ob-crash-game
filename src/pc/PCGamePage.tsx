@@ -1710,13 +1710,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         );
       })()}
 
-      {/* EX DANGER Banner (boss WARNING 21.5%~38.5% 아래에 배치해 60초마다 겹치지 않게 함) */}
+      {/* EX DANGER Banner (boss WARNING 21.5%~38.5%가 떴을 때만 아래 41%로 피함) */}
       {gamePhase === 'PLAYING' && hudState.exDangerBannerKey !== '' && (
         <div
           data-testid="ex-danger-banner"
           style={{
             position: 'absolute',
-            top: '41%',
+            top: hudState.isBossWarning ? '41%' : '25%',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 124,

@@ -401,17 +401,22 @@ describe('EX boss intrusion (T03)', () => {
       expect(p.luckyDropStacks).toBe(3);
     }
 
-    for (let i = 0; i < 60; i += 1) {
+    for (let i = 0; i < 180; i += 1) {
       t += 1000;
       engine.update(t, 1.0);
       engine.activeTargets = engine.activeTargets.filter((x) => x.kind === 'boss');
     }
-    const boss = engine.activeTargets.find((x) => x.kind === 'boss')!;
-    const theta0 = boss.thetaRad;
-    t += 500;
-    engine.update(t, 0.5);
-    expect(boss.thetaRad).not.toBe(theta0);
-    expect(Math.abs(boss.thetaRad)).toBeLessThanOrEqual(0.55);
+    const bosses = engine.activeTargets.filter((x) => x.kind === 'boss');
+    expect(bosses).toHaveLength(3);
+    // 기준 ±0.34 보스 포함 모든 보스가 1주기 이상 움직여도 4:3 반각(~0.58) 안에 머문다(N3)
+    for (let step = 0; step < 20; step += 1) {
+      t += 500;
+      engine.update(t, 0.5);
+      engine.activeTargets = engine.activeTargets.filter((x) => x.kind === 'boss');
+      for (const b of engine.activeTargets) {
+        expect(Math.abs(b.thetaRad)).toBeLessThanOrEqual(0.5201);
+      }
+    }
   });
 
   it('pays victory bonus once using pre-MAX weapon level before upgrading to Lv.4', () => {
