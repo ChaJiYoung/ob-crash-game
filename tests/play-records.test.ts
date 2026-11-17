@@ -153,6 +153,71 @@ describe('play records (DB)', () => {
         total_score: 9500,
       });
       expect(row(env, 'SELECT score FROM game_players WHERE game_id = ?', id)).toEqual({ score: 9500 });
+      // game_waves는 중복 삽입되지 않음
+      expect(rows(env, 'SELECT * FROM game_waves WHERE game_id = ?', id)).toHaveLength(1);
+
+      // 점수 하락 / waveReached 하락 갱신 거절
+      expect(
+        env.records.submitResult({
+          gameId: id,
+          roomId: 'R1',
+          playerId: 'd1',
+          submittedAt: 't4',
+          stats: stats({ outcome: 'VICTORY', waveReached: 11, totalScore: 9000 }),
+          isExUpdate: true,
+        })
+      ).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
+      expect(
+        env.records.submitResult({
+          gameId: id,
+          roomId: 'R1',
+          playerId: 'd1',
+          submittedAt: 't5',
+          stats: stats({ outcome: 'VICTORY', waveReached: 10, totalScore: 9999 }),
+          isExUpdate: true,
+        })
+      ).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
+    });
+
+    it('rejects isExUpdate on non-EX games and treats first-time isExUpdate without checkpoint as normal submit', () => {
+      // 본편 VICTORY(waveReached=7)에는 isExUpdate 거절
+      const w7 = playSolo(env, { playerId: 'd1', roomId: 'R1', score: 3000, at: 1, over: { outcome: 'VICTORY', waveReached: 7 } });
+      expect(
+        env.records.submitResult({
+          gameId: w7,
+          roomId: 'R1',
+          playerId: 'd1',
+          submittedAt: 't2',
+          stats: stats({ outcome: 'VICTORY', waveReached: 9, totalScore: 5000 }),
+          isExUpdate: true,
+        })
+      ).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
+
+      // GAMEOVER 기록에는 isExUpdate 거절
+      const dead = playSolo(env, { playerId: 'd2', roomId: 'R2', score: 1000, at: 2, over: { outcome: 'GAMEOVER', waveReached: 4 } });
+      expect(
+        env.records.submitResult({
+          gameId: dead,
+          roomId: 'R2',
+          playerId: 'd2',
+          submittedAt: 't3',
+          stats: stats({ outcome: 'VICTORY', waveReached: 9, totalScore: 5000 }),
+          isExUpdate: true,
+        })
+      ).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
+
+      // 체크포인트 없이 isExUpdate: true가 와도 일반 첫 제출로 정상 저장
+      const fresh = playSolo(env, { playerId: 'd3', roomId: 'R3', score: 0, at: 3, submit: false });
+      expect(
+        env.records.submitResult({
+          gameId: fresh,
+          roomId: 'R3',
+          playerId: 'd3',
+          submittedAt: 't4',
+          stats: stats({ outcome: 'VICTORY', waveReached: 9, totalScore: 7000 }),
+          isExUpdate: true,
+        })
+      ).toEqual({ ok: true, finishedGame: true });
     });
   });
 

@@ -975,14 +975,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       }
       lastGoldenCanActiveRef.current = hasGoldenCan;
 
-      // Boss warning alarm: once, on the rising edge
-      if (nextHud.isBossWarning && !lastBossWarningRef.current) soundSynth.playBossWarningSound();
-      lastBossWarningRef.current = nextHud.isBossWarning;
-
-      // EX DANGER rise alarm: once, on the rising edge
-      if (nextHud.exDangerBannerKey !== '' && lastExDangerKeyRef.current === '') {
+      // Boss warning & EX DANGER rise alarm: 같은 틱에 둘 다 울리지 않도록 한 번만 재생(H1)
+      const bossWarnRising = nextHud.isBossWarning && !lastBossWarningRef.current;
+      const dangerRising = nextHud.exDangerBannerKey !== '' && lastExDangerKeyRef.current === '';
+      if (bossWarnRising || dangerRising) {
         soundSynth.playBossWarningSound();
       }
+      lastBossWarningRef.current = nextHud.isBossWarning;
       lastExDangerKeyRef.current = nextHud.exDangerBannerKey;
 
       // Player action processor tick & phone feedback sync
@@ -996,7 +995,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       });
 
       // EX 진입 순간 W7 클리어 기록을 서버에 즉시 체크포인트 저장(도중 이탈·네트워크 단절 시 기록 보호)
-      if (engine.mainCleared && !exCheckpointSentRef.current && gameIdRef.current !== null && engine.gamePhase === 'PLAYING') {
+      if (
+        engine.mainCleared &&
+        !exCheckpointSentRef.current &&
+        gameIdRef.current !== null &&
+        engine.gamePhase === 'PLAYING' &&
+        wsRef.current?.readyState === WebSocket.OPEN &&
+        roomId
+      ) {
         exCheckpointSentRef.current = true;
         submitScores({ checkpoint: true });
       }
@@ -1467,7 +1473,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, [engine, handleReturnToLobby, submitScores]);
 
   useEffect(() => {
-    const handlePageHide = () => {
+    const handlePageHide = (e: PageTransitionEvent) => {
+      if (e.persisted) return;
       if (engine.mainCleared && gameIdRef.current !== null) {
         submitScores();
       }
@@ -1682,7 +1689,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             data-testid="ex-rush-banner"
             style={{
               position: 'absolute',
-              top: '16%',
+              top: '13%',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 124,
@@ -1703,13 +1710,13 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         );
       })()}
 
-      {/* EX DANGER Banner */}
+      {/* EX DANGER Banner (boss WARNING 21.5%~38.5% 아래에 배치해 60초마다 겹치지 않게 함) */}
       {gamePhase === 'PLAYING' && hudState.exDangerBannerKey !== '' && (
         <div
           data-testid="ex-danger-banner"
           style={{
             position: 'absolute',
-            top: '25%',
+            top: '41%',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 124,
@@ -1718,7 +1725,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             background: 'rgba(69, 10, 10, 0.93)',
             border: '2px solid #ef4444',
             color: '#fecaca',
-            fontSize: 'clamp(36px, 5vw, 72px)',
+            fontSize: 'clamp(32px, 4.2vw, 56px)',
             fontWeight: 900,
             letterSpacing: '0.08em',
             pointerEvents: 'none',

@@ -411,5 +411,26 @@ describe('EX boss intrusion (T03)', () => {
     t += 500;
     engine.update(t, 0.5);
     expect(boss.thetaRad).not.toBe(theta0);
+    expect(Math.abs(boss.thetaRad)).toBeLessThanOrEqual(0.55);
+  });
+
+  it('pays victory bonus once using pre-MAX weapon level before upgrading to Lv.4', () => {
+    const engine = new BeerCrusherEngine();
+    engine.startGame({ withWeaponSelect: false });
+    const p = engine.getPlayer(0);
+    p.weaponSystem.selectWeapon('shotgun', 1); // Lv.1 배율(1.2)로 승리 보너스 계산되어야 함
+    p.scoreManager.registerHit('PERFECT', 1000, true);
+    const baseBefore = engine.getScoreBreakdown(0).base;
+    expect(baseBefore).toBeGreaterThan(0);
+
+    let t = clearWave7ToEnterEx(engine);
+    const expectedLevelBonus = Math.round(baseBefore * (GAME_TUNING.score.weaponLevelBonusMult[1] - 1));
+    expect(p.levelBonusApplied).toBe(expectedLevelBonus);
+    expect(p.weaponSystem.getState().weaponLevel).toBe(4);
+
+    // 재호출해도 보너스 중복 지급 없음
+    const totalAfterEnter = p.scoreManager.getState().totalScore;
+    (engine as any).enterExRush(t + 50);
+    expect(p.scoreManager.getState().totalScore).toBe(totalAfterEnter);
   });
 });

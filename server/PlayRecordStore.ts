@@ -185,24 +185,28 @@ export class PlayRecordStore {
       const conn = this.db.conn;
       const { gameId, roomId, playerId, submittedAt, stats } = input;
       const game = conn
-        .prepare(`SELECT id, room_id, mode, status, outcome FROM games WHERE id = ?`)
-        .get(gameId) as { id: number; room_id: string; mode: PlayMode; status: string; outcome: string | null } | undefined;
+        .prepare(`SELECT id, room_id, mode, status, outcome, wave_reached FROM games WHERE id = ?`)
+        .get(gameId) as
+        | { id: number; room_id: string; mode: PlayMode; status: string; outcome: string | null; wave_reached: number | null }
+        | undefined;
       if (!game) return { ok: false, reason: 'GAME_NOT_FOUND' };
       if (game.room_id !== roomId) return { ok: false, reason: 'ROOM_MISMATCH' };
       // finished는 거절하지 않는다: 협동은 첫 제출이 판을 끝낸 뒤 두 번째 제출이 온다.
       if (game.status === 'abandoned') return { ok: false, reason: 'GAME_NOT_PLAYING' };
 
       const row = conn
-        .prepare(`SELECT id, slot, submitted_at FROM game_players WHERE game_id = ? AND player_id = ?`)
-        .get(gameId, playerId) as { id: number; slot: number; submitted_at: string | null } | undefined;
+        .prepare(`SELECT id, slot, submitted_at, score FROM game_players WHERE game_id = ? AND player_id = ?`)
+        .get(gameId, playerId) as { id: number; slot: number; submitted_at: string | null; score: number } | undefined;
       if (!row) return { ok: false, reason: 'NOT_IN_GAME' };
       const isExUpdate = Boolean(
         row.submitted_at &&
           input.isExUpdate &&
           game.status === 'finished' &&
           game.outcome === 'VICTORY' &&
+          (game.wave_reached ?? 0) >= 8 &&
           stats.outcome === 'VICTORY' &&
-          stats.waveReached >= 8
+          stats.waveReached >= (game.wave_reached ?? 8) &&
+          stats.totalScore >= row.score
       );
       if (row.submitted_at && !isExUpdate) return { ok: false, reason: 'ALREADY_SUBMITTED' };
 

@@ -1813,7 +1813,9 @@ export class BeerCrusherEngine {
         const base = b.bossBaseThetaRad ?? 0;
         const amp = b.bossRole === 'king' ? m.kingAmplitudeRad : m.singleAmplitudeRad;
         const spd = b.bossRole === 'king' ? m.kingSpeed : m.singleSpeed;
-        b.thetaRad = base + amp * Math.sin(t * spd);
+        // 4:3 가로 반각(~0.58 rad) 밖으로 나가지 않도록 진폭 제한(R1)
+        const clampedAmp = Math.min(amp, Math.max(0.12, 0.52 - Math.abs(base)));
+        b.thetaRad = base + clampedAmp * Math.sin(t * spd);
         continue;
       }
       const side = (b.bossBaseThetaRad ?? 0) < 0 ? -1 : 1;
@@ -1913,7 +1915,7 @@ export class BeerCrusherEngine {
     const { role, hp } = getExBossSpec(this.exBossCount);
     const scaledHp = Number((hp * this.rules.bossHpMult).toFixed(3));
     const s = GAME_TUNING.boss.coolerSpreadRad;
-    const candidates = [0, -s, s, -2 * s, 2 * s];
+    const candidates = [0, -s, s, -0.5 * s, 0.5 * s];
     const existing = this.getBossEntities().map((b) => b.bossBaseThetaRad ?? b.thetaRad);
     const theta = candidates.find((c) => existing.every((e) => Math.abs(c - e) >= s / 2)) ?? 0;
 

@@ -109,4 +109,4 @@ Task: T02-ex-result-and-qa
 ## Progress
 - [x] 구현 완료
 - [x] 검증 통과
-- commit: pending
+- commit: b3c91a4
