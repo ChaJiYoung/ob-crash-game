@@ -76,7 +76,7 @@ const SlotCard: React.FC<SlotCardProps> = ({
 
   useEffect(() => {
     if (!pairingUrl) return;
-    QRCode.toDataURL(pairingUrl, { width: 124, margin: 1 })
+    QRCode.toDataURL(pairingUrl, { width: 148, margin: 1 })
       .then((dataUrl) => setQrDataUrl(dataUrl))
       .catch((err) => console.error(`Failed to generate QR for slot ${slot}`, err));
   }, [pairingUrl, slot]);
@@ -240,8 +240,8 @@ const SlotCard: React.FC<SlotCardProps> = ({
                 src={qrDataUrl}
                 alt={`Slot ${slot} QR Code`}
                 style={{
-                  width: '124px',
-                  height: '124px',
+                  width: '148px',
+                  height: '148px',
                   borderRadius: '10px',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   marginBottom: '6px',
@@ -250,8 +250,8 @@ const SlotCard: React.FC<SlotCardProps> = ({
             ) : (
               <div
                 style={{
-                  width: '124px',
-                  height: '124px',
+                  width: '148px',
+                  height: '148px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

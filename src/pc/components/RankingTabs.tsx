@@ -158,15 +158,24 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
         </button>
       </div>
 
+      {/* Tab Body: Fixed height so switching solo/team or empty/full never shifts layout */}
+      <div
+        style={{
+          height: compact ? '236px' : '300px',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
       {/* Tab Body: Solo Rankings */}
       {activeTab === 'solo' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '6px' : '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '6px' : '8px', flex: 1, minHeight: 0 }}>
           <div
             data-testid="weapon-filter-bar"
             style={{
               display: 'flex',
               flexWrap: 'wrap',
               gap: '4px',
+              flexShrink: 0,
             }}
           >
             {WEAPON_FILTERS.map((f) => {
@@ -202,7 +211,8 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
               display: 'flex',
               flexDirection: 'column',
               gap: compact ? '4px' : '6px',
-              maxHeight: compact ? '210px' : '270px',
+              flex: 1,
+              minHeight: 0,
               overflowY: 'auto',
               paddingRight: '4px',
             }}
@@ -305,7 +315,8 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
             display: 'flex',
             flexDirection: 'column',
             gap: compact ? '4px' : '6px',
-            maxHeight: compact ? '210px' : '270px',
+            flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
             paddingRight: '4px',
           }}
@@ -404,6 +415,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };
