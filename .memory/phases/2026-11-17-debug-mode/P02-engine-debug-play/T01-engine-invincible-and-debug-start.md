@@ -1,6 +1,6 @@
 # Task: T01 Engine Invincible and Debug Start
 
-## Status: pending
+## Status: done
 
 ## Goal
 엔진이 디버그 설정을 받으면 (1) 목숨이 줄지 않고 GAMEOVER가 나지 않지만 피격 수는 센다, (2) 무기 선택 직후 시작 조건(W6/EX, 레벨, 카드)을 적용한다, (3) EX에서 DANGER별 피격을 집계해 `PlayRunStats.exDangers`로 내보낸다.
@@ -93,9 +93,9 @@
 - EX DANGER 피격: EX 중 돌파 2회(DANGER 1) → `getExDangerDamage()`에 `{danger:1, damageTaken:2}`.
 
 ## Acceptance Criteria
-- [ ] 디버그 판에서 목숨이 줄지 않고 GAMEOVER가 없으며 `damageTaken`·웨이브별·DANGER별 피격은 쌓인다.
-- [ ] W6/EX 시작과 레벨·카드가 무기 선택 직후 적용된다(1인·2인).
-- [ ] 일반 판 동작은 기존 테스트 전체 통과로 유지된다.
+- [x] 디버그 판에서 목숨이 줄지 않고 GAMEOVER가 없으며 `damageTaken`·웨이브별·DANGER별 피격은 쌓인다.
+- [x] W6/EX 시작과 레벨·카드가 무기 선택 직후 적용된다(1인·2인).
+- [x] 일반 판 동작은 기존 테스트 전체 통과로 유지된다.
 
 ## Validation
 - `npx vitest run tests/debug-engine.test.ts tests/ex-rush.test.ts tests/engine-wave-damage-and-weapon-hook.test.ts tests/play-run-stats.test.ts` — 통과
@@ -117,6 +117,6 @@ Task: T01-engine-invincible-and-debug-start
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

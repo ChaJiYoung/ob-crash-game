@@ -4,13 +4,13 @@
 [Debug Mode](./plans/2026-11-17-debug-mode.md)
 
 ## Active Phase
-[P02 Engine Debug Play](./phases/2026-11-17-debug-mode/P02-engine-debug-play/phase.md)
+[P03 PC Debug UI](./phases/2026-11-17-debug-mode/P03-pc-debug-ui/phase.md)
 
 ## Active Task
-[T01 Engine Invincible and Debug Start](./phases/2026-11-17-debug-mode/P02-engine-debug-play/T01-engine-invincible-and-debug-start.md)
+[T01 Debug Mode Wiring and HUD Badge](./phases/2026-11-17-debug-mode/P03-pc-debug-ui/T01-debug-mode-wiring-and-hud-badge.md)
 
 ## Status
-- P01 완료(T01 fb4488f, T02 커밋됨)
+- P01, P02 완료
 
 ## Next Step (IMPORTANT)
-T01 청사진을 읽고 `src/pc/engine/BeerCrusherEngine.ts`에 무적·디버그 시작·DANGER 피격 집계 구현
+T01 청사진을 읽고 `src/pc/debug/debugMode.ts` 헬퍼부터 구현

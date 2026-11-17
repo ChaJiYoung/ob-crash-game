@@ -9,5 +9,5 @@ PC 화면에 `?debug=1`을 붙이면 로비에서 시작 조건(W1/W6/EX, 무기
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done ✅` | DB v2 마이그레이션, 디버그 판 저장·랭킹 제외, EX DANGER 피격 저장, 최근 디버그 기록 조회 WS | [P01](../phases/2026-11-17-debug-mode/P01-server-db-debug-flag/phase.md) |
-| P02 | `in_progress` | 엔진 무적, 디버그 시작 조건 적용, EX DANGER별 피격 집계 | [P02](../phases/2026-11-17-debug-mode/P02-engine-debug-play/phase.md) |
-| P03 | `pending` | `?debug=1` 연결, 로비 디버그 패널, HUD·결과 화면 표시 | [P03](../phases/2026-11-17-debug-mode/P03-pc-debug-ui/phase.md) |
+| P02 | `done ✅` | 엔진 무적, 디버그 시작 조건 적용, EX DANGER별 피격 집계 | [P02](../phases/2026-11-17-debug-mode/P02-engine-debug-play/phase.md) |
+| P03 | `in_progress` | `?debug=1` 연결, 로비 디버그 패널, HUD·결과 화면 표시 | [P03](../phases/2026-11-17-debug-mode/P03-pc-debug-ui/phase.md) |

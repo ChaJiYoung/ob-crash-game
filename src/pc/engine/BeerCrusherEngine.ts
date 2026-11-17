@@ -35,7 +35,7 @@ import {
   getExSpeedMult,
   pickExTheme,
 } from './exRush';
-import type { ShotSource } from '../../shared/types';
+import type { DebugStartConfig, ShotSource } from '../../shared/types';
 import { ScoreAndFeverManager } from './ScoreAndFeverManager';
 import { WeaponSystem } from './WeaponSystem';
 import { PlayerCombatState, PlayerIndex, CardStackKind, ShotGradeCounts } from './PlayerCombatState';
@@ -329,6 +329,13 @@ export class BeerCrusherEngine {
 
   /** 본편 7웨이브를 클리어했다. EX에서 죽어도 기록은 VICTORY(D02). */
   public mainCleared = false;
+  /** 디버그 판: 목숨이 줄지 않는다(피격 수는 센다). startGame이 지우지 않는다 — PCGamePage가 판마다 설정한다. */
+  public debugInvincible = false;
+  /** 디버그 판 시작 조건. 무기 선택 라운드가 끝날 때 한 번 적용된다. null이면 일반 판. */
+  public debugStart: DebugStartConfig | null = null;
+  private debugStartApplied = false;
+  /** EX DANGER별 피격(인덱스 = danger). */
+  private exDangerDamage: number[] = [];
   /** EX 무한 러시 진행 중. */
   public isExActive = false;
   /** EX 게임 시계(ms). update의 dtSec만 누적하므로 일시정지·카드 정지 중에는 멈춘다. */
@@ -573,6 +580,8 @@ export class BeerCrusherEngine {
     this.waveStartMs = null;
     this.lastWaveClear = null;
     this.resetExState();
+    this.debugStartApplied = false;
+    this.exDangerDamage = [];
     this.isWeaponSelectPending = false;
     this.isRewardCardPending = false;
     this.lastUpdateNowMs = 0;
@@ -1570,9 +1579,14 @@ export class BeerCrusherEngine {
 
             breaches.push(target);
             const damage = target.isProjectile ? 1 : target.kind === 'boss' ? STAGE_CONSTANTS.PLAYER_MAX_LIVES : 1;
-            const dealt = Math.min(this.lives, damage);
+            const invincible = this.debugInvincible && this.mode === 'game';
+            const dealt = invincible ? Math.min(this.maxLives, damage) : Math.min(this.lives, damage);
             this.damageTaken += dealt;
             this.waveDamageTaken += dealt;
+            if (this.isExActive) {
+              this.exDangerDamage[this.exDanger] = (this.exDangerDamage[this.exDanger] ?? 0) + dealt;
+            }
+            if (invincible) break;
             this.lives = Math.max(0, this.lives - damage);
 
             if (this.lives <= 0) {
@@ -2228,6 +2242,42 @@ export class BeerCrusherEngine {
         }
       }
     }
+
+    if (!isRewardRound && this.mode === 'game' && this.debugStart && !this.debugStartApplied) {
+      this.debugStartApplied = true;
+      this.applyDebugStart(this.debugStart, nowMs);
+    }
+  }
+
+  /** 디버그 시작 조건 적용(무기 선택 직후 한 번). EX는 enterExRush가 MAX 강화를 강제한다. */
+  private applyDebugStart(cfg: DebugStartConfig, nowMs: number): void {
+    if (cfg.startAt === 'EX') {
+      this.currentWave = STAGE_CONSTANTS.TOTAL_WAVES;
+      this.enterExRush(nowMs);
+      return;
+    }
+    const step = (cond: () => boolean, fn: () => void) => {
+      for (let guard = 0; guard < 10 && cond(); guard += 1) fn();
+    };
+    for (const p of this.players) {
+      const i = p.index;
+      step(() => p.weaponSystem.getState().weaponLevel < cfg.weaponLevel, () => this.applyRewardCard('weapon_level_up', nowMs, i));
+      step(() => p.weaponSystem.getRapidReloadStacks() < cfg.cards.rapid_reload, () => this.applyRewardCard('rapid_reload', nowMs, i));
+      step(() => p.luckyDropStacks < cfg.cards.lucky_drop, () => this.applyRewardCard('lucky_drop', nowMs, i));
+      step(() => p.cardStacks.damage_up < cfg.cards.damage_up, () => this.applyRewardCard('damage_up', nowMs, i));
+      step(() => p.cardStacks.skill_cooldown < cfg.cards.skill_cooldown, () => this.applyRewardCard('skill_cooldown', nowMs, i));
+      step(() => p.cardStacks.fever_extend < cfg.cards.fever_extend, () => this.applyRewardCard('fever_extend', nowMs, i));
+      step(() => p.cardStacks.hit_zone_up < cfg.cards.hit_zone_up, () => this.applyRewardCard('hit_zone_up', nowMs, i));
+    }
+    if (cfg.startAt === 'W6') this.startWave(6);
+  }
+
+  /** EX DANGER별 피격(1..현재 DANGER, 피격 0도 포함). EX에 안 들어갔으면 빈 배열. */
+  public getExDangerDamage(): { danger: number; damageTaken: number }[] {
+    if (!this.mainCleared) return [];
+    const out: { danger: number; damageTaken: number }[] = [];
+    for (let n = 1; n <= this.exDanger; n += 1) out.push({ danger: n, damageTaken: this.exDangerDamage[n] ?? 0 });
+    return out;
   }
 
   /**
@@ -2386,6 +2436,7 @@ export class BeerCrusherEngine {
       mode: this.players.length > 1 ? 'coop' : 'solo',
       cardPicks: player.cardPicks.map((c) => ({ ...c })),
     };
+    if (this.mainCleared) stats.exDangers = this.getExDangerDamage();
 
     if (this.players.length > 1) {
       const partnerIndex = (playerIndex === 0 ? 1 : 0) as PlayerIndex;
