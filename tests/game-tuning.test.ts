@@ -108,12 +108,10 @@ describe('2026-11-05 skill / guard / magazine tuning', () => {
     );
   });
 
-  it('starts the revolver with 10 rounds, gives the shotgun +4 over it (no pierce to make up for), and never shrinks the magazine on level up', () => {
-    expect(GAME_TUNING.maxAmmoByWeapon.revolver[1]).toBe(10);
-    expect(GAME_TUNING.maxAmmoByWeapon.shotgun[1]).toBe(14);
-    ([1, 2, 3, 4] as const).forEach((l) => {
-      expect(GAME_TUNING.maxAmmoByWeapon.shotgun[l] - GAME_TUNING.maxAmmoByWeapon.revolver[l]).toBe(4);
-    });
+  it('starts magazines at 15/10/35, increases only at Lv.3 (+3/+2/+5), and never shrinks on level up', () => {
+    expect(GAME_TUNING.maxAmmoByWeapon.shotgun).toEqual({ 1: 15, 2: 15, 3: 18, 4: 18 });
+    expect(GAME_TUNING.maxAmmoByWeapon.revolver).toEqual({ 1: 10, 2: 10, 3: 12, 4: 12 });
+    expect(GAME_TUNING.maxAmmoByWeapon.gatling).toEqual({ 1: 35, 2: 35, 3: 40, 4: 40 });
     kinds.forEach((kind) => {
       for (let lv = 2; lv <= 4; lv++) {
         const l = lv as 2 | 3 | 4;

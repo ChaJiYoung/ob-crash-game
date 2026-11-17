@@ -161,8 +161,8 @@ describe('weapon radar and one-shot order (2026-11-10)', () => {
     const gat = weaponBestCasePerShot('gatling', 4);
     expect(rev).toBeGreaterThan(sg);
     expect(sg).toBeGreaterThan(gat);
-    // revolver 1.208 (1.15 x 1.05 rounded to 3 digits) x (1 + 2 x 0.7), shotgun 1.12 x (1 + 3 x 0.45)
-    expect(rev).toBeCloseTo(1.208 * 2.4, 3);
+    // revolver 1.323 (1.26 x 1.05) x (1 + 0.6 + 0.4), shotgun 1.12 x (1 + 3 x 0.45)
+    expect(rev).toBeCloseTo(1.323 * 2.0, 3);
     expect(sg).toBeCloseTo(1.12 * 2.35, 3);
   });
 

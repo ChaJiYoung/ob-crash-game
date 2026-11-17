@@ -2448,8 +2448,9 @@ export class BeerCrusherEngine {
             )
             .sort((a, b) => a.radiusM - b.radiusM);
 
-          rearTargets.slice(0, levelSpec.pierceCount).forEach((rear) => {
-            const pierceDmg = Number((damage * levelSpec.pierceDamageRatio).toFixed(3));
+          rearTargets.slice(0, levelSpec.pierceCount).forEach((rear, order) => {
+            const ratio = levelSpec.pierceDamageRatios[order] ?? 0;
+            const pierceDmg = Number((damage * ratio).toFixed(3));
             rear.hp = Number(Math.max(0, rear.hp - pierceDmg).toFixed(3));
             hitTargets.push(rear);
             if (rear.hp <= 0) {
@@ -2458,7 +2459,7 @@ export class BeerCrusherEngine {
                 this.activeTargets.splice(rearIdx, 1);
                 this.killedInWave += 1;
                 player.totalKills += 1;
-                player.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
+                player.scoreManager.registerHit(result.grade as Exclude<JudgmentGrade, 'MISS'>, rear.killBonusScore, true);
                 this.handleMonsterKilled(rear, nowMs, playerIndex);
                 this.emit({ type: 'targetKilled', target: rear, playerIndex, nowMs });
               }
@@ -2505,7 +2506,7 @@ export class BeerCrusherEngine {
         this.emit({ type: 'targetKilled', target, playerIndex, nowMs });
       }
 
-      // 샷건 평타 퍼짐: 추가 대상은 낮은 피해만 받는다(넉백·둔화 없음). 처치는 리볼버 관통과 같은 경로.
+      // 샷건 평타 퍼짐: 추가 대상은 낮은 피해만 받는다(넉백·둔화 없음). 처치는 리볼버 관통과 같은 경로, 점수 판정은 그 발의 판정(D11).
       for (const rear of spreadTargets) {
         if (!this.activeTargets.includes(rear)) continue; // 한맥 폭발 등으로 이미 사라졌을 수 있다
         rear.hp = Number(Math.max(0, rear.hp - spreadExtraDamage).toFixed(3));
@@ -2516,7 +2517,7 @@ export class BeerCrusherEngine {
             this.activeTargets.splice(rearIdx, 1);
             this.killedInWave += 1;
             player.totalKills += 1;
-            player.scoreManager.registerHit('PERFECT', rear.killBonusScore, true);
+            player.scoreManager.registerHit(result.grade as Exclude<JudgmentGrade, 'MISS'>, rear.killBonusScore, true);
             this.handleMonsterKilled(rear, nowMs, playerIndex);
             this.emit({ type: 'targetKilled', target: rear, playerIndex, nowMs });
           }

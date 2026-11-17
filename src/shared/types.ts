@@ -23,7 +23,8 @@ export interface WeaponLevelSpec {
   /** 화면에 그리는 탄 수(연출 전용, 피해 계산에 쓰지 않는다). 샷건 3/4/5/6, 나머지 1. */
   pelletCount: number;
   pierceCount: number;
-  pierceDamageRatio: number;
+  /** 관통 순서별 피해 비율(길이 = pierceCount). 첫 관통 대상이 [0]. */
+  pierceDamageRatios: readonly number[];
   knockbackM: number;
   slowDurationMs: number;
   maxAmmo: number;

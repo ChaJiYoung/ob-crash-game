@@ -63,7 +63,7 @@ export const GAME_TUNING = {
   shotgunSpread: {
     extraTargetsByLevel: { 1: 2, 2: 2, 3: 3, 4: 3 },
     damageRatioByLevel: { 1: 0.15, 2: 0.25, 3: 0.35, 4: 0.45 },
-    radiusNorm: 0.30,
+    radiusNorm: 0.45, // 2026-11-17: 0.30에서 평균 0.6마리만 추가로 맞아 넓힘(D10)
   },
   weaponDamageScale: { shotgun: 1.0, revolver: 1.05, gatling: 1.5 },
   /** 스킬 수치. 리볼버 칼날 피해는 평타 GREAT 한 발과 같아 무기 표에서 자동으로 맞춘다. */
@@ -101,11 +101,11 @@ export const GAME_TUNING = {
       slideSpeedMps: 12,
     },
   },
-  /** 무기·레벨별 기본 탄수. rapid_reload 카드가 장당 +2발 더한다. */
+  /** 무기·레벨별 기본 탄수. 레벨업 증가는 Lv.3에서만(샷건 +3, 리볼버 +2, 개틀링 +5). rapid_reload 카드가 장당 +2발 더한다. */
   maxAmmoByWeapon: {
-    shotgun: { 1: 14, 2: 14, 3: 16, 4: 16 },
+    shotgun: { 1: 15, 2: 15, 3: 18, 4: 18 },
     revolver: { 1: 10, 2: 10, 3: 12, 4: 12 },
-    gatling: { 1: 35, 2: 40, 3: 45, 4: 50 },
+    gatling: { 1: 35, 2: 35, 3: 40, 4: 40 },
   },
   cards: {
     damageUp: { amount: 0.1, maxStacks: 3 },

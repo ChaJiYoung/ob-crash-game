@@ -117,15 +117,20 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     expect(rev.levels[3].pierceCount).toBe(2);
     expect(rev.levels[2].damagePerHit).toBeCloseTo(1.05 * revScale, 3);
     expect(rev.levels[3].damagePerHit).toBeCloseTo(1.1 * revScale, 3);
-    expect(rev.levels[4].damagePerHit).toBeCloseTo(1.15 * revScale, 3);
-    expect([1, 2, 3, 4].map((l) => rev.levels[l as 1 | 2 | 3 | 4].pierceDamageRatio)).toEqual([0.5, 0.5, 0.6, 0.7]); // 2026-11-10
+    expect(rev.levels[4].damagePerHit).toBeCloseTo(1.26 * revScale, 3);
+    expect([1, 2, 3, 4].map((l) => rev.levels[l as 1 | 2 | 3 | 4].pierceDamageRatios)).toEqual([
+      [0.5],
+      [0.5],
+      [0.6, 0.4],
+      [0.6, 0.4],
+    ]);
 
     // Check Gatling specifics
     const gat = WEAPON_ARCHETYPE_SPECS.gatling;
     expect(gat.levels[1].damagePerHit).toBe(0.375); // 0.25 x 1.5 (tuning)
-    expect(gat.levels[1].maxAmmo).toBe(35); // 2026-11-09: 35/40/45/50
+    expect(gat.levels[1].maxAmmo).toBe(35);
     expect(gat.levels[4].damagePerHit).toBe(0.75); // 0.50 x 1.5
-    expect(gat.levels[4].maxAmmo).toBe(50);
+    expect(gat.levels[4].maxAmmo).toBe(40);
     expect(gat.levels[4].fireIntervalMs).toBe(Math.round(83 * 0.7));
     expect(gat.levels[4].skillKnockbackM).toBe(5);
     expect(gat.levels[4].skillDamage).toBe(0.5);
@@ -191,8 +196,8 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
 
     expect(initial.weaponKind).toBe('shotgun');
     expect(initial.weaponLevel).toBe(1);
-    expect(initial.maxAmmo).toBe(14);
-    expect(initial.ammo).toBe(14);
+    expect(initial.maxAmmo).toBe(15);
+    expect(initial.ammo).toBe(15);
     expect(initial.skillStock).toBe(0); // selecting a weapon starts with no charges
     expect(initial.maxSkillStock).toBe(2);
     expect(initial.skillCooldownRemainingMs).toBe(0);
@@ -232,22 +237,22 @@ describe('Shared Protocol, Constants & WeaponSystem', () => {
     // 3. Upgrade weapon level up to MAX (Lv.4)
     ws.upgradeWeaponLevel(); // Lv.2
     expect(ws.getState().weaponLevel).toBe(2);
-    expect(ws.getState().maxAmmo).toBe(14);
+    expect(ws.getState().maxAmmo).toBe(15);
 
     ws.upgradeWeaponLevel(); // Lv.3
     expect(ws.getState().weaponLevel).toBe(3);
-    expect(ws.getState().maxAmmo).toBe(16);
+    expect(ws.getState().maxAmmo).toBe(18);
 
     ws.upgradeWeaponLevel(); // Lv.4 MAX
     expect(ws.getState().weaponLevel).toBe(4);
-    expect(ws.getState().maxAmmo).toBe(16);
+    expect(ws.getState().maxAmmo).toBe(18);
     expect(ws.getState().maxSkillStock).toBe(2);
     expect(ws.getState().skillStock).toBe(2); // already full before the upgrade; Lv.4 adds nothing
 
     // 4. Test Rapid Reload Card Buff
     ws.applyRapidReloadBuff();
     expect(ws.getState().hasRapidReloadBuff).toBe(true);
-    expect(ws.getState().maxAmmo).toBe(18); // 16 + 2 = 18
+    expect(ws.getState().maxAmmo).toBe(20); // 18 + 2 = 20
     expect(ws.getReloadDurationMs()).toBe(1056); // 1100 * 1.2 (tuning) * 0.8 = 1056
 
     // 5. Select Gatling archetype

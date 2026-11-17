@@ -69,7 +69,7 @@ describe('shotgun spread tuning', () => {
   it('pins the spread numbers and the 1.0 damage scale', () => {
     expect(GAME_TUNING.shotgunSpread.extraTargetsByLevel).toEqual({ 1: 2, 2: 2, 3: 3, 4: 3 });
     expect(GAME_TUNING.shotgunSpread.damageRatioByLevel).toEqual({ 1: 0.15, 2: 0.25, 3: 0.35, 4: 0.45 });
-    expect(GAME_TUNING.shotgunSpread.radiusNorm).toBe(0.3);
+    expect(GAME_TUNING.shotgunSpread.radiusNorm).toBe(0.45);
     expect(GAME_TUNING.weaponDamageScale.shotgun).toBe(1.0);
   });
 

@@ -25,7 +25,9 @@ export function weaponPerformanceText(kind: WeaponKindKey): string {
       } else if (kind === 'revolver') {
         parts.push(`${spec.damagePerHit.toFixed(2)} DMG`);
         if (spec.pierceCount > 0) {
-          parts.push(`${spec.pierceCount}체 관통(관통 피해 ${Math.round(spec.pierceDamageRatio * 100)}%)`);
+          parts.push(
+            `${spec.pierceCount}체 관통(관통 피해 ${spec.pierceDamageRatios.map((r) => `${Math.round(r * 100)}%`).join('→')})`,
+          );
         }
       } else {
         parts.push(`${spec.damagePerHit.toFixed(2)} DMG`, `${spec.maxAmmo}발`, `${spec.fireIntervalMs}ms`);
@@ -35,14 +37,14 @@ export function weaponPerformanceText(kind: WeaponKindKey): string {
     .join(' ➔ ');
 }
 
-/** 관통·산탄 포함 최선의 경우 한 발 총 피해(GREAT 기준). 샷건 = 주 대상 합계 x (1 + 추가 명중 수 x 비율), 리볼버 = 한 발 x (1 + 관통 수 x 관통 비율), 개틀링 = 한 발. */
+/** 관통·산탄 포함 최선의 경우 한 발 총 피해(GREAT 기준). 샷건 = 주 대상 합계 x (1 + 추가 명중 수 x 비율), 리볼버 = 한 발 x (1 + 관통 비율 합), 개틀링 = 한 발. */
 export function weaponBestCasePerShot(kind: WeaponKindKey, level: 1 | 2 | 3 | 4): number {
   const spec = WEAPON_ARCHETYPE_SPECS[kind].levels[level];
   if (kind === 'shotgun') {
     const spread = GAME_TUNING.shotgunSpread;
     return spec.damagePerHit * (1 + spread.extraTargetsByLevel[level] * spread.damageRatioByLevel[level]);
   }
-  if (kind === 'revolver') return spec.damagePerHit * (1 + spec.pierceCount * spec.pierceDamageRatio);
+  if (kind === 'revolver') return spec.damagePerHit * (1 + spec.pierceDamageRatios.reduce((a, b) => a + b, 0));
   return spec.damagePerHit;
 }
 

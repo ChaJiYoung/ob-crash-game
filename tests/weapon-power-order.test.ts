@@ -18,8 +18,13 @@ describe('weapon power order (one shot, GREAT)', () => {
     expect(sg.damagePerHit).toBeGreaterThanOrEqual(1);
   });
 
-  it('pierce ratios are 0.5 / 0.5 / 0.6 / 0.7', () => {
-    expect(([1, 2, 3, 4] as const).map((l) => S.revolver.levels[l].pierceDamageRatio)).toEqual([0.5, 0.5, 0.6, 0.7]);
+  it('pierce ratios are [0.5] / [0.5] / [0.6, 0.4] / [0.6, 0.4]', () => {
+    expect(([1, 2, 3, 4] as const).map((l) => S.revolver.levels[l].pierceDamageRatios)).toEqual([
+      [0.5],
+      [0.5],
+      [0.6, 0.4],
+      [0.6, 0.4],
+    ]);
   });
 
   it('hit tolerance is 1.0 for every weapon', () => {
