@@ -47,11 +47,12 @@ describe('restart from the pause menu', () => {
     expect(engine.isPaused).toBe(true);
   });
 
-  it('the page never submits the abandoned run', () => {
+  it('the page submits only when EX is active (mainCleared) and otherwise abandons the run', () => {
     const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
     const match = source.match(/const handleRestartFromPause = useCallback\(\(\) => \{([\s\S]*?)\n  \}, \[/);
     expect(match).not.toBeNull();
-    expect(match![1]).not.toContain('submitScore');
+    expect(match![1]).toContain('if (engine.mainCleared && abandonId !== null)');
+    expect(match![1]).toContain('GAME_ABANDON');
     expect(match![1]).toContain('engine.setPaused(false');
   });
 });
@@ -152,13 +153,14 @@ describe('exit to lobby from the pause menu', () => {
     expect(html).not.toContain('다시시작');
   });
 
-  it('the page lifts the pause, goes to the lobby and never submits the score', () => {
+  it('the page lifts the pause, goes to the lobby and submits only if mainCleared', () => {
     const source = fs.readFileSync('src/pc/PCGamePage.tsx', 'utf8');
     const match = source.match(/const handleExitToLobbyFromPause = useCallback\(\(\) => \{([\s\S]*?)\n  \}, \[/);
     expect(match).not.toBeNull();
     expect(match![1]).toContain('engine.setPaused(false');
     expect(match![1]).toContain('handleReturnToLobby()');
-    expect(match![1]).not.toContain('submitScore');
+    expect(match![1]).toContain('if (engine.mainCleared && abandonId !== null)');
+    expect(match![1]).toContain('GAME_ABANDON');
   });
 
   it('Esc closes the confirm step instead of resuming', () => {

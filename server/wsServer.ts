@@ -709,6 +709,7 @@ export async function createBeerCrusherServer(options?: {
               playerId: deviceId,
               submittedAt: new Date().toISOString(),
               stats: msg.stats,
+              isExUpdate: msg.isExUpdate === true,
             });
             if (!result.ok) {
               sendJson(ws, { type: 'ERROR', code: result.reason, message: `Score rejected: ${result.reason}` });

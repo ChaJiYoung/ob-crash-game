@@ -45,13 +45,32 @@ async function runPlaytest() {
   await page.goto('https://localhost:5173', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
 
-  // 1. Start the game from the lobby (PC mode)
+  // 1. Start the game from the lobby (select Mouse on 1P, enter nickname, click Start)
   console.log('1. Starting game from lobby...');
   await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent && b.textContent.includes('스마트폰 없이 PC')
+    const mouseBtn = Array.from(document.querySelectorAll('button')).find(
+      (b) => b.textContent && b.textContent.includes('🖱 마우스')
     );
-    if (btn) btn.click();
+    if (mouseBtn) mouseBtn.click();
+  });
+  await page.waitForSelector('input[placeholder*="닉네임"]', { timeout: 5000 });
+  await page.fill('input[placeholder*="닉네임"]', '봇테스트');
+  await page.evaluate(() => {
+    const okBtn = Array.from(document.querySelectorAll('button')).find(
+      (b) => !b.disabled && b.textContent?.trim() === '확인'
+    );
+    if (okBtn) okBtn.click();
+  });
+  await page.waitForFunction(
+    () => Array.from(document.querySelectorAll('button')).some((b) => !b.disabled && b.textContent?.includes('게임 시작')),
+    null,
+    { timeout: 5000 }
+  );
+  await page.evaluate(() => {
+    const startBtn = Array.from(document.querySelectorAll('button')).find(
+      (b) => !b.disabled && b.textContent && b.textContent.includes('게임 시작')
+    );
+    if (startBtn) startBtn.click();
   });
   await page.waitForFunction(() => window.__engine && window.__engine.gamePhase === 'PLAYING', null, { timeout: 20000 });
 
@@ -196,12 +215,49 @@ async function runPlaytest() {
     // The bot is a smoke test, not a skill test: keep the defense line up while it learns the encounter
     eng.lives = eng.maxLives = 999;
   });
-  const end = await play(BOSS_FIGHT_TIMEOUT_MS, () => window.__engine.gamePhase !== 'PLAYING');
+  const end = await play(BOSS_FIGHT_TIMEOUT_MS, () => window.__engine.isExActive || window.__engine.gamePhase !== 'PLAYING');
+
+  const exEnterCheck = await page.evaluate(() => {
+    const eng = window.__engine;
+    return { mainCleared: eng.mainCleared, isExActive: eng.isExActive, phase: eng.gamePhase };
+  });
+  metrics.exEntered = !!(exEnterCheck.mainCleared && exEnterCheck.isExActive);
+
+  // Play EX up to 120s with normal lives (5) so it can finish naturally or survive 120s
+  if (metrics.exEntered) {
+    await page.evaluate(() => {
+      const eng = window.__engine;
+      eng.lives = 5;
+      eng.maxLives = 5;
+    });
+    const exStart = Date.now();
+    let maxFieldMonsters = 0;
+    let exMaxBossAlive = 0;
+    while (Date.now() - exStart < 120_000) {
+      await play(1500, () => window.__engine.gamePhase !== 'PLAYING');
+      const snap = await page.evaluate(() => {
+        const eng = window.__engine;
+        const field = eng.activeTargets.filter(
+          (t) => !t.isItem && !t.isProjectile && !t.isGoldenCan && !t.weaponSelectKind && !t.rewardCardKind && t.kind !== 'boss' && !t.isSummonedMinion
+        ).length;
+        const bosses = eng.activeTargets.filter((t) => t.kind === 'boss').length;
+        return { phase: eng.gamePhase, field, bosses };
+      });
+      if (snap.field > maxFieldMonsters) maxFieldMonsters = snap.field;
+      if (snap.bosses > exMaxBossAlive) exMaxBossAlive = snap.bosses;
+      if (snap.phase !== 'PLAYING') break;
+    }
+    metrics.exMaxFieldMonsters = maxFieldMonsters;
+    metrics.exMaxBossAlive = exMaxBossAlive;
+  }
 
   const finalSummary = await page.evaluate(() => {
     const eng = window.__engine;
     return {
       phase: eng.gamePhase,
+      mainCleared: eng.mainCleared,
+      isExActive: eng.isExActive,
+      exDanger: eng.exDanger,
       score: eng.getPlayer(0).scoreManager.getState().totalScore,
       combo: eng.getPlayer(0).scoreManager.getState().combo,
       lives: eng.lives,
@@ -211,7 +267,6 @@ async function runPlaytest() {
       ammo: eng.getPlayer(0).weaponSystem.getState().ammo,
     };
   });
-  metrics.victory = finalSummary.phase === 'VICTORY';
 
   await browser.close();
 
@@ -223,7 +278,7 @@ async function runPlaytest() {
   if (metrics.cardsPicked < 1) problems.push('no reward card was picked');
   if (!metrics.bossEncounterSeen) problems.push('boss encounter never started');
   if (metrics.maxBossCount < 3) problems.push(`expected 3 bosses at wave 7, saw ${metrics.maxBossCount}`);
-  if (!metrics.victory) problems.push('did not reach VICTORY');
+  if (!metrics.exEntered) problems.push('did not enter EX rush after wave 7 boss clear');
   if (finalSummary.ammo === undefined || finalSummary.score === undefined) problems.push('ammo/score are undefined');
   if (problems.length) {
     console.error('❌ Playtest problems:\n - ' + problems.join('\n - '));

@@ -36,9 +36,9 @@ export const MONSTER_DETAILS: Record<
     imageSrc: '/guide/monster-03-obi.png',
   },
   chalang: {
-    role: '수면 잠수형 · 물속에서 옆으로 헤엄, 수면에서 앞으로 전진, 세 번째 등장 후 급발진 (3HP)',
-    speedText: `2.0 m/s (수면 위 전진) · 물속 좌우 ${GAME_TUNING.monsters.chalang.swimSpeedMps} m/s · 세 번째 등장 후 ×${GAME_TUNING.monsters.chalang.rushSpeedMult}`,
-    description: `검은 덩어리 위에 찰랑 병을 얹은 캐릭터. 수면 위에서는 방어선 쪽으로 전진하다가 ${GAME_TUNING.monsters.chalang.submergeMinMs / 1000}~${GAME_TUNING.monsters.chalang.submergeMaxMs / 1000}초 물속에 들어가 좌우로 헤엄칩니다. 물에서 다시 올라오기를 반복하다가 세 번째 등장부터 방어선까지 급하게 달려옵니다.`,
+    role: `수면 잠수형 · 물속에서 옆으로 헤엄, 수면에서 앞으로 전진, ${GAME_TUNING.monsters.chalang.rushAfterAppearances}번째 등장 후 급발진 (${TARGET_SPECS.chalang.maxHp}HP)`,
+    speedText: `2.0 m/s (수면 위 전진) · 물속 좌우 ${GAME_TUNING.monsters.chalang.swimSpeedMps} m/s · ${GAME_TUNING.monsters.chalang.rushAfterAppearances}번째 등장 후 ×${GAME_TUNING.monsters.chalang.rushSpeedMult}`,
+    description: `검은 덩어리 위에 찰랑 병을 얹은 캐릭터. 수면 위에서는 방어선 쪽으로 전진하다가 ${GAME_TUNING.monsters.chalang.submergeMinMs / 1000}~${GAME_TUNING.monsters.chalang.submergeMaxMs / 1000}초 물속에 들어가 좌우로 헤엄칩니다. 물에서 다시 올라오기를 반복하다가 ${GAME_TUNING.monsters.chalang.rushAfterAppearances}번째 등장부터 방어선까지 급하게 달려옵니다.`,
     tip: '물속에 있을 때는 맞지 않습니다. 수면 위로 올라온 순간에 쏘세요. 체력 3이라 여러 번 맞혀야 합니다.',
     imageSrc: '/guide/monster-07-chalang.png',
   },
@@ -60,7 +60,7 @@ export const MONSTER_DETAILS: Record<
     role: '보스 · 업소용 냉각기 (3·5·7웨이브, 마지막에 대왕 냉각기)',
     speedText: '0.85 m/s (14m 정지, 좌우 이동)',
     description: `앞면에 탭이 달린 업소용 냉각기 보스. 소형은 은색 1구, 대왕은 검정 3구에 금색 왕관을 썼습니다. 3웨이브는 1대(체력 ${GAME_TUNING.waves[2].boss!.coolerHp[0]}), 5웨이브는 2대(각 ${GAME_TUNING.waves[4].boss!.coolerHp[0]}), 7웨이브는 2대(각 ${GAME_TUNING.waves[6].boss!.coolerHp[0]}) + 대왕 냉각기(체력 ${GAME_TUNING.waves[6].boss!.kingHp}, 1.5배 크기)가 등장합니다. 웨이브의 일반 몬스터가 ${Math.round(GAME_TUNING.boss.encounterStartRatio * 100)}% 나온 시점에 등장하고, 보스가 살아 있는 동안에도 일반 몬스터가 계속 나옵니다. 좌우로 움직이며 체력이 ${GAME_TUNING.boss.summonHpThresholds.map((v) => Math.round(v * 100)).join('% / ')}% 아래로 내려갈 때마다 부하를 소환하고(${GAME_TUNING.boss.summonCountByStep.join('·')}마리씩 필드 ${GAME_TUNING.boss.minionDrop.minRadiusM}~${GAME_TUNING.boss.minionDrop.maxRadiusM}m에 위에서 떨어집니다. 시간이 아니라 체력 기준이라 빨리 잡아도 소환을 봅니다) 투사체를 쏩니다. 넉백·기절·둔화가 통하지 않습니다.`,
-    tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 7웨이브는 냉각기와 대왕을 모두 잡아야 승리합니다.',
+    tip: '보스 몸통을 맞혀도 피버가 차지 않습니다! 소환된 부하를 잡아 피버와 아이템을 모으세요. 7웨이브는 냉각기와 대왕을 모두 잡으면 클리어! 이어서 EX 무한 러시가 시작됩니다.',
     imageSrc: '/guide/monster-06-boss-dispenser.png',
   },
 };

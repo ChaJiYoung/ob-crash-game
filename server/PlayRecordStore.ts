@@ -19,6 +19,8 @@ export interface SubmitResultInput {
   submittedAt: string;
   /** isValidPlayRunStats를 통과한 값만 */
   stats: PlayRunStats;
+  /** EX 진입 시점 체크포인트 이후 최종 EX 기록으로 갱신할 때 true. */
+  isExUpdate?: boolean;
 }
 
 export type SubmitFailure =
@@ -183,8 +185,8 @@ export class PlayRecordStore {
       const conn = this.db.conn;
       const { gameId, roomId, playerId, submittedAt, stats } = input;
       const game = conn
-        .prepare(`SELECT id, room_id, mode, status FROM games WHERE id = ?`)
-        .get(gameId) as { id: number; room_id: string; mode: PlayMode; status: string } | undefined;
+        .prepare(`SELECT id, room_id, mode, status, outcome FROM games WHERE id = ?`)
+        .get(gameId) as { id: number; room_id: string; mode: PlayMode; status: string; outcome: string | null } | undefined;
       if (!game) return { ok: false, reason: 'GAME_NOT_FOUND' };
       if (game.room_id !== roomId) return { ok: false, reason: 'ROOM_MISMATCH' };
       // finished는 거절하지 않는다: 협동은 첫 제출이 판을 끝낸 뒤 두 번째 제출이 온다.
@@ -194,7 +196,15 @@ export class PlayRecordStore {
         .prepare(`SELECT id, slot, submitted_at FROM game_players WHERE game_id = ? AND player_id = ?`)
         .get(gameId, playerId) as { id: number; slot: number; submitted_at: string | null } | undefined;
       if (!row) return { ok: false, reason: 'NOT_IN_GAME' };
-      if (row.submitted_at) return { ok: false, reason: 'ALREADY_SUBMITTED' };
+      const isExUpdate = Boolean(
+        row.submitted_at &&
+          input.isExUpdate &&
+          game.status === 'finished' &&
+          game.outcome === 'VICTORY' &&
+          stats.outcome === 'VICTORY' &&
+          stats.waveReached >= 8
+      );
+      if (row.submitted_at && !isExUpdate) return { ok: false, reason: 'ALREADY_SUBMITTED' };
 
       if ((stats.mode ?? 'solo') !== game.mode) return { ok: false, reason: 'MODE_MISMATCH' };
       if (game.mode === 'coop' && stats.coop!.slot !== row.slot) return { ok: false, reason: 'SLOT_MISMATCH' };
@@ -240,16 +250,18 @@ export class PlayRecordStore {
           rowId: row.id,
         });
 
-      const insertPick = conn.prepare(
-        `INSERT INTO game_player_card_picks (game_player_id, pick_order, wave_num, card_kind, mid_wave, auto_picked)
-         VALUES (@gpId, @order, @wave, @kind, @mid, @auto)`,
-      );
-      (stats.cardPicks ?? []).forEach((c, i) => {
-        insertPick.run({ gpId: row.id, order: i, wave: c.wave, kind: c.kind, mid: c.midWave ? 1 : 0, auto: c.auto ? 1 : 0 });
-      });
+      if (!isExUpdate) {
+        const insertPick = conn.prepare(
+          `INSERT INTO game_player_card_picks (game_player_id, pick_order, wave_num, card_kind, mid_wave, auto_picked)
+           VALUES (@gpId, @order, @wave, @kind, @mid, @auto)`,
+        );
+        (stats.cardPicks ?? []).forEach((c, i) => {
+          insertPick.run({ gpId: row.id, order: i, wave: c.wave, kind: c.kind, mid: c.midWave ? 1 : 0, auto: c.auto ? 1 : 0 });
+        });
+      }
 
       let finishedGame = false;
-      if (game.status === 'playing') {
+      if (game.status === 'playing' || isExUpdate) {
         conn
           .prepare(
             `UPDATE games SET status = 'finished', outcome = @outcome, total_score = @total, wave_reached = @waveReached,
@@ -264,13 +276,15 @@ export class PlayRecordStore {
             submittedAt,
             gameId,
           });
-        const insertWave = conn.prepare(
-          `INSERT INTO game_waves (game_id, wave_num, seconds, bonus, damage_taken) VALUES (@gameId, @wave, @seconds, @bonus, @damageTaken)`,
-        );
-        for (const w of stats.waves) {
-          insertWave.run({ gameId, wave: w.wave, seconds: w.seconds, bonus: w.bonus, damageTaken: w.damageTaken ?? null });
+        if (!isExUpdate) {
+          const insertWave = conn.prepare(
+            `INSERT INTO game_waves (game_id, wave_num, seconds, bonus, damage_taken) VALUES (@gameId, @wave, @seconds, @bonus, @damageTaken)`,
+          );
+          for (const w of stats.waves) {
+            insertWave.run({ gameId, wave: w.wave, seconds: w.seconds, bonus: w.bonus, damageTaken: w.damageTaken ?? null });
+          }
+          finishedGame = true;
         }
-        finishedGame = true;
       }
       return { ok: true, finishedGame };
     });

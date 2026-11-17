@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { InputKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../../shared/types';
-import { INPUT_KIND_ICON, INPUT_KIND_LABEL, WEAPON_RANKING_LABEL } from '../../shared/constants';
+import { INPUT_KIND_ICON, INPUT_KIND_LABEL, STAGE_CONSTANTS, WEAPON_RANKING_LABEL } from '../../shared/constants';
 
 /** 입력 장치 아이콘. 옛 기록(값 없음)은 아무것도 그리지 않는다. */
 export const InputKindIcon: React.FC<{ kind?: InputKind }> = ({ kind }) =>
@@ -10,11 +10,13 @@ export const InputKindIcon: React.FC<{ kind?: InputKind }> = ({ kind }) =>
     </span>
   ) : null;
 
-/** 랭킹 항목의 웨이브 칸. 클리어는 금색 "CLEAR"(글자만), 사망(또는 옛 기록)은 회색 "W{n}". */
+/** 랭킹 항목의 웨이브 칸. 클리어는 금색 "CLEAR"(EX는 "CLEAR+D{n}"), 사망(또는 옛 기록)은 회색 "W{n}". */
 export const WaveLabel: React.FC<{ waveReached: number; outcome?: RunOutcome }> = ({ waveReached, outcome }) =>
   outcome === 'VICTORY' ? (
     <div data-testid="ranking-wave-clear" style={{ fontSize: '10px', color: '#fbbf24', fontWeight: 800 }}>
-      CLEAR
+      {waveReached > STAGE_CONSTANTS.TOTAL_WAVES
+        ? `CLEAR+D${waveReached - STAGE_CONSTANTS.TOTAL_WAVES}`
+        : 'CLEAR'}
     </div>
   ) : (
     <div data-testid="ranking-wave-dead" style={{ fontSize: '10px', color: '#94a3b8' }}>

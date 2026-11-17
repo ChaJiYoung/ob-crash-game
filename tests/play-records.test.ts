@@ -100,6 +100,60 @@ describe('play records (DB)', () => {
       playSolo(env, { playerId: 'd1', score: 5, over: { inputKind: 'mobile' } });
       expect(env.records.getTopRuns()[0].inputKind).toBe('mobile');
     });
+
+    it('stores EX run with outcome VICTORY and waveReached >= 8 in score order', () => {
+      playSolo(env, { playerId: 'd1', score: 3000, at: 1, over: { outcome: 'VICTORY', waveReached: 7 } });
+      const exId = playSolo(env, { playerId: 'd2', score: 8500, at: 2, over: { outcome: 'VICTORY', waveReached: 10 } });
+      expect(row(env, 'SELECT outcome, wave_reached, total_score FROM games WHERE id = ?', exId)).toEqual({
+        outcome: 'VICTORY',
+        wave_reached: 10,
+        total_score: 8500,
+      });
+      const top = env.records.getTopRuns();
+      expect(top.map((r) => [r.deviceId, r.outcome, r.waveReached, r.score])).toEqual([
+        ['d2', 'VICTORY', 10, 8500],
+        ['d1', 'VICTORY', 7, 3000],
+      ]);
+    });
+
+    it('updates EX checkpoint record when isExUpdate is true, while rejecting normal duplicate submits', () => {
+      const id = playSolo(env, {
+        playerId: 'd1',
+        roomId: 'R1',
+        score: 5000,
+        at: 1,
+        over: { outcome: 'VICTORY', waveReached: 8 },
+      });
+      // 일반 중복 제출은 여전히 거절
+      expect(
+        env.records.submitResult({
+          gameId: id,
+          roomId: 'R1',
+          playerId: 'd1',
+          submittedAt: 't2',
+          stats: stats({ outcome: 'VICTORY', waveReached: 10, totalScore: 9000 }),
+        })
+      ).toEqual({ ok: false, reason: 'ALREADY_SUBMITTED' });
+
+      // isExUpdate=true 이면 EX 최종 점수/DANGER로 갱신
+      expect(
+        env.records.submitResult({
+          gameId: id,
+          roomId: 'R1',
+          playerId: 'd1',
+          submittedAt: 't3',
+          stats: stats({ outcome: 'VICTORY', waveReached: 11, totalScore: 9500 }),
+          isExUpdate: true,
+        })
+      ).toEqual({ ok: true, finishedGame: false });
+
+      expect(row(env, 'SELECT outcome, wave_reached, total_score FROM games WHERE id = ?', id)).toEqual({
+        outcome: 'VICTORY',
+        wave_reached: 11,
+        total_score: 9500,
+      });
+      expect(row(env, 'SELECT score FROM game_players WHERE game_id = ?', id)).toEqual({ score: 9500 });
+    });
   });
 
   it('validates the stats shape', () => {

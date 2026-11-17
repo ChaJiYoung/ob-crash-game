@@ -225,6 +225,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const lastGoldenCanActiveRef = useRef<boolean>(false);
   const lastBossWarningRef = useRef<boolean>(false);
   const lastExDangerKeyRef = useRef<string>('');
+  const exCheckpointSentRef = useRef<boolean>(false);
   const tutorialDirectorRef = useRef<TutorialDirector | null>(null);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(1);
   const [tutorialRound, setTutorialRound] = useState<TutorialRoundState>({ round: 0, phase: 'ready' });
@@ -888,16 +889,25 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     };
   }, [engine]);
 
-  const submitScores = useCallback(() => {
-    submitTimeRef.current = Date.now();
+  const submitScores = useCallback((options?: { checkpoint?: boolean }) => {
+    const isCheckpoint = options?.checkpoint === true;
+    if (!isCheckpoint) submitTimeRef.current = Date.now();
     const gameId = gameIdRef.current;
     if (gameId === null) {
-      console.warn('Score not submitted: no gameId');
+      if (!isCheckpoint) console.warn('Score not submitted: no gameId');
     } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && roomId) {
-      const messages = buildScoreSubmissions(engine, slotsRef.current, slotIndexMapRef.current, roomId, gameId);
+      const wasCheckpointSent = exCheckpointSentRef.current;
+      const messages = buildScoreSubmissions(engine, slotsRef.current, slotIndexMapRef.current, roomId, gameId, {
+        allowExCheckpoint: isCheckpoint || engine.mainCleared,
+        isExUpdate: !isCheckpoint && wasCheckpointSent,
+      });
       messages.forEach((msg) => wsRef.current!.send(JSON.stringify(msg)));
-      gameIdRef.current = null;
+      if (!isCheckpoint) {
+        gameIdRef.current = null;
+        exCheckpointSentRef.current = false;
+      }
     }
+    if (isCheckpoint) return;
     if (engine.players.length >= 2) {
       const p0Stats = engine.getPlayRunStats(0);
       const p1Stats = engine.getPlayRunStats(1);
@@ -985,6 +995,12 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
         }
       });
 
+      // EX 진입 순간 W7 클리어 기록을 서버에 즉시 체크포인트 저장(도중 이탈·네트워크 단절 시 기록 보호)
+      if (engine.mainCleared && !exCheckpointSentRef.current && gameIdRef.current !== null && engine.gamePhase === 'PLAYING') {
+        exCheckpointSentRef.current = true;
+        submitScores({ checkpoint: true });
+      }
+
       // Synchronize game over / victory
       if (engine.gamePhase === 'GAMEOVER' && gamePhaseRef.current === 'PLAYING') {
         processorsRef.current.forEach((p) => p.stopAll());
@@ -1022,6 +1038,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       }
     });
     gameIdRef.current = null;
+    exCheckpointSentRef.current = false;
     pendingWeaponsRef.current = [];
     const beginId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -1235,11 +1252,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
   const handleRestartFromPause = useCallback(() => {
     const abandonId = gameIdRef.current;
-    if (abandonId !== null && roomIdRef.current) {
+    if (engine.mainCleared && abandonId !== null) {
+      submitScores();
+    } else if (abandonId !== null && roomIdRef.current) {
       wsRef.current?.readyState === WebSocket.OPEN &&
         wsRef.current.send(JSON.stringify({ type: 'GAME_ABANDON', roomId: roomIdRef.current, gameId: abandonId }));
     }
     gameIdRef.current = null;
+    exCheckpointSentRef.current = false;
     pendingBeginIdRef.current = null;
     lockedStartRef.current = null;
     if (countdownTimerRef.current) {
@@ -1252,7 +1272,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     engine.setPaused(false, performance.now());
     setPauseMenu({ open: false, reason: 'USER' });
     handleStartGame({ sameRoster: true });
-  }, [engine, handleStartGame]);
+  }, [engine, handleStartGame, submitScores]);
 
   // Esc: open the menu while playing, resume when it is open.
   useEffect(() => {
@@ -1423,11 +1443,14 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   // Leaving from the pause menu drops this run's score (no submitScore), like restart does.
   const handleExitToLobbyFromPause = useCallback(() => {
     const abandonId = gameIdRef.current;
-    if (abandonId !== null && roomIdRef.current) {
+    if (engine.mainCleared && abandonId !== null) {
+      submitScores();
+    } else if (abandonId !== null && roomIdRef.current) {
       wsRef.current?.readyState === WebSocket.OPEN &&
         wsRef.current.send(JSON.stringify({ type: 'GAME_ABANDON', roomId: roomIdRef.current, gameId: abandonId }));
     }
     gameIdRef.current = null;
+    exCheckpointSentRef.current = false;
     pendingBeginIdRef.current = null;
     lockedStartRef.current = null;
     if (countdownTimerRef.current) {
@@ -1441,7 +1464,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     setPauseMenu({ open: false, reason: 'USER' });
     setIsExitConfirmOpen(false);
     handleReturnToLobby();
-  }, [engine, handleReturnToLobby]);
+  }, [engine, handleReturnToLobby, submitScores]);
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      if (engine.mainCleared && gameIdRef.current !== null) {
+        submitScores();
+      }
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    return () => window.removeEventListener('pagehide', handlePageHide);
+  }, [engine, submitScores]);
 
   const handleRenderMetrics = useCallback((metrics: RenderPerformanceMetrics) => {
     if (!isSensorLabOpenRef.current && gamePhaseRef.current !== 'SANDBOX') return;
@@ -1987,6 +2020,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             maxCombo={engine.getPlayer(0).scoreManager.getState().maxCombo}
             kills={engine.getPlayRunStats()?.kills ?? 0}
             waveReached={engine.currentWave}
+            exDangerReached={engine.mainCleared ? engine.exDanger : 0}
             currentPlayer={pairedPlayer}
             isNewRecord={isNewRecord}
             rankings={topRankings}

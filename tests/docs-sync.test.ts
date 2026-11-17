@@ -27,6 +27,8 @@ const FORBIDDEN: { pattern: RegExp; why: string }[] = [
   { pattern: /위로 휙! \/ 우클릭/, why: '스킬 안내는 입력 방식별 하나(D09)' },
   { pattern: /10초.*자동 선택|자동 선택.*10초/, why: '선택 시간 제한 없음(D34)' },
   { pattern: /튜토리얼.*(넉넉|넓은) (판정|명중)/, why: '연습 판정이 실전과 같음(D30)' },
+  { pattern: /세 번째 등장/, why: '찰랑 급발진 횟수는 rushAfterAppearances를 따른다' },
+  { pattern: /모두 잡아야 승리/, why: '7웨이브 클리어 후 EX 무한 러시로 이어진다' },
 ];
 
 function collect(): string[] {

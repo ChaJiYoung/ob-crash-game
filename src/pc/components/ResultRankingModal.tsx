@@ -41,6 +41,7 @@ export interface ResultRankingModalProps {
   /** 판 전체 처치 수. */
   kills?: number;
   waveReached: number;
+  exDangerReached?: number;
   currentPlayer?: PlayerProfile;
   isNewRecord?: boolean;
   rankings: RunRankingEntry[];
@@ -200,6 +201,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   maxCombo,
   kills = 0,
   waveReached,
+  exDangerReached = 0,
   currentPlayer,
   isNewRecord,
   rankings,
@@ -216,7 +218,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   restartButtonRef,
   lobbyButtonRef,
 }) => {
-  const isVictory = gamePhase === 'VICTORY';
+  const isVictory = gamePhase === 'VICTORY' || exDangerReached > 0;
   const [activeRankTab, setActiveRankTab] = useState<RankingTab>(initialRankTab ?? (coop ? 'team' : 'solo'));
 
   return (
@@ -261,10 +263,16 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
               letterSpacing: '-0.5px',
             }}
           >
-            {isVictory ? '🎉 VICTORY! 브루어리 수호 성공!' : '💥 GAME OVER! 바 방어선 함락!'}
+            {exDangerReached > 0
+              ? `🎉 CLEAR! · DANGER ${exDangerReached} 도달`
+              : isVictory
+              ? '🎉 VICTORY! 브루어리 수호 성공!'
+              : '💥 GAME OVER! 바 방어선 함락!'}
           </div>
           <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '6px' }}>
-            {isVictory
+            {exDangerReached > 0
+              ? `브루어리를 지켜내고 무한 러시에서 DANGER ${exDangerReached}까지 버텼습니다!`
+              : isVictory
               ? '생맥주 냉각기 보스를 격퇴하고 오비 브루어리를 완벽히 지켜냈습니다!'
               : '맥주 몬스터들의 거센 공세에 방어선이 무너졌습니다.'}
           </div>
@@ -379,9 +387,11 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
                 border: '1px solid rgba(255, 255, 255, 0.1)',
               }}
             >
-              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>도달 웨이브</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
+                {exDangerReached > 0 ? '도달 단계' : '도달 웨이브'}
+              </div>
               <div style={{ fontSize: '28px', fontWeight: 900, color: '#4ade80', marginTop: '4px' }}>
-                WAVE {waveReached}
+                {exDangerReached > 0 ? `CLEAR · DANGER ${exDangerReached}` : `WAVE ${waveReached}`}
               </div>
             </div>
           </div>

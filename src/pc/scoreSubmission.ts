@@ -41,7 +41,8 @@ export function buildScoreSubmissions(
   slots: SlotPair,
   map: Partial<Record<PlayerSlot, PlayerIndex>>,
   roomId: string,
-  gameId: number
+  gameId: number,
+  options?: { allowExCheckpoint?: boolean; isExUpdate?: boolean }
 ): ScoreSubmitMessage[] {
   const submissions: ScoreSubmitMessage[] = [];
 
@@ -50,7 +51,7 @@ export function buildScoreSubmissions(
     const slot = indexToSlot(map, playerIdx) ?? ((playerIdx + 1) as PlayerSlot);
     const meSlot = slots.find((s) => s.slot === slot);
     const me = meSlot?.player;
-    const stats = engine.getPlayRunStats(playerIdx);
+    const stats = engine.getPlayRunStats(playerIdx, { allowExCheckpoint: options?.allowExCheckpoint });
     if (!stats) return;
 
     let finalStats: PlayRunStats = meSlot?.input ? { ...stats, inputKind: meSlot.input } : { ...stats };
@@ -59,7 +60,10 @@ export function buildScoreSubmissions(
       const partnerState = slots.find((s) => s.slot === partnerSlot);
       const partner = partnerState?.player;
       const partnerIdx = map[partnerSlot];
-      const partnerWeapon = partnerIdx !== undefined ? engine.getPlayRunStats(partnerIdx)?.weaponKind : undefined;
+      const partnerWeapon =
+        partnerIdx !== undefined
+          ? engine.getPlayRunStats(partnerIdx, { allowExCheckpoint: options?.allowExCheckpoint })?.weaponKind
+          : undefined;
       finalStats = {
         ...finalStats,
         coop: {
@@ -83,6 +87,7 @@ export function buildScoreSubmissions(
       rulesetVersion: RANKING_RULESET_VERSION,
       mode: finalStats.mode,
       stats: finalStats,
+      ...(options?.isExUpdate ? { isExUpdate: true } : {}),
     };
 
     submissions.push(msg);

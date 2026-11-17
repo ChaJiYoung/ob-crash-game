@@ -2346,14 +2346,22 @@ export class BeerCrusherEngine {
     return { shots, ratio, bonus, applied: player.precisionBonusApplied };
   }
 
-  /** 끝난 판의 통계. 7웨이브 정밀 보너스가 정산된 뒤의 값이 되도록 판이 끝난 뒤에만 돌려준다. */
-  public getPlayRunStats(playerIndex: PlayerIndex = 0): PlayRunStats | null {
-    if (this.gamePhase !== 'GAMEOVER' && this.gamePhase !== 'VICTORY') return null;
+  /** 끝난 판의 통계. 7웨이브 정밀 보너스가 정산된 뒤의 값이 되도록 판이 끝난 뒤에만 돌려준다(EX 체크포인트는 예외). */
+  public getPlayRunStats(playerIndex: PlayerIndex = 0, options?: { allowExCheckpoint?: boolean }): PlayRunStats | null {
+    if (
+      this.gamePhase !== 'GAMEOVER' &&
+      this.gamePhase !== 'VICTORY' &&
+      !(options?.allowExCheckpoint && this.mainCleared)
+    ) {
+      return null;
+    }
     const player = this.getPlayer(playerIndex);
     const breakdown = this.getScoreBreakdown(playerIndex);
     const weapon = player.weaponSystem.getState();
+    const outcome: 'VICTORY' | 'GAMEOVER' =
+      this.mainCleared || this.gamePhase === 'VICTORY' ? 'VICTORY' : 'GAMEOVER';
     const stats: PlayRunStats = {
-      outcome: this.mainCleared ? 'VICTORY' : this.gamePhase,
+      outcome,
       waveReached: this.isExActive ? STAGE_CONSTANTS.TOTAL_WAVES + this.exDanger : this.currentWave,
       livesLeft: this.lives,
       durationSec: Number(this.playTimeSec.toFixed(2)),
