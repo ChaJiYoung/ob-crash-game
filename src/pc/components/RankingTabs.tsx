@@ -161,7 +161,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
       {/* Tab Body: Fixed height so switching solo/team or empty/full never shifts layout */}
       <div
         style={{
-          height: compact ? '236px' : '300px',
+          height: compact ? '260px' : '320px',
           display: 'flex',
           flexDirection: 'column',
         }}
