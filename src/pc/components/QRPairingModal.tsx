@@ -6,6 +6,7 @@ import { LobbyNextStepBanner } from './LobbyNextStepBanner';
 import { getLobbyNextAction, getStartButtonView, isOptionalSlot } from '../lobbyGuide';
 import { SlotPair, SlotState, SlotInput, StartGate, isSlotJoined, isSlotReady, getJoinedSlots } from '../coopSlots';
 import { RankingTabs, RankingTab, getDefaultRankTab } from './RankingTabs';
+import { DEBUG_BADGE_COLOR } from './ArcadeOverlayHUD';
 
 export function buildControllerPairingUrl(origin: string, roomId: string, lanIp?: string, slot: PlayerSlot = 1): string {
   let cleanOrigin = origin.replace(/\/+$/, '');
@@ -38,6 +39,8 @@ export interface QRPairingModalProps {
   onOpenGuide?: () => void;
   onStartTutorial?: () => void;
   onRenewRoom?: () => void;
+  /** 디버그 모드: 있으면 RankingTabs 자리에 이 패널을 그리고 상단에 배지를 단다. */
+  debugPanel?: React.ReactNode;
 }
 
 interface SlotCardProps {
@@ -395,6 +398,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   onOpenGuide,
   onStartTutorial,
   onRenewRoom,
+  debugPanel,
 }) => {
   const joinedCount = getJoinedSlots(slots).length;
   const startView = getStartButtonView(slots, startGate);
@@ -474,6 +478,23 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           alignItems: 'center',
         }}
       >
+        {debugPanel && (
+          <div
+            data-testid="lobby-debug-badge"
+            style={{
+              marginBottom: '6px',
+              padding: '2px 12px',
+              borderRadius: '8px',
+              background: DEBUG_BADGE_COLOR,
+              color: '#fff',
+              fontSize: '12px',
+              fontWeight: 900,
+              letterSpacing: '0.04em',
+            }}
+          >
+            DEBUG MODE · 랭킹 미등록
+          </div>
+        )}
         {/* Title */}
         <div style={{ textAlign: 'center', marginBottom: '10px' }}>
           <div
@@ -534,16 +555,18 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               padding: '12px 14px',
             }}
           >
-            <RankingTabs
-              soloRankings={topRankings}
-              weaponRankings={weaponRankings}
-              teamRankings={teamRankings}
-              activeTab={currentTab}
-              onChangeTab={handleTabChange}
-              highlightTeamKey={highlightTeamKey}
-              highlightDeviceIds={highlightDeviceIds}
-              compact
-            />
+            {debugPanel ?? (
+              <RankingTabs
+                soloRankings={topRankings}
+                weaponRankings={weaponRankings}
+                teamRankings={teamRankings}
+                activeTab={currentTab}
+                onChangeTab={handleTabChange}
+                highlightTeamKey={highlightTeamKey}
+                highlightDeviceIds={highlightDeviceIds}
+                compact
+              />
+            )}
           </div>
 
           {/* Right: Start & Action Buttons */}

@@ -1,6 +1,6 @@
 # Task: T02 Lobby Debug Panel
 
-## Status: pending
+## Status: done
 
 ## Goal
 디버그 모드 로비에서 `RankingTabs` 자리에 디버그 패널이 뜨고, [시작 조건] 탭에서 시작 지점·무기 레벨·카드 스택을 바꾸며, [최근 기록] 탭에서 최근 디버그 판 10개를 본다. 로비 상단에 `DEBUG MODE · 랭킹 미등록` 배지가 붙는다.
@@ -69,9 +69,9 @@
 - `QRPairingModal`에 `debugPanel` 주면 랭킹 탭 텍스트가 없고 배지가 있음, 안 주면 기존과 같음.
 
 ## Acceptance Criteria
-- [ ] `?debug=1` 로비에서 랭킹 칸이 디버그 패널로 바뀌고 QR·슬롯·시작 버튼은 그대로다.
-- [ ] 패널에서 바꾼 설정이 다음 판에 적용되고 새로고침 후에도 유지된다.
-- [ ] [최근 기록]에 방금 끝낸 디버그 판이 보인다.
+- [x] `?debug=1` 로비에서 랭킹 칸이 디버그 패널로 바뀌고 QR·슬롯·시작 버튼은 그대로다.
+- [x] 패널에서 바꾼 설정이 다음 판에 적용되고 새로고침 후에도 유지된다.
+- [x] [최근 기록]에 방금 끝낸 디버그 판이 보인다.
 
 ## Validation
 - `npx vitest run tests/debug-lobby-panel.test.tsx tests/pc-modals-and-pairing.test.ts tests/ranking-tabs.test.tsx tests/lobby-slot-cards.test.tsx` — 통과
@@ -92,6 +92,6 @@ Task: T02-lobby-debug-panel
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

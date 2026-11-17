@@ -42,7 +42,8 @@ import { GraceState, decideDisconnectAction, startGrace, tickGrace } from './coo
 import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './playerPresentation';
 import { buildDebugSnapshot } from './debug/debugSnapshot';
 import { isDebugModeSearch, loadDebugStartConfig, saveDebugStartConfig } from './debug/debugMode';
-import type { DebugStartConfig } from '../shared/types';
+import type { DebugRunEntry, DebugStartConfig } from '../shared/types';
+import { DebugLobbyPanel } from './components/DebugLobbyPanel';
 
 import {
   createLobbySlots,
@@ -97,6 +98,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     setDebugConfig(cfg);
     saveDebugStartConfig(cfg);
   }, []);
+  const [debugRuns, setDebugRuns] = useState<DebugRunEntry[] | null>(null);
   const [roomId, setRoomId] = useState<string>('');
   const roomIdRef = useRef<string>(roomId);
   roomIdRef.current = roomId;
@@ -258,6 +260,17 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
+  /** 디버그 패널 [최근 기록] 요청. 응답은 WS 'DEBUG_RECORDS'로 온다. */
+  const requestDebugRuns = useCallback(() => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !roomIdRef.current) return;
+    setDebugRuns(null);
+    ws.send(JSON.stringify({ type: 'DEBUG_RECORDS_REQUEST', roomId: roomIdRef.current }));
+  }, []);
+  // 로비에 들어오거나(판 종료 후 복귀 포함) 방이 새로 생기면 최근 디버그 기록을 다시 받는다.
+  useEffect(() => {
+    if (isDebugMode && gamePhase === 'PAIRING' && roomId) requestDebugRuns();
+  }, [isDebugMode, gamePhase, roomId, requestDebugRuns]);
   /** 서버가 발급한 현재 판 ID. GAME_STARTED를 받기 전이나 판이 없으면 null. */
   const gameIdRef = useRef<number | null>(null);
   /** 응답을 기다리는 GAME_BEGIN의 beginId. 늦게 온 옛 응답을 걸러낸다. */
@@ -777,6 +790,9 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             }
             break;
 
+          case 'DEBUG_RECORDS':
+            if (msg.roomId === roomIdRef.current) setDebugRuns(msg.runs);
+            break;
           case 'GAME_STARTED':
             if (msg.beginId !== pendingBeginIdRef.current) break; // 이전 판의 늦은 응답
             pendingBeginIdRef.current = null;
@@ -1958,6 +1974,11 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             onOpenGuide={handleOpenGuide}
             onStartTutorial={handleStartTutorial}
             onRenewRoom={handleRenewRoom}
+            debugPanel={
+              isDebugMode ? (
+                <DebugLobbyPanel config={debugConfig} onChangeConfig={updateDebugConfig} runs={debugRuns} onRequestRuns={requestDebugRuns} />
+              ) : undefined
+            }
           />
           {slots.some(shouldShowLobbyCrosshair) && (
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 130 }}>
