@@ -226,6 +226,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const lastBossWarningRef = useRef<boolean>(false);
   const lastExDangerKeyRef = useRef<string>('');
   const exCheckpointSentRef = useRef<boolean>(false);
+  const preRunBestScoreRef = useRef<number | null>(null);
   const tutorialDirectorRef = useRef<TutorialDirector | null>(null);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(1);
   const [tutorialRound, setTutorialRound] = useState<TutorialRoundState>({ round: 0, phase: 'ready' });
@@ -738,7 +739,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
               if (engine.players.length === 1) {
                 const curP = pairedPlayerRef.current;
                 if (curP && up.deviceId === curP.deviceId) {
-                  setIsNewRecord(up.bestScore > (curP.bestScore || 0));
+                  const baseBest = preRunBestScoreRef.current ?? (curP.bestScore || 0);
+                  setIsNewRecord(up.bestScore > baseBest);
                 }
               } else {
                 setIsNewRecord(false);
@@ -1060,6 +1062,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     }
     setPhase('PLAYING');
     syncProcessors();
+    preRunBestScoreRef.current = pairedPlayerRef.current?.bestScore ?? 0;
     setIsNewRecord(false);
     setCoopResult(null);
   }, [engine, syncProcessors]);
