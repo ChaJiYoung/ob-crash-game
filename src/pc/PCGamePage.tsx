@@ -41,6 +41,8 @@ import { PhoneAdapter } from './input/PhoneAdapter';
 import { GraceState, decideDisconnectAction, startGrace, tickGrace } from './coopDisconnect';
 import { getPlayerPresentation, getTeamPresentation, PLAYER_COLORS } from './playerPresentation';
 import { buildDebugSnapshot } from './debug/debugSnapshot';
+import { isDebugModeSearch, loadDebugStartConfig, saveDebugStartConfig } from './debug/debugMode';
+import type { DebugStartConfig } from '../shared/types';
 
 import {
   createLobbySlots,
@@ -85,6 +87,15 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const setPhase = useCallback((next: GamePhase) => {
     gamePhaseRef.current = next;
     setGamePhase(next);
+  }, []);
+  /** `?debug=1`: 무적·시작 조건·랭킹 미등록 판. 페이지를 여는 동안 바뀌지 않는다. */
+  const isDebugMode = useMemo(() => typeof window !== 'undefined' && isDebugModeSearch(window.location.search), []);
+  const [debugConfig, setDebugConfig] = useState<DebugStartConfig>(() => loadDebugStartConfig());
+  const debugConfigRef = useRef<DebugStartConfig>(debugConfig);
+  const updateDebugConfig = useCallback((cfg: DebugStartConfig) => {
+    debugConfigRef.current = cfg;
+    setDebugConfig(cfg);
+    saveDebugStartConfig(cfg);
   }, []);
   const [roomId, setRoomId] = useState<string>('');
   const roomIdRef = useRef<string>(roomId);
@@ -1039,6 +1050,8 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       playerCount = roster.playerCount;
       slotIndexMapRef.current = roster.map;
     }
+    engine.debugInvincible = isDebugMode;
+    engine.debugStart = isDebugMode ? debugConfigRef.current : null;
     engine.startGame({ withWeaponSelect: true, playerCount });
     const map = slotIndexMapRef.current;
     ([1, 2] as PlayerSlot[]).forEach((s) => {
@@ -1055,7 +1068,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const roomIdNow = roomIdRef.current;
-    const beginMsg = roomIdNow ? buildGameBegin(slotsRef.current, slotIndexMapRef.current, roomIdNow, beginId) : null;
+    const beginMsg = roomIdNow ? buildGameBegin(slotsRef.current, slotIndexMapRef.current, roomIdNow, beginId, isDebugMode ? debugConfigRef.current : undefined) : null;
     pendingBeginIdRef.current = beginMsg ? beginId : null;
     if (beginMsg) {
       const ws = wsRef.current;
@@ -1068,7 +1081,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
     preRunBestScoreRef.current = pairedPlayerRef.current?.bestScore ?? 0;
     setIsNewRecord(false);
     setCoopResult(null);
-  }, [engine, syncProcessors]);
+  }, [engine, syncProcessors, isDebugMode]);
   handleStartGameRef.current = handleStartGame;
 
   const startCountdownAndGame = useCallback(() => {
@@ -1752,6 +1765,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
           />
           <MonsterHpBarLayer ref={hpLayerRef} />
           <ArcadeOverlayHUD
+            isDebug={isDebugMode}
             lives={hudState.lives}
             maxLives={engine.maxLives}
             wave={hudState.wave}

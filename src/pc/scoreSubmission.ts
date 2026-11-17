@@ -3,7 +3,7 @@ import type { PlayerIndex } from './engine/PlayerCombatState';
 import { indexToSlot, SlotPair } from './coopSlots';
 import { getOrCreateDeviceId } from '../shared/deviceIdentity';
 import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
-import type { ClientToServerMessage, PlayerSlot, PlayRunStats } from '../shared/types';
+import type { ClientToServerMessage, DebugStartConfig, PlayerSlot, PlayRunStats } from '../shared/types';
 
 export type ScoreSubmitMessage = Extract<ClientToServerMessage, { type: 'GAME_SCORE_SUBMIT' }>;
 export type GameBeginMessage = Extract<ClientToServerMessage, { type: 'GAME_BEGIN' }>;
@@ -16,7 +16,8 @@ export function buildGameBegin(
   slots: SlotPair,
   map: Partial<Record<PlayerSlot, PlayerIndex>>,
   roomId: string,
-  beginId: string
+  beginId: string,
+  debug?: DebugStartConfig
 ): GameBeginMessage | null {
   const entries = ([1, 2] as PlayerSlot[]).filter((s) => map[s] !== undefined);
   if (entries.length === 0) return null;
@@ -28,7 +29,7 @@ export function buildGameBegin(
     if (!input || !deviceId) return null;
     players.push({ slot, deviceId, inputKind: input });
   }
-  return { type: 'GAME_BEGIN', roomId, beginId, mode: players.length === 2 ? 'coop' : 'solo', players };
+  return { type: 'GAME_BEGIN', roomId, beginId, mode: players.length === 2 ? 'coop' : 'solo', players, ...(debug ? { debug } : {}) };
 }
 
 /**

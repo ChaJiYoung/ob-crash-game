@@ -1,6 +1,6 @@
 # Task: T01 Debug Mode Wiring and HUD Badge
 
-## Status: pending
+## Status: done
 
 ## Goal
 `?debug=1`로 연 PC 화면에서 시작하는 판은 엔진 무적·시작 조건이 켜지고, GAME_BEGIN에 `debug`가 실려 서버에 디버그 판으로 저장되며, HUD에 `DEBUG · 무적` 배지가 보인다.
@@ -71,9 +71,9 @@
 - HUD: `isDebug` true일 때 `DEBUG · 무적` 텍스트 렌더(@testing-library 사용 방식은 `tests/ex-hud.test.ts` 따름).
 
 ## Acceptance Criteria
-- [ ] `?debug=1`에서 시작한 판은 엔진 무적·시작 조건이 켜지고 GAME_BEGIN에 `debug`가 실린다.
-- [ ] URL에 `debug=1`이 없으면 기존과 완전히 같다(`debug` 키 없음, 무적 꺼짐).
-- [ ] 디버그 판 HUD에 배지가 보인다.
+- [x] `?debug=1`에서 시작한 판은 엔진 무적·시작 조건이 켜지고 GAME_BEGIN에 `debug`가 실린다.
+- [x] URL에 `debug=1`이 없으면 기존과 완전히 같다(`debug` 키 없음, 무적 꺼짐).
+- [x] 디버그 판 HUD에 배지가 보인다.
 
 ## Validation
 - `npx vitest run tests/debug-mode.test.ts tests/coop-start-flow.test.ts tests/ex-hud.test.ts tests/pc-page-smoke.test.tsx` — 통과
@@ -94,6 +94,6 @@ Task: T01-debug-mode-wiring-and-hud-badge
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
+- [x] 구현 완료
+- [x] 검증 통과
 - commit: pending

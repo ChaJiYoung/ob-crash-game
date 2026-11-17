@@ -177,7 +177,11 @@ export interface ArcadeOverlayHUDProps {
   team: { livesTitle: string };
   onOpenGuide?: () => void;
   onPause?: () => void;
+  /** 디버그 판이면 좌하단에 `DEBUG · 무적` 배지. */
+  isDebug?: boolean;
 }
+
+export const DEBUG_BADGE_COLOR = 'rgba(234, 88, 12, 0.88)';
 
 /** 적용 중인 패시브 카드와 누적 수. 없으면 그리지 않는다. */
 export const PassiveCardBar: React.FC<{ cards: PassiveCardStack[] }> = ({ cards }) => {
@@ -224,6 +228,7 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
   team,
   onOpenGuide,
   onPause,
+  isDebug = false,
 }) => {
   const teamBuffs = activeBuffs.filter((b) => b.kind === 'ice_freeze');
 
@@ -242,6 +247,28 @@ export const ArcadeOverlayHUD: React.FC<ArcadeOverlayHUDProps> = ({
         userSelect: 'none',
       }}
     >
+      {isDebug && (
+        <div
+          data-testid="hud-debug-badge"
+          style={{
+            // 위쪽 여백(padding 24px) 안에 두어 다른 HUD 요소와 겹치지 않는다.
+            position: 'absolute',
+            top: '3px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '1px 10px',
+            borderRadius: '8px',
+            background: DEBUG_BADGE_COLOR,
+            color: '#fff',
+            fontSize: '12px',
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          DEBUG · 무적
+        </div>
+      )}
       {/* TOP BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         {/* TOP-LEFT: Lives (BAR DEFENSE) */}
