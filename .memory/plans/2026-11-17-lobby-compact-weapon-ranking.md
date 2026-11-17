@@ -7,4 +7,4 @@
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done ✅` | 플레이어별 최고 기록 기반 Top 10(종합·무기별·팀) 쿼리 및 WebSocket 페이로드 확장 | [P01](../phases/2026-11-17-lobby-compact-weapon-ranking/P01-backend-weapon-ranking/phase.md) |
-| P02 | `in_progress` | 랭킹 무기 필터 칩·10위 내부 스크롤 UI 적용 및 로비 세로 컴팩트화 | [P02](../phases/2026-11-17-lobby-compact-weapon-ranking/P02-frontend-lobby-ranking-ui/phase.md) |
+| P02 | `done ✅` | 랭킹 무기 필터 칩·10위 내부 스크롤 UI 적용 및 로비 세로 컴팩트화 | [P02](../phases/2026-11-17-lobby-compact-weapon-ranking/P02-frontend-lobby-ranking-ui/phase.md) |

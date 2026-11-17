@@ -19,15 +19,15 @@ export const LobbyNextStepBanner: React.FC<LobbyNextStepBannerProps> = ({ action
     style={{
       width: '100%',
       boxSizing: 'border-box',
-      marginBottom: '16px',
-      padding: '10px 16px',
-      borderRadius: '14px',
+      marginBottom: '10px',
+      padding: '7px 12px',
+      borderRadius: '12px',
       background: 'rgba(15, 23, 42, 0.65)',
       border: '1px solid rgba(255, 255, 255, 0.1)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'stretch',
-      gap: '6px',
+      gap: '4px',
     }}
   >
     {action.rows.map((row) => (

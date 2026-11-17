@@ -76,7 +76,7 @@ const SlotCard: React.FC<SlotCardProps> = ({
 
   useEffect(() => {
     if (!pairingUrl) return;
-    QRCode.toDataURL(pairingUrl, { width: 186, margin: 1 })
+    QRCode.toDataURL(pairingUrl, { width: 124, margin: 1 })
       .then((dataUrl) => setQrDataUrl(dataUrl))
       .catch((err) => console.error(`Failed to generate QR for slot ${slot}`, err));
   }, [pairingUrl, slot]);
@@ -125,16 +125,16 @@ const SlotCard: React.FC<SlotCardProps> = ({
         flex: 1,
         background: 'rgba(15, 23, 42, 0.7)',
         border: `2px solid ${color}`,
-        borderRadius: '16px',
-        padding: '20px',
+        borderRadius: '14px',
+        padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
         boxShadow: `0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 16px ${color}1a`,
-        minHeight: '340px',
+        minHeight: '220px',
       }}
     >
       {/* Slot Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
             style={{
@@ -160,9 +160,9 @@ const SlotCard: React.FC<SlotCardProps> = ({
         style={{
           display: 'flex',
           gap: '8px',
-          marginBottom: '18px',
+          marginBottom: '10px',
           background: 'rgba(30, 41, 59, 0.6)',
-          padding: '4px',
+          padding: '3px',
           borderRadius: '10px',
         }}
       >
@@ -171,10 +171,10 @@ const SlotCard: React.FC<SlotCardProps> = ({
           onClick={() => onChooseInput(slot, input === 'mobile' ? null : 'mobile')}
           style={{
             flex: 1,
-            padding: '8px 4px',
+            padding: '6px 4px',
             borderRadius: '8px',
             border: 'none',
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: 800,
             cursor: 'pointer',
             backgroundColor: input === 'mobile' ? color : 'transparent',
@@ -194,10 +194,10 @@ const SlotCard: React.FC<SlotCardProps> = ({
           }}
           style={{
             flex: 1,
-            padding: '8px 4px',
+            padding: '6px 4px',
             borderRadius: '8px',
             border: 'none',
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: 800,
             cursor: otherHasMouse || isPhoneLocked ? 'not-allowed' : 'pointer',
             opacity: otherHasMouse || isPhoneLocked ? 0.35 : 1,
@@ -223,11 +223,11 @@ const SlotCard: React.FC<SlotCardProps> = ({
         }}
       >
         {input === null && (
-          <div style={{ padding: '24px 12px' }}>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#e2e8f0', marginBottom: '8px' }}>
+          <div style={{ padding: '12px 8px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#e2e8f0', marginBottom: '6px' }}>
               입력 방식을 선택하세요
             </div>
-            <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
               📱 모바일은 QR 스캔, 🖱 마우스는 바로 사용
             </div>
           </div>
@@ -240,56 +240,56 @@ const SlotCard: React.FC<SlotCardProps> = ({
                 src={qrDataUrl}
                 alt={`Slot ${slot} QR Code`}
                 style={{
-                  width: '186px',
-                  height: '186px',
-                  borderRadius: '12px',
+                  width: '124px',
+                  height: '124px',
+                  borderRadius: '10px',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  marginBottom: '10px',
+                  marginBottom: '6px',
                 }}
               />
             ) : (
               <div
                 style={{
-                  width: '186px',
-                  height: '186px',
+                  width: '124px',
+                  height: '124px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: 'rgba(0, 0, 0, 0.2)',
-                  borderRadius: '12px',
+                  borderRadius: '10px',
                   color: '#94a3b8',
-                  fontSize: '12px',
-                  marginBottom: '10px',
+                  fontSize: '11px',
+                  marginBottom: '6px',
                 }}
               >
                 QR 생성 중...
               </div>
             )}
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#cbd5e1', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: '#cbd5e1', letterSpacing: '0.05em' }}>
               ROOM CODE: <span style={{ color: color }}>{roomId}</span>
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', maxWidth: '280px', wordBreak: 'break-all' }}>
+            <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px', maxWidth: '280px', wordBreak: 'break-all' }}>
               {pairingUrl}
             </div>
           </div>
         )}
 
         {input === 'mobile' && player && (
-          <div style={{ padding: '16px 12px' }}>
-            <div style={{ fontSize: '17px', fontWeight: 900, color: '#f8fafc', marginBottom: '10px' }}>
+          <div style={{ padding: '10px 8px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: '#f8fafc', marginBottom: '6px' }}>
               🔫 {player.nickname}님 접속 완료
             </div>
             {!isZeroCalibrated ? (
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#f59e0b' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#f59e0b' }}>
                 폰에서 영점을 맞춰 주세요
               </div>
             ) : (
-              <div style={{ fontSize: '15px', fontWeight: 900, color: '#4ade80' }}>
+              <div style={{ fontSize: '14px', fontWeight: 900, color: '#4ade80' }}>
                 🎯 영점 완료
               </div>
             )}
             {!isConnected && (
-              <div style={{ fontSize: '13px', fontWeight: 800, color: '#f87171', marginTop: '8px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#f87171', marginTop: '6px' }}>
                 연결이 끊어졌습니다. 다시 연결 중...
               </div>
             )}
@@ -299,9 +299,9 @@ const SlotCard: React.FC<SlotCardProps> = ({
         {input === 'mouse' && !player && (
           <form
             onSubmit={handleMouseSubmit}
-            style={{ width: '100%', maxWidth: '280px', padding: '12px 0' }}
+            style={{ width: '100%', maxWidth: '280px', padding: '8px 0' }}
           >
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#cbd5e1', marginBottom: '8px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#cbd5e1', marginBottom: '6px' }}>
               닉네임 입력 (2~10자)
             </div>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
@@ -350,19 +350,19 @@ const SlotCard: React.FC<SlotCardProps> = ({
         )}
 
         {input === 'mouse' && player && (
-          <div style={{ padding: '20px 12px' }}>
-            <div style={{ fontSize: '38px', marginBottom: '8px' }}>🖱️</div>
-            <div style={{ fontSize: '17px', fontWeight: 900, color: '#f8fafc', marginBottom: '6px' }}>
+          <div style={{ padding: '10px 8px' }}>
+            <div style={{ fontSize: '28px', marginBottom: '4px' }}>🖱️</div>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: '#f8fafc', marginBottom: '4px' }}>
               {player.nickname} · 마우스로 플레이
             </div>
-            <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
               좌클릭 발사 · 우클릭 스킬
             </div>
             <button
               type="button"
               data-testid={`mouse-nickname-edit-${slot}`}
               onClick={() => { setMouseNameInput(player.nickname); onEditMouseNickname(slot); }}
-              style={{ marginTop: '10px', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: '#cbd5e1', fontSize: '12px', cursor: 'pointer' }}
+              style={{ marginTop: '8px', padding: '5px 10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: '#cbd5e1', fontSize: '11px', cursor: 'pointer' }}
             >
               닉네임 변경
             </button>
@@ -448,7 +448,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         alignItems: 'safe center',
         justifyContent: 'center',
         overflowY: 'auto',
-        padding: '16px',
+        padding: '10px',
         boxSizing: 'border-box',
         zIndex: 100,
         fontFamily: "'Noto Sans KR', 'Inter', sans-serif",
@@ -460,14 +460,14 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         style={{
           width: '1120px',
           maxWidth: '95vw',
-          maxHeight: 'calc(100vh - 32px)',
+          maxHeight: 'calc(100vh - 20px)',
           overflowY: 'auto',
           boxSizing: 'border-box',
           margin: 'auto',
           background: 'linear-gradient(145deg, #131a29, #0d121c)',
           border: '2px solid rgba(245, 158, 11, 0.4)',
-          borderRadius: '24px',
-          padding: '32px 36px',
+          borderRadius: '20px',
+          padding: '16px 24px',
           boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(245, 158, 11, 0.2)',
           display: 'flex',
           flexDirection: 'column',
@@ -475,10 +475,10 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         }}
       >
         {/* Title */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
           <div
             style={{
-              fontSize: '32px',
+              fontSize: '24px',
               fontWeight: 900,
               background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
               WebkitBackgroundClip: 'text',
@@ -488,7 +488,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           >
             🍺 BEER CRUSHER 3D
           </div>
-          <div style={{ fontSize: '14px', color: '#cbd5e1', marginTop: '6px' }}>
+          <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '3px' }}>
             플레이어마다 입력 방식을 선택하세요. 한 명만 연결하면 1인 플레이, 둘 다 연결하면 2인 협동입니다.
           </div>
         </div>
@@ -497,7 +497,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         <LobbyNextStepBanner action={getLobbyNextAction(slots)} />
 
         {/* 1P / 2P Slot Cards */}
-        <div style={{ display: 'flex', gap: '20px', width: '100%', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '16px', width: '100%', marginBottom: '12px' }}>
           <SlotCard
             slotState={slots[0]}
             optional={isOptionalSlot(slots, 1)}
@@ -523,15 +523,15 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
         </div>
 
         {/* Lower Section: Left Leaderboard + Right Start/Actions */}
-        <div style={{ display: 'flex', gap: '24px', width: '100%' }}>
-          {/* Left: Top 5 Solo Ranking */}
+        <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+          {/* Left: Top 10 Solo/Team Ranking */}
           <div
             style={{
-              flex: '0 0 320px',
+              flex: '0 0 340px',
               backgroundColor: 'rgba(15, 23, 42, 0.65)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              padding: '16px 18px',
+              borderRadius: '14px',
+              padding: '12px 14px',
             }}
           >
             <RankingTabs
@@ -547,7 +547,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           </div>
 
           {/* Right: Start & Action Buttons */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '7px' }}>
             {unsupportedNotice && (
               <div
                 data-testid="unsupported-notice-chip"
@@ -578,12 +578,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                   data-testid="start-notice-chip"
                   style={{
                     flex: 1,
-                    padding: '16px',
+                    padding: '11px 14px',
                     borderRadius: '12px',
                     border: '2px solid #f59e0b',
                     background: 'rgba(245, 158, 11, 0.2)',
                     color: '#fbbf24',
-                    fontSize: '15px',
+                    fontSize: '14px',
                     fontWeight: 900,
                     textAlign: 'center',
                     display: 'flex',
@@ -606,12 +606,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                     startView.enabled
                       ? {
                           flex: 1,
-                          padding: '16px',
+                          padding: '11px 14px',
                           borderRadius: '12px',
                           border: '2px solid #f59e0b',
                           background: 'linear-gradient(135deg, #f59e0b, #d97706)',
                           color: '#000000',
-                          fontSize: '16px',
+                          fontSize: '15px',
                           fontWeight: 900,
                           cursor: 'pointer',
                           boxShadow: '0 0 24px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.25)',
@@ -623,12 +623,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                         }
                       : {
                           flex: 1,
-                          padding: '16px',
+                          padding: '11px 14px',
                           borderRadius: '12px',
                           border: '1px solid rgba(148, 163, 184, 0.25)',
                           background: 'rgba(30, 41, 59, 0.5)',
                           color: '#94a3b8',
-                          fontSize: '15px',
+                          fontSize: '14px',
                           fontWeight: 800,
                           cursor: 'not-allowed',
                           display: 'flex',
@@ -638,14 +638,14 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                         }
                   }
                 >
-                  <span style={startView.enabled ? { fontSize: '22px' } : undefined}>{startView.icon}</span>
+                  <span style={startView.enabled ? { fontSize: '18px' } : undefined}>{startView.icon}</span>
                   <span>{startView.label}</span>
                 </button>
               )}
             </div>
 
             {(onStartTutorial || onOpenGuide) && (
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 {onStartTutorial && (
                   <button
                     type="button"
@@ -655,12 +655,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                     onClick={startView.enabled ? onStartTutorial : undefined}
                     style={{
                       flex: 1,
-                      padding: '11px 8px',
-                      borderRadius: '12px',
+                      padding: '8px',
+                      borderRadius: '10px',
                       border: startView.enabled ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(148, 163, 184, 0.25)',
                       background: startView.enabled ? 'rgba(56, 189, 248, 0.1)' : 'rgba(30, 41, 59, 0.5)',
                       color: startView.enabled ? '#38bdf8' : '#94a3b8',
-                      fontSize: '13px',
+                      fontSize: '12px',
                       fontWeight: 800,
                       cursor: startView.enabled ? 'pointer' : 'not-allowed',
                       display: 'flex',
@@ -678,12 +678,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                     onClick={onOpenGuide}
                     style={{
                       flex: 1,
-                      padding: '11px 8px',
-                      borderRadius: '12px',
+                      padding: '8px',
+                      borderRadius: '10px',
                       border: '1px solid rgba(245, 158, 11, 0.35)',
                       background: 'rgba(245, 158, 11, 0.08)',
                       color: '#fbbf24',
-                      fontSize: '13px',
+                      fontSize: '12px',
                       fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
@@ -701,12 +701,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
 
             <div
               style={{
-                padding: '10px 12px',
+                padding: '7px 10px',
                 borderRadius: '10px',
                 background: 'rgba(15, 23, 42, 0.6)',
                 border: '1px solid rgba(148, 163, 184, 0.2)',
-                fontSize: '12px',
-                lineHeight: 1.7,
+                fontSize: '11px',
+                lineHeight: 1.45,
                 color: '#94a3b8',
               }}
             >
@@ -720,12 +720,12 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
                 onClick={onRenewRoom}
                 style={{
                   width: '100%',
-                  padding: '9px',
-                  borderRadius: '12px',
+                  padding: '7px',
+                  borderRadius: '10px',
                   border: '1px solid rgba(148, 163, 184, 0.35)',
                   background: 'rgba(148, 163, 184, 0.06)',
                   color: '#94a3b8',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 700,
                   cursor: 'pointer',
                 }}
@@ -734,7 +734,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
               </button>
             )}
 
-            <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+            <div style={{ fontSize: '10px', color: '#64748b', textAlign: 'center' }}>
               🔊 크롬/사파리 사운드가 들리지 않으면 화면을 마우스로 한 번 클릭해주세요.
             </div>
           </div>

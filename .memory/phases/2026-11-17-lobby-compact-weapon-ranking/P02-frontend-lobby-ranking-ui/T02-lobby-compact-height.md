@@ -1,6 +1,6 @@
 # Task: T02 Lobby Compact Height
 
-## Status: pending
+## Status: done
 
 ## Goal
 로비(`QRPairingModal`, `LobbyNextStepBanner`)의 세로 여백·패딩·QR 크기·카드 최소 높이를 컴팩트하게 줄여 노트북 화면에서도 모달 외곽 스크롤 없이 한 화면에 들어오도록 개선한다.
@@ -75,6 +75,6 @@ Task: T02-lobby-compact-height
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done
