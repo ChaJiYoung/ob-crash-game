@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { PlayerSlot, RunRankingEntry, TeamRankingEntry } from '../../shared/types';
+import { PlayerSlot, RunRankingEntry, TeamRankingEntry, WeaponRankingsMap } from '../../shared/types';
 import { PLAYER_COLORS, WEAPON_RANKING_LABEL } from '../../shared/constants';
 import { LobbyNextStepBanner } from './LobbyNextStepBanner';
 import { getLobbyNextAction, getStartButtonView, isOptionalSlot } from '../lobbyGuide';
@@ -21,6 +21,7 @@ export interface QRPairingModalProps {
   slots: SlotPair;
   startGate: StartGate;
   topRankings: RunRankingEntry[];
+  weaponRankings?: Partial<WeaponRankingsMap>;
   teamRankings?: TeamRankingEntry[];
   highlightTeamKey?: string;
   highlightDeviceIds?: string[];
@@ -378,6 +379,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
   slots,
   startGate,
   topRankings,
+  weaponRankings,
   teamRankings = [],
   highlightTeamKey,
   highlightDeviceIds,
@@ -534,6 +536,7 @@ export const QRPairingModal: React.FC<QRPairingModalProps> = ({
           >
             <RankingTabs
               soloRankings={topRankings}
+              weaponRankings={weaponRankings}
               teamRankings={teamRankings}
               activeTab={currentTab}
               onChangeTab={handleTabChange}

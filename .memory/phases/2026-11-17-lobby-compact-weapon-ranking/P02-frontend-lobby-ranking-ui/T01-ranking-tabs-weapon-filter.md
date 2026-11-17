@@ -1,6 +1,6 @@
 # Task: T01 RankingTabs Weapon Filter & Top 10 Scroll
 
-## Status: pending
+## Status: done
 
 ## Goal
 `RankingTabs`에 개인 랭킹용 무기 필터 칩(`종합` · `샷건` · `리볼버` · `개틀링`)과 개인/팀 10위 내부 스크롤을 구현하고, `PCGamePage` 및 `ResultRankingModal`과 연결한다.
@@ -94,6 +94,6 @@ Task: T01-ranking-tabs-weapon-filter
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

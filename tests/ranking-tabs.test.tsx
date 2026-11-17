@@ -230,4 +230,56 @@ describe('RankingTabs Component and Pure Helpers (P05-T07)', () => {
     expect(html.match(/data-testid="ranking-wave-clear"/g)).toHaveLength(1);
     expect(html.match(/data-testid="ranking-wave-dead"/g)).toHaveLength(1);
   });
+
+  it('renders up to 10 solo and team entries and shows weapon filter chips only in solo tab', () => {
+    const solo11: RunRankingEntry[] = Array.from({ length: 11 }, (_, i) => ({
+      deviceId: `dev-${i + 1}`,
+      nickname: `솔로${i + 1}호`,
+      score: 10000 - i * 100,
+      waveReached: 7,
+      weaponKind: 'shotgun',
+      playedAt: `2026-11-07T10:0${i}:00Z`,
+    }));
+
+    const soloHtml = renderToStaticMarkup(
+      React.createElement(RankingTabs, {
+        soloRankings: solo11,
+        teamRankings: [],
+        activeTab: 'solo',
+        compact: true,
+        onChangeTab: () => {},
+      })
+    );
+    expect(soloHtml).toContain('weapon-filter-bar');
+    expect(soloHtml).toContain('종합');
+    expect(soloHtml).toContain('샷건');
+    expect(soloHtml).toContain('리볼버');
+    expect(soloHtml).toContain('개틀링');
+    expect(soloHtml).toContain('솔로10호');
+    expect(soloHtml).not.toContain('솔로11호');
+
+    const team11: TeamRankingEntry[] = Array.from({ length: 11 }, (_, i) => ({
+      teamKey: `a${i}|b${i}`,
+      members: [
+        { deviceId: `a${i}`, nickname: `팀A${i + 1}번` },
+        { deviceId: `b${i}`, nickname: `팀B${i + 1}번` },
+      ],
+      teamScore: 20000 - i * 100,
+      waveReached: 7,
+      playedAt: `2026-11-07T11:0${i}:00Z`,
+    }));
+
+    const teamHtml = renderToStaticMarkup(
+      React.createElement(RankingTabs, {
+        soloRankings: [],
+        teamRankings: team11,
+        activeTab: 'team',
+        compact: true,
+        onChangeTab: () => {},
+      })
+    );
+    expect(teamHtml).not.toContain('weapon-filter-bar');
+    expect(teamHtml).toContain('팀A10번');
+    expect(teamHtml).not.toContain('팀A11번');
+  });
 });

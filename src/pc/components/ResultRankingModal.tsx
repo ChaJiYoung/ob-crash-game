@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CoopBestEntry, GamePhase, InputKind, PlayerProfile, RunRankingEntry, TeamRankingEntry, WeaponKind } from '../../shared/types';
+import { CoopBestEntry, GamePhase, InputKind, PlayerProfile, RunRankingEntry, TeamRankingEntry, WeaponKind, WeaponRankingsMap } from '../../shared/types';
 import { INPUT_KIND_ICON, INPUT_KIND_LABEL, WEAPON_RANKING_LABEL } from '../../shared/constants';
 import { RankingTabs, RankingTab } from './RankingTabs';
 
@@ -45,6 +45,7 @@ export interface ResultRankingModalProps {
   currentPlayer?: PlayerProfile;
   isNewRecord?: boolean;
   rankings: RunRankingEntry[];
+  weaponRankings?: Partial<WeaponRankingsMap>;
   teamRankings?: TeamRankingEntry[];
   highlightTeamKey?: string;
   highlightDeviceIds?: string[];
@@ -205,6 +206,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
   currentPlayer,
   isNewRecord,
   rankings,
+  weaponRankings,
   teamRankings = [],
   highlightTeamKey,
   highlightDeviceIds,
@@ -411,6 +413,7 @@ export const ResultRankingModal: React.FC<ResultRankingModalProps> = ({
         >
           <RankingTabs
             soloRankings={rankings}
+            weaponRankings={weaponRankings}
             teamRankings={teamRankings}
             activeTab={activeRankTab}
             onChangeTab={setActiveRankTab}

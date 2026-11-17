@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { InputKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind } from '../../shared/types';
+import React, { useEffect, useState } from 'react';
+import { InputKind, RunOutcome, RunRankingEntry, TeamRankingEntry, TeamRankingMember, WeaponKind, WeaponRankingFilter, WeaponRankingsMap } from '../../shared/types';
 import { INPUT_KIND_ICON, INPUT_KIND_LABEL, STAGE_CONSTANTS, WEAPON_RANKING_LABEL } from '../../shared/constants';
 
 /** 입력 장치 아이콘. 옛 기록(값 없음)은 아무것도 그리지 않는다. */
@@ -34,8 +34,16 @@ export function formatTeamMemberDetail(m: TeamRankingMember): string {
 
 export type RankingTab = 'solo' | 'team';
 
+const WEAPON_FILTERS: { key: WeaponRankingFilter; label: string }[] = [
+  { key: 'all', label: '종합' },
+  { key: 'shotgun', label: WEAPON_RANKING_LABEL.shotgun },
+  { key: 'revolver', label: WEAPON_RANKING_LABEL.revolver },
+  { key: 'gatling', label: WEAPON_RANKING_LABEL.gatling },
+];
+
 export interface RankingTabsProps {
   soloRankings: RunRankingEntry[];
+  weaponRankings?: Partial<WeaponRankingsMap>;
   teamRankings: TeamRankingEntry[];
   activeTab: RankingTab;
   onChangeTab: (tab: RankingTab) => void;
@@ -57,6 +65,7 @@ export function buildTeamKey(deviceA?: string, deviceB?: string): string | null 
 
 export const RankingTabs: React.FC<RankingTabsProps> = ({
   soloRankings,
+  weaponRankings,
   teamRankings,
   activeTab,
   onChangeTab,
@@ -64,6 +73,10 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
   highlightDeviceIds,
   compact = false,
 }) => {
+  const [weaponFilter, setWeaponFilter] = useState<WeaponRankingFilter>('all');
+  const visibleSoloRankings =
+    weaponFilter === 'all' ? soloRankings : (weaponRankings?.[weaponFilter] ?? []);
+
   // D38: 키보드 Tab 키로 탭 전환 (입력창에 포커스가 없을 때)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -147,8 +160,54 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
 
       {/* Tab Body: Solo Rankings */}
       {activeTab === 'solo' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '4px' : '6px' }}>
-          {soloRankings.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '6px' : '8px' }}>
+          <div
+            data-testid="weapon-filter-bar"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '4px',
+            }}
+          >
+            {WEAPON_FILTERS.map((f) => {
+              const selected = weaponFilter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  data-testid={`weapon-filter-${f.key}`}
+                  aria-pressed={selected}
+                  onClick={() => setWeaponFilter(f.key)}
+                  style={{
+                    flex: f.key === 'all' ? '0 0 auto' : 1,
+                    padding: compact ? '3px 7px' : '4px 9px',
+                    borderRadius: '999px',
+                    border: selected ? '1px solid #f59e0b' : '1px solid rgba(148, 163, 184, 0.25)',
+                    backgroundColor: selected ? 'rgba(245, 158, 11, 0.2)' : 'rgba(30, 41, 59, 0.45)',
+                    color: selected ? '#fbbf24' : '#94a3b8',
+                    fontSize: compact ? '10px' : '11px',
+                    fontWeight: selected ? 800 : 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+          <div
+            data-testid="solo-ranking-list"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: compact ? '4px' : '6px',
+              maxHeight: compact ? '210px' : '270px',
+              overflowY: 'auto',
+              paddingRight: '4px',
+            }}
+          >
+          {visibleSoloRankings.length === 0 ? (
             <div
               style={{
                 fontSize: compact ? '12px' : '13px',
@@ -157,7 +216,9 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
                 padding: compact ? '14px 0' : '20px 0',
               }}
             >
-              {compact ? (
+              {weaponFilter !== 'all' ? (
+                '아직 해당 무기 기록이 없습니다.'
+              ) : compact ? (
                 <>
                   아직 등록된 기록이 없습니다.
                   <br />
@@ -168,7 +229,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
               )}
             </div>
           ) : (
-            soloRankings.slice(0, 5).map((entry, index) => {
+            visibleSoloRankings.slice(0, 10).map((entry, index) => {
               const isHighlighted = highlightDeviceIds?.includes(entry.deviceId);
               return (
                 <div
@@ -232,12 +293,23 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
               );
             })
           )}
+          </div>
         </div>
       )}
 
       {/* Tab Body: Team Rankings */}
       {activeTab === 'team' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? '4px' : '6px' }}>
+        <div
+          data-testid="team-ranking-list"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: compact ? '4px' : '6px',
+            maxHeight: compact ? '210px' : '270px',
+            overflowY: 'auto',
+            paddingRight: '4px',
+          }}
+        >
           {teamRankings.length === 0 ? (
             <div
               style={{
@@ -250,7 +322,7 @@ export const RankingTabs: React.FC<RankingTabsProps> = ({
               아직 팀 기록이 없습니다.
             </div>
           ) : (
-            teamRankings.slice(0, 5).map((entry, index) => {
+            teamRankings.slice(0, 10).map((entry, index) => {
               const isHighlighted = highlightTeamKey && entry.teamKey === highlightTeamKey;
               const p1 = entry.members?.[0]?.nickname ?? '1P';
               const p2 = entry.members?.[1]?.nickname ?? '2P';

@@ -30,7 +30,7 @@ import {
   SensorTuningConfig,
 } from './components/MobileSensorLabModal';
 import { SoundSynthesizer } from './audio/SoundSynthesizer';
-import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, RunRankingEntry, ServerToClientMessage, TeamRankingEntry, WeaponKind, WeaponLevel } from '../shared/types';
+import { ActiveBuffState, GamePhase, JudgmentGrade, PlayerProfile, RunRankingEntry, ServerToClientMessage, TeamRankingEntry, WeaponKind, WeaponLevel, WeaponRankingsMap } from '../shared/types';
 import { STAGE_CONSTANTS, WEAPON_CONSTANTS } from '../shared/constants';
 import { RANKING_RULESET_VERSION } from '../shared/gameTuning';
 import { PlayerIndex } from './engine/PlayerCombatState';
@@ -130,6 +130,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
   const isControllerConnectedRef = useRef<boolean>(true);
   isControllerConnectedRef.current = isControllerConnected;
   const [topRankings, setTopRankings] = useState<RunRankingEntry[]>([]);
+  const [weaponRankings, setWeaponRankings] = useState<Partial<WeaponRankingsMap>>({});
   const [teamRankings, setTeamRankings] = useState<TeamRankingEntry[]>([]);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
@@ -544,6 +545,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             setRoomId(msg.roomId);
             saveRoomId(msg.roomId);
             if (msg.rankings) setTopRankings(msg.rankings);
+            if (msg.weaponRankings) setWeaponRankings(msg.weaponRankings);
             if (msg.teamRankings) setTeamRankings(msg.teamRankings);
             if (msg.lanIp) setLanIp(msg.lanIp);
             // 서버가 재시작되면 localPlayers가 비므로, 마우스 슬롯을 다시 조회해 서버 기록을 복구한다.
@@ -728,6 +730,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
 
           case 'RANKING_UPDATED':
             setTopRankings(msg.rankings);
+            if (msg.weaponRankings) setWeaponRankings(msg.weaponRankings);
             if (msg.teamRankings) setTeamRankings(msg.teamRankings);
             if (msg.updatedPlayer) {
               const up = msg.updatedPlayer;
@@ -1927,6 +1930,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             slots={slots}
             startGate={startGate}
             topRankings={topRankings}
+            weaponRankings={weaponRankings}
             teamRankings={teamRankings}
             highlightTeamKey={highlightTeamKey}
             highlightDeviceIds={highlightDeviceIds}
@@ -2034,6 +2038,7 @@ export const PCGamePage: React.FC<PCGamePageProps> = ({ initialPhase }) => {
             currentPlayer={pairedPlayer}
             isNewRecord={isNewRecord}
             rankings={topRankings}
+            weaponRankings={weaponRankings}
             teamRankings={teamRankings}
             highlightTeamKey={highlightTeamKey}
             highlightDeviceIds={highlightDeviceIds}
