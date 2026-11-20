@@ -13,3 +13,8 @@ data/
 # Azure 스크립트 로컬 설정 / 백업 파일
 scripts/azure/config.local.sh
 backups/
+
+# Installed agent skills & lock
+.agents/skills/modern-web-guidance/
+skills-lock.json
+
