@@ -4,7 +4,7 @@
 | Task | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | T01 | `done ✅` | `InstancedShadowPool` 구현 및 몬스터·아이템·투사체 바닥 그림자 일괄 렌더링 전환 | [T01](./T01-instanced-shadow-pool.md) |
-| T02 | `in_progress 🔵` | `TargetModels3D` 미캐싱 재질 공유화, `ShaderWarmup` 보완 및 빌드·성능 검증 | [T02](./T02-material-cache-and-perf-verify.md) |
+| T02 | `done ✅` | `TargetModels3D` 미캐싱 재질 공유화, `ShaderWarmup` 보완 및 빌드·성능 검증 | [T02](./T02-material-cache-and-perf-verify.md) |
 
 ## Progress
-- done: 1/2 (active: T02)
+- done: 2/2 (completed)

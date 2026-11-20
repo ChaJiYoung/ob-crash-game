@@ -494,14 +494,16 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
       pos.needsUpdate = true;
       return g;
     });
-    const waterlineMat = new THREE.MeshBasicMaterial({
-      map: getOrCreateChalangCutoutTexture(),
-      color: 0x1d6fa3,
-      transparent: true,
-      opacity: 0.85,
-      alphaTest: 0.05,
-      depthWrite: false,
-      side: THREE.DoubleSide,
+    const waterlineMat = getCachedMaterial('chalang-waterline-mat', () => {
+      return new THREE.MeshBasicMaterial({
+        map: getOrCreateChalangCutoutTexture(),
+        color: 0x1d6fa3,
+        transparent: true,
+        opacity: 0.85,
+        alphaTest: 0.05,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
     });
     const chalangWaterline = new THREE.Mesh(waterlineGeo, waterlineMat);
     chalangWaterline.name = 'chalangWaterline';

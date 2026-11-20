@@ -1,6 +1,6 @@
 # Task: T02 Material Cache, Warmup, and Performance Verification
 
-## Status: pending
+## Status: done
 
 ## Goal
 `TargetModels3D.ts`에서 피격/빙결 색 변화가 필요 없는 정적 재질(`chalangWaterline` 등)을 공유 캐시(`getCachedMaterial`)로 전환하고, `ShaderWarmup.ts`에 `InstancedShadowPool` 웜업을 포함해 스폰 시점 프레임 스파이크를 방지한 뒤, 전체 테스트·빌드 및 브라우저 프로파일링으로 최적화 효과를 검증한다.
@@ -62,6 +62,6 @@ Task: T02-material-cache-and-perf-verify
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

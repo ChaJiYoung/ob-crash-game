@@ -7,10 +7,10 @@
 [P02 Shadow Instancing and Material Cache](./phases/2026-11-20-monster-render-optimization/P02-shadow-instancing-and-cache/phase.md)
 
 ## Active Task
-[T02 Material Cache, Warmup, and Performance Verification](./phases/2026-11-20-monster-render-optimization/P02-shadow-instancing-and-cache/T02-material-cache-and-perf-verify.md)
+- 모든 Task 완료 (`P01 1/1, P02 2/2`)
 
 ## Status
-- P02-T01 완료 및 커밋됨, P02-T02 시작 준비
+- 전체 구현 완료, `npm test` 1163/1163 통과, `npm run build` 성공
 
 ## Next Step (IMPORTANT)
-T02 청사진을 읽고 `TargetModels3D.ts` 정적 재질 캐싱, `ShaderWarmup.ts` 보완 및 전체 빌드·성능 검증 진행
+없음 (필요 시 Azure VM 재배포 및 `CrosshairOverlay`/`ArcadeOverlayHUD` 추가 프로파일링 검토)

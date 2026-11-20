@@ -7,4 +7,4 @@ Chrome DevTools 프로파일링으로 확인된 몬스터 대량 스폰 시의 2
 | Phase | Status | Summary | Blueprint |
 | :--- | :--- | :--- | :--- |
 | P01 | `done ✅` | 몬스터 HP 바를 단일 2D `<canvas>` 오버레이로 교체하여 DOM 레이아웃 연산 0회 달성 | [P01](../phases/2026-11-20-monster-render-optimization/P01-hp-bar-canvas/phase.md) |
-| P02 | `in_progress` | 바닥 그림자 `InstancedMesh` 통합, 미캐싱 재질 공유화, 웜업/성능 실측 검증 | [P02](../phases/2026-11-20-monster-render-optimization/P02-shadow-instancing-and-cache/phase.md) |
+| P02 | `done ✅` | 바닥 그림자 `InstancedMesh` 통합, 미캐싱 재질 공유화, 웜업/성능 실측 검증 | [P02](../phases/2026-11-20-monster-render-optimization/P02-shadow-instancing-and-cache/phase.md) |

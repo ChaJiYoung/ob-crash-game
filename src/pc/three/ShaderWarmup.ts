@@ -9,6 +9,7 @@ import {
 } from './TargetModels3D';
 import { DraftTapGun3D } from './DraftTapGun3D';
 import { ParticleEffects3D } from './ParticleEffects3D';
+import { InstancedShadowPool } from './InstancedShadowPool';
 import { ItemBuffKind, TargetKind, WeaponKind } from '../../shared/types';
 
 const WARMUP_TARGET_KINDS: TargetKind[] = ['pilgood', 'caslight', 'obi', 'hanmac', 'bottle', 'boss', 'chalang'];
@@ -39,6 +40,12 @@ export function buildShaderAnchorGroup(particles: ParticleEffects3D): THREE.Grou
   });
 
   particles.createWarmupObjects().forEach((obj) => group.add(obj));
+
+  const warmupShadows = new InstancedShadowPool(1);
+  warmupShadows.beginFrame();
+  warmupShadows.pushShadow(0, 0, 1);
+  warmupShadows.endFrame();
+  group.add(warmupShadows.mesh);
 
   // 숨겨진 자식(쉴드, 프리즈 링, 록온)까지 컴파일 대상에 넣는다.
   group.traverse((o) => {
