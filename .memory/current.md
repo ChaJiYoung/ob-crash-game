@@ -1,16 +1,16 @@
 # Current Context
 
 ## Active Plan
-[Debug Mode](./plans/2026-11-17-debug-mode.md)
+[Monster Render Optimization](./plans/2026-11-20-monster-render-optimization.md)
 
 ## Active Phase
-[P03 PC Debug UI](./phases/2026-11-17-debug-mode/P03-pc-debug-ui/phase.md)
+[P02 Shadow Instancing and Material Cache](./phases/2026-11-20-monster-render-optimization/P02-shadow-instancing-and-cache/phase.md)
 
 ## Active Task
-- 모든 Task 완료 (`P01 2/2, P02 1/1, P03 3/3`)
+[T01 Instanced Shadow Pool](./phases/2026-11-20-monster-render-optimization/P02-shadow-instancing-and-cache/T01-instanced-shadow-pool.md)
 
 ## Status
-- 전체 구현 완료, `npm test` 1157/1157 통과, `npm run build` 성공
+- P01-T01 완료 및 커밋됨, P02-T01 시작 준비
 
 ## Next Step (IMPORTANT)
-없음 (실기기 플레이테스트로 패널·HUD 배지 위치, 디버그 판 종료 흐름 육안 확인)
+T01 청사진을 읽고 `src/pc/three/InstancedShadowPool.ts` 구현 및 `TargetModels3D.ts`, `GameCanvas3D.tsx` 연동 시작
