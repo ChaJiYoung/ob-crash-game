@@ -41,7 +41,7 @@ describe('boss cooler models', () => {
     (king.userData.inner as THREE.Group).scale.multiplyScalar(GAME_TUNING.boss.kingScale);
     const y = getTargetBaseY('boss') * GAME_TUNING.boss.kingScale;
     expect(Math.abs(bodyBottom(king, y))).toBeLessThan(0.05);
-    expect(y + king.userData.shadowMesh.position.y).toBeCloseTo(0.01, 5);
+    expect(king.userData.shadowRadius).toBeGreaterThan(0);
   });
 
   it('body colours are not shared, so frost on one boss cannot tint another', () => {

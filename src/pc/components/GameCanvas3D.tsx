@@ -4,6 +4,7 @@ import { computeRenderPixelRatio } from '../three/renderBudget';
 import { attachContextLossGuard, ContextLossGuard } from '../three/webglContextGuard';
 import { WebGLErrorOverlay, WebGLErrorReason } from './WebGLErrorOverlay';
 import { buildShaderAnchorGroup } from '../three/ShaderWarmup';
+import { InstancedShadowPool } from '../three/InstancedShadowPool';
 import { isPlungerBlastImminent } from '../three/plungerWarning';
 import { ActiveTargetEntity, BeerCrusherEngine, EngineShootResult } from '../engine/BeerCrusherEngine';
 import { buildBreweryStage3D, BreweryStageRig } from '../three/BreweryStage3D';
@@ -454,6 +455,8 @@ export const GameCanvas3D = React.memo(
       cameraRef.current = camera;
       scene.add(camera);
       scene.add(particles.group);
+      const shadowPool = new InstancedShadowPool();
+      scene.add(shadowPool.mesh);
 
       const syncGuns = () => {
         const specs =
@@ -642,6 +645,7 @@ export const GameCanvas3D = React.memo(
 
         // Add & update active target meshes (monsters, items, golden cans, projectiles, cards)
         const dropClock = engine.getEffectiveNowMs(time);
+        shadowPool.beginFrame();
         engine.activeTargets.forEach((target) => {
           let mesh = targetMeshMap.get(target.id);
           const needsAdd = !mesh || mesh.parent !== scene;
@@ -775,7 +779,16 @@ export const GameCanvas3D = React.memo(
           } else if (dropMarkers.has(target.id)) {
             releaseMarker(target.id);
           }
+
+          if (mesh.visible && !engine.isTargetSubmerged(target, time)) {
+            const shadowRadius = (mesh.userData.shadowRadius as number | undefined) ?? 0;
+            if (shadowRadius > 0) {
+              const mult = target.modelScaleMult && !target.isItem && !target.isProjectile ? target.modelScaleMult : 1;
+              shadowPool.pushShadow(mesh.position.x, mesh.position.z, shadowRadius * mult);
+            }
+          }
         });
+        shadowPool.endFrame();
 
         // Sync and update 3D guns for all players
         const aimLerpFactor = Math.min(1, dtSec * 28);
@@ -959,6 +972,9 @@ export const GameCanvas3D = React.memo(
         dropMarkers.clear();
         markerPool.forEach((marker) => disposeSceneGroup(marker as unknown as THREE.Group));
         markerPool.length = 0;
+
+        scene.remove(shadowPool.mesh);
+        shadowPool.dispose();
 
         if (shaderAnchors) {
           disposeSceneGroup(shaderAnchors);

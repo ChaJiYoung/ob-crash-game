@@ -1,6 +1,6 @@
 # Task: T01 Instanced Shadow Pool
 
-## Status: pending
+## Status: done
 
 ## Goal
 모든 몬스터·아이템·황금캔·투사체에 개별적으로 붙어 있던 바닥 원형 그림자(`shadowMesh`)를 씬 전체 단 1개의 `THREE.InstancedMesh`로 통합하여, 활성 객체 수만큼 증가하던 그림자 드로우콜을 매 프레임 1회로 압축한다.
@@ -93,6 +93,6 @@ Task: T01-instanced-shadow-pool
 ```
 
 ## Progress
-- [ ] 구현 완료
-- [ ] 검증 통과
-- commit: pending
+- [x] 구현 완료
+- [x] 검증 통과
+- commit: done

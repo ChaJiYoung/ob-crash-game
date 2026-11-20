@@ -364,25 +364,7 @@ export function getTargetBaseY(kind: TargetKind, isItem?: boolean): number {
   return 0.55; // Ground contact rolling altitude (bottle, obi, hanmac)
 }
 
-function createFloorShadowMesh(radius: number): THREE.Mesh {
-  const rounded = radius.toFixed(2);
-  const shadowGeo = getCachedGeometry(`shadow-geo-${rounded}`, () => {
-    const geo = new THREE.CircleGeometry(radius, 24);
-    geo.rotateX(-Math.PI / 2);
-    return geo;
-  });
-  const shadowMat = getCachedMaterial('shadow-mat', () => {
-    return new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.42,
-      depthWrite: false,
-    });
-  });
-  const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-  shadowMesh.name = 'DropShadow';
-  return shadowMesh;
-}
+
 
 let obLogoTexture: THREE.Texture | null = null;
 
@@ -409,12 +391,9 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
   const baseScale = spec.modelScale ?? 1.85;
   inner.scale.setScalar(baseScale);
 
-  // Floor-locked circular drop shadow (snapped directly to world ground y=0.01)
+  // 바닥 그림자는 씬 전체 InstancedShadowPool이 일괄 렌더링한다.
   const baseY = getTargetBaseY(kind);
-  const shadowMesh = createFloorShadowMesh(spec.hitRadiusM * 0.72);
-  // 대왕은 kingScale만큼 올려 세우므로 그림자도 그만큼 내려 바닥에 맞춘다.
-  shadowMesh.position.y = -(bossRole === 'king' ? baseY * GAME_TUNING.boss.kingScale : baseY) + 0.01;
-  root.add(shadowMesh);
+  const shadowRadius = spec.hitRadiusM * 0.72;
 
   const capMat = getCachedMaterial('target-cap-mat', () => {
     return new THREE.MeshStandardMaterial({
@@ -926,7 +905,7 @@ export function createTargetMesh3D(kind: TargetKind, bossRole?: 'cooler' | 'king
     wings,
     bossTapHandles: bossTapHandles || undefined,
     bossRole,
-    shadowMesh,
+    shadowRadius,
     lockOnMarker,
     frostRing,
     plungerStuckGroup,
@@ -952,11 +931,7 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
   const baseScale = 1.35;
   inner.scale.setScalar(baseScale);
 
-  // Floor-locked circular drop shadow (snapped directly to world ground y=0.01)
-  const itemBaseY = getTargetBaseY('bottle' as any, true);
-  const shadowMesh = createFloorShadowMesh(0.55);
-  shadowMesh.position.y = -itemBaseY + 0.01;
-  root.add(shadowMesh);
+  // 바닥 그림자는 씬 전체 InstancedShadowPool이 일괄 렌더링한다.
 
   // Rotating glowing aura torus ring
   const auraGeo = getCachedGeometry('item-aura-geo', () => new THREE.TorusGeometry(0.58, 0.035, 12, 32));
@@ -1098,7 +1073,7 @@ export function createItemMesh3D(itemKind: ItemBuffKind): THREE.Group {
     isItem: true,
     itemKind,
     inner,
-    shadowMesh,
+    shadowRadius: 0.55,
     auraRing,
     billboard,
     baseScale,
@@ -1134,11 +1109,6 @@ export function updateTargetAnimation3D(
 ): void {
   const inner = root.userData.inner as THREE.Group | undefined;
   if (!inner) return;
-
-  const shadowMesh = root.userData.shadowMesh as THREE.Mesh | undefined;
-  if (shadowMesh) {
-    shadowMesh.position.y = -root.position.y + 0.02;
-  }
 
   const isIceFreeze = Boolean(options?.isIceFreeze || options?.isSlowed);
   const isWideScope = Boolean(options?.isWideScope);
@@ -1218,9 +1188,7 @@ export function updateTargetAnimation3D(
   const frostRing = root.userData.frostRing as THREE.Mesh | undefined;
   if (frostRing) {
     frostRing.visible = isIceFreeze;
-    if (shadowMesh) {
-      frostRing.position.y = shadowMesh.position.y + 0.005;
-    }
+    frostRing.position.y = -root.position.y + 0.025;
     if (isIceFreeze) {
       frostRing.rotation.z = elapsedSec * 2.0;
     }
@@ -1318,12 +1286,7 @@ export function updateItemAnimation3D(
   elapsedSec: number
 ): void {
   const inner = root.userData.inner as THREE.Group | undefined;
-  const shadowMesh = root.userData.shadowMesh as THREE.Mesh | undefined;
   const auraRing = root.userData.auraRing as THREE.Mesh | undefined;
-
-  if (shadowMesh) {
-    shadowMesh.position.y = -root.position.y + 0.02;
-  }
 
   if (inner) {
     // 360 rotation & floating hover
@@ -1381,15 +1344,11 @@ export function createGoldenCanMesh3D(): THREE.Group {
   const auraRing = new THREE.Mesh(auraGeo, auraMat);
   inner.add(auraRing);
 
-  const shadowMesh = createFloorShadowMesh(0.65);
-  shadowMesh.position.y = -1.15 + 0.01;
-  root.add(shadowMesh);
-
   root.userData = {
     isGoldenCan: true,
     inner,
     auraRing,
-    shadowMesh,
+    shadowRadius: 0.65,
     baseScale: 1.85,
     hitRadiusM: 1.15,
   };
@@ -1466,14 +1425,10 @@ export function createProjectileMesh3D(): THREE.Group {
 
   inner.scale.setScalar(1.15);
 
-  const shadowMesh = createFloorShadowMesh(0.42);
-  shadowMesh.position.y = -GAME_TUNING.shell.baseY + 0.01;
-  root.add(shadowMesh);
-
   root.userData = {
     isProjectile: true,
     inner,
-    shadowMesh,
+    shadowRadius: 0.42,
     baseScale: 1.15,
     hitRadiusM: 0.95,
   };

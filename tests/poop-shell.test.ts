@@ -55,7 +55,7 @@ describe('enemy shells are brown poop, not shiny item orbs', () => {
     const expected = computeShellSpring(0.1, shell.id * 0.7);
     expect(inner.scale.y).toBeCloseTo(1.15 * expected.scaleY, 5);
     expect(inner.position.y).toBeCloseTo(1.15 * expected.liftY, 5);
-    expect(shell.userData.shadowMesh).toBeInstanceOf(THREE.Mesh);
+    expect(shell.userData.shadowRadius).toBeCloseTo(0.42, 3);
   });
 
   it('the hit zone follows the floor model, not a fixed screen height', () => {
